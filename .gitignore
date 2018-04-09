@@ -3,3 +3,15 @@
 .DS_Store
 
 *.swp
+
+
+# localDB
+localDB/
+vendor/
+Gopkg.lock
+
+# tendermint data
+/config/tendermint/RP/data
+/config/tendermint/IdP/data
+/config/tendermint/RP/config
+/config/tendermint/IdP/config
