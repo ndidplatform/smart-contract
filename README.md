@@ -137,3 +137,34 @@ curl -s 'localhost:45000/abci_query?data="R2V0UmVxdWVzdHx7DQogICJyZXF1ZXN0SWQiOi
   }
 }
 ```
+
+## CreateIdpResponse
+### Data
+```sh
+CreateIdpResponse|{
+  "requestId": "e3cb44c9-8848-4dec-98c8-8083f373b1f7",
+  "status": "accept",
+  "signature": "TEyMyINCiAgICB9DQogIF0sDQogICJpcCI6ICIxM"
+}|nonce1
+```
+### URI
+```sh
+curl -s 'localhost:45000/broadcast_tx_commit?tx="Q3JlYXRlSWRwUmVzcG9uc2V8ew0KICAicmVxdWVzdElkIjogImUzY2I0NGM5LTg4NDgtNGRlYy05OGM4LTgwODNmMzczYjFmNyIsDQogICJzdGF0dXMiOiAiYWNjZXB0IiwNCiAgInNpZ25hdHVyZSI6ICJURXlNeUlOQ2lBZ0lDQjlEUW9nSUYwc0RRb2dJQ0pwY0NJNklDSXhNIg0KfXxub25jZTE="'
+```
+### Result
+```sh
+{
+  "jsonrpc": "2.0",
+  "id": "",
+  "result": {
+    "check_tx": {
+      "fee": {}
+    },
+    "deliver_tx": {
+      "log": "success"
+    },
+    "hash": "9FB471CE265DB42BADA1FC6D3857A775C0877927",
+    "height": 4
+  }
+}
+```
