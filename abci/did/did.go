@@ -5,6 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	// "net/url"
+	"os"
 	"strings"
 
 	"github.com/tendermint/abci/example/code"
@@ -105,6 +108,10 @@ type Request struct {
 }
 
 type GetRequestParam struct {
+	RequestId string `json:"requestId"`
+}
+
+type RPCallback struct {
 	RequestId string `json:"requestId"`
 }
 
@@ -259,6 +266,34 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 				// Handle error can't marshal
 			}
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+
+			// callback to RP
+			uri := getEnv("RP_CALLBACK_URI", "")
+			if uri != "" {
+				fmt.Println("RP_CALLBACK_URI:" + uri)
+
+				var rpCallback RPCallback
+				rpCallback.RequestId = request.RequestId
+				data, err := json.Marshal(rpCallback)
+				if err != nil {
+					fmt.Println("error:", err)
+					// Handle error can't marshal
+				}
+
+				client := &http.Client{
+					CheckRedirect: func(req *http.Request, via []*http.Request) error {
+						return http.ErrUseLastResponse
+					},
+				}
+
+				req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
+				if err != nil {
+					// handle err
+				}
+				req.Header.Set("Content-Type", "application/json")
+				resp, _ := client.Do(req)
+				fmt.Println(resp.Status)
+			}
 		}
 
 		return types.ResponseDeliverTx{
@@ -374,4 +409,12 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (resQuery types.Re
 	}
 
 	return
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
 }

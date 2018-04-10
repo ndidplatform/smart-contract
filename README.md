@@ -16,7 +16,7 @@
 
 ## Run RP node
 1. open 2 terminal window
-1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `go run abci/server.go tcp://127.0.0.1:46001`
+1. `export RP_CALLBACK_URI=http://localhost:3001/callback` and then `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `go run abci/server.go tcp://127.0.0.1:46001`
 1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false`
 
 # Example
