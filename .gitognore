@@ -1,0 +1,15 @@
+
+# misc
+.DS_Store
+
+*.swp
+
+
+# localDB
+localDB/
+vendor/
+Gopkg.lock
+
+# tendermint data
+config/tendermint/IdP/data/
+config/tendermint/RP/data/
