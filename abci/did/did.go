@@ -353,6 +353,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (resQuery types.Re
 		key := "MsqDestination" + "|" + sid.Namespace + "|" + sid.Id
 		value := app.state.db.Get(prefixKey([]byte(key)))
 
+		if value == nil {
+			value = []byte("[]")
+		}
+
 		fmt.Println(string(value))
 		resQuery.Value = value
 
