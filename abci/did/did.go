@@ -101,7 +101,7 @@ type Request struct {
 	RequestId   string            `json:"requestId"`
 	MinIdp      int               `json:"minIdp"`
 	MessageHash string            `json:"messageHash"`
-	Responses   []RequestResponse `json:"response"`
+	Responses   []RequestResponse `json:"responses"`
 }
 
 type GetRequestParam struct {
@@ -111,6 +111,12 @@ type GetRequestParam struct {
 type GetRequestResponse struct {
 	Status      string `json:"status"`
 	MessageHash string `json:"messageHash"`
+}
+
+type CreateIdpResponseParam struct {
+	RequestId string `json:"requestId"`
+	Status    string `json:"status"`
+	Signature string `json:"signature"`
 }
 
 // ---- Data Structure ----
@@ -215,8 +221,46 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 			Code: code.CodeTypeOK,
 			Log:  fmt.Sprintf("success")}
 	} else if method == "CreateIdpResponse" {
-		fmt.Println("CreateIDPResponse")
-		// TODO add logic for store idp response
+		fmt.Println("CreateIdpResponse")
+
+		var response CreateIdpResponseParam
+		err := json.Unmarshal([]byte(param), &response)
+		if err != nil {
+			fmt.Println("error:", err)
+			// Handle error can't unmarshal
+		}
+
+		key := "Request" + "|" + response.RequestId
+		value := app.state.db.Get(prefixKey([]byte(key)))
+
+		var request Request
+		err = json.Unmarshal(value, &request)
+		if err != nil {
+			fmt.Println("error:", err)
+			// Handle error can't unmarshal
+		}
+
+		// add response to request
+		newResponse := RequestResponse{response.Status, response.Signature}
+		// Check duplicate before add
+		chkDup := false
+		for _, oldResponse := range request.Responses {
+			if newResponse == oldResponse {
+				chkDup = true
+				break
+			}
+		}
+
+		if chkDup == false {
+			request.Responses = append(request.Responses, newResponse)
+			value, err := json.Marshal(request)
+			if err != nil {
+				fmt.Println("error:", err)
+				// Handle error can't marshal
+			}
+			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		}
+
 		return types.ResponseDeliverTx{
 			Code: code.CodeTypeOK,
 			Log:  fmt.Sprintf("success")}
