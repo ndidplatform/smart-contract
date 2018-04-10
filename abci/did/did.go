@@ -75,7 +75,7 @@ type Sid struct {
 	Id        string `json:"id"`
 }
 
-type MsgDestination struct {
+type MsqDestination struct {
 	Users []Sid  `json:"users"`
 	Ip    string `json:"ip"`
 	Port  string `json:"port"`
@@ -130,17 +130,17 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	method := parts[0]
 	param := parts[1]
 
-	if method == "RegisterMsgDestination" {
-		fmt.Println("RegisterMsgDestination")
-		var msgDestination MsgDestination
-		err := json.Unmarshal([]byte(param), &msgDestination)
+	if method == "RegisterMsqDestination" {
+		fmt.Println("RegisterMsqDestination")
+		var msqDestination MsqDestination
+		err := json.Unmarshal([]byte(param), &msqDestination)
 		if err != nil {
 			fmt.Println("error:", err)
 			// Handle error can't unmarshal
 		}
 
-		for _, user := range msgDestination.Users {
-			key := "MsgDestination" + "|" + user.Namespace + "|" + user.Id
+		for _, user := range msqDestination.Users {
+			key := "MsqDestination" + "|" + user.Namespace + "|" + user.Id
 
 			chkExists := app.state.db.Get(prefixKey([]byte(key)))
 			if chkExists != nil {
@@ -152,7 +152,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 					// Handle error can't unmarshal
 				}
 
-				newAddress := Address{msgDestination.Ip, msgDestination.Port}
+				newAddress := Address{msqDestination.Ip, msqDestination.Port}
 				// Check duplicate before add
 				chkDup := false
 				for _, address := range addresss {
@@ -174,7 +174,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 
 			} else {
 				var addresss []Address
-				newAddress := Address{msgDestination.Ip, msgDestination.Port}
+				newAddress := Address{msqDestination.Ip, msqDestination.Port}
 				addresss = append(addresss, newAddress)
 				value, err := json.Marshal(addresss)
 				if err != nil {
@@ -262,8 +262,8 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (resQuery types.Re
 	method := parts[0]
 	param := parts[1]
 
-	if method == "GetMsgDestination" {
-		fmt.Println("GetMsgDestination")
+	if method == "GetMsqDestination" {
+		fmt.Println("GetMsqDestination")
 		var sid Sid
 		err := json.Unmarshal([]byte(param), &sid)
 		if err != nil {
@@ -271,7 +271,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (resQuery types.Re
 			// Handle error can't unmarshal
 		}
 
-		key := "MsgDestination" + "|" + sid.Namespace + "|" + sid.Id
+		key := "MsqDestination" + "|" + sid.Namespace + "|" + sid.Id
 		value := app.state.db.Get(prefixKey([]byte(key)))
 
 		fmt.Println(string(value))

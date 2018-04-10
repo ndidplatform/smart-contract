@@ -20,10 +20,10 @@
 1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false`
 
 # Example
-## RegisterMsgDestination
+## RegisterMsqDestination
 ### Data
  ```sh
-RegisterMsgDestination|{
+RegisterMsqDestination|{
   "users": [
     {
       "namespace": "cid",
@@ -37,7 +37,7 @@ RegisterMsgDestination|{
  
 ### URI
  ```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="UmVnaXN0ZXJNc2dEZXN0aW5hdGlvbnx7DQogICJ1c2VycyI6IFsNCiAgICB7DQogICAgICAibmFtZXNwYWNlIjogImNpZCIsDQogICAgICAiaWQiOiAiMDEyMzQ1Njc4OTEyMyINCiAgICB9DQogIF0sDQogICJpcCI6ICIxMjcuMC4wLjEiLA0KICAicG9ydCI6ICI1MDAwIg0KfXxub25jZTE="'
+curl -s 'localhost:45000/broadcast_tx_commit?tx="UmVnaXN0ZXJNc3FEZXN0aW5hdGlvbnx7DQogICJ1c2VycyI6IFsNCiAgICB7DQogICAgICAibmFtZXNwYWNlIjogImNpZCIsDQogICAgICAiaWQiOiAiMDEyMzQ1Njc4OTEyMyINCiAgICB9DQogIF0sDQogICJpcCI6ICIxMjcuMC4wLjEiLA0KICAicG9ydCI6ICI1MDAwIg0KfXxub25jZTE="'
  ```
  
 ### Result
@@ -58,17 +58,17 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="UmVnaXN0ZXJNc2dEZXN0aW5hdGlvbnx
 }
  ```
  
-## GetMsgDestination
+## GetMsqDestination
 ### Data
 ```sh
-GetMsgDestination|{
+GetMsqDestination|{
   "namespace": "cid",
   "id": "0123456789123"
 }
 ```
 ### URI
 ```sh
-curl -s 'localhost:45000/abci_query?data="R2V0TXNnRGVzdGluYXRpb258ew0KICAibmFtZXNwYWNlIjogImNpZCIsDQogICJpZCI6ICIwMTIzNDU2Nzg5MTIzIg0KfQ=="'
+curl -s 'localhost:45000/abci_query?data="R2V0TXNxRGVzdGluYXRpb258ew0KICAibmFtZXNwYWNlIjogImNpZCIsDQogICJpZCI6ICIwMTIzNDU2Nzg5MTIzIg0KfQ=="'
 ```
 ### Result
 ```sh
