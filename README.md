@@ -12,7 +12,7 @@
 ## Run IdP node
 1. open 2 terminal window
 1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `go run abci/server.go tcp://127.0.0.1:46000`
-1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `tendermint --home ./config/tendermint/IDP unsafe_reset_all && tendermint --home ./config/tendermint/IDP node --consensus.create_empty_blocks=false`
+1. `cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic` and then `tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false`
 
 ## Run RP node
 1. open 2 terminal window
