@@ -11,5 +11,5 @@ vendor/
 Gopkg.lock
 
 # tendermint data
-config/tendermint/RP/
-config/tendermint/IdP/
+config/tendermint/RP/*
+config/tendermint/IdP/*
