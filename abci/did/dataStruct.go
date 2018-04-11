@@ -57,3 +57,44 @@ type GetAccessorMethodResult struct {
 	AccessorKey  string `json:"accessor_key"`
 	Commitment   string `json:"commitment"`
 }
+
+type DataRequest struct {
+	ServiceID     string                 `json:"service_id"`
+	As            []string               `json:"as"`
+	Count         string                 `json:"count"`
+	RequestParams map[string]interface{} `json:"request_params"`
+}
+
+type Request struct {
+	RequestID       string        `json:"request_id"`
+	MinIdp          int           `json:"min_idp"`
+	MinAal          int           `json:"min_aal"`
+	MinIal          int           `json:"min_ial"`
+	Timeout         int           `json:"timeout"`
+	DataRequestList []DataRequest `json:"data_request_list"`
+	MessageHash     string        `json:"message_hash"`
+	Responses       []Response    `json:"responses"`
+}
+
+type Response struct {
+	RequestID     string `json:"request_id"`
+	Aal           int    `json:"aal"`
+	Ial           int    `json:"ial"`
+	Status        string `json:"status"`
+	Signature     string `json:"signature"`
+	AccessorID    string `json:"accessor_id"`
+	IdentityProof string `json:"identity_proof"`
+}
+
+type GetRequestParam struct {
+	RequestID string `json:"requestId"`
+}
+
+type GetRequestResult struct {
+	Status      string `json:"status"`
+	MessageHash string `json:"messageHash"`
+}
+
+type Callback struct {
+	RequestID string `json:"requestId"`
+}

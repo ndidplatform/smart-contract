@@ -20,6 +20,7 @@ func GetNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 
 	if value == nil {
 		value = []byte("[]")
+		return ReturnQuery(value, "not found")
 	} else {
 		var res GetNodePublicKeyPesult
 		res.PublicKey = string(value)
@@ -27,8 +28,8 @@ func GetNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 		if err != nil {
 			return ReturnQuery(nil, err.Error())
 		}
+		return ReturnQuery(value, "success")
 	}
-	return ReturnQuery(value, "success")
 }
 
 func GetMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
@@ -43,6 +44,7 @@ func GetMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 
 	if value == nil {
 		value = []byte("[]")
+		return ReturnQuery(value, "not found")
 	} else {
 		var nodes []Node
 		err := json.Unmarshal([]byte(value), &nodes)
@@ -61,8 +63,8 @@ func GetMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 		if err != nil {
 			return ReturnQuery(nil, err.Error())
 		}
+		return ReturnQuery(value, "success")
 	}
-	return ReturnQuery(value, "success")
 }
 
 func GetAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
@@ -77,6 +79,7 @@ func GetAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 
 	if value == nil {
 		value = []byte("")
+		return ReturnQuery(value, "not found")
 	} else {
 		var accessorMethod AccessorMethod
 		err := json.Unmarshal([]byte(value), &accessorMethod)
@@ -91,8 +94,58 @@ func GetAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 		if err != nil {
 			return ReturnQuery(nil, err.Error())
 		}
+		return ReturnQuery(value, "success")
 	}
-	return ReturnQuery(value, "success")
+}
+
+func GetRequest(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetRequest")
+	var funcParam GetRequestParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	key := "Request" + "|" + funcParam.RequestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found")
+	} else {
+
+		var request Request
+		err := json.Unmarshal([]byte(value), &request)
+		if err != nil {
+			return ReturnQuery(nil, err.Error())
+		}
+
+		status := "pending"
+		acceptCount := 0
+		for _, response := range request.Responses {
+			if response.Status == "accept" {
+				acceptCount++
+			} else if response.Status == "reject" {
+				status = "rejected"
+				break
+			}
+		}
+
+		if acceptCount >= request.MinIdp {
+			status = "completed"
+		}
+
+		var res GetRequestResult
+		res.Status = status
+		res.MessageHash = request.MessageHash
+
+		value, err = json.Marshal(res)
+		if err != nil {
+			return ReturnQuery(nil, err.Error())
+		}
+
+		return ReturnQuery(value, "success")
+	}
+
 }
 
 func ReturnQuery(value []byte, log string) types.ResponseQuery {
@@ -109,6 +162,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetNodePublicKey":  GetNodePublicKey,
 		"GetMsqDestination": GetMsqDestination,
 		"GetAccessorMethod": GetAccessorMethod,
+		"GetRequest":        GetRequest,
 	}
 	value, _ := CallQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

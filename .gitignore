@@ -4,6 +4,7 @@
 
 *.swp
 
+main.go
 
 # localDB
 localDB/

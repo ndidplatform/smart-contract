@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	// "net/http"
-	// "net/url"
 	"os"
 	"strings"
 

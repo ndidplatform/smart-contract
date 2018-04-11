@@ -3,7 +3,9 @@ package did
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/tendermint/abci/example/code"
 	"github.com/tendermint/abci/types"
@@ -97,6 +99,98 @@ func AddAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	return ReturnDeliverTxLog("success")
 }
 
+func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("CreateRequest")
+	var request Request
+	err := json.Unmarshal([]byte(param), &request)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+
+	key := "Request" + "|" + request.RequestID
+	value, err := json.Marshal(request)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	app.state.Size += 1
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	return ReturnDeliverTxLog("success")
+}
+
+func CreatIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("CreatIdpResponse")
+	var response Response
+	err := json.Unmarshal([]byte(param), &response)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+
+	key := "Request" + "|" + response.RequestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		return ReturnDeliverTxLog("Request ID not found")
+	} else {
+		var request Request
+		err := json.Unmarshal([]byte(value), &request)
+		if err != nil {
+			return ReturnDeliverTxLog(err.Error())
+		}
+
+		// Check duplicate before add
+		chkDup := false
+		for _, oldResponse := range request.Responses {
+			if response == oldResponse {
+				chkDup = true
+				break
+			}
+		}
+
+		if chkDup == false {
+			request.Responses = append(request.Responses, response)
+			value, err := json.Marshal(request)
+			if err != nil {
+				return ReturnDeliverTxLog(err.Error())
+			}
+			app.state.Size += 1
+			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+
+			// callback to RP
+			uri := getEnv("CALLBACK_URI", "")
+			if uri != "" {
+				fmt.Println("CALLBACK_URI:" + uri)
+
+				var callback Callback
+				callback.RequestID = request.RequestID
+				data, err := json.Marshal(callback)
+				if err != nil {
+					fmt.Println("error:", err)
+					return ReturnDeliverTxLog(err.Error())
+				}
+
+				client := &http.Client{
+					CheckRedirect: func(req *http.Request, via []*http.Request) error {
+						return http.ErrUseLastResponse
+					},
+				}
+
+				req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
+				if err != nil {
+					return ReturnDeliverTxLog(err.Error())
+				}
+				req.Header.Set("Content-Type", "application/json")
+				resp, _ := client.Do(req)
+				fmt.Println(resp.Status)
+			}
+
+			return ReturnDeliverTxLog("success")
+		} else {
+			return ReturnDeliverTxLog("Response duplicate")
+		}
+
+	}
+}
+
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
 		Code: code.CodeTypeOK,
@@ -109,6 +203,8 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"AddNodePublicKey":       AddNodePublicKey,
 		"RegisterMsqDestination": RegisterMsqDestination,
 		"AddAccessorMethod":      AddAccessorMethod,
+		"CreateRequest":          CreateRequest,
+		"CreatIdpResponse":       CreatIdpResponse,
 	}
 	value, _ := CallDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
