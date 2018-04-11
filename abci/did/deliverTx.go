@@ -117,8 +117,8 @@ func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("success")
 }
 
-func CreatIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
-	fmt.Println("CreatIdpResponse")
+func CreateIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("CreateIdpResponse")
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)
 	if err != nil {
@@ -204,7 +204,7 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"RegisterMsqDestination": RegisterMsqDestination,
 		"AddAccessorMethod":      AddAccessorMethod,
 		"CreateRequest":          CreateRequest,
-		"CreatIdpResponse":       CreatIdpResponse,
+		"CreateIdpResponse":       CreateIdpResponse,
 	}
 	value, _ := CallDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
