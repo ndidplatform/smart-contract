@@ -386,13 +386,13 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (resQuery types.Re
 			if response.Status == "accept" {
 				acceptCount++
 			} else if response.Status == "reject" {
-				status = "reject"
+				status = "rejected"
 				break
 			}
 		}
 
 		if acceptCount >= request.MinIdp {
-			status = "complete"
+			status = "completed"
 		}
 
 		var res GetRequestResponse
