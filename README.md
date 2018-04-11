@@ -59,158 +59,31 @@
     ```
 
 # Example
-## RegisterMsqDestination
-### Data
+### Receive input in BASE64
+## AddNodePublicKey
+### Input
  ```sh
-RegisterMsqDestination|{
-  "users": [
-    {
-      "namespace": "cid",
-      "id": "0123456789123"
-    }
-  ],
-  "ip": "127.0.0.1",
-  "port": "5000"
+AddNodePublicKey|{
+  "node_id": "IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0",
+  "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAABAQC+RP+svJPfeâ€¦"
 }|nonce1
  ```
  
-### URI
+### Expected Output
  ```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="UmVnaXN0ZXJNc3FEZXN0aW5hdGlvbnx7DQogICJ1c2VycyI6IFsNCiAgICB7DQogICAgICAibmFtZXNwYWNlIjogImNpZCIsDQogICAgICAiaWQiOiAiMDEyMzQ1Njc4OTEyMyINCiAgICB9DQogIF0sDQogICJpcCI6ICIxMjcuMC4wLjEiLA0KICAicG9ydCI6ICI1MDAwIg0KfXxub25jZTE="'
+log: "success"
+ ```
+
+ ## AddNodePublicKey
+### Input
+ ```sh
+AddNodePublicKey|{
+  "node_id": "IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0",
+  "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAABAQC+RP+svJPfeâ€¦"
+}|nonce1
  ```
  
-### Result
+### Expected Output
  ```sh
-{
-  "jsonrpc": "2.0",
-  "id": "",
-  "result": {
-    "check_tx": {
-      "fee": {}
-    },
-    "deliver_tx": {
-      "log": "success"
-    },
-    "hash": "450820781326A7CB7A8F5B05D10DE53212C6CDE7",
-    "height": 3
-  }
-}
+log: "success"
  ```
- 
-## GetMsqDestination
-### Data
-```sh
-GetMsqDestination|{
-  "namespace": "cid",
-  "id": "0123456789123"
-}
-```
-### URI
-```sh
-curl -s 'localhost:45000/abci_query?data="R2V0TXNxRGVzdGluYXRpb258ew0KICAibmFtZXNwYWNlIjogImNpZCIsDQogICJpZCI6ICIwMTIzNDU2Nzg5MTIzIg0KfQ=="'
-```
-### Result
-```sh
-{
-  "jsonrpc": "2.0",
-  "id": "",
-  "result": {
-    "response": {
-      "value": "W3siaXAiOiIxMjcuMC4wLjEiLCJwb3J0IjoiNTAwMCJ9XQ=="
-    }
-  }
-}
-```
-
-## CreateRequest
-### Data
-```sh
-CreateRequest|{
-  "requestId": "e3cb44c9-8848-4dec-98c8-8083f373b1f7",
-  "minIdp": 1,
-  "messageHash": "5727be55ab962ac4adcb3fb97c95ebad796132d95b2ed79b771fcbbe76dbfed5374713f71bfdbbf62f6815f119680b7e2355248fd67acfd5bf714ef17110a8c4"
-}|nonce1
-```
-### URI
-```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="Q3JlYXRlUmVxdWVzdHx7DQogICJyZXF1ZXN0SWQiOiAiZTNjYjQ0YzktODg0OC00ZGVjLTk4YzgtODA4M2YzNzNiMWY3IiwNCiAgIm1pbklkcCI6IDEsDQogICJtZXNzYWdlSGFzaCI6ICI1NzI3YmU1NWFiOTYyYWM0YWRjYjNmYjk3Yzk1ZWJhZDc5NjEzMmQ5NWIyZWQ3OWI3NzFmY2JiZTc2ZGJmZWQ1Mzc0NzEzZjcxYmZkYmJmNjJmNjgxNWYxMTk2ODBiN2UyMzU1MjQ4ZmQ2N2FjZmQ1YmY3MTRlZjE3MTEwYThjNCINCn18bm9uY2Ux"'
-```
-### Result
-```sh
-{
-  "jsonrpc": "2.0",
-  "id": "",
-  "result": {
-    "check_tx": {
-      "fee": {}
-    },
-    "deliver_tx": {
-      "log": "success"
-    },
-    "hash": "7DC457373CFD9FEB4D11AAEEAD7A0CBDCC2B0AF0",
-    "height": 5
-  }
-}
-```
-
-## GetRequest
-### Data
-```sh
-GetRequest|{
-  "requestId": "e3cb44c9-8848-4dec-98c8-8083f373b1f7"
-}
-```
-### URI
-```sh
-curl -s 'localhost:45000/abci_query?data="R2V0UmVxdWVzdHx7DQogICJyZXF1ZXN0SWQiOiAiZTNjYjQ0YzktODg0OC00ZGVjLTk4YzgtODA4M2YzNzNiMWY3Ig0KfQ=="'
-```
-### Result
-```sh
-{
-  "jsonrpc": "2.0",
-  "id": "",
-  "result": {
-    "response": {
-      "value": "eyJzdGF0dXMiOiJwZW5kaW5nIiwibWVzc2FnZUhhc2giOiI1NzI3YmU1NWFiOTYyYWM0YWRjYjNmYjk3Yzk1ZWJhZDc5NjEzMmQ5NWIyZWQ3OWI3NzFmY2JiZTc2ZGJmZWQ1Mzc0NzEzZjcxYmZkYmJmNjJmNjgxNWYxMTk2ODBiN2UyMzU1MjQ4ZmQ2N2FjZmQ1YmY3MTRlZjE3MTEwYThjNCJ9"
-    }
-  }
-}
-```
-```sh
-{
-  "status": "complete",
-  "messageHash" : "hash('Please allow...')"
-}
-
-```
-
-## CreateIdpResponse
-### Data
-```sh
-CreateIdpResponse|{
-  "requestId": "e3cb44c9-8848-4dec-98c8-8083f373b1f7",
-  "status": "accept",
-  "signature": "TEyMyINCiAgICB9DQogIF0sDQogICJpcCI6ICIxM"
-}|nonce1
-```
-### URI
-```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="Q3JlYXRlSWRwUmVzcG9uc2V8ew0KICAicmVxdWVzdElkIjogImUzY2I0NGM5LTg4NDgtNGRlYy05OGM4LTgwODNmMzczYjFmNyIsDQogICJzdGF0dXMiOiAiYWNjZXB0IiwNCiAgInNpZ25hdHVyZSI6ICJURXlNeUlOQ2lBZ0lDQjlEUW9nSUYwc0RRb2dJQ0pwY0NJNklDSXhNIg0KfXxub25jZTE="'
-```
-### Result
-```sh
-{
-  "jsonrpc": "2.0",
-  "id": "",
-  "result": {
-    "check_tx": {
-      "fee": {}
-    },
-    "deliver_tx": {
-      "log": "success"
-    },
-    "hash": "9FB471CE265DB42BADA1FC6D3857A775C0877927",
-    "height": 4
-  }
-}
-```
