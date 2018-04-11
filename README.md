@@ -176,6 +176,13 @@ curl -s 'localhost:45000/abci_query?data="R2V0UmVxdWVzdHx7DQogICJyZXF1ZXN0SWQiOi
   }
 }
 ```
+```sh
+{
+  "status": "complete",
+  "messageHash" : "hash('Please allow...')"
+}
+
+```
 
 ## CreateIdpResponse
 ### Data
