@@ -4,20 +4,23 @@
 - Tendermint 0.16.0
 - [Install Tendermint](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/) by following [installation instructions.](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/install.html)  
   **Important**: After running `go get github.com/tendermint/tendermint/cmd/tendermint`, you need to change tendermint cloned source to version 0.16.0 before continuing the installation)
-  ```
-  cd $GOPATH/src/github.com/tendermint/tendermint
-  git checkout v0.16.0
-  ```
+  
+    ```
+    cd $GOPATH/src/github.com/tendermint/tendermint
+    git checkout v0.16.0
+    ```
 
 # Setup
 1. Get dependency (tendermint ABCI)
     ```
     go get -u github.com/tendermint/abci/cmd/abci-cli
     ```
+
 1. Create an directory for the project
     ```
     mkdir -p $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
     ```
+
 1. Clone the project
     ```
     git clone git@repo.blockfint.com:digital-id/ndid-node-logic.git $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
@@ -30,6 +33,7 @@
 
     go run abci/server.go tcp://127.0.0.1:46000
     ```
+
 1. Run tendermint
     ```
     cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
@@ -44,6 +48,7 @@
 
     RP_CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
     ```
+
 1. Run tendermint
     ```
     cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
