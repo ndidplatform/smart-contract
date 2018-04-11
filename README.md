@@ -1,8 +1,10 @@
 # Prerequisites
 - Go version >= 1.9.2
-- [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
+  - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
+  - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
+  
 - Tendermint 0.16.0
-- [Install Tendermint](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/) by following [installation instructions.](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/install.html)  
+  - [Install Tendermint](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/) by following [installation instructions.](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/install.html)  
   **Important**: After running `go get github.com/tendermint/tendermint/cmd/tendermint`, you need to change tendermint cloned source to version 0.16.0 before continuing the installation)
   
     ```
