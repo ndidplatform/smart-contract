@@ -48,7 +48,7 @@
     ```
     cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
 
-    RP_CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
+    CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
     ```
 
 1. Run tendermint

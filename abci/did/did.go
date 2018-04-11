@@ -111,7 +111,7 @@ type GetRequestParam struct {
 	RequestId string `json:"requestId"`
 }
 
-type RPCallback struct {
+type Callback struct {
 	RequestId string `json:"requestId"`
 }
 
@@ -268,13 +268,13 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
 			// callback to RP
-			uri := getEnv("RP_CALLBACK_URI", "")
+			uri := getEnv("CALLBACK_URI", "")
 			if uri != "" {
-				fmt.Println("RP_CALLBACK_URI:" + uri)
+				fmt.Println("CALLBACK_URI:" + uri)
 
-				var rpCallback RPCallback
-				rpCallback.RequestId = request.RequestId
-				data, err := json.Marshal(rpCallback)
+				var callback Callback
+				callback.RequestId = request.RequestId
+				data, err := json.Marshal(callback)
 				if err != nil {
 					fmt.Println("error:", err)
 					// Handle error can't marshal
