@@ -63,6 +63,8 @@
 
 # Example
 ### Receive input in BASE64
+### Additional note when run on multiple machines ###
+Please edit `seeds` in config/tendermint/{RP or IdP}/config/config.toml to match address of another machines
 ## AddNodePublicKey
 ### Input
  ```sh
