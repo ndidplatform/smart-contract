@@ -27,13 +27,13 @@ tendermint ABCI app
     go get -u github.com/tendermint/abci/cmd/abci-cli
     ```
 
-1.  Create an directory for the project
+2.  Create an directory for the project
 
     ```sh
     mkdir -p $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
     ```
 
-1.  Clone the project
+3.  Clone the project
     ```sh
     git clone git@repo.blockfint.com:digital-id/ndid-smart-contract.git $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
     ```
@@ -51,7 +51,7 @@ tendermint ABCI app
     CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46000
     ```
 
-1.  Run tendermint
+2.  Run tendermint
 
     ```sh
     cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
@@ -72,7 +72,7 @@ tendermint ABCI app
     CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
     ```
 
-1.  Run tendermint
+2.  Run tendermint
 
     ```sh
     cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
@@ -80,14 +80,19 @@ tendermint ABCI app
     tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
     ```
 
-## Examples
+## IMPORTANT NOTE
+1.  You must start both IDP and RP node in order to run the plat form.
+2.  After start BOTH nodes, please wait for
+    ```
+    Commit
+    Commit
+    ```
+    to show in first terminal (`go run abci ...`) of both processes before start `ndid-api` processes.
 
-### Receive input in BASE64
+3.  When IDP node and RP node run on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
-### Additional note when run on multiple machines
-
-Please edit `seeds` in config/tendermint/{RP or IdP}/config/config.toml to match address of another machines
-
+## Technical details to connect with `ndid-api`
+Interact with `ndid-api` in BASE64 format data.
 ## AddNodePublicKey
 
 ### Input
