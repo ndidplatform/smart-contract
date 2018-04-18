@@ -114,33 +114,33 @@ func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	}
 	app.state.Size += 1
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-  // callback to IDP
-  uri := getEnv("CALLBACK_URI", "")
-  if uri != "" {
-    fmt.Println("CALLBACK_URI:" + uri)
+	// callback to IDP
+	uri := getEnv("CALLBACK_URI", "")
+	if uri != "" {
+		fmt.Println("CALLBACK_URI:" + uri)
 
-    var callback Callback
-    callback.RequestID = request.RequestID
-    data, err := json.Marshal(callback)
-    if err != nil {
-      fmt.Println("error:", err)
-      return ReturnDeliverTxLog(err.Error())
-    }
+		var callback Callback
+		callback.RequestID = request.RequestID
+		data, err := json.Marshal(callback)
+		if err != nil {
+			fmt.Println("error:", err)
+			return ReturnDeliverTxLog(err.Error())
+		}
 
-    client := &http.Client{
-      CheckRedirect: func(req *http.Request, via []*http.Request) error {
-        return http.ErrUseLastResponse
-      },
-    }
+		client := &http.Client{
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
 
-    req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
-    if err != nil {
-      return ReturnDeliverTxLog(err.Error())
-    }
-    req.Header.Set("Content-Type", "application/json")
-    resp, _ := client.Do(req)
-    fmt.Println(resp.Status)
-  }
+		req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
+		if err != nil {
+			return ReturnDeliverTxLog(err.Error())
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, _ := client.Do(req)
+		fmt.Println(resp.Status)
+	}
 	return ReturnDeliverTxLog("success")
 }
 
@@ -231,7 +231,7 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"RegisterMsqDestination": RegisterMsqDestination,
 		"AddAccessorMethod":      AddAccessorMethod,
 		"CreateRequest":          CreateRequest,
-		"CreateIdpResponse":       CreateIdpResponse,
+		"CreateIdpResponse":      CreateIdpResponse,
 	}
 	value, _ := CallDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
