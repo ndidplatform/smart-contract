@@ -20,18 +20,18 @@
 
 1. Create an directory for the project
     ```
-    mkdir -p $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    mkdir -p $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
     ```
 
 1. Clone the project
     ```
-    git clone git@repo.blockfint.com:digital-id/ndid-node-logic.git $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    git clone git@repo.blockfint.com:digital-id/ndid-smart-contract.git $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
     ```
 
 ## Run IdP node
 1. Run ABCI server
     ```
-    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46000
 
@@ -41,7 +41,7 @@
 
 1. Run tendermint
     ```
-    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
 
     tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
     ```
@@ -49,7 +49,7 @@
 ## Run RP node
 1. Run ABCI server
     ```
-    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
 
@@ -59,7 +59,7 @@
 
 1. Run tendermint
     ```
-    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-node-logic
+    cd $GOPATH/src/repo.blockfint.com/digital-id/ndid-smart-contract
 
     tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
     ```
