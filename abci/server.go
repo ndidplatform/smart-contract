@@ -1,7 +1,6 @@
 package main
 
 import (
-	"./did"
 	"fmt"
 	"os"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/tendermint/abci/types"
 	cmn "github.com/tendermint/tmlibs/common"
 	tdmLog "github.com/tendermint/tmlibs/log"
+	"repo.blockfint.com/digital-id/ndid-smart-contract/abci/did"
 )
 
 func main() {
