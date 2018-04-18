@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/digital-id/ndid-smart-contract/abci/did"
 	"github.com/fatih/color"
 	server "github.com/tendermint/abci/server"
 	"github.com/tendermint/abci/types"
 	cmn "github.com/tendermint/tmlibs/common"
 	tdmLog "github.com/tendermint/tmlibs/log"
-	"repo.blockfint.com/digital-id/ndid-smart-contract/abci/did"
 )
 
 func main() {
