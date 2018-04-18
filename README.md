@@ -27,7 +27,7 @@ tendermint ABCI app
     go get -u github.com/tendermint/abci/cmd/abci-cli
     ```
 
-2.  Create an directory for the project
+2.  Create a directory for the project
 
     ```sh
     mkdir -p $GOPATH/src/github.com/digital-id/ndid-smart-contract
@@ -88,8 +88,8 @@ tendermint ABCI app
 
 ## IMPORTANT NOTE
 
-1.  You must start both IDP and RP node in order to run the plat form.
-2.  After start BOTH nodes, please wait for
+1.  You must start both IDP and RP node in order to run the platform.
+2.  After starting BOTH nodes, please wait for
 
     ```
     Commit
