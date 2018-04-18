@@ -46,8 +46,11 @@ tendermint ABCI app
     cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46000
+    ```
 
-    Ex.
+    Example
+
+    ```sh
     CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46000
     ```
 
