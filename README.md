@@ -88,7 +88,7 @@ tendermint ABCI app
 
 ## IMPORTANT NOTE
 
-1.  You must start both IDP and RP node in order to run the platform.
+1.  You must start both IDP and RP nodes in order to run the platform.
 2.  After starting BOTH nodes, please wait for
 
     ```
@@ -96,7 +96,7 @@ tendermint ABCI app
     Commit
     ```
 
-    to show in first terminal (`go run abci ...`) of both processes before start `ndid-api` processes.
+    to show in the first terminal (`go run abci ...`) of both processes before starting `ndid-api` processes.
 
 3.  When IDP node and RP node run on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
