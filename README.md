@@ -67,8 +67,11 @@ tendermint ABCI app
     cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
+    ```
 
-    Ex.
+    Example
+
+    ```sh
     CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
     ```
 
@@ -81,18 +84,23 @@ tendermint ABCI app
     ```
 
 ## IMPORTANT NOTE
+
 1.  You must start both IDP and RP node in order to run the plat form.
 2.  After start BOTH nodes, please wait for
+
     ```
     Commit
     Commit
     ```
+
     to show in first terminal (`go run abci ...`) of both processes before start `ndid-api` processes.
 
 3.  When IDP node and RP node run on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
 ## Technical details to connect with `ndid-api`
+
 Interact with `ndid-api` in BASE64 format data.
+
 ## AddNodePublicKey
 
 ### Input
