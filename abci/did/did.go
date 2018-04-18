@@ -69,7 +69,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 
 func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	fmt.Println("DeliverTx")
-	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx)," ","+",-1));
+	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
@@ -106,7 +106,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuer
 	fmt.Println("Query")
 	fmt.Println(string(reqQuery.Data))
 
-	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(reqQuery.Data)," ","+",-1))
+	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(reqQuery.Data), " ", "+", -1))
 	if err != nil {
 		ReturnQuery(nil, err.Error())
 	}
