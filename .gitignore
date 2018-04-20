@@ -17,7 +17,7 @@ config/tendermint/RP/data/
 config/tendermint/AS/data/
 config/tendermint/IdP/config/*
 config/tendermint/RP/config/*
-config/tendermint/AS/config/*
 
+config/tendermint/AS/
 ndid.postman_collection.json
 test.txt
