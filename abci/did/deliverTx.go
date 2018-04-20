@@ -245,56 +245,19 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		return ReturnDeliverTxLog(err.Error())
 	}
 
-	// key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
-	// chkExists := app.state.db.Get(prefixKey([]byte(key)))
-	// for _, user := range funcParam.Users {
-	// 	key := "ServiceDestination" + "|" + user.HashID
-	// 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
-
-	// 	if chkExists != nil {
-	// 		var nodes []Node
-	// 		err = json.Unmarshal([]byte(chkExists), &nodes)
-	// 		if err != nil {
-	// 			return ReturnDeliverTxLog(err.Error())
-	// 		}
-
-	// 		newNode := Node{user.Ial, funcParam.NodeID}
-	// 		// Check duplicate before add
-	// 		chkDup := false
-	// 		for _, node := range nodes {
-	// 			if newNode == node {
-	// 				chkDup = true
-	// 				break
-	// 			}
-	// 		}
-
-	// 		if chkDup == false {
-	// 			nodes = append(nodes, newNode)
-	// 			value, err := json.Marshal(nodes)
-	// 			if err != nil {
-	// 				return ReturnDeliverTxLog(err.Error())
-	// 			}
-	// 			app.state.Size++
-	// 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	// 		}
-
-	// 	} else {
-	// 		var nodes []Node
-	// 		newNode := Node{user.Ial, funcParam.NodeID}
-	// 		nodes = append(nodes, newNode)
-	// 		value, err := json.Marshal(nodes)
-	// 		if err != nil {
-	// 			return ReturnDeliverTxLog(err.Error())
-	// 		}
-	// 		app.state.Size++
-	// 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	// 	}
-	// }
-
+	key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
+	var node GetServiceDestinationResult
+	node.NodeID = funcParam.NodeID
+	value, err := json.Marshal(node)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
 }
 
-// ReturnDeliverTxLog return ResponseDeliverTx
+// ReturnDeliverTxLog return types.ResponseDeliverTx
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
 		Code: code.CodeTypeOK,

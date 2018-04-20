@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func GetNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
+func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetNodePublicKey")
 	var funcParam GetNodePublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -32,7 +32,7 @@ func GetNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	}
 }
 
-func GetMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
+func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetMsqDestination")
 	var funcParam GetMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -67,7 +67,7 @@ func GetMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	}
 }
 
-func GetAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
+func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetAccessorMethod")
 	var funcParam GetAccessorMethodParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -98,7 +98,7 @@ func GetAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 	}
 }
 
-func GetRequest(param string, app *DIDApplication) types.ResponseQuery {
+func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetRequest")
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -148,7 +148,7 @@ func GetRequest(param string, app *DIDApplication) types.ResponseQuery {
 
 }
 
-func GetRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
+func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetRequestDetail")
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -166,6 +166,25 @@ func GetRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	}
 }
 
+func getServiceDestination(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetServiceDestination")
+	var funcParam GetServiceDestinationParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found")
+	} else {
+		return ReturnQuery(value, "success")
+	}
+}
+
+// ReturnQuery return types.ResponseQuery
 func ReturnQuery(value []byte, log string) types.ResponseQuery {
 	fmt.Println(string(value))
 	var res types.ResponseQuery
@@ -174,20 +193,21 @@ func ReturnQuery(value []byte, log string) types.ResponseQuery {
 	return res
 }
 
-// Pointer to function
+// QueryRouter is Pointer to function
 func QueryRouter(method string, param string, app *DIDApplication) types.ResponseQuery {
 	funcs := map[string]interface{}{
-		"GetNodePublicKey":  GetNodePublicKey,
-		"GetMsqDestination": GetMsqDestination,
-		"GetAccessorMethod": GetAccessorMethod,
-		"GetRequest":        GetRequest,
-		"GetRequestDetail":  GetRequestDetail,
+		"GetNodePublicKey":      getNodePublicKey,
+		"GetMsqDestination":     getMsqDestination,
+		"GetAccessorMethod":     getAccessorMethod,
+		"GetRequest":            getRequest,
+		"GetRequestDetail":      getRequestDetail,
+		"GetServiceDestination": getServiceDestination,
 	}
-	value, _ := CallQuery(funcs, method, param, app)
+	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)
 }
 
-func CallQuery(m map[string]interface{}, name string, param string, app *DIDApplication) (result []reflect.Value, err error) {
+func callQuery(m map[string]interface{}, name string, param string, app *DIDApplication) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
 	in := make([]reflect.Value, 2)
 	in[0] = reflect.ValueOf(param)

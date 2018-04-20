@@ -107,6 +107,15 @@ type SignDataParam struct {
 
 type RegisterServiceDestinationParam struct {
 	AsID        string `json:"as_id"`
-	AsServiceID string `json:"as_service_id"`
+	AsServiceID string `json:"service_id"`
 	NodeID      string `json:"node_id"`
+}
+
+type GetServiceDestinationParam struct {
+	AsID        string `json:"as_id"`
+	AsServiceID string `json:"service_id"`
+}
+
+type GetServiceDestinationResult struct {
+	NodeID string `json:"node_id"`
 }
