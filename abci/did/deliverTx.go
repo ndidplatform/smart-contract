@@ -184,7 +184,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
 			// sleep for wait write DB
-			duration := time.Duration(1) * time.Second
+			duration := time.Duration(3) * time.Second
 			time.Sleep(duration)
 			// callback to RP
 			uri := getEnv("CALLBACK_URI", "")
