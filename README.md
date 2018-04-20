@@ -294,3 +294,22 @@ CreatIdpResponse|{
 ```sh
 log: "success"
 ```
+
+## GetRequestDetail
+
+### Input
+
+```sh
+GetRequestDetail|{
+ "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+
+### Expected Output
+
+```sh
+{
+ "status": "complete",
+ "messageHash" : "hash('Please allow...')"
+}
+```

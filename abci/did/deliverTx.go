@@ -11,7 +11,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func AddNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx {
+func addNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("AddNodePublicKey")
 	var nodePublicKey NodePublicKey
 	err := json.Unmarshal([]byte(param), &nodePublicKey)
@@ -21,12 +21,12 @@ func AddNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx
 
 	key := "NodePublicKey" + "|" + nodePublicKey.NodeID
 	value := nodePublicKey.PublicKey
-	app.state.Size += 1
+	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
 }
 
-func RegisterMsqDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
+func registerMsqDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqDestination")
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -61,7 +61,7 @@ func RegisterMsqDestination(param string, app *DIDApplication) types.ResponseDel
 				if err != nil {
 					return ReturnDeliverTxLog(err.Error())
 				}
-				app.state.Size += 1
+				app.state.Size++
 				app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 			}
 
@@ -73,7 +73,7 @@ func RegisterMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			if err != nil {
 				return ReturnDeliverTxLog(err.Error())
 			}
-			app.state.Size += 1
+			app.state.Size++
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		}
 	}
@@ -81,7 +81,7 @@ func RegisterMsqDestination(param string, app *DIDApplication) types.ResponseDel
 	return ReturnDeliverTxLog("success")
 }
 
-func AddAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverTx {
+func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("AddAccessorMethod")
 	var accessorMethod AccessorMethod
 	err := json.Unmarshal([]byte(param), &accessorMethod)
@@ -94,12 +94,12 @@ func AddAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
-	app.state.Size += 1
+	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
 }
 
-func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
+func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("CreateRequest")
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
@@ -112,7 +112,7 @@ func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
-	app.state.Size += 1
+	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	// callback to IDP
 	uri := getEnv("CALLBACK_URI", "")
@@ -144,7 +144,7 @@ func CreateRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("success")
 }
 
-func CreateIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
+func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("CreateIdpResponse")
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)
@@ -179,7 +179,7 @@ func CreateIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 			if err != nil {
 				return ReturnDeliverTxLog(err.Error())
 			}
-			app.state.Size += 1
+			app.state.Size++
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
 			// callback to RP
@@ -218,26 +218,47 @@ func CreateIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 	}
 }
 
+func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("SignData")
+	var signData SignDataParam
+	err := json.Unmarshal([]byte(param), &signData)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+
+	key := "SignData" + "|" + signData.Signature
+	value, err := json.Marshal(signData)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	return ReturnDeliverTxLog("success")
+}
+
+// ReturnDeliverTxLog return ResponseDeliverTx
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
 		Code: code.CodeTypeOK,
 		Log:  fmt.Sprintf(log)}
 }
 
-// Pointer to function
+// DeliverTxRouter is Pointer to function
 func DeliverTxRouter(method string, param string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
-		"AddNodePublicKey":       AddNodePublicKey,
-		"RegisterMsqDestination": RegisterMsqDestination,
-		"AddAccessorMethod":      AddAccessorMethod,
-		"CreateRequest":          CreateRequest,
-		"CreateIdpResponse":      CreateIdpResponse,
+		"AddNodePublicKey":       addNodePublicKey,
+		"RegisterMsqDestination": registerMsqDestination,
+		"AddAccessorMethod":      addAccessorMethod,
+		"CreateRequest":          createRequest,
+		"CreateIdpResponse":      createIdpResponse,
+		"SignData":               signData,
 	}
-	value, _ := CallDeliverTx(funcs, method, param, app)
+	value, _ := callDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
 }
 
-func CallDeliverTx(m map[string]interface{}, name string, param string, app *DIDApplication) (result []reflect.Value, err error) {
+func callDeliverTx(m map[string]interface{}, name string, param string, app *DIDApplication) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
 	in := make([]reflect.Value, 2)
 	in[0] = reflect.ValueOf(param)

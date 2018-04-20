@@ -98,3 +98,9 @@ type GetRequestResult struct {
 type Callback struct {
 	RequestID string `json:"requestId"`
 }
+
+type SignDataParam struct {
+	AsID      string `json:"as_id"`
+	RequestID string `json:"request_id"`
+	Signature string `json:"signature"`
+}

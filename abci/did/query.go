@@ -148,6 +148,24 @@ func GetRequest(param string, app *DIDApplication) types.ResponseQuery {
 
 }
 
+func GetRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetRequestDetail")
+	var funcParam GetRequestParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	key := "Request" + "|" + funcParam.RequestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found")
+	} else {
+		return ReturnQuery(value, "success")
+	}
+}
+
 func ReturnQuery(value []byte, log string) types.ResponseQuery {
 	fmt.Println(string(value))
 	var res types.ResponseQuery
@@ -163,6 +181,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetMsqDestination": GetMsqDestination,
 		"GetAccessorMethod": GetAccessorMethod,
 		"GetRequest":        GetRequest,
+		"GetRequestDetail":  GetRequestDetail,
 	}
 	value, _ := CallQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

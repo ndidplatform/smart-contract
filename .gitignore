@@ -14,5 +14,12 @@ Gopkg.lock
 # tendermint data
 config/tendermint/IdP/data/
 config/tendermint/RP/data/
+config/tendermint/AS/data/
 config/tendermint/IdP/config/*
 config/tendermint/RP/config/*
+config/tendermint/AS/config/*
+
+
+docker/
+ndid.postman_collection.json
+test.txt
