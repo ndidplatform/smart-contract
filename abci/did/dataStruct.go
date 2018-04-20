@@ -104,3 +104,9 @@ type SignDataParam struct {
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`
 }
+
+type RegisterServiceDestinationParam struct {
+	AsID        string `json:"as_id"`
+	AsServiceID string `json:"as_service_id"`
+	NodeID      string `json:"node_id"`
+}

@@ -237,6 +237,63 @@ func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("success")
 }
 
+func registerServiceDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("RegisterServiceDestination")
+	var funcParam RegisterServiceDestinationParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+
+	// key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
+	// chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	// for _, user := range funcParam.Users {
+	// 	key := "ServiceDestination" + "|" + user.HashID
+	// 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	// 	if chkExists != nil {
+	// 		var nodes []Node
+	// 		err = json.Unmarshal([]byte(chkExists), &nodes)
+	// 		if err != nil {
+	// 			return ReturnDeliverTxLog(err.Error())
+	// 		}
+
+	// 		newNode := Node{user.Ial, funcParam.NodeID}
+	// 		// Check duplicate before add
+	// 		chkDup := false
+	// 		for _, node := range nodes {
+	// 			if newNode == node {
+	// 				chkDup = true
+	// 				break
+	// 			}
+	// 		}
+
+	// 		if chkDup == false {
+	// 			nodes = append(nodes, newNode)
+	// 			value, err := json.Marshal(nodes)
+	// 			if err != nil {
+	// 				return ReturnDeliverTxLog(err.Error())
+	// 			}
+	// 			app.state.Size++
+	// 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	// 		}
+
+	// 	} else {
+	// 		var nodes []Node
+	// 		newNode := Node{user.Ial, funcParam.NodeID}
+	// 		nodes = append(nodes, newNode)
+	// 		value, err := json.Marshal(nodes)
+	// 		if err != nil {
+	// 			return ReturnDeliverTxLog(err.Error())
+	// 		}
+	// 		app.state.Size++
+	// 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	// 	}
+	// }
+
+	return ReturnDeliverTxLog("success")
+}
+
 // ReturnDeliverTxLog return ResponseDeliverTx
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
@@ -247,12 +304,13 @@ func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 // DeliverTxRouter is Pointer to function
 func DeliverTxRouter(method string, param string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
-		"AddNodePublicKey":       addNodePublicKey,
-		"RegisterMsqDestination": registerMsqDestination,
-		"AddAccessorMethod":      addAccessorMethod,
-		"CreateRequest":          createRequest,
-		"CreateIdpResponse":      createIdpResponse,
-		"SignData":               signData,
+		"AddNodePublicKey":           addNodePublicKey,
+		"RegisterMsqDestination":     registerMsqDestination,
+		"AddAccessorMethod":          addAccessorMethod,
+		"CreateRequest":              createRequest,
+		"CreateIdpResponse":          createIdpResponse,
+		"SignData":                   signData,
+		"RegisterServiceDestination": registerServiceDestination,
 	}
 	value, _ := callDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
