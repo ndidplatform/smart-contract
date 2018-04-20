@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/tendermint/abci/example/code"
 	"github.com/tendermint/abci/types"
@@ -182,6 +183,9 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 			app.state.Size++
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
+			// sleep for wait write DB
+			duration := time.Duration(1) * time.Second
+			time.Sleep(duration)
 			// callback to RP
 			uri := getEnv("CALLBACK_URI", "")
 			if uri != "" {
