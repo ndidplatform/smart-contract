@@ -85,10 +85,34 @@ tendermint ABCI app
 
     tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
     ```
+    
+### Run AS node
+
+1.  Run ABCI server
+
+    ```sh
+    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+
+    CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
+    ```
+
+    Example
+
+    ```sh
+    CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46002
+    ```
+
+2.  Run tendermint
+
+    ```sh
+    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+
+    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
+    ```
 
 ## IMPORTANT NOTE
 
-1.  You must start both IDP and RP nodes in order to run the platform.
+1.  You must start IDP, RP and AS nodes in order to run the platform.
 2.  After starting BOTH nodes, please wait for
 
     ```
