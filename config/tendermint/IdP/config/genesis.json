@@ -19,15 +19,6 @@
       },
       "power": 10,
       "name": "IdP"
-    },
-    {
-      "pub_key": {
-        "type": "ed25519",
-        "data":
-          "4822E5A09364AD954AF7BB7DA081A79B53C44B5B0FB63B47DDB1CFBBFA07D413"
-      },
-      "power": 10,
-      "name": "AS"
     }
   ],
   "app_hash": ""
