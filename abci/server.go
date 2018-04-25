@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/digital-id/ndid-smart-contract/abci/did"
+	"github.com/ndidplatform/smart-contract/abci/did"
 	"github.com/fatih/color"
 	server "github.com/tendermint/abci/server"
 	"github.com/tendermint/abci/types"

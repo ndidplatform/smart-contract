@@ -30,12 +30,12 @@ tendermint ABCI app
 2.  Create a directory for the project
 
     ```sh
-    mkdir -p $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    mkdir -p $GOPATH/src/github.com/ndidplatform/smart-contract
     ```
 
 3.  Clone the project
     ```sh
-    git clone https://github.com/ndidplatform/ndid-smart-contract.git $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    git clone https://github.com/ndidplatform/smart-contract.git $GOPATH/src/github.com/ndidplatform/smart-contract
     ```
 
 ### Run IdP node
@@ -43,7 +43,7 @@ tendermint ABCI app
 1.  Run ABCI server
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46000
     ```
@@ -57,7 +57,7 @@ tendermint ABCI app
 2.  Run tendermint
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
     ```
@@ -67,7 +67,7 @@ tendermint ABCI app
 1.  Run ABCI server
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
     ```
@@ -81,7 +81,7 @@ tendermint ABCI app
 2.  Run tendermint
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
     ```
@@ -91,7 +91,7 @@ tendermint ABCI app
 1.  Run ABCI server
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
     ```
@@ -105,7 +105,7 @@ tendermint ABCI app
 2.  Run tendermint
 
     ```sh
-    cd $GOPATH/src/github.com/digital-id/ndid-smart-contract
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
     ```
