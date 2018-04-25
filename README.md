@@ -2,6 +2,16 @@
 
 tendermint ABCI app
 
+## Note
+
+The repo was renamed at 25 Apr 2018 and local go-path was changed from digital-id to ndidplatform.
+For anyone who cloned this project before 25 Apr 2018, do as follows:
+
+```sh
+mkdir -p $GOPATH/src/github.com/ndidplatform
+mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/ndidplatform/smart-contract
+```
+
 ## Prerequisites
 
 * Go version >= 1.9.2
