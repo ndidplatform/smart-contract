@@ -119,3 +119,7 @@ type GetServiceDestinationParam struct {
 type GetServiceDestinationResult struct {
 	NodeID string `json:"node_id"`
 }
+
+type InitNDIDParam struct {
+	PublicKey string `json:"public_key"`
+}

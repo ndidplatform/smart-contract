@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/tendermint/abci/example/code"
+	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 )
 
@@ -257,6 +257,17 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 	return ReturnDeliverTxLog("success")
 }
 
+func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("InitNDID")
+	var funcParam InitNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	app.state.Owner = []byte(funcParam.PublicKey)
+	return ReturnDeliverTxLog("success")
+}
+
 // ReturnDeliverTxLog return types.ResponseDeliverTx
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
@@ -267,6 +278,7 @@ func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 // DeliverTxRouter is Pointer to function
 func DeliverTxRouter(method string, param string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
+		"InitNDID":                   initNDID,
 		"AddNodePublicKey":           addNodePublicKey,
 		"RegisterMsqDestination":     registerMsqDestination,
 		"AddAccessorMethod":          addAccessorMethod,

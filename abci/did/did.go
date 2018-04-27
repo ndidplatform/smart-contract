@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tendermint/abci/example/code"
 	"github.com/tendermint/abci/types"
 	dbm "github.com/tendermint/tmlibs/db"
 )
@@ -23,6 +22,7 @@ type State struct {
 	Size    int64  `json:"size"`
 	Height  int64  `json:"height"`
 	AppHash []byte `json:"app_hash"`
+	Owner   []byte
 }
 
 // TO DO save state as DB file
@@ -88,7 +88,21 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 
 func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	fmt.Println("CheckTx")
-	return types.ResponseCheckTx{Code: code.CodeTypeOK}
+	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
+	if err != nil {
+		// return ReturnDeliverTxLog(err.Error())
+	}
+	fmt.Println(string(txString))
+	parts := strings.Split(string(txString), "|")
+
+	method := parts[0]
+	param := parts[1]
+
+	if method != "" {
+		return CheckTxRouter(method, param, app)
+	} else {
+		return ReturnCheckTx(false)
+	}
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
