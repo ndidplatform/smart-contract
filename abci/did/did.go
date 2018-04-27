@@ -97,9 +97,11 @@ func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 	method := parts[0]
 	param := parts[1]
+	signature := parts[2]
+	publicKey := parts[3]
 
 	if method != "" {
-		return CheckTxRouter(method, param, app)
+		return CheckTxRouter(method, param, signature, publicKey, app)
 	} else {
 		return ReturnCheckTx(false)
 	}
