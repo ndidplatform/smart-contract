@@ -8,7 +8,11 @@ import (
 )
 
 func checkTxInitNDID(param string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(true)
+	if app.state.Owner == nil {
+		return ReturnCheckTx(true)
+	} else {
+		return ReturnCheckTx(false)
+	}
 }
 
 // ReturnCheckTx return types.ResponseDeliverTx
