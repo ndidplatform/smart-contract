@@ -46,7 +46,7 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(value, "not found")
 	}
 	var nodes []Node
-	err := json.Unmarshal([]byte(value), &nodes)
+	err = json.Unmarshal([]byte(value), &nodes)
 	if err != nil {
 		return ReturnQuery(nil, err.Error())
 	}
@@ -80,7 +80,7 @@ func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(value, "not found")
 	}
 	var accessorMethod AccessorMethod
-	err := json.Unmarshal([]byte(value), &accessorMethod)
+	err = json.Unmarshal([]byte(value), &accessorMethod)
 	if err != nil {
 		return ReturnQuery(nil, err.Error())
 	}
@@ -110,7 +110,7 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(value, "not found")
 	}
 	var request Request
-	err := json.Unmarshal([]byte(value), &request)
+	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnQuery(nil, err.Error())
 	}

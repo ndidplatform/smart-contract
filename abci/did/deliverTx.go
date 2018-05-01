@@ -160,7 +160,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		return ReturnDeliverTxLog("Request ID not found")
 	}
 	var request Request
-	err := json.Unmarshal([]byte(value), &request)
+	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
