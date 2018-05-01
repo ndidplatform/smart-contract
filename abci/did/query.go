@@ -44,26 +44,25 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	if value == nil {
 		value = []byte("[]")
 		return ReturnQuery(value, "not found")
-	} else {
-		var nodes []Node
-		err := json.Unmarshal([]byte(value), &nodes)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-
-		var returnNodes GetMsqDestinationResult
-		for _, node := range nodes {
-			if node.Ial >= funcParam.MinIal {
-				returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
-			}
-		}
-
-		value, err = json.Marshal(returnNodes)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-		return ReturnQuery(value, "success")
 	}
+	var nodes []Node
+	err := json.Unmarshal([]byte(value), &nodes)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+
+	var returnNodes GetMsqDestinationResult
+	for _, node := range nodes {
+		if node.Ial >= funcParam.MinIal {
+			returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+		}
+	}
+
+	value, err = json.Marshal(returnNodes)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	return ReturnQuery(value, "success")
 }
 
 func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
@@ -79,22 +78,21 @@ func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found")
-	} else {
-		var accessorMethod AccessorMethod
-		err := json.Unmarshal([]byte(value), &accessorMethod)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-		var res GetAccessorMethodResult
-		res.AccessorType = accessorMethod.AccessorType
-		res.AccessorKey = accessorMethod.AccessorKey
-		res.Commitment = accessorMethod.Commitment
-		value, err = json.Marshal(res)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-		return ReturnQuery(value, "success")
 	}
+	var accessorMethod AccessorMethod
+	err := json.Unmarshal([]byte(value), &accessorMethod)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	var res GetAccessorMethodResult
+	res.AccessorType = accessorMethod.AccessorType
+	res.AccessorKey = accessorMethod.AccessorKey
+	res.Commitment = accessorMethod.Commitment
+	value, err = json.Marshal(res)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	return ReturnQuery(value, "success")
 }
 
 func getRequest(param string, app *DIDApplication) types.ResponseQuery {
@@ -110,41 +108,38 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found")
-	} else {
-
-		var request Request
-		err := json.Unmarshal([]byte(value), &request)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-
-		status := "pending"
-		acceptCount := 0
-		for _, response := range request.Responses {
-			if response.Status == "accept" {
-				acceptCount++
-			} else if response.Status == "reject" {
-				status = "rejected"
-				break
-			}
-		}
-
-		if acceptCount >= request.MinIdp {
-			status = "completed"
-		}
-
-		var res GetRequestResult
-		res.Status = status
-		res.MessageHash = request.MessageHash
-
-		value, err = json.Marshal(res)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-
-		return ReturnQuery(value, "success")
+	}
+	var request Request
+	err := json.Unmarshal([]byte(value), &request)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
 	}
 
+	status := "pending"
+	acceptCount := 0
+	for _, response := range request.Responses {
+		if response.Status == "accept" {
+			acceptCount++
+		} else if response.Status == "reject" {
+			status = "rejected"
+			break
+		}
+	}
+
+	if acceptCount >= request.MinIdp {
+		status = "completed"
+	}
+
+	var res GetRequestResult
+	res.Status = status
+	res.MessageHash = request.MessageHash
+
+	value, err = json.Marshal(res)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+
+	return ReturnQuery(value, "success")
 }
 
 func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
@@ -160,9 +155,8 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found")
-	} else {
-		return ReturnQuery(value, "success")
 	}
+	return ReturnQuery(value, "success")
 }
 
 func getServiceDestination(param string, app *DIDApplication) types.ResponseQuery {
@@ -178,9 +172,8 @@ func getServiceDestination(param string, app *DIDApplication) types.ResponseQuer
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found")
-	} else {
-		return ReturnQuery(value, "success")
 	}
+	return ReturnQuery(value, "success")
 }
 
 // ReturnQuery return types.ResponseQuery
