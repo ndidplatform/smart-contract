@@ -81,9 +81,8 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 
 	if method != "" {
 		return DeliverTxRouter(method, param, app)
-	} else {
-		return ReturnDeliverTxLog("method can't empty")
 	}
+	return ReturnDeliverTxLog("method can't empty")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
@@ -118,9 +117,8 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuer
 
 	if method != "" {
 		return QueryRouter(method, param, app)
-	} else {
-		return ReturnQuery(nil, "method can't empty")
 	}
+	return ReturnQuery(nil, "method can't empty")
 }
 
 func getEnv(key, defaultValue string) string {
