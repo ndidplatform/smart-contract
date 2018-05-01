@@ -11,6 +11,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
+// TODO: unit testing
 func addNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("AddNodePublicKey")
 	var nodePublicKey NodePublicKey
