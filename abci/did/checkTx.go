@@ -25,6 +25,33 @@ func checkIsNDID(param string, publicKey string, app *DIDApplication) types.Resp
 	return ReturnCheckTx(false)
 }
 
+func checkIsIDP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "IDP" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
+func checkIsRP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "RP" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
+func checkIsAS(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "AS" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
 	signatureJSON := []byte(`{"type":"ed25519","data":"` + signature + `"}`)
 	infSignature, err := crypto.SignatureMapper.FromJSON(signatureJSON)
@@ -58,12 +85,12 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"InitNDID":                   checkTxInitNDID,
 		"TransferNDID":               checkIsNDID,
 		"RegisterNode":               checkIsNDID,
-		"RegisterMsqDestination":     registerMsqDestination,
-		"AddAccessorMethod":          addAccessorMethod,
-		"CreateRequest":              createRequest,
-		"CreateIdpResponse":          createIdpResponse,
-		"SignData":                   signData,
-		"RegisterServiceDestination": registerServiceDestination,
+		"RegisterMsqDestination":     checkIsIDP,
+		"AddAccessorMethod":          checkIsIDP,
+		"CreateIdpResponse":          checkIsIDP,
+		"SignData":                   checkIsAS,
+		"RegisterServiceDestination": checkIsAS,
+		"CreateRequest":              checkIsRP,
 	}
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {

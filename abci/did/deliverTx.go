@@ -279,6 +279,10 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		}
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		value = []byte(funcParam.Role)
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		return ReturnDeliverTxLog("success")
 	}
 	return ReturnDeliverTxLog("wrong role")
