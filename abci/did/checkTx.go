@@ -1,7 +1,6 @@
 package did
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -12,17 +11,21 @@ import (
 func checkTxInitNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	if app.state.Owner == nil {
 		return ReturnCheckTx(true)
-	} else {
-		return ReturnCheckTx(false)
 	}
-}
-
-func checkTxTransferNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	fmt.Println(param)
 	return ReturnCheckTx(false)
 }
 
-func verifySignature(param string, signature string, publicKey string) (result bool, err error) {
+func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	if app.state.Owner != nil {
+		owner := string(app.state.Owner)
+		if owner == publicKey {
+			return ReturnCheckTx(true)
+		}
+	}
+	return ReturnCheckTx(false)
+}
+
+func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
 	signatureJSON := []byte(`{"type":"ed25519","data":"` + signature + `"}`)
 	infSignature, err := crypto.SignatureMapper.FromJSON(signatureJSON)
 	if err != nil {
@@ -36,7 +39,7 @@ func verifySignature(param string, signature string, publicKey string) (result b
 		return false, err
 	}
 	objPublicKey := infPublicKey.(crypto.PubKeyEd25519)
-	verifyResult := objPublicKey.VerifyBytes([]byte(param), objSignature.Wrap())
+	verifyResult := objPublicKey.VerifyBytes([]byte(param+nonce), objSignature.Wrap())
 	return verifyResult, nil
 }
 
@@ -50,11 +53,11 @@ func ReturnCheckTx(ok bool) types.ResponseCheckTx {
 }
 
 // CheckTxRouter is Pointer to function
-func CheckTxRouter(method string, param string, signature string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+func CheckTxRouter(method string, param string, nonce string, signature string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	funcs := map[string]interface{}{
 		"InitNDID":                   checkTxInitNDID,
-		"TransferNDID":               checkTxTransferNDID,
-		"AddNodePublicKey":           addNodePublicKey,
+		"TransferNDID":               checkIsNDID,
+		"RegisterNode":               checkIsNDID,
 		"RegisterMsqDestination":     registerMsqDestination,
 		"AddAccessorMethod":          addAccessorMethod,
 		"CreateRequest":              createRequest,
@@ -62,7 +65,7 @@ func CheckTxRouter(method string, param string, signature string, publicKey stri
 		"SignData":                   signData,
 		"RegisterServiceDestination": registerServiceDestination,
 	}
-	verifyResult, err := verifySignature(param, signature, publicKey)
+	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {
 		return ReturnCheckTx(false)
 	}

@@ -15,21 +15,27 @@ func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error())
 	}
-	key := "NodePublicKey" + "|" + funcParam.NodeID
+	key := "Node" + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("[]")
 		return ReturnQuery(value, "not found")
-	} else {
-		var res GetNodePublicKeyPesult
-		res.PublicKey = string(value)
-		value, err = json.Marshal(res)
-		if err != nil {
-			return ReturnQuery(nil, err.Error())
-		}
-		return ReturnQuery(value, "success")
 	}
+
+	var node RegisterNode
+	err = json.Unmarshal(value, &node)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+
+	var res GetNodePublicKeyPesult
+	res.PublicKey = string(node.PublicKey)
+	value, err = json.Marshal(res)
+	if err != nil {
+		return ReturnQuery(nil, err.Error())
+	}
+	return ReturnQuery(value, "success")
 }
 
 func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {

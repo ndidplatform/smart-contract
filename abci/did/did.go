@@ -67,6 +67,11 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	return types.ResponseInfo{Data: fmt.Sprintf("{\"size\":%v}", app.state.Size)}
 }
 
+func (app *DIDApplication) EndBlock(req types.RequestEndBlock) (resInfo types.ResponseEndBlock) {
+	fmt.Println("EndBlock")
+	return types.ResponseEndBlock{}
+}
+
 func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	fmt.Println("DeliverTx")
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
@@ -97,11 +102,12 @@ func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 	method := parts[0]
 	param := parts[1]
-	signature := parts[2]
-	publicKey := parts[3]
+	nonce := parts[2]
+	signature := parts[3]
+	publicKey := parts[4]
 
 	if method != "" {
-		return CheckTxRouter(method, param, signature, publicKey, app)
+		return CheckTxRouter(method, param, nonce, signature, publicKey, app)
 	} else {
 		return ReturnCheckTx(false)
 	}

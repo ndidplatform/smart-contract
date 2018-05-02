@@ -11,21 +11,6 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func addNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx {
-	fmt.Println("AddNodePublicKey")
-	var nodePublicKey NodePublicKey
-	err := json.Unmarshal([]byte(param), &nodePublicKey)
-	if err != nil {
-		return ReturnDeliverTxLog(err.Error())
-	}
-
-	key := "NodePublicKey" + "|" + nodePublicKey.NodeID
-	value := nodePublicKey.PublicKey
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog("success")
-}
-
 func registerMsqDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqDestination")
 	var funcParam RegisterMsqDestinationParam
@@ -268,6 +253,37 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("success")
 }
 
+func transferNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("TransferNDID")
+	var funcParam TransferNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	app.state.Owner = []byte(funcParam.PublicKey)
+	return ReturnDeliverTxLog("success")
+}
+
+func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("RegisterNode")
+	var funcParam RegisterNode
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	if funcParam.Role == "RP" || funcParam.Role == "IDP" || funcParam.Role == "AS" {
+		key := "Node" + "|" + funcParam.NodeID
+		value, err := json.Marshal(funcParam)
+		if err != nil {
+			return ReturnDeliverTxLog(err.Error())
+		}
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		return ReturnDeliverTxLog("success")
+	}
+	return ReturnDeliverTxLog("wrong role")
+}
+
 // ReturnDeliverTxLog return types.ResponseDeliverTx
 func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
@@ -279,7 +295,8 @@ func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 func DeliverTxRouter(method string, param string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
 		"InitNDID":                   initNDID,
-		"AddNodePublicKey":           addNodePublicKey,
+		"TransferNDID":               transferNDID,
+		"RegisterNode":               registerNode,
 		"RegisterMsqDestination":     registerMsqDestination,
 		"AddAccessorMethod":          addAccessorMethod,
 		"CreateRequest":              createRequest,

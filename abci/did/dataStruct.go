@@ -123,3 +123,13 @@ type GetServiceDestinationResult struct {
 type InitNDIDParam struct {
 	PublicKey string `json:"public_key"`
 }
+
+type TransferNDIDParam struct {
+	PublicKey string `json:"public_key"`
+}
+
+type RegisterNode struct {
+	NodeID    string `json:"node_id"`
+	PublicKey string `json:"public_key"`
+	Role      string `json:"role"`
+}
