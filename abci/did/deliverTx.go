@@ -250,6 +250,10 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 		return ReturnDeliverTxLog(err.Error())
 	}
 	app.state.Owner = []byte(funcParam.PublicKey)
+	key := "Owner"
+	value := []byte(funcParam.PublicKey)
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
 }
 

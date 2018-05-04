@@ -1,11 +1,16 @@
 package did
 
 import (
+	"crypto"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"reflect"
+	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
-	crypto "github.com/tendermint/go-crypto"
 )
 
 func checkTxInitNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
@@ -53,30 +58,34 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 }
 
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
-	signatureJSON := []byte(`{"type":"ed25519","data":"` + signature + `"}`)
-	infSignature, err := crypto.SignatureMapper.FromJSON(signatureJSON)
+	publicKey = strings.Replace(publicKey, "\t", "", -1)
+	block, _ := pem.Decode([]byte(publicKey))
+	senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return false, err
 	}
-	objSignature := infSignature.(crypto.SignatureEd25519)
-
-	publicKeyJSON := []byte(`{"type":"ed25519","data":"` + publicKey + `"}`)
-	infPublicKey, err := crypto.PubKeyMapper.FromJSON(publicKeyJSON)
+	decodedSignature, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {
 		return false, err
 	}
-	objPublicKey := infPublicKey.(crypto.PubKeyEd25519)
-	verifyResult := objPublicKey.VerifyBytes([]byte(param+nonce), objSignature.Wrap())
-	return verifyResult, nil
+	PSSmessage := []byte(param + nonce)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, decodedSignature)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // ReturnCheckTx return types.ResponseDeliverTx
 func ReturnCheckTx(ok bool) types.ResponseCheckTx {
 	if ok {
 		return types.ResponseCheckTx{Code: code.CodeTypeOK}
-	} else {
-		return types.ResponseCheckTx{Code: code.CodeTypeUnauthorized}
 	}
+	return types.ResponseCheckTx{Code: code.CodeTypeUnauthorized}
 }
 
 // CheckTxRouter is Pointer to function
