@@ -97,6 +97,7 @@ type GetRequestResult struct {
 
 type Callback struct {
 	RequestID string `json:"requestId"`
+	Height    int64  `json:"height"`
 }
 
 type SignDataParam struct {

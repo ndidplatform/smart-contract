@@ -125,7 +125,7 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	// callback to IDP
 	uri := getEnv("CALLBACK_URI", "")
 	if uri != "" {
-		go callBack(uri, request.RequestID)
+		go callBack(uri, request.RequestID, app.state.Height)
 	}
 	return ReturnDeliverTxLog("success")
 }
@@ -171,7 +171,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		// callback to RP
 		uri := getEnv("CALLBACK_URI", "")
 		if uri != "" {
-			go callBack(uri, request.RequestID)
+			go callBack(uri, request.RequestID, app.state.Height)
 		}
 
 		return ReturnDeliverTxLog("success")
@@ -218,7 +218,7 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 	return ReturnDeliverTxLog("success")
 }
 
-func callBack(uri string, requestID string) {
+func callBack(uri string, requestID string, height int64) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -229,6 +229,7 @@ func callBack(uri string, requestID string) {
 	fmt.Println("CALLBACK_URI:" + uri)
 	var callback Callback
 	callback.RequestID = requestID
+	callback.Height = height
 	data, err := json.Marshal(callback)
 	if err != nil {
 		fmt.Println("error:", err)
