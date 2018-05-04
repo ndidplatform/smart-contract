@@ -107,7 +107,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuer
 
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(reqQuery.Data), " ", "+", -1))
 	if err != nil {
-		ReturnQuery(nil, err.Error())
+		ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
@@ -118,7 +118,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuer
 	if method != "" {
 		return QueryRouter(method, param, app)
 	}
-	return ReturnQuery(nil, "method can't empty")
+	return ReturnQuery(nil, "method can't empty", app.state.Height)
 }
 
 func getEnv(key, defaultValue string) string {
