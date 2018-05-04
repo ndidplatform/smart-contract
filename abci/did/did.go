@@ -1,8 +1,8 @@
 package did
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -115,9 +115,20 @@ func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	fmt.Println("Commit")
-	// Using a memdb - just return the big endian size of the db
-	appHash := make([]byte, 8)
-	binary.PutVarint(appHash, app.state.Size)
+	itr := app.state.db.Iterator(nil, nil)
+	defer itr.Close()
+
+	strAppHash := ""
+	for ; itr.Valid(); itr.Next() {
+		k := itr.Key()
+		v := itr.Value()
+		if string(k) != "stateKey" {
+			strAppHash += string(k) + string(v)
+		}
+	}
+	h := sha256.New()
+	h.Write([]byte(strAppHash))
+	appHash := h.Sum(nil)
 	app.state.AppHash = appHash
 	app.state.Height += 1
 	saveState(app.state)
