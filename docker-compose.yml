@@ -5,23 +5,27 @@ services:
       context: .
       dockerfile: Dockerfile-tendermint
     volumes:
-      - ./config/tendermint/IdP:/tendermint
+      - ./docker-config/tendermint/IdP:/tendermint
     ports:
       - 45000:45000
       - 47000:47000
     networks:
       - ndid
+    depends_on:
+      - abci-idp
   tm-rp:
     build:
       context: .
       dockerfile: Dockerfile-tendermint
     volumes:
-      - ./config/tendermint/RP:/tendermint
+      - ./docker-config/tendermint/RP:/tendermint
     ports:
       - 45001:45001
       - 47001:47001
     networks:
       - ndid
+    depends_on:
+      - abci-rp
   abci-idp:
     build:
       context: .
@@ -30,9 +34,7 @@ services:
       CALLBACK_URI: http://localhost:3001/callback
     networks:
       - ndid
-    depends_on:
-      - tm-rp
-    command: ["/abci-server","tcp://127.0.0.1:46000"]
+    command: ["/abci-server","tcp://0.0.0.0:46000"]
   abci-rp:
     build:
       context: .
@@ -41,9 +43,7 @@ services:
       CALLBACK_URI: http://localhost:3002/callback
     networks:
       - ndid
-    depends_on:
-      - tm-rp
-    command: ["/abci-server","tcp://127.0.0.0:46001"]
+    command: ["/abci-server","tcp://0.0.0.0:46001"]
 networks:
   ndid:
     driver: bridge

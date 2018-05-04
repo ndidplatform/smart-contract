@@ -1,0 +1,25 @@
+{
+  "genesis_time": "0001-01-01T00:00:00Z",
+  "chain_id": "test-chain-ndid",
+  "validators": [
+    {
+      "pub_key": {
+        "type": "ed25519",
+        "data":
+          "0416CC58761965A80C149C6E6F62757F4DAB7C1CF77EA19452F0FC51858292B0"
+      },
+      "power": 10,
+      "name": "RP"
+    },
+    {
+      "pub_key": {
+        "type": "ed25519",
+        "data":
+          "AF2BAE97BD1AD8703459C230AC63EDDFAD6A04E84335DA2687D53248955E4E58"
+      },
+      "power": 10,
+      "name": "IdP"
+    }
+  ],
+  "app_hash": ""
+}
