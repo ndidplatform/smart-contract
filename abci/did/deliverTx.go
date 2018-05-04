@@ -113,8 +113,15 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
+
+	existValue := app.state.db.Get(prefixKey([]byte(key)))
+	if existValue != nil {
+		return ReturnDeliverTxLog("Duplicate Request ID")
+	}
+
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+
 	// callback to IDP
 	uri := getEnv("CALLBACK_URI", "")
 	if uri != "" {
