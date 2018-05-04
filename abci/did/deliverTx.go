@@ -125,29 +125,7 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	// callback to IDP
 	uri := getEnv("CALLBACK_URI", "")
 	if uri != "" {
-		fmt.Println("CALLBACK_URI:" + uri)
-
-		var callback Callback
-		callback.RequestID = request.RequestID
-		data, err := json.Marshal(callback)
-		if err != nil {
-			fmt.Println("error:", err)
-			return ReturnDeliverTxLog(err.Error())
-		}
-
-		client := &http.Client{
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
-		}
-
-		req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
-		if err != nil {
-			return ReturnDeliverTxLog(err.Error())
-		}
-		req.Header.Set("Content-Type", "application/json")
-		resp, _ := client.Do(req)
-		fmt.Println(resp.Status)
+		go callBack(uri, request.RequestID)
 	}
 	return ReturnDeliverTxLog("success")
 }
@@ -193,29 +171,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		// callback to RP
 		uri := getEnv("CALLBACK_URI", "")
 		if uri != "" {
-			fmt.Println("CALLBACK_URI:" + uri)
-
-			var callback Callback
-			callback.RequestID = request.RequestID
-			data, err := json.Marshal(callback)
-			if err != nil {
-				fmt.Println("error:", err)
-				return ReturnDeliverTxLog(err.Error())
-			}
-
-			client := &http.Client{
-				CheckRedirect: func(req *http.Request, via []*http.Request) error {
-					return http.ErrUseLastResponse
-				},
-			}
-
-			req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
-			if err != nil {
-				return ReturnDeliverTxLog(err.Error())
-			}
-			req.Header.Set("Content-Type", "application/json")
-			resp, _ := client.Do(req)
-			fmt.Println(resp.Status)
+			go callBack(uri, request.RequestID)
 		}
 
 		return ReturnDeliverTxLog("success")
@@ -260,6 +216,37 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
+}
+
+func callBack(uri string, requestID string) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+
+	fmt.Println("CALLBACK_URI:" + uri)
+	var callback Callback
+	callback.RequestID = requestID
+	data, err := json.Marshal(callback)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	req, err := http.NewRequest("POST", uri, strings.NewReader(string(data)))
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, _ := client.Do(req)
+	fmt.Println(resp.Status)
 }
 
 // ReturnDeliverTxLog return types.ResponseDeliverTx
