@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"reflect"
 	"strings"
@@ -14,18 +15,19 @@ import (
 )
 
 func checkTxInitNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	if app.state.Owner == nil {
+	key := "MasterNDID"
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value == nil {
 		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
 }
 
 func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	if app.state.Owner != nil {
-		owner := string(app.state.Owner)
-		if owner == publicKey {
-			return ReturnCheckTx(true)
-		}
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "NDID" || string(value) == "MasterNDID" {
+		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
 }
@@ -33,7 +35,7 @@ func checkIsNDID(param string, publicKey string, app *DIDApplication) types.Resp
 func checkIsIDP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "IDP" {
+	if string(value) == "IdP" || string(value) == "MasterIdP" {
 		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
@@ -42,7 +44,7 @@ func checkIsIDP(param string, publicKey string, app *DIDApplication) types.Respo
 func checkIsRP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "RP" {
+	if string(value) == "RP" || string(value) == "MasterRP" {
 		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
@@ -51,7 +53,7 @@ func checkIsRP(param string, publicKey string, app *DIDApplication) types.Respon
 func checkIsAS(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "AS" {
+	if string(value) == "AS" || string(value) == "MasterAS" {
 		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
@@ -88,11 +90,28 @@ func ReturnCheckTx(ok bool) types.ResponseCheckTx {
 	return types.ResponseCheckTx{Code: code.CodeTypeUnauthorized}
 }
 
+func getPublicKeyInitNDID(param string) string {
+	var funcParam InitNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ""
+	}
+	return funcParam.PublicKey
+}
+
+func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
+	key := "NodeID" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		return string(value)
+	}
+	return ""
+}
+
 // CheckTxRouter is Pointer to function
-func CheckTxRouter(method string, param string, nonce string, signature string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	funcs := map[string]interface{}{
 		"InitNDID":                   checkTxInitNDID,
-		"TransferNDID":               checkIsNDID,
 		"RegisterNode":               checkIsNDID,
 		"RegisterMsqDestination":     checkIsIDP,
 		"AddAccessorMethod":          checkIsIDP,
@@ -101,6 +120,20 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"RegisterServiceDestination": checkIsAS,
 		"CreateRequest":              checkIsRP,
 	}
+
+	var publicKey string
+	if method == "InitNDID" {
+		publicKey = getPublicKeyInitNDID(param)
+		if publicKey == "" {
+			return ReturnCheckTx(false)
+		}
+	} else {
+		publicKey = getPublicKeyFromNodeID(nodeID, app)
+		if publicKey == "" {
+			return ReturnCheckTx(false)
+		}
+	}
+
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {
 		return ReturnCheckTx(false)

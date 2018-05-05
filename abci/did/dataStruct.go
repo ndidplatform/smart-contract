@@ -9,7 +9,7 @@ type GetNodePublicKeyParam struct {
 	NodeID string `json:"node_id"`
 }
 
-type GetNodePublicKeyPesult struct {
+type GetNodePublicKeyResult struct {
 	PublicKey string `json:"public_key"`
 }
 
@@ -122,6 +122,7 @@ type GetServiceDestinationResult struct {
 }
 
 type InitNDIDParam struct {
+	NodeID    string `json:"node_id"`
 	PublicKey string `json:"public_key"`
 }
 

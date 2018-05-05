@@ -176,7 +176,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 
 		return ReturnDeliverTxLog("success")
 	}
-	return ReturnDeliverTxLog("Response duplicate")
+	return ReturnDeliverTxLog("Duplicate Response")
 }
 
 func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -225,22 +225,18 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
-	app.state.Owner = []byte(funcParam.PublicKey)
-	key := "Owner"
-	value := []byte(funcParam.PublicKey)
+	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+	value := []byte("MasterNDID")
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog("success")
-}
-
-func transferNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
-	fmt.Println("TransferNDID")
-	var funcParam TransferNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return ReturnDeliverTxLog(err.Error())
-	}
-	app.state.Owner = []byte(funcParam.PublicKey)
+	key = "NodeID" + "|" + funcParam.NodeID
+	value = []byte(funcParam.PublicKey)
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	key = "MasterNDID"
+	value = []byte(funcParam.PublicKey)
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog("success")
 }
 
@@ -251,16 +247,22 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(err.Error())
 	}
-	if funcParam.Role == "RP" || funcParam.Role == "IDP" || funcParam.Role == "AS" {
-		key := "Node" + "|" + funcParam.NodeID
-		value, err := json.Marshal(funcParam)
-		if err != nil {
-			return ReturnDeliverTxLog(err.Error())
-		}
+
+	key := "NodeID" + "|" + funcParam.NodeID
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	if chkExists != nil {
+		return ReturnDeliverTxLog("Duplicate Node ID")
+	}
+
+	if funcParam.Role == "RP" ||
+		funcParam.Role == "IdP" ||
+		funcParam.Role == "AS" {
+		key := "NodeID" + "|" + funcParam.NodeID
+		value := funcParam.PublicKey
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-		value = []byte(funcParam.Role)
+		value = "Master" + funcParam.Role
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		return ReturnDeliverTxLog("success")
@@ -311,7 +313,6 @@ func ReturnDeliverTxLog(log string) types.ResponseDeliverTx {
 func DeliverTxRouter(method string, param string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
 		"InitNDID":                   initNDID,
-		"TransferNDID":               transferNDID,
 		"RegisterNode":               registerNode,
 		"RegisterMsqDestination":     registerMsqDestination,
 		"AddAccessorMethod":          addAccessorMethod,

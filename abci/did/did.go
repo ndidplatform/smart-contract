@@ -22,7 +22,6 @@ type State struct {
 	Size    int64  `json:"size"`
 	Height  int64  `json:"height"`
 	AppHash []byte `json:"app_hash"`
-	Owner   []byte
 }
 
 // TO DO save state as DB file
@@ -103,10 +102,10 @@ func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	param := parts[1]
 	nonce := parts[2]
 	signature := parts[3]
-	publicKey := parts[4]
+	nodeID := parts[4]
 
 	if method != "" {
-		return CheckTxRouter(method, param, nonce, signature, publicKey, app)
+		return CheckTxRouter(method, param, nonce, signature, nodeID, app)
 	} else {
 		return ReturnCheckTx(false)
 	}
