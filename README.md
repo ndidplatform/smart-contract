@@ -120,12 +120,15 @@ mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/
     tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
     ```
 
-## SETUP (For Docker)
-1.  You can use docker container by run this command
-    ```sh
-    docker-compose up
-    ```
-    This command will start both idp and rp node.
+## Run in Docker
+Required
+- Docker CE [Install docker](https://docs.docker.com/install/)
+- docker-compose [Install docker-compose](https://docs.docker.com/compose/install/)
+
+```
+docker network create ndidplatform
+docker-compose up
+```
     
 ## IMPORTANT NOTE
 
