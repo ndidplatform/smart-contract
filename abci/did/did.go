@@ -123,6 +123,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		if string(k) != "stateKey" {
 			strAppHash += string(k) + string(v)
 		}
+		// fmt.Println(string(k) + "->" + string(v))
 	}
 	h := sha256.New()
 	h.Write([]byte(strAppHash))
