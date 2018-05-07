@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -207,6 +208,8 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 	return publicPEM, nil
 }
 
+var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
+
 func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, publicKey []byte) (interface{}, error) {
 	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
 	var path []byte
@@ -222,7 +225,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 
 	// fmt.Println(string(path))
 	pathBase64 := base64.StdEncoding.EncodeToString(path)
-	url := "http://localhost:45000/broadcast_tx_commit?tx=" + `"` + pathBase64 + `"`
+	url := tendermintAddr + "/broadcast_tx_commit?tx=" + `"` + pathBase64 + `"`
 
 	// fmt.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -257,7 +260,7 @@ func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
 
 	// fmt.Println(string(path))
 	pathBase64 := base64.StdEncoding.EncodeToString(path)
-	url := "http://localhost:45000/abci_query?data=" + `"` + pathBase64 + `"`
+	url := tendermintAddr + "/abci_query?data=" + `"` + pathBase64 + `"`
 
 	// fmt.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
@@ -1092,4 +1095,12 @@ func TestQueryGetRequestDetail(t *testing.T) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
 }
