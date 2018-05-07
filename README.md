@@ -7,7 +7,7 @@ tendermint ABCI app
 Test this app with command below
 
 ```sh
-go test -v
+TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 ```
 
 ## Prerequisites
@@ -223,6 +223,20 @@ log: "success"
 log: "success"
 ```
 
+## RegisterMsqAddress
+### Parameter
+```sh
+{
+  "node_id": "IdP1",
+  "ip": "192.168.3.99",
+  "port": 8000
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 ## CreateRequest
 ### Parameter
 ```sh
@@ -334,6 +348,21 @@ log: "success"
 ```sh
 {
   "node_id": "AS1"
+}
+```
+
+## GetMsqAddress
+### Parameter
+```sh
+{
+  "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+{
+  "ip": "192.168.3.99",
+  "port": 8000
 }
 ```
 
