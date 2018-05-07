@@ -55,13 +55,13 @@ mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46000
+    go run abci/server.go tcp://127.0.0.1:46000
     ```
 
     Example
 
     ```sh
-    CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46000
+    go run abci/server.go tcp://127.0.0.1:46000
     ```
 
 2.  Run tendermint
@@ -79,13 +79,13 @@ mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
+    go run abci/server.go tcp://127.0.0.1:46001
     ```
 
     Example
 
     ```sh
-    CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46001
+    go run abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
@@ -103,13 +103,13 @@ mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    CALLBACK_URI=http://{$ndid-api-address}:{ndid-api-callback-port}{ndid-api-callback-path} go run abci/server.go tcp://127.0.0.1:46001
+    go run abci/server.go tcp://127.0.0.1:46001
     ```
 
     Example
 
     ```sh
-    CALLBACK_URI=http://localhost:3001/callback go run abci/server.go tcp://127.0.0.1:46002
+    go run abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint
