@@ -3,9 +3,7 @@ package did
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"reflect"
-	"strings"
 
 	"github.com/tendermint/abci/example/code"
 	"github.com/tendermint/abci/types"
