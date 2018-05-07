@@ -148,6 +148,21 @@ type GetServiceDestinationResult struct {
 	NodeID string `json:"node_id"`
 }
 
+type RegisterMsqAddressParam struct {
+	NodeID string `json:"node_id"`
+	IP     string `json:"ip"`
+	Port   int64  `json:"port"`
+}
+
+type GetMsqAddressParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type MsqAddress struct {
+	IP   string `json:"ip"`
+	Port int64  `json:"port"`
+}
+
 type RequestDetailResult struct {
 	RequestID       string        `json:"request_id"`
 	MinIdp          int           `json:"min_idp"`
@@ -700,6 +715,68 @@ func TestQueryGetMsqDestination(t *testing.T) {
 		"IdP1",
 	}
 	if actual := res.NodeID; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPRegisterMsqAddress(t *testing.T) {
+
+	var param = RegisterMsqAddressParam{
+		"IdP1",
+		"192.168.3.99",
+		8000,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterMsqAddress"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetMsqAddress(t *testing.T) {
+	fnName := "GetMsqAddress"
+	var param = GetMsqAddressParam{
+		"IdP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res MsqAddress
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = MsqAddress{
+		"192.168.3.99",
+		8000,
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

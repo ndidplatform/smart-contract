@@ -176,6 +176,23 @@ func getServiceDestination(param string, app *DIDApplication) types.ResponseQuer
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
+func getMsqAddress(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetMsqAddress")
+	var funcParam GetMsqAddressParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	key := "MsqAddress" + "|" + funcParam.NodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+	return ReturnQuery(value, "success", app.state.Height)
+}
+
 // ReturnQuery return types.ResponseQuery
 func ReturnQuery(value []byte, log string, height int64) types.ResponseQuery {
 	fmt.Println(string(value))
@@ -195,6 +212,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetRequest":            getRequest,
 		"GetRequestDetail":      getRequestDetail,
 		"GetServiceDestination": getServiceDestination,
+		"GetMsqAddress":         getMsqAddress,
 	}
 	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

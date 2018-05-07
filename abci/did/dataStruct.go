@@ -135,3 +135,18 @@ type RegisterNode struct {
 	PublicKey string `json:"public_key"`
 	Role      string `json:"role"`
 }
+
+type RegisterMsqAddressParam struct {
+	NodeID string `json:"node_id"`
+	IP     string `json:"ip"`
+	Port   int64  `json:"port"`
+}
+
+type GetMsqAddressParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type MsqAddress struct {
+	IP   string `json:"ip"`
+	Port int64  `json:"port"`
+}

@@ -23,6 +23,20 @@ func checkTxInitNDID(param string, publicKey string, app *DIDApplication) types.
 	return ReturnCheckTx(false)
 }
 
+func checkIsMember(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "RP" ||
+		string(value) == "IdP" ||
+		string(value) == "AS" ||
+		string(value) == "MasterRP" ||
+		string(value) == "MasterIdP" ||
+		string(value) == "MasterAS" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
 func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -119,6 +133,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"SignData":                   checkIsAS,
 		"RegisterServiceDestination": checkIsAS,
 		"CreateRequest":              checkIsRP,
+		"RegisterMsqAddress":         checkIsMember,
 	}
 
 	var publicKey string

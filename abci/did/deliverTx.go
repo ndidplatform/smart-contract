@@ -240,6 +240,27 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("success")
 }
 
+func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("RegisterMsqAddress")
+	var funcParam RegisterMsqAddressParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	key := "MsqAddress" + "|" + funcParam.NodeID
+	var msqAddress = MsqAddress{
+		funcParam.IP,
+		funcParam.Port,
+	}
+	value, err := json.Marshal(msqAddress)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	return ReturnDeliverTxLog("success")
+}
+
 func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	fmt.Println("RegisterNode")
 	var funcParam RegisterNode
@@ -320,6 +341,7 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"CreateIdpResponse":          createIdpResponse,
 		"SignData":                   signData,
 		"RegisterServiceDestination": registerServiceDestination,
+		"RegisterMsqAddress":         registerMsqAddress,
 	}
 	value, _ := callDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)
