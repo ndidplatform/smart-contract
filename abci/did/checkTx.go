@@ -47,8 +47,19 @@ func checkTxRegisterMsqAddress(param string, publicKey string, app *DIDApplicati
 		string(value) == "MasterIdP" ||
 		string(value) == "MasterAS" {
 
-		// TODO check publicKey from param.node_id == sender publicKey
-		return ReturnCheckTx(true)
+		var funcParam RegisterMsqAddressParam
+		err := json.Unmarshal([]byte(param), &funcParam)
+		if err != nil {
+			return ReturnCheckTx(false)
+		}
+		publicKeyFromStateDB := getPublicKeyFromNodeID(funcParam.NodeID, app)
+		if publicKeyFromStateDB == "" {
+			return ReturnCheckTx(false)
+		}
+		if publicKeyFromStateDB == publicKey {
+			return ReturnCheckTx(true)
+		}
+		return ReturnCheckTx(false)
 	}
 	return ReturnCheckTx(false)
 }
