@@ -94,7 +94,6 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 	block, _ := pem.Decode([]byte(publicKey))
 	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
 	senderPublicKey := senderPublicKeyInterface.(*rsa.PublicKey)
-	// senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return false, err
 	}
@@ -107,6 +106,7 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
+
 	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, decodedSignature)
 	if err != nil {
 		return false, err
@@ -153,6 +153,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"CreateRequest":              checkIsRP,
 		"RegisterMsqAddress":         checkTxRegisterMsqAddress,
 		"AddNodeToken":               checkIsNDID,
+		"ReduceNodeToken":            checkIsNDID,
 	}
 
 	var publicKey string
