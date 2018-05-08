@@ -74,9 +74,12 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 }
 
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
+
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
-	senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	//senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	senderPublicKey := senderPublicKeyInterface.(*rsa.PublicKey)
 	if err != nil {
 		return false, err
 	}
@@ -89,6 +92,7 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
+
 	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, decodedSignature)
 	if err != nil {
 		return false, err
