@@ -273,6 +273,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		value = "Master" + funcParam.Role
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		createTokenAccount(funcParam.NodeID, app)
 		return ReturnDeliverTxLog("success")
 	}
 	return ReturnDeliverTxLog("wrong role")
@@ -297,6 +298,8 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"SignData":                   signData,
 		"RegisterServiceDestination": registerServiceDestination,
 		"RegisterMsqAddress":         registerMsqAddress,
+		"AddNodeToken":               addNodeToken,
+		"ReduceNodeToken":            reduceNodeToken,
 	}
 	value, _ := callDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)

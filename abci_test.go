@@ -813,12 +813,39 @@ func TestReduceNodeTokenRP(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "AddNodeToken"
+	fnName := "ReduceNodeToken"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeTokenRPAfterReduce(t *testing.T) {
+	fnName := "GetNodeToken"
+	var param = GetNodeTokenParam{
+		"RP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetNodeTokenResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = GetNodeTokenResult{
+		50.0,
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
