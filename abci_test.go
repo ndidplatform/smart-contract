@@ -187,6 +187,24 @@ type ResponseQuery struct {
 	} `json:"result"`
 }
 
+type AddNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
+}
+
+type ReduceNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
+}
+
+type GetNodeTokenParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeTokenResult struct {
+	Amount float64 `json:"amount"`
+}
+
 func getPrivateKeyFromString(privK string) *rsa.PrivateKey {
 	privK = strings.Replace(privK, "\t", "", -1)
 	block, _ := pem.Decode([]byte(privK))
@@ -198,9 +216,12 @@ func getPrivateKeyFromString(privK string) *rsa.PrivateKey {
 }
 
 func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
-	pubKeyBytes := x509.MarshalPKCS1PublicKey(publicKey)
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
 	privBlock := pem.Block{
-		Type:    "RSA PUBLIC KEY",
+		Type:    "PUBLIC KEY",
 		Headers: nil,
 		Bytes:   pubKeyBytes,
 	}
@@ -643,6 +664,161 @@ func TestQueryGetNodePublicKeyAS(t *testing.T) {
 
 	expected := string(asPublicKeyBytes)
 	if actual := res.PublicKey; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAddNodeTokenRP(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = AddNodeTokenParam{
+		"RP1",
+		111.11,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "AddNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAddNodeTokenIdP(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = AddNodeTokenParam{
+		"IdP1",
+		222.22,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "AddNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAddNodeTokenAS(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = AddNodeTokenParam{
+		"AS1",
+		333.33,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "AddNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeTokenRP(t *testing.T) {
+	fnName := "GetNodeToken"
+	var param = GetNodeTokenParam{
+		"RP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetNodeTokenResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = GetNodeTokenResult{
+		111.11,
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestReduceNodeTokenRP(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = ReduceNodeTokenParam{
+		"RP1",
+		61.11,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "AddNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

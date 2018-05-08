@@ -37,6 +37,22 @@ func checkIsMember(param string, publicKey string, app *DIDApplication) types.Re
 	return ReturnCheckTx(false)
 }
 
+func checkTxRegisterMsqAddress(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "RP" ||
+		string(value) == "IdP" ||
+		string(value) == "AS" ||
+		string(value) == "MasterRP" ||
+		string(value) == "MasterIdP" ||
+		string(value) == "MasterAS" {
+
+		// TODO check publicKey from param.node_id == sender publicKey
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
 func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -76,7 +92,9 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
-	senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	senderPublicKey := senderPublicKeyInterface.(*rsa.PublicKey)
+	// senderPublicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
 	if err != nil {
 		return false, err
 	}
@@ -133,7 +151,8 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"SignData":                   checkIsAS,
 		"RegisterServiceDestination": checkIsAS,
 		"CreateRequest":              checkIsRP,
-		"RegisterMsqAddress":         checkIsMember,
+		"RegisterMsqAddress":         checkTxRegisterMsqAddress,
+		"AddNodeToken":               checkIsNDID,
 	}
 
 	var publicKey string
