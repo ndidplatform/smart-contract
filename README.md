@@ -287,6 +287,58 @@ log: "success"
 log: "success"
 ```
 
+## SetNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 100
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## AddNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 111.11
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## ReduceNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 61.11
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## SetPriceFunc
+### Parameter
+```sh
+{
+  "func": "CreateRequest",
+  "price": 99.99
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
@@ -381,7 +433,6 @@ log: "success"
 }
 ```
 
-
 ## GetRequestDetail
 ### Parameter
 ```sh
@@ -413,6 +464,32 @@ log: "success"
 }
 ```
 
+## GetNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1"
+}
+```
+### Expected Output
+```sh
+{
+  "amount": 100
+}
+```
 
+## GetPriceFunc
+### Parameter
+```sh
+{
+  "func": "CreateRequest"
+}
+```
+### Expected Output
+```sh
+{
+  "price": 99.99
+}
+```
 
 
