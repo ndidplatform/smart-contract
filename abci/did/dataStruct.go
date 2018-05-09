@@ -14,8 +14,8 @@ type GetNodePublicKeyResult struct {
 }
 
 type User struct {
-	HashID string `json:"hash_id"`
-	Ial    int    `json:"ial"`
+	HashID string  `json:"hash_id"`
+	Ial    float64 `json:"ial"`
 }
 
 type RegisterMsqDestinationParam struct {
@@ -24,8 +24,8 @@ type RegisterMsqDestinationParam struct {
 }
 
 type Node struct {
-	Ial    int    `json:"ial"`
-	NodeID string `json:"node_id"`
+	Ial    float64 `json:"ial"`
+	NodeID string  `json:"node_id"`
 }
 
 type MsqDestination struct {
@@ -33,8 +33,8 @@ type MsqDestination struct {
 }
 
 type GetMsqDestinationParam struct {
-	HashID string `json:"hash_id"`
-	MinIal int    `json:"min_ial"`
+	HashID string  `json:"hash_id"`
+	MinIal float64 `json:"min_ial"`
 }
 
 type GetMsqDestinationResult struct {
@@ -68,8 +68,8 @@ type DataRequest struct {
 type Request struct {
 	RequestID       string        `json:"request_id"`
 	MinIdp          int           `json:"min_idp"`
-	MinAal          int           `json:"min_aal"`
-	MinIal          int           `json:"min_ial"`
+	MinAal          float64       `json:"min_aal"`
+	MinIal          float64       `json:"min_ial"`
 	Timeout         int           `json:"timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"message_hash"`
@@ -77,13 +77,13 @@ type Request struct {
 }
 
 type Response struct {
-	RequestID     string `json:"request_id"`
-	Aal           int    `json:"aal"`
-	Ial           int    `json:"ial"`
-	Status        string `json:"status"`
-	Signature     string `json:"signature"`
-	AccessorID    string `json:"accessor_id"`
-	IdentityProof string `json:"identity_proof"`
+	RequestID     string  `json:"request_id"`
+	Aal           float64 `json:"aal"`
+	Ial           float64 `json:"ial"`
+	Status        string  `json:"status"`
+	Signature     string  `json:"signature"`
+	AccessorID    string  `json:"accessor_id"`
+	IdentityProof string  `json:"identity_proof"`
 }
 
 type GetRequestParam struct {
