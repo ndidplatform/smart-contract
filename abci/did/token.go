@@ -16,7 +16,8 @@ func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s
 	}
-	return 1
+	// if not set price of Function --> return price=1
+	return 1.0
 }
 
 func createTokenAccount(nodeID string, app *DIDApplication) {
