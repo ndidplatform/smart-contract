@@ -26,10 +26,21 @@ func createTokenAccount(nodeID string, app *DIDApplication) {
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 }
 
+func setToken(nodeID string, amount float64, app *DIDApplication) error {
+	key := "Token" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		value := strconv.FormatFloat(amount, 'f', -1, 64)
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		return nil
+	}
+	return errors.New("not found token account")
+}
+
 func addToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	fmt.Println("Account:" + string(value))
 	if value != nil {
 		s, err := strconv.ParseFloat(string(value), 64)
 		if err != nil {
@@ -37,7 +48,6 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 		}
 		s = s + amount
 		value := strconv.FormatFloat(s, 'f', -1, 64)
-		fmt.Println("New Value: " + value)
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		return nil
@@ -73,6 +83,20 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 		return s, nil
 	}
 	return 0, errors.New("not found token account")
+}
+
+func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("SetNodeToken")
+	var funcParam SetNodeTokenParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	err = setToken(funcParam.NodeID, funcParam.Amount, app)
+	if err != nil {
+		return ReturnDeliverTxLog(err.Error())
+	}
+	return ReturnDeliverTxLog("success")
 }
 
 func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {

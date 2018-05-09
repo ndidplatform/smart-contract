@@ -300,6 +300,7 @@ func DeliverTxRouter(method string, param string, app *DIDApplication) types.Res
 		"RegisterMsqAddress":         registerMsqAddress,
 		"AddNodeToken":               addNodeToken,
 		"ReduceNodeToken":            reduceNodeToken,
+		"SetNodeToken":               setNodeToken,
 	}
 	value, _ := callDeliverTx(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseDeliverTx)

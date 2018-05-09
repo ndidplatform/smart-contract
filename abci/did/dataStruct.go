@@ -151,6 +151,11 @@ type MsqAddress struct {
 	Port int64  `json:"port"`
 }
 
+type SetNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
+}
+
 type AddNodeTokenParam struct {
 	NodeID string  `json:"node_id"`
 	Amount float64 `json:"amount"`

@@ -165,6 +165,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"RegisterMsqAddress":         checkTxRegisterMsqAddress,
 		"AddNodeToken":               checkIsNDID,
 		"ReduceNodeToken":            checkIsNDID,
+		"SetNodeToken":               checkIsNDID,
 	}
 
 	var publicKey string
