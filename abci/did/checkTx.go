@@ -64,13 +64,17 @@ func checkTxRegisterMsqAddress(param string, publicKey string, app *DIDApplicati
 	return ReturnCheckTx(false)
 }
 
-func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+func checkNDID(param string, publicKey string, app *DIDApplication) bool {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if string(value) == "NDID" || string(value) == "MasterNDID" {
-		return ReturnCheckTx(true)
+		return true
 	}
-	return ReturnCheckTx(false)
+	return false
+}
+
+func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	return ReturnCheckTx(checkNDID(param, publicKey, app))
 }
 
 func checkIsIDP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
@@ -166,6 +170,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"AddNodeToken":               checkIsNDID,
 		"ReduceNodeToken":            checkIsNDID,
 		"SetNodeToken":               checkIsNDID,
+		"SetPriceFunc":               checkIsNDID,
 	}
 
 	var publicKey string
@@ -187,7 +192,22 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	}
 
 	value, _ := callCheckTx(funcs, method, param, publicKey, app)
-	return value[0].Interface().(types.ResponseCheckTx)
+	result := value[0].Interface().(types.ResponseCheckTx)
+	// check token for create Tx
+	if result.Code == code.CodeTypeOK {
+		if !checkNDID(nodeID, publicKey, app) && method != "InitNDID" {
+			needToken := getTokenPriceByFunc(method, app)
+			nodeToken, err := getToken(nodeID, app)
+			if err != nil {
+				result.Code = code.CodeTypeUnauthorized
+			}
+			if nodeToken < needToken {
+				result.Code = code.CodeTypeUnauthorized
+				result.Log = "token not enough"
+			}
+		}
+	}
+	return result
 }
 
 func callCheckTx(m map[string]interface{}, name string, param string, publicKey string, app *DIDApplication) (result []reflect.Value, err error) {

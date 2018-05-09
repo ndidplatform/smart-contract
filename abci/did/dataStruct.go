@@ -173,3 +173,16 @@ type GetNodeTokenParam struct {
 type GetNodeTokenResult struct {
 	Amount float64 `json:"amount"`
 }
+
+type SetPriceFuncParam struct {
+	Func  string  `json:"func"`
+	Price float64 `json:"price"`
+}
+
+type GetPriceFuncParam struct {
+	Func string `json:"func"`
+}
+
+type GetPriceFuncResult struct {
+	Price float64 `json:"price"`
+}

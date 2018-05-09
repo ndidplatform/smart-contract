@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 	dbm "github.com/tendermint/tmlibs/db"
 )
@@ -75,25 +76,26 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	fmt.Println("DeliverTx")
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
-		return ReturnDeliverTxLog(err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
 
 	method := parts[0]
 	param := parts[1]
+	nodeID := parts[4]
 
 	if method != "" {
-		return DeliverTxRouter(method, param, app)
+		return DeliverTxRouter(method, param, nodeID, app)
 	}
-	return ReturnDeliverTxLog("method can't empty")
+	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	fmt.Println("CheckTx")
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
-		// return ReturnDeliverTxLog(err.Error())
+		return ReturnCheckTx(false)
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
