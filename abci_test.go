@@ -198,9 +198,12 @@ func getPrivateKeyFromString(privK string) *rsa.PrivateKey {
 }
 
 func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
-	pubKeyBytes := x509.MarshalPKCS1PublicKey(publicKey)
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
 	privBlock := pem.Block{
-		Type:    "RSA PUBLIC KEY",
+		Type:    "PUBLIC KEY",
 		Headers: nil,
 		Bytes:   pubKeyBytes,
 	}
