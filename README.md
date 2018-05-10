@@ -498,4 +498,26 @@ log: "success"
 }
 ```
 
+## GetUsedTokenReport
+### Parameter
+```sh
+{
+  "node_id": "AS1"
+}
+```
+### Expected Output
+```sh
+[
+  {
+    "method": "RegisterServiceDestination",
+    "price": 1,
+    "data": ""
+  },
+  {
+    "method": "SignData",
+    "price": 1,
+    "data": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+  }
+]
+```
 
