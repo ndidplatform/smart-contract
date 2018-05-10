@@ -15,14 +15,14 @@ func addNodePublicKey(param string, app *DIDApplication) types.ResponseDeliverTx
 	var nodePublicKey NodePublicKey
 	err := json.Unmarshal([]byte(param), &nodePublicKey)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "NodePublicKey" + "|" + nodePublicKey.NodeID
 	value := nodePublicKey.PublicKey
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func registerMsqDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -30,7 +30,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	for _, user := range funcParam.Users {
@@ -41,7 +41,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			var nodes []Node
 			err = json.Unmarshal([]byte(chkExists), &nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 			}
 
 			newNode := Node{user.Ial, funcParam.NodeID}
@@ -58,7 +58,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 				nodes = append(nodes, newNode)
 				value, err := json.Marshal(nodes)
 				if err != nil {
-					return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+					return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 				}
 				app.state.Size++
 				app.state.db.Set(prefixKey([]byte(key)), []byte(value))
@@ -70,14 +70,14 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 			}
 			app.state.Size++
 			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		}
 	}
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -85,17 +85,17 @@ func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	var accessorMethod AccessorMethod
 	err := json.Unmarshal([]byte(param), &accessorMethod)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "AccessorMethod" + "|" + accessorMethod.AccessorID
 	value, err := json.Marshal(accessorMethod)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -103,24 +103,24 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + request.RequestID
 	value, err := json.Marshal(request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Request ID")
+		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Request ID", "")
 	}
 
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", request.RequestID)
 }
 
 func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -128,19 +128,19 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + response.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found")
+		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found", "")
 	}
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	// Check duplicate before add
@@ -156,14 +156,14 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		request.Responses = append(request.Responses, response)
 		value, err := json.Marshal(request)
 		if err != nil {
-			return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
-		return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+		return ReturnDeliverTxLog(code.CodeTypeOK, "success", response.RequestID)
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Response")
+	return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Response", "")
 }
 
 func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -171,18 +171,18 @@ func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "SignData" + "|" + signData.Signature
 	value, err := json.Marshal(signData)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", signData.RequestID)
 }
 
 func registerServiceDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -190,7 +190,7 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
@@ -198,11 +198,11 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 	node.NodeID = funcParam.NodeID
 	value, err := json.Marshal(node)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -210,7 +210,7 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
 	value := []byte("MasterNDID")
@@ -224,7 +224,7 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	value = []byte(funcParam.PublicKey)
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -232,7 +232,7 @@ func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliver
 	var funcParam RegisterMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	key := "MsqAddress" + "|" + funcParam.NodeID
 	var msqAddress = MsqAddress{
@@ -241,11 +241,11 @@ func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliver
 	}
 	value, err := json.Marshal(msqAddress)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -253,13 +253,13 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
 	key := "NodeID" + "|" + funcParam.NodeID
 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Node ID")
+		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Node ID", "")
 	}
 
 	if funcParam.Role == "RP" ||
@@ -274,16 +274,18 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		createTokenAccount(funcParam.NodeID, app)
-		return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "wrong role")
+	return ReturnDeliverTxLog(code.CodeTypeError, "wrong role", "")
 }
 
 // ReturnDeliverTxLog return types.ResponseDeliverTx
-func ReturnDeliverTxLog(code uint32, log string) types.ResponseDeliverTx {
+func ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
 	return types.ResponseDeliverTx{
 		Code: code,
-		Log:  fmt.Sprintf(log)}
+		Log:  fmt.Sprintf(log),
+		Data: []byte(extraData),
+	}
 }
 
 var isNDIDMethod = map[string]bool{
@@ -322,7 +324,11 @@ func DeliverTxRouter(method string, param string, nodeID string, app *DIDApplica
 			if err != nil {
 				result.Code = code.CodeTypeError
 				result.Log = err.Error()
+				return result
 			}
+			// Write burn token report
+			// only have result.Data in some method
+			writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
 		}
 	}
 	return result

@@ -1489,3 +1489,100 @@ func TestNDIDGetPrice(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+type Report struct {
+	Method string  `json:"method"`
+	Price  float64 `json:"price"`
+	Data   string  `json:"data"`
+}
+
+type GetUsedTokenReportParam struct {
+	NodeID string `json:"node_id"`
+}
+
+func TestReportGetUsedTokenRP(t *testing.T) {
+	fnName := "GetUsedTokenReport"
+	var param = GetUsedTokenReportParam{
+		"RP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res []Report
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expectedString := `[{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	var expected []Report
+	json.Unmarshal([]byte(expectedString), &expected)
+
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestReportGetUsedTokenIdP(t *testing.T) {
+	fnName := "GetUsedTokenReport"
+	var param = GetUsedTokenReportParam{
+		"IdP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res []Report
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"AddAccessorMethod","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	var expected []Report
+	json.Unmarshal([]byte(expectedString), &expected)
+
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestReportGetUsedTokenAS(t *testing.T) {
+	fnName := "GetUsedTokenReport"
+	var param = GetUsedTokenReportParam{
+		"AS1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res []Report
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	var expected []Report
+	json.Unmarshal([]byte(expectedString), &expected)
+
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

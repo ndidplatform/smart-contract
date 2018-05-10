@@ -215,6 +215,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetMsqAddress":         getMsqAddress,
 		"GetNodeToken":          getNodeToken,
 		"GetPriceFunc":          getPriceFunc,
+		"GetUsedTokenReport":    getUsedTokenReport,
 	}
 	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

@@ -186,3 +186,13 @@ type GetPriceFuncParam struct {
 type GetPriceFuncResult struct {
 	Price float64 `json:"price"`
 }
+
+type Report struct {
+	Method string  `json:"method"`
+	Price  float64 `json:"price"`
+	Data   string  `json:"data"`
+}
+
+type GetUsedTokenReportParam struct {
+	NodeID string `json:"node_id"`
+}

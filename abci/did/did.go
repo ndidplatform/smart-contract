@@ -104,7 +104,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
@@ -116,7 +116,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	if method != "" {
 		return DeliverTxRouter(method, param, nodeID, app)
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty")
+	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty", "")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {

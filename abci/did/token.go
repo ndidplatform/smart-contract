@@ -52,10 +52,10 @@ func setPriceFunc(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	setTokenPriceByFunc(funcParam.Func, funcParam.Price, app)
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
@@ -128,13 +128,13 @@ func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	err = setToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -142,13 +142,13 @@ func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	err = addToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func reduceNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -156,13 +156,13 @@ func reduceNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx 
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	err = reduceToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success")
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
 func getNodeToken(param string, app *DIDApplication) types.ResponseQuery {
