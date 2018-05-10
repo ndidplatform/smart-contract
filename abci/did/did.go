@@ -91,8 +91,16 @@ func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEnd
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
-func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
+func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	fmt.Println("DeliverTx")
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnDeliverTxLog("wrong create transaction format")
+		}
+	}()
 
 	// TODO change method add Validator
 	if isValidatorTx(tx) {
@@ -117,8 +125,16 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog("method can't empty")
 }
 
-func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
+func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	fmt.Println("CheckTx")
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnCheckTx(false)
+		}
+	}()
 
 	// TODO check permission before can add Validator
 	if isValidatorTx(tx) {
@@ -127,7 +143,7 @@ func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
-		// return ReturnDeliverTxLog(err.Error())
+		return ReturnCheckTx(false)
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
@@ -168,13 +184,22 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	return types.ResponseCommit{Data: appHash}
 }
 
-func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
 	fmt.Println("Query")
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnQuery(nil, "wrong query format", app.state.Height)
+		}
+	}()
+
 	fmt.Println(string(reqQuery.Data))
 
 	txString, err := base64.StdEncoding.DecodeString(string(reqQuery.Data))
 	if err != nil {
-		ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
