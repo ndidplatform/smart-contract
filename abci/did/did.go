@@ -55,7 +55,8 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state State
+	state      State
+	ValUpdates []types.Validator
 }
 
 func NewDIDApplication() *DIDApplication {
@@ -67,13 +68,40 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	return types.ResponseInfo{Data: fmt.Sprintf("{\"size\":%v}", app.state.Size)}
 }
 
-func (app *DIDApplication) EndBlock(req types.RequestEndBlock) (resInfo types.ResponseEndBlock) {
+// Save the validators in the merkle tree
+func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+	for _, v := range req.Validators {
+		r := app.updateValidator(v)
+		if r.IsErr() {
+			fmt.Println("Error updating validators", "r", r)
+		}
+	}
+	return types.ResponseInitChain{}
+}
+
+// Track the block hash and header information
+func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	// reset valset changes
+	app.ValUpdates = make([]types.Validator, 0)
+	return types.ResponseBeginBlock{}
+}
+
+// Update the validator set
+func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	fmt.Println("EndBlock")
-	return types.ResponseEndBlock{}
+	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
 func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 	fmt.Println("DeliverTx")
+
+	// TODO change method add Validator
+	if isValidatorTx(tx) {
+		// update validators in the merkle tree
+		// and in app.ValUpdates
+		return app.execValidatorTx(tx)
+	}
+
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error())
@@ -93,6 +121,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
 
 func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
 	fmt.Println("CheckTx")
+
+	// TODO check permission before can add Validator
+	if isValidatorTx(tx) {
+		return ReturnCheckTx(true)
+	}
+
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
 		return ReturnCheckTx(false)

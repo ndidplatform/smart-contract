@@ -10,6 +10,12 @@ Test this app with command below
 TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 ```
 
+## Add new validator (For testing)
+get PubKey from pub_key.data in priv_validator.json 
+```sh
+curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
+```
+
 ## Prerequisites
 
 * Go version >= 1.9.2
