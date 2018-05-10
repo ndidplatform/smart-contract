@@ -99,7 +99,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in f", r)
-			res = ReturnDeliverTxLog("wrong create transaction format")
+			res = ReturnDeliverTxLog(code.CodeTypeError, "wrong create transaction format", "")
 		}
 	}()
 
