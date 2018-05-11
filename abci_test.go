@@ -1197,7 +1197,6 @@ func TestQueryGetServiceDestination(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println(res)
 	var expected = GetServiceDestinationResult{
 		[]string{
 			"AS1",
@@ -1585,3 +1584,5 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+// TODO add test about validators
