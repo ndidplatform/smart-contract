@@ -65,12 +65,6 @@ type AccessorMethod struct {
 	Commitment   string `json:"commitment"`
 }
 
-type RegisterServiceDestination struct {
-	AsID        string `json:"as_id"`
-	AsServiceID string `json:"service_id"`
-	NodeID      string `json:"node_id"`
-}
-
 type Response struct {
 	RequestID     string `json:"request_id"`
 	Aal           int    `json:"aal"`
@@ -81,8 +75,8 @@ type Response struct {
 	IdentityProof string `json:"identity_proof"`
 }
 
-type SignData struct {
-	AsID      string `json:"as_id"`
+type SignDataParam struct {
+	NodeID    string `json:"node_id"`
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`
 }
@@ -141,13 +135,17 @@ type GetRequestResult struct {
 	MessageHash string `json:"messageHash"`
 }
 
+type RegisterServiceDestinationParam struct {
+	AsServiceID string `json:"service_id"`
+	NodeID      string `json:"node_id"`
+}
+
 type GetServiceDestinationParam struct {
-	AsID        string `json:"as_id"`
 	AsServiceID string `json:"service_id"`
 }
 
 type GetServiceDestinationResult struct {
-	NodeID string `json:"node_id"`
+	NodeID []string `json:"node_id"`
 }
 
 type RegisterMsqAddressParam struct {
@@ -1150,8 +1148,7 @@ func TestQueryGetAccessorMethod(t *testing.T) {
 }
 
 func TestASRegisterServiceDestination(t *testing.T) {
-	var param = RegisterServiceDestination{
-		"AS1",
+	var param = RegisterServiceDestinationParam{
 		"statement",
 		"AS1",
 	}
@@ -1186,7 +1183,6 @@ func TestASRegisterServiceDestination(t *testing.T) {
 func TestQueryGetServiceDestination(t *testing.T) {
 	fnName := "GetServiceDestination"
 	var param = GetServiceDestinationParam{
-		"AS1",
 		"statement",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1201,8 +1197,11 @@ func TestQueryGetServiceDestination(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	fmt.Println(res)
 	var expected = GetServiceDestinationResult{
-		"AS1",
+		[]string{
+			"AS1",
+		},
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -1343,7 +1342,7 @@ func TestIdPCreateIdpResponse(t *testing.T) {
 }
 
 func TestASSignData(t *testing.T) {
-	var param = SignData{
+	var param = SignDataParam{
 		"AS1",
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		"sign(data,asKey)",

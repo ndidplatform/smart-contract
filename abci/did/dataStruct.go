@@ -101,24 +101,22 @@ type Callback struct {
 }
 
 type SignDataParam struct {
-	AsID      string `json:"as_id"`
+	NodeID    string `json:"node_id"`
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`
 }
 
 type RegisterServiceDestinationParam struct {
-	AsID        string `json:"as_id"`
 	AsServiceID string `json:"service_id"`
 	NodeID      string `json:"node_id"`
 }
 
 type GetServiceDestinationParam struct {
-	AsID        string `json:"as_id"`
 	AsServiceID string `json:"service_id"`
 }
 
 type GetServiceDestinationResult struct {
-	NodeID string `json:"node_id"`
+	NodeID []string `json:"node_id"`
 }
 
 type InitNDIDParam struct {
