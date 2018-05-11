@@ -1586,3 +1586,5 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+// TODO add test about validators
