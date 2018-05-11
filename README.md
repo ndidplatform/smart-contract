@@ -219,7 +219,6 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "as_id": "AS1",
   "service_id": "statement",
   "node_id": "AS1"
 }
@@ -283,7 +282,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "as_id": "AS1",
+  "node_id": "AS1",
   "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "signature": "sign(data,asKey)"
 }
@@ -398,14 +397,15 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "as_id": "AS1",
   "service_id": "statement"
 }
 ```
 ### Expected Output
 ```sh
 {
-  "node_id": "AS1"
+  "node_id": [
+    "AS1"
+  ]
 }
 ```
 
