@@ -4,12 +4,16 @@ tendermint ABCI app
 
 ## Note
 
-The repo was renamed at 25 Apr 2018 and local go-path was changed from digital-id to ndidplatform.
-For anyone who cloned this project before 25 Apr 2018, do as follows:
+Test this app with command below
 
 ```sh
-mkdir -p $GOPATH/src/github.com/ndidplatform
-mv $GOPATH/src/github.com/digital-id/ndid-smart-contract $GOPATH/src/github.com/ndidplatform/smart-contract
+TENDERMINT_ADDRESS=http://localhost:45000 go test -v
+```
+
+## Add new validator (For testing)
+get PubKey from pub_key.data in priv_validator.json 
+```sh
+curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 ```
 
 ## Prerequisites
@@ -148,212 +152,382 @@ docker-compose up
 
 Interact with `ndid-api` in BASE64 format data.
 
-## AddNodePublicKey
-
-### Input
-
+# Broadcast tx format
 ```sh
-AddNodePublicKey|{
- "node_id": "IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0",
- "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAABAQC+RP+svJPfeâ€¦"
-}|nonce1
+functionName|parameter|nonce|base64(sign(param+nonce))|nodeID
 ```
 
-### Expected Output
+# Query format
+```sh
+functionName|parameter
+```
 
+# Create transaction function
+
+## InitNDID
+### Parameter
+```sh
+{
+  "node_id": "NDID",
+  "public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zxXUCY\nRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5p\nxK/+olBzfzLMDEOwFRbnYtPtbWozfvceq77fEReTUdBGRLak7twxLrRPNzIu/Gqv\nn5AR8urXyF4r143CgReGkXTTmOvHpHu98kCQSINFuwBB98RLFuWdVwkrHyzaGnym\nQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTk\nLb9t27DpW9G+DXryq+Pnl5c+z7es/7T34QIDAQAB\n-----END RSA PUBLIC KEY-----\n"
+}
+```
+### Expected Output
 ```sh
 log: "success"
 ```
 
-## GetNodePublicKey
-
-### Input
-
-```sh
-GetNodePublicKey|{
- "node_id": "IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0"
-}
-```
-
-### Expected Output
-
+## RegisterNode
+### Parameter
+Posible role is RP,IdP and AS
 ```sh
 {
- "public_key": "AAAAB3NzaC1yc2EAAAADAQABAAABAQC+RP+svJPfeâ€¦"
+  "node_id": "RP1",
+  "public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAwCB4UBzQcnd6GAzPgbt9j2idW23qKZrsvldPNifmOPLfLlMusv4E\ncyJf4L42/aQbTn1rVSu1blGkuCK+oRlKWmZEWh3xv9qrwCwov9Jme/KOE98zOMB1\n0/xwnYotPadV0de80wGvKT7OlBlGulQRRhhgENNCPSxdUlozrPhrzGstXDr9zTYQ\noR3UD/7Ntmew3mnXvKj/8+U48hw913Xn6btBP3Uqg2OurXDGdrWciWgIMDEGyk65\nNOc8FOGa4AjYXzyi9TqOIfmysWhzKzU+fLysZQo10DfznnQN3w9+pI+20j2zB6gg\npL75RjZKYgHU49pbvjF/eOSTOg9o5HwX0wIDAQAB\n-----END RSA PUBLIC KEY-----\n",
+  "role": "RP"
 }
+```
+### Expected Output
+```sh
+log: "success"
 ```
 
 ## RegisterMsqDestination
-
-### Input
-
-```sh
-RegisterMsqDestination|{
- "users": [
-   {
-      "hash_id": "fc7ba91796fa25bad3c94aa9782266cabee3a933edbdfe2d46cb393ace89de1f",
-      "ial": 1
-   }
- ],
- "node_id": "IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0"
-}|nonce1
-```
-
-### Expected Output
-
-```sh
-log: "success"
-```
-
-## GetMsqDestination
-
-### Input
-
-```sh
-GetMsqDestination|{
- "hash_id": "fc7ba91796fa25bad3c94aa9782266cabee3a933edbdfe2d46cb393ace89de1f",
- "min_ial": 1
-}
-```
-
-### Expected Output
-
+### Parameter
 ```sh
 {
- "node_id": ["IdP_f924-5069-4c6a-a4e4-134cd1a3d3d0",...]
+  "users": [
+    {
+      "hash_id": "���\u0010fV+�{��DD�F�;Hָ�`��椼q\u0017���",
+      "ial": 3
+    }
+  ],
+  "node_id": "IdP1"
 }
+```
+### Expected Output
+```sh
+log: "success"
 ```
 
 ## AddAccessorMethod
-
-### Input
-
+### Parameter
 ```sh
-AddAccessorMethod|{
- "accessor_id":"acc_f328-53da-4d51-a927-3cc6d3ed3feb",
- "accessor_type":"RSA-2048",
- "accessor_key":"AAAAB3NzaC1yc2EAAAADAQABAAABâ€¦",
- "commitment":"(magic)"
-}|nonce1
+{
+  "accessor_id": "TestAccessorID",
+  "accessor_type": "TestAccessorType",
+  "accessor_key": "TestAccessorKey",
+  "commitment": "TestCommitment"
+}
 ```
-
 ### Expected Output
-
 ```sh
 log: "success"
 ```
 
-## GetAccessorMethod
-
-### Input
-
-```sh
-GetAccessorMethod|{
- "accessor_id":"acc_f328-53da-4d51-a927-3cc6d3ed3feb"
-}
-```
-
-### Expected Output
-
+## RegisterServiceDestination
+### Parameter
 ```sh
 {
- "accessor_type":"RSA-2048",
- "accessor_key":"AAAAB3NzaC1yc2EAAAADAQABAAABâ€¦",
- "commitment":"(magic)"
+  "as_id": "AS1",
+  "service_id": "statement",
+  "node_id": "AS1"
 }
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## RegisterMsqAddress
+### Parameter
+```sh
+{
+  "node_id": "IdP1",
+  "ip": "192.168.3.99",
+  "port": 8000
+}
+```
+### Expected Output
+```sh
+log: "success"
 ```
 
 ## CreateRequest
-
-### Input
-
+### Parameter
 ```sh
-CreateRequest|{
- "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
- "min_idp": 1,
- "min_aal": 1,
- "min_ial": 2,
- "timeout": 259200,
- "data_request_list": [
-   {
-     "service_id": "bank_statement",
-     "as": [
-       "AS1",
-       "AS2"
-     ],
-     "count": "1",
-     "request_params": {
-       "format": "pdf",
-       "language": "en"
-     }
-   }
- ],
- "message_hash": "hash('Please allow...')"
+{
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "min_idp": 1,
+  "min_aal": 1,
+  "min_ial": 1,
+  "timeout": 259200,
+  "data_request_list": null,
+  "message_hash": "hash('Please allow...')"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## CreateIdpResponse
+### Parameter
+```sh
+{
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "aal": 3,
+  "ial": 3,
+  "status": "accept",
+  "signature": "signature",
+  "accessor_id": "TestAccessorID",
+  "identity_proof": "Magic"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## SignData
+### Parameter
+```sh
+{
+  "as_id": "AS1",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "signature": "sign(data,asKey)"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## SetNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 100
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## AddNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 111.11
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## ReduceNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1",
+  "amount": 61.11
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## SetPriceFunc
+### Parameter
+```sh
+{
+  "func": "CreateRequest",
+  "price": 99.99
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+# Query function
+
+## GetNodePublicKey
+### Parameter
+```sh
+{
+  "node_id": "RP1"
+}
+```
+### Expected Output
+```sh
+{
+  "public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAwCB4UBzQcnd6GAzPgbt9j2idW23qKZrsvldPNifmOPLfLlMusv4E\ncyJf4L42/aQbTn1rVSu1blGkuCK+oRlKWmZEWh3xv9qrwCwov9Jme/KOE98zOMB1\n0/xwnYotPadV0de80wGvKT7OlBlGulQRRhhgENNCPSxdUlozrPhrzGstXDr9zTYQ\noR3UD/7Ntmew3mnXvKj/8+U48hw913Xn6btBP3Uqg2OurXDGdrWciWgIMDEGyk65\nNOc8FOGa4AjYXzyi9TqOIfmysWhzKzU+fLysZQo10DfznnQN3w9+pI+20j2zB6gg\npL75RjZKYgHU49pbvjF/eOSTOg9o5HwX0wIDAQAB\n-----END RSA PUBLIC KEY-----\n"
 }
 ```
 
-### Expected Output
-
+## GetMsqDestination
+### Parameter
 ```sh
-log: "success"
+{
+  "hash_id": "���\u0010fV+�{��DD�F�;Hָ�`��椼q\u0017���",
+  "min_ial": 3
+}
+```
+### Expected Output
+```sh
+{
+  "node_id": [
+    "IdP1"
+  ]
+}
+```
+
+## GetAccessorMethod
+### Parameter
+```sh
+{
+  "accessor_id": "TestAccessorID"
+}
+```
+### Expected Output
+```sh
+{
+  "accessor_type": "TestAccessorType",
+  "accessor_key": "TestAccessorKey",
+  "commitment": "TestCommitment"
+}
+```
+
+## GetServiceDestination
+### Parameter
+```sh
+{
+  "as_id": "AS1",
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+{
+  "node_id": "AS1"
+}
+```
+
+## GetMsqAddress
+### Parameter
+```sh
+{
+  "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+{
+  "ip": "192.168.3.99",
+  "port": 8000
+}
 ```
 
 ## GetRequest
-
-### Input
-
-```sh
-GetRequest|{
- "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
-}
-```
-
-### Expected Output
-
+### Parameter
 ```sh
 {
- "status": "complete",
- "messageHash" : "hash('Please allow...')"
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
-
-## CreatIdpResponse
-
-### Input
-
-```sh
-CreatIdpResponse|{
- "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
- "aal": 3,
- "ial": 2,
- "status": "accept",
- "signature": "(signature)",
- "accessor_id": "12a8f328-53da-4d51-a927-3cc6d3ed3feb",
- "identity_proof": "(identity_proof)"
-}|nonce1
-```
-
 ### Expected Output
-
 ```sh
-log: "success"
+{
+  "status": "pending",
+  "messageHash": "hash('Please allow...')"
+}
 ```
 
 ## GetRequestDetail
-
-### Input
-
-```sh
-GetRequestDetail|{
- "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
-}
-```
-
-### Expected Output
-
+### Parameter
 ```sh
 {
- "status": "complete",
- "messageHash" : "hash('Please allow...')"
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
+### Expected Output
+```sh
+{
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "min_idp": 1,
+  "min_aal": 1,
+  "min_ial": 1,
+  "timeout": 259200,
+  "data_request_list": null,
+  "message_hash": "hash('Please allow...')",
+  "responses": [
+    {
+      "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+      "aal": 3,
+      "ial": 3,
+      "status": "accept",
+      "signature": "signature",
+      "accessor_id": "TestAccessorID",
+      "identity_proof": "Magic"
+    }
+  ]
+}
+```
+
+## GetNodeToken
+### Parameter
+```sh
+{
+  "node_id": "RP1"
+}
+```
+### Expected Output
+```sh
+{
+  "amount": 100
+}
+```
+
+## GetPriceFunc
+### Parameter
+```sh
+{
+  "func": "CreateRequest"
+}
+```
+### Expected Output
+```sh
+{
+  "price": 99.99
+}
+```
+
+## GetUsedTokenReport
+### Parameter
+```sh
+{
+  "node_id": "AS1"
+}
+```
+### Expected Output
+```sh
+[
+  {
+    "method": "RegisterServiceDestination",
+    "price": 1,
+    "data": ""
+  },
+  {
+    "method": "SignData",
+    "price": 1,
+    "data": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+  }
+]
+```
+

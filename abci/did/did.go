@@ -1,14 +1,14 @@
 package did
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/tendermint/abci/example/code"
+	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 	dbm "github.com/tendermint/tmlibs/db"
 )
@@ -55,7 +55,8 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state State
+	state      State
+	ValUpdates []types.Validator
 }
 
 func NewDIDApplication() *DIDApplication {
@@ -67,47 +68,140 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	return types.ResponseInfo{Data: fmt.Sprintf("{\"size\":%v}", app.state.Size)}
 }
 
-func (app *DIDApplication) DeliverTx(tx []byte) types.ResponseDeliverTx {
+// Save the validators in the merkle tree
+func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+	for _, v := range req.Validators {
+		r := app.updateValidator(v)
+		if r.IsErr() {
+			fmt.Println("Error updating validators", "r", r)
+		}
+	}
+	return types.ResponseInitChain{}
+}
+
+// Track the block hash and header information
+func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	// reset valset changes
+	app.ValUpdates = make([]types.Validator, 0)
+	return types.ResponseBeginBlock{}
+}
+
+// Update the validator set
+func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+	fmt.Println("EndBlock")
+	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
+}
+
+func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	fmt.Println("DeliverTx")
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnDeliverTxLog(code.CodeTypeError, "wrong create transaction format", "")
+		}
+	}()
+
+	// TODO change method add Validator
+	if isValidatorTx(tx) {
+		// update validators in the merkle tree
+		// and in app.ValUpdates
+		return app.execValidatorTx(tx)
+	}
+
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
-		return ReturnDeliverTxLog(err.Error())
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
 
 	method := parts[0]
 	param := parts[1]
+	nodeID := parts[4]
 
 	if method != "" {
-		return DeliverTxRouter(method, param, app)
+		return DeliverTxRouter(method, param, nodeID, app)
 	}
-	return ReturnDeliverTxLog("method can't empty")
+	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty", "")
 }
 
-func (app *DIDApplication) CheckTx(tx []byte) types.ResponseCheckTx {
+func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	fmt.Println("CheckTx")
-	return types.ResponseCheckTx{Code: code.CodeTypeOK}
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnCheckTx(false)
+		}
+	}()
+
+	// TODO check permission before can add Validator
+	if isValidatorTx(tx) {
+		return ReturnCheckTx(true)
+	}
+
+	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
+	if err != nil {
+		return ReturnCheckTx(false)
+	}
+	fmt.Println(string(txString))
+	parts := strings.Split(string(txString), "|")
+
+	method := parts[0]
+	param := parts[1]
+	nonce := parts[2]
+	signature := parts[3]
+	nodeID := parts[4]
+
+	if method != "" {
+		return CheckTxRouter(method, param, nonce, signature, nodeID, app)
+	} else {
+		return ReturnCheckTx(false)
+	}
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	fmt.Println("Commit")
-	// Using a memdb - just return the big endian size of the db
-	appHash := make([]byte, 8)
-	binary.PutVarint(appHash, app.state.Size)
+	itr := app.state.db.Iterator(nil, nil)
+	defer itr.Close()
+
+	strAppHash := ""
+	for ; itr.Valid(); itr.Next() {
+		k := itr.Key()
+		v := itr.Value()
+		if string(k) != "stateKey" {
+			strAppHash += string(k) + string(v)
+		}
+		// fmt.Println(string(k) + "->" + string(v))
+	}
+	h := sha256.New()
+	h.Write([]byte(strAppHash))
+	appHash := h.Sum(nil)
 	app.state.AppHash = appHash
 	app.state.Height += 1
 	saveState(app.state)
 	return types.ResponseCommit{Data: appHash}
 }
 
-func (app *DIDApplication) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
 	fmt.Println("Query")
+
+	// Recover when panic
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+			res = ReturnQuery(nil, "wrong query format", app.state.Height)
+		}
+	}()
+
 	fmt.Println(string(reqQuery.Data))
 
 	txString, err := base64.StdEncoding.DecodeString(string(reqQuery.Data))
 	if err != nil {
-		ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
