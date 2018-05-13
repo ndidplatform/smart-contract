@@ -5,7 +5,7 @@
 
 # TCP or UNIX socket address of the ABCI application,
 # or the name of an ABCI application compiled in with the Tendermint binary
-proxy_app = "tcp://127.0.0.1:46002"
+proxy_app = "tcp://abci-as:46002"
 
 # A custom human readable name for this node
 moniker = "admins-MacBook-Air.local"
@@ -67,7 +67,7 @@ unsafe = false
 laddr = "tcp://0.0.0.0:47002"
 
 # Comma separated list of seed nodes to connect to
-seeds = "127.0.0.1:47000,127.0.0.1:47001,127.0.0.1:47002"
+seeds = "tm-idp:47000,tm-rp:47001"
 
 # Comma separated list of nodes to keep persistent connections to
 persistent_peers = ""
