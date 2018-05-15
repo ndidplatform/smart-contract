@@ -18,7 +18,7 @@ func ReturnDeliverTxLog(code uint32, log string, extraData string) types.Respons
 }
 
 // DeliverTxRouter is Pointer to function
-func DeliverTxRouter(method string, param string, nodeID string, app *DIDApplication) types.ResponseDeliverTx {
+func DeliverTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseDeliverTx {
 	funcs := map[string]interface{}{
 		"InitNDID":                   initNDID,
 		"RegisterNode":               registerNode,
@@ -34,6 +34,17 @@ func DeliverTxRouter(method string, param string, nodeID string, app *DIDApplica
 		"SetNodeToken":               setNodeToken,
 		"SetPriceFunc":               setPriceFunc,
 	}
+
+	// ---- check authorization ----
+	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
+	if checkTxResult.Code != code.CodeTypeOK {
+		// return result = false
+		var result types.ResponseDeliverTx
+		result.Code = code.CodeTypeError
+		result.Log = checkTxResult.Log
+		return result
+	}
+
 	value, _ := callDeliverTx(funcs, method, param, app)
 	result := value[0].Interface().(types.ResponseDeliverTx)
 	// ---- Burn token ----

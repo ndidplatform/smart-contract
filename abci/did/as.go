@@ -35,14 +35,31 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
-	key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
-	var node GetServiceDestinationResult
-	node.NodeID = funcParam.NodeID
-	value, err := json.Marshal(node)
-	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	key := "ServiceDestination" + "|" + funcParam.AsServiceID
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	if chkExists != nil {
+		var nodes GetServiceDestinationResult
+		err := json.Unmarshal([]byte(chkExists), &nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+		nodes.NodeID = append(nodes.NodeID, funcParam.NodeID)
+		value, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	} else {
+		var nodes GetServiceDestinationResult
+		nodes.NodeID = append(nodes.NodeID, funcParam.NodeID)
+		value, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }

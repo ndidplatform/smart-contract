@@ -93,7 +93,7 @@ func getServiceDestination(param string, app *DIDApplication) types.ResponseQuer
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "ServiceDestination" + "|" + funcParam.AsID + "|" + funcParam.AsServiceID
+	key := "ServiceDestination" + "|" + funcParam.AsServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
