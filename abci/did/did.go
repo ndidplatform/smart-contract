@@ -119,10 +119,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 
 	method := parts[0]
 	param := parts[1]
+	nonce := parts[2]
+	signature := parts[3]
 	nodeID := parts[4]
 
 	if method != "" {
-		return DeliverTxRouter(method, param, nodeID, app)
+		return DeliverTxRouter(method, param, nonce, signature, nodeID, app)
 	}
 	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty", "")
 }
@@ -156,8 +158,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := parts[3]
 	nodeID := parts[4]
 
-	if method != "" {
-		return CheckTxRouter(method, param, nonce, signature, nodeID, app)
+	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
+		// return CheckTxRouter(method, param, nonce, signature, nodeID, app)
+
+		// If can decode and field != "" always return true
+		return ReturnCheckTx(true)
 	} else {
 		return ReturnCheckTx(false)
 	}
