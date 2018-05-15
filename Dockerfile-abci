@@ -1,0 +1,14 @@
+FROM golang:1.10 as builder
+LABEL maintainer="Narate Ketram <rate@dome.cloud>"
+
+ENV TERM=xterm-256color
+ENV CGO_ENABLED=0
+RUN go get github.com/golang/dep/cmd/dep
+COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+
+WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+RUN dep ensure
+RUN go install
+
+FROM alpine:3.7
+COPY --from=builder /go/bin/abci /abci-server

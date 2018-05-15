@@ -1,0 +1,54 @@
+version: '3'
+services:
+  tm-idp:
+    build:
+      context: .
+      dockerfile: Dockerfile-tendermint
+    volumes:
+      - ./docker-config/tendermint/IdP:/tendermint
+    ports:
+      - 45000:45000
+      - 47000:47000
+    depends_on:
+      - abci-idp
+  tm-rp:
+    build:
+      context: .
+      dockerfile: Dockerfile-tendermint
+    volumes:
+      - ./docker-config/tendermint/RP:/tendermint
+    ports:
+      - 45001:45001
+      - 47001:47001
+    depends_on:
+      - abci-rp
+  tm-as:
+    build:
+      context: .
+      dockerfile: Dockerfile-tendermint
+    volumes:
+      - ./docker-config/tendermint/AS:/tendermint
+    ports:
+      - 45002:45002
+      - 47002:47002
+    depends_on:
+      - abci-as
+  abci-idp:
+    build:
+      context: .
+      dockerfile: Dockerfile-abci
+    command: ["/abci-server","tcp://0.0.0.0:46000"]
+  abci-rp:
+    build:
+      context: .
+      dockerfile: Dockerfile-abci
+    command: ["/abci-server","tcp://0.0.0.0:46001"]
+  abci-as:
+    build:
+      context: .
+      dockerfile: Dockerfile-abci
+    command: ["/abci-server","tcp://0.0.0.0:46002"]
+networks:
+  default:
+    external:
+      name: ndidplatform

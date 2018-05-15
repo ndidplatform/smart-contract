@@ -124,6 +124,16 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
     ```
 
+## Run in Docker
+Required
+- Docker CE [Install docker](https://docs.docker.com/install/)
+- docker-compose [Install docker-compose](https://docs.docker.com/compose/install/)
+
+```
+docker network create ndidplatform
+docker-compose up
+```
+    
 ## IMPORTANT NOTE
 
 1.  You must start IDP, RP and AS nodes in order to run the platform.
