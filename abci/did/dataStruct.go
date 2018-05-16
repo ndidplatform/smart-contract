@@ -74,6 +74,8 @@ type Request struct {
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"message_hash"`
 	Responses       []Response    `json:"responses"`
+	IsClosed        bool          `json:"is_closed"`
+	IsTimedOut      bool          `json:"is_timed_out"`
 }
 
 type Response struct {
@@ -92,6 +94,8 @@ type GetRequestParam struct {
 
 type GetRequestResult struct {
 	Status      string `json:"status"`
+	IsClosed    bool   `json:"is_closed"`
+	IsTimedOut  bool   `json:"is_timed_out"`
 	MessageHash string `json:"messageHash"`
 }
 
@@ -193,4 +197,8 @@ type Report struct {
 
 type GetUsedTokenReportParam struct {
 	NodeID string `json:"node_id"`
+}
+
+type RequestIDParam struct {
+	RequestID string `json:"requestId"`
 }

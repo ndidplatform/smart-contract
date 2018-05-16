@@ -104,6 +104,32 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 	return ReturnCheckTx(false)
 }
 
+func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	var funcParam RequestIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnCheckTx(false)
+	}
+
+	key := "SpendGas" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	var reports []Report
+	err = json.Unmarshal([]byte(value), &reports)
+	if err != nil {
+		return ReturnCheckTx(false)
+	}
+
+	for _, node := range reports {
+		if node.Method == "CreateRequest" &&
+			node.Data == funcParam.RequestID {
+			return ReturnCheckTx(true)
+		}
+	}
+
+	return ReturnCheckTx(false)
+}
+
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
@@ -155,6 +181,11 @@ func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	return ""
 }
 
+var IsCheckOwnerRequestMethod = map[string]bool{
+	"CloseRequest":   true,
+	"TimeOutRequest": true,
+}
+
 // CheckTxRouter is Pointer to function
 func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	funcs := map[string]interface{}{
@@ -191,8 +222,15 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		return ReturnCheckTx(false)
 	}
 
-	value, _ := callCheckTx(funcs, method, param, publicKey, app)
-	result := value[0].Interface().(types.ResponseCheckTx)
+	var result types.ResponseCheckTx
+
+	// special case checkIsOwnerRequest
+	if IsCheckOwnerRequestMethod[method] {
+		result = checkIsOwnerRequest(param, nodeID, app)
+	} else {
+		value, _ := callCheckTx(funcs, method, param, publicKey, app)
+		result = value[0].Interface().(types.ResponseCheckTx)
+	}
 	// check token for create Tx
 	if result.Code == code.CodeTypeOK {
 		if !checkNDID(nodeID, publicKey, app) && method != "InitNDID" {

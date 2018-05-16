@@ -33,6 +33,8 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"ReduceNodeToken":            reduceNodeToken,
 		"SetNodeToken":               setNodeToken,
 		"SetPriceFunc":               setPriceFunc,
+		"CloseRequest":               closeRequest,
+		"TimeOutRequest":             timeOutRequest,
 	}
 
 	// ---- check authorization ----

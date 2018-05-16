@@ -140,6 +140,7 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	// TODO: change logic calculate status
 	status := "pending"
 	acceptCount := 0
 	for _, response := range request.Responses {
@@ -157,6 +158,8 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 
 	var res GetRequestResult
 	res.Status = status
+	res.IsClosed = request.IsClosed
+	res.IsTimedOut = request.IsTimedOut
 	res.MessageHash = request.MessageHash
 
 	value, err = json.Marshal(res)

@@ -445,6 +445,8 @@ log: "success"
 ```sh
 {
   "status": "pending",
+  "is_closed" "true",
+  "is_timed_out" "false",
   "messageHash": "hash('Please allow...')"
 }
 ```

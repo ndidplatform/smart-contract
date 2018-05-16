@@ -130,8 +130,18 @@ type GetRequestParam struct {
 	RequestID string `json:"requestId"`
 }
 
+type CloseRequestParam struct {
+	RequestID string `json:"requestId"`
+}
+
+type TimeOutRequestParam struct {
+	RequestID string `json:"requestId"`
+}
+
 type GetRequestResult struct {
 	Status      string `json:"status"`
+	IsClosed    bool   `json:"is_closed"`
+	IsTimedOut  bool   `json:"is_timed_out"`
 	MessageHash string `json:"messageHash"`
 }
 
@@ -1294,6 +1304,8 @@ func TestQueryGetRequestPending(t *testing.T) {
 	}
 	var expected = GetRequestResult{
 		"pending",
+		false,
+		false,
 		"hash('Please allow...')",
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1394,6 +1406,8 @@ func TestQueryGetRequestComplete(t *testing.T) {
 	}
 	var expected = GetRequestResult{
 		"completed",
+		false,
+		false,
 		"hash('Please allow...')",
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1431,7 +1445,7 @@ func TestNDIDSetPrice(t *testing.T) {
 
 	var param = SetPriceFuncParam{
 		"CreateRequest",
-		99.99,
+		9.99,
 	}
 
 	paramJSON, err := json.Marshal(param)
@@ -1480,7 +1494,7 @@ func TestNDIDGetPrice(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var expected = GetPriceFuncResult{
-		99.99,
+		9.99,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -1579,6 +1593,171 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRPCloseRequest(t *testing.T) {
+
+	var param = CloseRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "CloseRequest"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetRequestClosed(t *testing.T) {
+	fnName := "GetRequest"
+	var param = GetRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetRequestResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = GetRequestResult{
+		"completed",
+		true,
+		false,
+		"hash('Please allow...')",
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestCreateRequest(t *testing.T) {
+	var data []DataRequest
+	var param = Request{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+		1,
+		1,
+		1,
+		259200,
+		data,
+		"hash('Please allow...')",
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "CreateRequest"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRPTimeOutRequest(t *testing.T) {
+
+	var param = TimeOutRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "TimeOutRequest"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetRequestTimedOut(t *testing.T) {
+	fnName := "GetRequest"
+	var param = GetRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetRequestResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = GetRequestResult{
+		"pending",
+		false,
+		true,
+		"hash('Please allow...')",
+	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

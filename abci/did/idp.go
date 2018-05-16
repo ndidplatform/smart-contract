@@ -102,15 +102,30 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 	}
 
 	// Check duplicate before add
-	chkDup := false
+	chk := false
 	for _, oldResponse := range request.Responses {
 		if response == oldResponse {
-			chkDup = true
+			chk = true
 			break
 		}
 	}
 
-	if chkDup == false {
+	// Check min_idp
+	if len(request.Responses) >= request.MinIdp {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's complete response", "")
+	}
+
+	// Check IsClosed
+	if request.IsClosed {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's closed", "")
+	}
+
+	// Check IsTimedOut
+	if request.IsTimedOut {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's timed out", "")
+	}
+
+	if chk == false {
 		request.Responses = append(request.Responses, response)
 		value, err := json.Marshal(request)
 		if err != nil {
