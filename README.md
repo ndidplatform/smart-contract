@@ -354,6 +354,30 @@ log: "success"
 log: "success"
 ```
 
+## CloseRequest
+### Parameter
+```sh
+{
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## TimeOutRequest
+### Parameter
+```sh
+{
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
