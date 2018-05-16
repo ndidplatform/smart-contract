@@ -16,14 +16,45 @@ func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
-	key := "SignData" + "|" + signData.Signature
-	value, err := json.Marshal(signData)
+	key := "Request" + "|" + signData.RequestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found", "")
+	}
+	var request Request
+	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
+	// Check IsClosed
+	if request.IsClosed {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Request is closed", "")
+	}
+
+	// Check IsTimedOut
+	if request.IsTimedOut {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Request is timed out", "")
+	}
+
+	key = "SignData" + "|" + signData.Signature
+	value, err = json.Marshal(signData)
+	if err != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+
+	key = "Request" + "|" + signData.RequestID
+	request.SignDataCount++
+	value, err = json.Marshal(request)
+	if err != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	}
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", signData.RequestID)
 }
 

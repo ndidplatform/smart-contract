@@ -76,6 +76,7 @@ type Request struct {
 	Responses       []Response    `json:"responses"`
 	IsClosed        bool          `json:"is_closed"`
 	IsTimedOut      bool          `json:"is_timed_out"`
+	SignDataCount   int           `json:"sign_data_count"`
 }
 
 type Response struct {

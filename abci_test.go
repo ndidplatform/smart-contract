@@ -1663,14 +1663,23 @@ func TestQueryGetRequestClosed(t *testing.T) {
 }
 
 func TestCreateRequest(t *testing.T) {
-	var data []DataRequest
+	var datas []DataRequest
+	var data1 DataRequest
+	data1.ServiceID = "statement"
+	data1.As = []string{
+		"AS1",
+		"AS2",
+	}
+	data1.Count = 2
+	data1.RequestParamsHash = "hash"
+	datas = append(datas, data1)
 	var param = Request{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
 		1,
 		1,
 		1,
 		259200,
-		data,
+		datas,
 		"hash('Please allow...')",
 	}
 
