@@ -129,9 +129,16 @@ Required
 - Docker CE [Install docker](https://docs.docker.com/install/)
 - docker-compose [Install docker-compose](https://docs.docker.com/compose/install/)
 
+### Build
+
 ```
-docker network create ndidplatform
-docker-compose up
+docker-compose -f docker/docker-compose.build.yml build
+```
+
+### Run
+
+```
+docker-compose -f docker/docker-compose.yml up
 ```
     
 ## IMPORTANT NOTE
