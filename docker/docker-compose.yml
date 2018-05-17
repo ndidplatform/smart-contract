@@ -33,6 +33,7 @@ services:
     networks:
       - ndidplatform
     depends_on:
+      - tm-idp
       - abci-rp
   tm-as:
     image: ndidplatform/tendermint:latest
@@ -51,6 +52,7 @@ services:
     networks:
       - ndidplatform
     depends_on:
+      - tm-idp
       - abci-as
   abci-idp:
     image: ndidplatform/abci:latest
