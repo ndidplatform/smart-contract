@@ -25,12 +25,11 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 
 * Tendermint 0.16.0
 
-  * [Install Tendermint](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/) by following [installation instructions.](http://tendermint.readthedocs.io/projects/tools/en/v0.16.0/install.html)  
-    **Important**: After running `go get github.com/tendermint/tendermint/cmd/tendermint`, you need to change tendermint cloned source to version 0.16.0 before continuing the installation)
-
     ```sh
     cd $GOPATH/src/github.com/tendermint/tendermint
     git checkout v0.16.0
+    glide install
+    go install ./cmd/tendermint
     ```
 
 ## Setup
@@ -38,7 +37,8 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 1.  Get dependency (tendermint ABCI)
 
     ```sh
-    go get -u github.com/tendermint/abci/cmd/abci-cli
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+    dep ensure
     ```
 
 2.  Create a directory for the project
