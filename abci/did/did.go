@@ -82,6 +82,8 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	// reset valset changes
+	fmt.Print("BeginBlock: ")
+	fmt.Println(req.Header.Height)
 	app.ValUpdates = make([]types.Validator, 0)
 	return types.ResponseBeginBlock{}
 }
