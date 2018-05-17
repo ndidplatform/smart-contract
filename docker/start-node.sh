@@ -29,8 +29,9 @@ tendermint_new_priv_validator() {
 tendermint_wait_for_sync_complete() {
   HOSTNAME=$1
   PORT=$2
-  while [ ! $(wget -qO - ${HOSTNAME}:${PORT}/status | jq -r .result.syncing) = "false" ]; do 
-    sleep 1; 
+  while true; do
+    [ ! "$(wget -qO - ${HOSTNAME}:${PORT}/status | jq -r .result.syncing)" = "false" ] || break
+    sleep 1
   done;
 }
 
@@ -41,16 +42,20 @@ tendermint_add_validator() {
 
 TYPE=${1}
 
-if [ ! -d ${TMHOME}/config/genesis.json ]; then
+if [ ! -f ${TMHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
+      shift
+      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
       tendermint_init
-      tendermint_get_genesis_from_seed
       tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
+      tendermint_get_genesis_from_seed
+      shift
+      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
       tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT}
       tendermint_add_validator
       ;;
@@ -63,7 +68,7 @@ if [ ! -d ${TMHOME}/config/genesis.json ]; then
       exit 1
       ;;
   esac
+else
+  shift
+  tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
 fi
-
-shift
-tendermint node --consensus.create_empty_blocks=false $@
