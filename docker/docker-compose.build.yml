@@ -1,0 +1,12 @@
+version: '3'
+services:
+  tendermint:
+    build: 
+      context: ../
+      dockerfile: docker/Dockerfile-tendermint
+    image: ndidplatform/tendermint:latest
+  abci:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile-abci
+    image: ndidplatform/abci:latest
