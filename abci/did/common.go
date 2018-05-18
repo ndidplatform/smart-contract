@@ -233,3 +233,20 @@ func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	return ReturnQuery(value, "success", app.state.Height)
 }
+
+func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetServiceDetail")
+	var funcParam GetServiceDetailParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	key := "Service" + "|" + funcParam.AsServiceID + "|" + funcParam.NodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+	return ReturnQuery(value, "success", app.state.Height)
+}

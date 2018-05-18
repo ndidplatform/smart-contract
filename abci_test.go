@@ -146,6 +146,20 @@ type GetRequestResult struct {
 }
 
 type RegisterServiceDestinationParam struct {
+	AsServiceID string  `json:"service_id"`
+	NodeID      string  `json:"node_id"`
+	ServiceName string  `json:"service_name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+}
+
+type Service struct {
+	ServiceName string  `json:"service_name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+}
+
+type GetServiceDetailParam struct {
 	AsServiceID string `json:"service_id"`
 	NodeID      string `json:"node_id"`
 }
@@ -1161,6 +1175,9 @@ func TestASRegisterServiceDestination(t *testing.T) {
 	var param = RegisterServiceDestinationParam{
 		"statement",
 		"AS1",
+		"Bank statement",
+		1.1,
+		1.2,
 	}
 
 	asKey := getPrivateKeyFromString(asPrivK)
@@ -1185,6 +1202,35 @@ func TestASRegisterServiceDestination(t *testing.T) {
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetServiceDetail(t *testing.T) {
+	fnName := "GetServiceDetail"
+	var param = GetServiceDetailParam{
+		"statement",
+		"AS1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res Service
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = Service{
+		"Bank statement",
+		1.1,
+		1.2,
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

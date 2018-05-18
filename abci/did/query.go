@@ -30,6 +30,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetNodeToken":          getNodeToken,
 		"GetPriceFunc":          getPriceFunc,
 		"GetUsedTokenReport":    getUsedTokenReport,
+		"GetServiceDetail":      getServiceDetail,
 	}
 	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

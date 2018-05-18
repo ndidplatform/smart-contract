@@ -230,7 +230,10 @@ log: "success"
 ```sh
 {
   "service_id": "statement",
-  "node_id": "AS1"
+  "node_id": "AS1",
+  "service_name": "Bank statement",
+  "min_ial": 1.1,
+  "min_aal": 1.2
 }
 ```
 ### Expected Output
@@ -555,5 +558,22 @@ log: "success"
     "data": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
   }
 ]
+```
+
+## GetServiceDetail
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "node_id": "AS1"
+}
+```
+### Expected Output
+```sh
+{
+  "service_name": "Bank statement",
+  "min_ial": 1.1,
+  "min_aal": 1.2
+}
 ```
 

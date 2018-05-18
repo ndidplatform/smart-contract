@@ -112,6 +112,20 @@ type SignDataParam struct {
 }
 
 type RegisterServiceDestinationParam struct {
+	AsServiceID string  `json:"service_id"`
+	NodeID      string  `json:"node_id"`
+	ServiceName string  `json:"service_name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+}
+
+type Service struct {
+	ServiceName string  `json:"service_name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+}
+
+type GetServiceDetailParam struct {
 	AsServiceID string `json:"service_id"`
 	NodeID      string `json:"node_id"`
 }

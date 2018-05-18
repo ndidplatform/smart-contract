@@ -66,8 +66,28 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
 
-	key := "ServiceDestination" + "|" + funcParam.AsServiceID
+	// Add Service Detail
+	key := "Service" + "|" + funcParam.AsServiceID + "|" + funcParam.NodeID
 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	if chkExists != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate service ID", "")
+	} else {
+		var service = Service{
+			funcParam.ServiceName,
+			funcParam.MinIal,
+			funcParam.MinAal,
+		}
+		value, err := json.Marshal(service)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	}
+
+	// Add ServiceDestination
+	key = "ServiceDestination" + "|" + funcParam.AsServiceID
+	chkExists = app.state.db.Get(prefixKey([]byte(key)))
 
 	if chkExists != nil {
 		var nodes GetServiceDestinationResult
