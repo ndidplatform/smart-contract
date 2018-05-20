@@ -19,7 +19,7 @@ tendermint_reset() {
 }
 
 tendermint_get_genesis_from_seed() {
-  wget -qO - ${SEED_HOSTNAME}:${TM_RPC_PORT}/genesis | jq -r .result.genesis > ${TMHOME}/config/genesis.json
+  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/genesis | jq -r .result.genesis > ${TMHOME}/config/genesis.json
 }
 
 tendermint_new_priv_validator() {
@@ -27,17 +27,17 @@ tendermint_new_priv_validator() {
 }
 
 tendermint_wait_for_sync_complete() {
-  HOSTNAME=$1
-  PORT=$2
+  local HOSTNAME=$1
+  local PORT=$2
   while true; do
-    [ ! "$(wget -qO - ${HOSTNAME}:${PORT}/status | jq -r .result.syncing)" = "false" ] || break
+    [ ! "$(wget -qO - http://${HOSTNAME}:${PORT}/status | jq -r .result.syncing)" = "false" ] || break
     sleep 1
   done;
 }
 
 tendermint_add_validator() {
-  PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.data)
-  wget -qO - ${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
+  local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.data)
+  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
 }
 
 TYPE=${1}
