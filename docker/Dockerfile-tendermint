@@ -28,6 +28,7 @@ ENV TMHOME /tendermint
 # could execute bash commands.
 RUN apk update && apk add --no-cache bash curl jq
 
+COPY --from=build /var/cache/apk /var/cache/apk
 COPY --from=build /usr/bin/tendermint /usr/bin/tendermint
 COPY docker/start-node.sh /usr/bin/
 
