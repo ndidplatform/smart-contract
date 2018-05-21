@@ -110,6 +110,16 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		}
 	}
 
+	// Check AAL
+	if request.MinAal > response.Aal {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Response's AAL is less than min AAL", "")
+	}
+
+	// Check IAL
+	if request.MinIal > response.Ial {
+		return ReturnDeliverTxLog(code.CodeTypeError, "Response's IAL is less than min IAL", "")
+	}
+
 	// Check min_idp
 	if len(request.Responses) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's complete response", "")
