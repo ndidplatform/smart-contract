@@ -15,6 +15,8 @@ var isNDIDMethod = map[string]bool{
 	"ReduceNodeToken": true,
 	"SetNodeToken":    true,
 	"SetPriceFunc":    true,
+	"AddNamespace":    true,
+	"DeleteNamespace": true,
 }
 
 func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -68,4 +70,78 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 	}
 	return ReturnDeliverTxLog(code.CodeTypeError, "wrong role", "")
+}
+
+func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("AddNamespace")
+	var funcParam Namespace
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	}
+
+	key := "AllNamespace"
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	var namespaces []Namespace
+
+	if chkExists != nil {
+		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+
+		// Check duplicate namespace
+		for _, namespace := range namespaces {
+			if namespace.Namespace == funcParam.Namespace {
+				return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate namespace", "")
+			}
+		}
+	}
+	namespaces = append(namespaces, funcParam)
+	value, err := json.Marshal(namespaces)
+	if err != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	}
+	app.state.Size++
+	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+}
+
+func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
+	fmt.Println("DeleteNamespace")
+	var funcParam DeleteNamespaceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+	}
+
+	key := "AllNamespace"
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	var namespaces []Namespace
+
+	if chkExists != nil {
+		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+
+		for index, namespace := range namespaces {
+			if namespace.Namespace == funcParam.Namespace {
+				namespaces = append(namespaces[:index], namespaces[index+1:]...)
+				break
+			}
+		}
+
+		value, err := json.Marshal(namespaces)
+		if err != nil {
+			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		}
+		app.state.Size++
+		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	}
+
+	return ReturnDeliverTxLog(code.CodeTypeOK, "Not found namespace", "")
 }

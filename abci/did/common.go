@@ -250,3 +250,14 @@ func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	return ReturnQuery(value, "success", app.state.Height)
 }
+
+func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetNamespaceList")
+	key := "AllNamespace"
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+	return ReturnQuery(value, "success", app.state.Height)
+}

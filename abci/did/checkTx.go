@@ -202,6 +202,8 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"ReduceNodeToken":            checkIsNDID,
 		"SetNodeToken":               checkIsNDID,
 		"SetPriceFunc":               checkIsNDID,
+		"AddNamespace":               checkIsNDID,
+		"DeleteNamespace":            checkIsNDID,
 	}
 
 	var publicKey string

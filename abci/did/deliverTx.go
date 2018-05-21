@@ -35,6 +35,8 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"SetPriceFunc":               setPriceFunc,
 		"CloseRequest":               closeRequest,
 		"TimeOutRequest":             timeOutRequest,
+		"AddNamespace":               addNamespace,
+		"DeleteNamespace":            deleteNamespace,
 	}
 
 	// ---- check authorization ----

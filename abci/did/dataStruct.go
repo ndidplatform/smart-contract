@@ -217,3 +217,12 @@ type GetUsedTokenReportParam struct {
 type RequestIDParam struct {
 	RequestID string `json:"requestId"`
 }
+
+type Namespace struct {
+	Namespace   string `json:"namespace"`
+	Description string `json:"description"`
+}
+
+type DeleteNamespaceParam struct {
+	Namespace string `json:"namespace"`
+}

@@ -388,6 +388,31 @@ log: "success"
 log: "success"
 ```
 
+## AddNamespace
+### Parameter
+```sh
+{
+  "namespace": "CID",
+  "description": "Citizen ID"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## DeleteNamespace
+### Parameter
+```sh
+{
+  "namespace": "Tel"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
@@ -584,3 +609,16 @@ log: "success"
 }
 ```
 
+## GetNamespaceList
+### Parameter
+```sh
+```
+### Expected Output
+```sh
+[
+  {
+    "namespace": "CID",
+    "description": "Citizen ID"
+  }
+]
+```
