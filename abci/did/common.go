@@ -38,13 +38,14 @@ func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	if value == nil {
-		value = []byte("[]")
-		return ReturnQuery(value, "not found", app.state.Height)
-	}
 
 	var res GetNodePublicKeyResult
-	res.PublicKey = string(value)
+	res.PublicKey = ""
+
+	if value != nil {
+		res.PublicKey = string(value)
+	}
+
 	value, err = json.Marshal(res)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
@@ -62,20 +63,19 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	key := "MsqDestination" + "|" + funcParam.HashID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
-	if value == nil {
-		value = []byte("[]")
-		return ReturnQuery(value, "not found", app.state.Height)
-	}
-	var nodes []Node
-	err = json.Unmarshal([]byte(value), &nodes)
-	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-
 	var returnNodes GetMsqDestinationResult
-	for _, node := range nodes {
-		if node.Ial >= funcParam.MinIal {
-			returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+
+	if value != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(value), &nodes)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		for _, node := range nodes {
+			if node.Ial >= funcParam.MinIal {
+				returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+			}
 		}
 	}
 
@@ -234,6 +234,17 @@ func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
+func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetNamespaceList")
+	key := "AllNamespace"
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+	return ReturnQuery(value, "success", app.state.Height)
+}
+
 func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetServiceDetail")
 	var funcParam GetServiceDetailParam
@@ -244,17 +255,6 @@ func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 	key := "Service" + "|" + funcParam.AsServiceID + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
-	if value == nil {
-		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
-	}
-	return ReturnQuery(value, "success", app.state.Height)
-}
-
-func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetNamespaceList")
-	key := "AllNamespace"
-	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found", app.state.Height)
