@@ -26,9 +26,11 @@ type InitNDID struct {
 }
 
 type RegisterNode struct {
-	NodeID    string `json:"node_id"`
-	PublicKey string `json:"public_key"`
-	Role      string `json:"role"`
+	NodeID    string  `json:"node_id"`
+	PublicKey string  `json:"public_key"`
+	Role      string  `json:"role"`
+	MaxIal    float64 `json:"max_ial"`
+	MaxAal    float64 `json:"max_aal"`
 }
 
 type DataRequest struct {
@@ -522,11 +524,10 @@ func TestRegisterNodeRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param = RegisterNode{
-		"RP1",
-		string(rpPublicKeyBytes),
-		"RP",
-	}
+	var param RegisterNode
+	param.NodeID = "RP1"
+	param.PublicKey = string(rpPublicKeyBytes)
+	param.Role = "RP"
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -562,11 +563,12 @@ func TestRegisterNodeIDP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param = RegisterNode{
-		"IdP1",
-		string(idpPublicKeyBytes),
-		"IdP",
-	}
+	var param RegisterNode
+	param.NodeID = "IdP1"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -602,11 +604,10 @@ func TestRegisterNodeAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param = RegisterNode{
-		"AS1",
-		string(asPublicKeyBytes),
-		"AS",
-	}
+	var param RegisterNode
+	param.NodeID = "AS1"
+	param.PublicKey = string(asPublicKeyBytes)
+	param.Role = "AS"
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {

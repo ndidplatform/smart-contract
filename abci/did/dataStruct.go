@@ -148,9 +148,16 @@ type TransferNDIDParam struct {
 }
 
 type RegisterNode struct {
-	NodeID    string `json:"node_id"`
-	PublicKey string `json:"public_key"`
-	Role      string `json:"role"`
+	NodeID    string  `json:"node_id"`
+	PublicKey string  `json:"public_key"`
+	Role      string  `json:"role"`
+	MaxIal    float64 `json:"max_ial"`
+	MaxAal    float64 `json:"max_aal"`
+}
+
+type MaxIalAal struct {
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
 }
 
 type RegisterMsqAddressParam struct {

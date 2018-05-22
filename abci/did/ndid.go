@@ -67,6 +67,21 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		app.state.Size++
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		createTokenAccount(funcParam.NodeID, app)
+
+		// Add max_aal, min_ial when node is IdP
+		if funcParam.Role == "IdP" {
+			maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+			var maxIalAal MaxIalAal
+			maxIalAal.MaxAal = funcParam.MaxAal
+			maxIalAal.MaxIal = funcParam.MaxIal
+			maxIalAalValue, err := json.Marshal(maxIalAal)
+			if err != nil {
+				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			}
+			app.state.Size++
+			app.state.db.Set(prefixKey([]byte(maxIalAalKey)), []byte(maxIalAalValue))
+		}
+
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 	}
 	return ReturnDeliverTxLog(code.CodeTypeError, "wrong role", "")
