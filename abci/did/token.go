@@ -44,7 +44,7 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		return nil
 	}
-	return errors.New("not found token account")
+	return errors.New("token account not found")
 }
 
 func setPriceFunc(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -52,10 +52,10 @@ func setPriceFunc(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	setTokenPriceByFunc(funcParam.Func, funcParam.Price, app)
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
@@ -90,7 +90,7 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 		return nil
 	}
-	return errors.New("not found token account")
+	return errors.New("token account not found")
 }
 
 func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
@@ -110,7 +110,7 @@ func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 		}
 		return errors.New("token not enough")
 	}
-	return errors.New("not found token account")
+	return errors.New("token account not found")
 }
 
 func getToken(nodeID string, app *DIDApplication) (float64, error) {
@@ -120,7 +120,7 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s, nil
 	}
-	return 0, errors.New("not found token account")
+	return 0, errors.New("token account not found")
 }
 
 func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -128,13 +128,13 @@ func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	err = setToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -142,13 +142,13 @@ func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	err = addToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func reduceNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -156,13 +156,13 @@ func reduceNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx 
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	err = reduceToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func getNodeToken(param string, app *DIDApplication) types.ResponseQuery {

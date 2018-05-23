@@ -44,7 +44,7 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 	pubKeyAndPower := strings.Split(string(tx), "/")
 	if len(pubKeyAndPower) < 1 {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
+			Code: code.EncodingError,
 			Log:  fmt.Sprintf("Expected 'pubkey'. Got %v", pubKeyAndPower),
 		}
 	}
@@ -69,7 +69,7 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 
 	if err != nil {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
+			Code: code.EncodingError,
 			Log:  fmt.Sprintf("Pubkey (%s) is invalid hex", pubkeyS)}
 	}
 	/*_, err = crypto.PubKeyFromBytes(pubkey)
@@ -83,7 +83,7 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 	power, err := strconv.ParseInt(powerS, 10, 64)
 	if err != nil {
 		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
+			Code: code.EncodingError,
 			Log:  fmt.Sprintf("Power (%s) is not an int", powerS)}
 	}
 
@@ -98,7 +98,7 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 		// remove validator
 		if !app.state.db.Has(key) {
 			return types.ResponseDeliverTx{
-				Code: code.CodeTypeUnauthorized,
+				Code: code.Unauthorized,
 				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
 		}
 		app.state.db.Delete(key)
@@ -108,7 +108,7 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 		value := bytes.NewBuffer(make([]byte, 0))
 		if err := types.WriteMessage(&v, value); err != nil {
 			return types.ResponseDeliverTx{
-				Code: code.CodeTypeEncodingError,
+				Code: code.EncodingError,
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
 		app.state.db.Set(key, value.Bytes())
@@ -118,5 +118,5 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 	// we only update the changes array if we successfully updated the tree
 	app.ValUpdates = append(app.ValUpdates, v)
 
-	return types.ResponseDeliverTx{Code: code.CodeTypeOK}
+	return types.ResponseDeliverTx{Code: code.OK}
 }

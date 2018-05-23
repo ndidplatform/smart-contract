@@ -158,9 +158,9 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 // ReturnCheckTx return types.ResponseDeliverTx
 func ReturnCheckTx(ok bool) types.ResponseCheckTx {
 	if ok {
-		return types.ResponseCheckTx{Code: code.CodeTypeOK}
+		return types.ResponseCheckTx{Code: code.OK}
 	}
-	return types.ResponseCheckTx{Code: code.CodeTypeUnauthorized}
+	return types.ResponseCheckTx{Code: code.Unauthorized}
 }
 
 func getPublicKeyInitNDID(param string) string {
@@ -234,15 +234,16 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		result = value[0].Interface().(types.ResponseCheckTx)
 	}
 	// check token for create Tx
-	if result.Code == code.CodeTypeOK {
+	if result.Code == code.OK {
 		if !checkNDID(nodeID, publicKey, app) && method != "InitNDID" {
 			needToken := getTokenPriceByFunc(method, app)
 			nodeToken, err := getToken(nodeID, app)
 			if err != nil {
-				result.Code = code.CodeTypeUnauthorized
+				result.Code = code.TokenAccountNotFound
+				result.Log = "token account not found"
 			}
 			if nodeToken < needToken {
-				result.Code = code.CodeTypeUnauthorized
+				result.Code = code.TokenNotEnough
 				result.Log = "token not enough"
 			}
 		}

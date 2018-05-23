@@ -13,7 +13,7 @@ func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliver
 	var funcParam RegisterMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "MsqAddress" + "|" + funcParam.NodeID
 	var msqAddress = MsqAddress{
@@ -22,11 +22,11 @@ func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliver
 	}
 	value, err := json.Marshal(msqAddress)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {

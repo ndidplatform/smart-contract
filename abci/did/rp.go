@@ -13,7 +13,7 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// set default value
@@ -23,18 +23,18 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	key := "Request" + "|" + request.RequestID
 	value, err := json.Marshal(request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Request ID", "")
+		return ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
 
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", request.RequestID)
+	return ReturnDeliverTxLog(code.OK, "success", request.RequestID)
 }
 
 func closeRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -42,35 +42,35 @@ func closeRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found", "")
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	if request.IsTimedOut {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Can not close a timed out request", "")
+		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
 	request.IsClosed = true
 	value, err = json.Marshal(request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", funcParam.RequestID)
+	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
 func timeOutRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -78,33 +78,33 @@ func timeOutRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found", "")
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	if request.IsClosed {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Can not set time out a closed request", "")
+		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
 	request.IsTimedOut = true
 	value, err = json.Marshal(request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Size++
 	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", funcParam.RequestID)
+	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
