@@ -38,7 +38,7 @@ tendermint_wait_for_sync_complete() {
 tendermint_add_validator() {
   tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT} 
   local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.data)
-  wget -O - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
+  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
 }
 
 TYPE=${1}
