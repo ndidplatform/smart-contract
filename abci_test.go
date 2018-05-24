@@ -110,8 +110,9 @@ type GetNodePublicKeyResult struct {
 }
 
 type GetMsqDestinationParam struct {
-	HashID string `json:"hash_id"`
-	MinIal int    `json:"min_ial"`
+	HashID string  `json:"hash_id"`
+	MinIal float64 `json:"min_ial"`
+	MinAal float64 `json:"min_aal"`
 }
 
 type GetMsqDestinationResult struct {
@@ -1030,6 +1031,7 @@ func TestQueryGetMsqDestination(t *testing.T) {
 	userHash := h.Sum(nil)
 	var param = GetMsqDestinationParam{
 		string(userHash),
+		3,
 		3,
 	}
 	paramJSON, err := json.Marshal(param)

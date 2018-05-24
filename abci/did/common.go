@@ -83,7 +83,8 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 					if err != nil {
 						return ReturnQuery(nil, err.Error(), app.state.Height)
 					}
-					if maxIalAal.MaxIal >= funcParam.MinIal {
+					if maxIalAal.MaxIal >= funcParam.MinIal &&
+						maxIalAal.MaxAal >= funcParam.MinAal {
 						returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
 					}
 				}

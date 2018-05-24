@@ -35,6 +35,7 @@ type MsqDestination struct {
 type GetMsqDestinationParam struct {
 	HashID string  `json:"hash_id"`
 	MinIal float64 `json:"min_ial"`
+	MinAal float64 `json:"min_aal"`
 }
 
 type GetMsqDestinationResult struct {
