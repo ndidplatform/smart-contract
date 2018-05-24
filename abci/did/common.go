@@ -24,8 +24,7 @@ func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliver
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 

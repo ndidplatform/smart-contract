@@ -30,10 +30,7 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if existValue != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Request ID", "")
 	}
-
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", request.RequestID)
 }
 
@@ -67,9 +64,7 @@ func closeRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", funcParam.RequestID)
 }
 
@@ -103,8 +98,7 @@ func timeOutRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
 
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", funcParam.RequestID)
 }

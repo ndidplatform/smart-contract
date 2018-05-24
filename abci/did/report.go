@@ -26,8 +26,7 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 		if err != nil {
 			return err
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 	} else {
 		var reports []Report
 		reports = append(reports, newReport)
@@ -35,8 +34,7 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 		if err != nil {
 			return err
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 	}
 	return nil
 }

@@ -28,16 +28,13 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	}
 	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
 	value := []byte("MasterNDID")
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	key = "NodeID" + "|" + funcParam.NodeID
 	value = []byte(funcParam.PublicKey)
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	key = "MasterNDID"
 	value = []byte(funcParam.PublicKey)
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
@@ -60,12 +57,10 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		funcParam.Role == "AS" {
 		key := "NodeID" + "|" + funcParam.NodeID
 		value := funcParam.PublicKey
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 		key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
 		value = "Master" + funcParam.Role
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 		createTokenAccount(funcParam.NodeID, app)
 
 		// Add max_aal, min_ial when node is IdP
@@ -78,8 +73,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 			if err != nil {
 				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 			}
-			app.state.Size++
-			app.state.db.Set(prefixKey([]byte(maxIalAalKey)), []byte(maxIalAalValue))
+			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalValue))
 		}
 
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
@@ -118,8 +112,7 @@ func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
@@ -153,8 +146,7 @@ func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx 
 		if err != nil {
 			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 	}
 

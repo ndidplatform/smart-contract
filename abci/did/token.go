@@ -24,15 +24,13 @@ func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {
 func setTokenPriceByFunc(fnName string, price float64, app *DIDApplication) {
 	key := "TokenPriceFunc" + "|" + fnName
 	value := strconv.FormatFloat(price, 'f', -1, 64)
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 }
 
 func createTokenAccount(nodeID string, app *DIDApplication) {
 	key := "Token" + "|" + nodeID
 	value := strconv.FormatFloat(0, 'f', -1, 64)
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 }
 
 func setToken(nodeID string, amount float64, app *DIDApplication) error {
@@ -40,8 +38,7 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		value := strconv.FormatFloat(amount, 'f', -1, 64)
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 		return nil
 	}
 	return errors.New("not found token account")
@@ -86,8 +83,7 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 		}
 		s = s + amount
 		value := strconv.FormatFloat(s, 'f', -1, 64)
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 		return nil
 	}
 	return errors.New("not found token account")
@@ -104,8 +100,7 @@ func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 		if s-amount >= 0 {
 			s = s - amount
 			value := strconv.FormatFloat(s, 'f', -1, 64)
-			app.state.Size++
-			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+			app.SetStateDB([]byte(key), []byte(value))
 			return nil
 		}
 		return errors.New("token not enough")

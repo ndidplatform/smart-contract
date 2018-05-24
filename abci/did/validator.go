@@ -111,8 +111,7 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Code: code.CodeTypeEncodingError,
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
-		app.state.db.Set(key, value.Bytes())
-		app.state.Size++
+		app.SetStateDB(key, value.Bytes())
 	}
 
 	// we only update the changes array if we successfully updated the tree

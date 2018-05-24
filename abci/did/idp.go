@@ -43,8 +43,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 				if err != nil {
 					return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 				}
-				app.state.Size++
-				app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+				app.SetStateDB([]byte(key), []byte(value))
 			}
 
 		} else {
@@ -55,8 +54,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			if err != nil {
 				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 			}
-			app.state.Size++
-			app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+			app.SetStateDB([]byte(key), []byte(value))
 		}
 	}
 
@@ -76,8 +74,7 @@ func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
 
@@ -141,9 +138,7 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 		if err != nil {
 			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-
+		app.SetStateDB([]byte(key), []byte(value))
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", response.RequestID)
 	}
 	return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Response", "")

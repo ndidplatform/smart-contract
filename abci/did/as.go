@@ -43,18 +43,14 @@ func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-
+	app.SetStateDB([]byte(key), []byte(value))
 	key = "Request" + "|" + signData.RequestID
 	request.SignDataCount++
 	value, err = json.Marshal(request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 	}
-	app.state.Size++
-	app.state.db.Set(prefixKey([]byte(key)), []byte(value))
-
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", signData.RequestID)
 }
 
@@ -81,8 +77,7 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		if err != nil {
 			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 	}
 
 	// Add ServiceDestination
@@ -100,8 +95,7 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		if err != nil {
 			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 	} else {
 		var nodes GetServiceDestinationResult
 		nodes.NodeID = append(nodes.NodeID, funcParam.NodeID)
@@ -109,8 +103,7 @@ func registerServiceDestination(param string, app *DIDApplication) types.Respons
 		if err != nil {
 			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 		}
-		app.state.Size++
-		app.state.db.Set(prefixKey([]byte(key)), []byte(value))
+		app.SetStateDB([]byte(key), []byte(value))
 	}
 	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
 }
