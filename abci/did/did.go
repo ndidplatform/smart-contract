@@ -182,7 +182,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	fmt.Println("Commit")
-	newAppHashString := app.state.CommitStr
+	newAppHashString := ""
 	for _, key := range app.state.UncommitKeys {
 		value := app.state.db.Get(prefixKey([]byte(key)))
 		if value != nil {
@@ -190,13 +190,19 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		}
 	}
 	h := sha256.New()
-	h.Write([]byte(newAppHashString))
+	if newAppHashString != "" {
+		h.Write([]byte(app.state.CommitStr + newAppHashString))
+		newAppHash := h.Sum(nil)
+		newAppHashBase64 := base64.StdEncoding.EncodeToString(newAppHash)
+		app.state.CommitStr = newAppHashBase64
+	}
+	appHashStr := app.state.CommitStr
+	h.Write([]byte(appHashStr))
 	appHash := h.Sum(nil)
 	app.state.AppHash = appHash
 	app.state.Height++
 	saveState(app.state)
 	app.state.UncommitKeys = nil
-	app.state.CommitStr = newAppHashString
 	return types.ResponseCommit{Data: appHash}
 }
 
