@@ -19,11 +19,12 @@ var (
 )
 
 type State struct {
-	db          dbm.DB
-	Size        int64  `json:"size"`
-	Height      int64  `json:"height"`
-	AppHash     []byte `json:"app_hash"`
-	UncommitStr string `json:"uncommit_str"`
+	db           dbm.DB
+	Size         int64    `json:"size"`
+	Height       int64    `json:"height"`
+	AppHash      []byte   `json:"app_hash"`
+	UncommitKeys []string `json:"uncommit_keys"`
+	CommitStr    string   `json:"commit_str"`
 }
 
 // TO DO save state as DB file
@@ -67,7 +68,7 @@ func NewDIDApplication() *DIDApplication {
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
 	if string(key) != "stateKey" {
-		app.state.UncommitStr += string(key) + string(value)
+		app.state.UncommitKeys = append(app.state.UncommitKeys, string(key))
 	}
 	app.state.db.Set(prefixKey(key), value)
 	app.state.Size++
@@ -181,14 +182,21 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	fmt.Println("Commit")
-	uncommitString := app.state.UncommitStr
+	newAppHashString := app.state.CommitStr
+	for _, key := range app.state.UncommitKeys {
+		value := app.state.db.Get(prefixKey([]byte(key)))
+		if value != nil {
+			newAppHashString += string(key) + string(value)
+		}
+	}
 	h := sha256.New()
-	h.Write([]byte(uncommitString))
+	h.Write([]byte(newAppHashString))
 	appHash := h.Sum(nil)
 	app.state.AppHash = appHash
-	app.state.Height += 1
+	app.state.Height++
 	saveState(app.state)
-	app.state.UncommitStr = ""
+	app.state.UncommitKeys = nil
+	app.state.CommitStr = newAppHashString
 	return types.ResponseCommit{Data: appHash}
 }
 
