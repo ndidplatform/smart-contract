@@ -74,7 +74,20 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 
 		for _, node := range nodes {
 			if node.Ial >= funcParam.MinIal {
-				returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+				// check Max IAL
+				maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
+				maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+				if maxIalAalValue != nil {
+					var maxIalAal MaxIalAal
+					err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+					if err != nil {
+						return ReturnQuery(nil, err.Error(), app.state.Height)
+					}
+					if maxIalAal.MaxIal >= funcParam.MinIal &&
+						maxIalAal.MaxAal >= funcParam.MinAal {
+						returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+					}
+				}
 			}
 		}
 	}
