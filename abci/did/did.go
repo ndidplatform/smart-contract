@@ -196,7 +196,8 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		newAppHashBase64 := base64.StdEncoding.EncodeToString(newAppHash)
 		app.state.CommitStr = newAppHashBase64
 	}
-	appHashStr := app.state.CommitStr
+	dbStat := app.state.db.Stats()
+	appHashStr := app.state.CommitStr + dbStat["database.size"]
 	h.Write([]byte(appHashStr))
 	appHash := h.Sum(nil)
 	app.state.AppHash = appHash
