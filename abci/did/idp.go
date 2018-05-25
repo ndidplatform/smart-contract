@@ -13,7 +13,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for _, user := range funcParam.Users {
@@ -24,7 +24,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			var nodes []Node
 			err = json.Unmarshal([]byte(chkExists), &nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
 			newNode := Node{user.Ial, funcParam.NodeID}
@@ -41,7 +41,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 				nodes = append(nodes, newNode)
 				value, err := json.Marshal(nodes)
 				if err != nil {
-					return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+					return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 				}
 				app.SetStateDB([]byte(key), []byte(value))
 			}
@@ -52,13 +52,13 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
 			app.SetStateDB([]byte(key), []byte(value))
 		}
 	}
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -66,16 +66,16 @@ func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	var accessorMethod AccessorMethod
 	err := json.Unmarshal([]byte(param), &accessorMethod)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "AccessorMethod" + "|" + accessorMethod.AccessorID
 	value, err := json.Marshal(accessorMethod)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -83,19 +83,19 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + response.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Request ID not found", "")
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check duplicate before add
@@ -109,37 +109,37 @@ func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverT
 
 	// Check AAL
 	if request.MinAal > response.Aal {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Response's AAL is less than min AAL", "")
+		return ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
 	}
 
 	// Check IAL
 	if request.MinIal > response.Ial {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Response's IAL is less than min IAL", "")
+		return ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 	}
 
 	// Check min_idp
 	if len(request.Responses) >= request.MinIdp {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's complete response", "")
+		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
 	}
 
 	// Check IsClosed
 	if request.IsClosed {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's closed", "")
+		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
 	}
 
 	// Check IsTimedOut
 	if request.IsTimedOut {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Can't response a request that's timed out", "")
+		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 	}
 
 	if chk == false {
 		request.Responses = append(request.Responses, response)
 		value, err := json.Marshal(request)
 		if err != nil {
-			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(value))
-		return ReturnDeliverTxLog(code.CodeTypeOK, "success", response.RequestID)
+		return ReturnDeliverTxLog(code.OK, "success", response.RequestID)
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Response", "")
+	return ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 }

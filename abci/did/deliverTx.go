@@ -41,10 +41,10 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 
 	// ---- check authorization ----
 	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
-	if checkTxResult.Code != code.CodeTypeOK {
+	if checkTxResult.Code != code.OK {
 		// return result = false
 		var result types.ResponseDeliverTx
-		result.Code = code.CodeTypeError
+		result.Code = checkTxResult.Code
 		result.Log = checkTxResult.Log
 		return result
 	}
@@ -52,12 +52,12 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 	value, _ := callDeliverTx(funcs, method, param, app)
 	result := value[0].Interface().(types.ResponseDeliverTx)
 	// ---- Burn token ----
-	if result.Code == code.CodeTypeOK {
+	if result.Code == code.OK {
 		if !isNDIDMethod[method] {
 			needToken := getTokenPriceByFunc(method, app)
 			err := reduceToken(nodeID, needToken, app)
 			if err != nil {
-				result.Code = code.CodeTypeError
+				result.Code = code.TokenAccountNotFound
 				result.Log = err.Error()
 				return result
 			}

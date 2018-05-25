@@ -111,7 +111,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Recovered in f", r)
-			res = ReturnDeliverTxLog(code.CodeTypeError, "wrong create transaction format", "")
+			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
 		}
 	}()
 
@@ -124,7 +124,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 	fmt.Println(string(txString))
 	parts := strings.Split(string(txString), "|")
@@ -138,7 +138,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if method != "" {
 		return DeliverTxRouter(method, param, nonce, signature, nodeID, app)
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "method can't empty", "")
+	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {

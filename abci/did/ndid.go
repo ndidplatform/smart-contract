@@ -24,7 +24,7 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
 	value := []byte("MasterNDID")
@@ -35,7 +35,7 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	key = "MasterNDID"
 	value = []byte(funcParam.PublicKey)
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -43,13 +43,13 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "NodeID" + "|" + funcParam.NodeID
 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate Node ID", "")
+		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
 
 	if funcParam.Role == "RP" ||
@@ -72,7 +72,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 			maxIalAal.MaxIal = funcParam.MaxIal
 			maxIalAalValue, err := json.Marshal(maxIalAal)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
 			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalValue))
 
@@ -83,21 +83,21 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 			if idpsValue != nil {
 				err := json.Unmarshal([]byte(idpsValue), &idpsList)
 				if err != nil {
-					return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+					return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 				}
 			}
 			idpsList = append(idpsList, funcParam.NodeID)
 			idpsValue, err = json.Marshal(idpsList)
 			if err != nil {
-				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
 			fmt.Println("IdPValue := " + string(idpsValue))
 			app.SetStateDB([]byte(idpsKey), []byte(idpsValue))
 		}
 
-		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.CodeTypeError, "wrong role", "")
+	return ReturnDeliverTxLog(code.WrongRole, "Wrong Role", "")
 }
 
 func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -105,7 +105,7 @@ func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "AllNamespace"
@@ -116,23 +116,23 @@ func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if chkExists != nil {
 		err = json.Unmarshal([]byte(chkExists), &namespaces)
 		if err != nil {
-			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check duplicate namespace
 		for _, namespace := range namespaces {
 			if namespace.Namespace == funcParam.Namespace {
-				return ReturnDeliverTxLog(code.CodeTypeError, "Duplicate namespace", "")
+				return ReturnDeliverTxLog(code.DuplicateNamespace, "Duplicate namespace", "")
 			}
 		}
 	}
 	namespaces = append(namespaces, funcParam)
 	value, err := json.Marshal(namespaces)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
@@ -140,7 +140,7 @@ func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx 
 	var funcParam DeleteNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "AllNamespace"
@@ -151,7 +151,7 @@ func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx 
 	if chkExists != nil {
 		err = json.Unmarshal([]byte(chkExists), &namespaces)
 		if err != nil {
-			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		for index, namespace := range namespaces {
@@ -163,11 +163,11 @@ func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx 
 
 		value, err := json.Marshal(namespaces)
 		if err != nil {
-			return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(value))
-		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
+		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
 
-	return ReturnDeliverTxLog(code.CodeTypeOK, "Not found namespace", "")
+	return ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 }
