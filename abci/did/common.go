@@ -59,22 +59,22 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "MsqDestination" + "|" + funcParam.HashID
-	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	var returnNodes GetMsqDestinationResult
 
-	if value != nil {
-		var nodes []Node
-		err = json.Unmarshal([]byte(value), &nodes)
-		if err != nil {
-			return ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-
-		for _, node := range nodes {
-			if node.Ial >= funcParam.MinIal {
+	if funcParam.HashID == "" {
+		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
+		idpsKey := "IdPList"
+		idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+		var idpsList []string
+		if idpsValue != nil {
+			err := json.Unmarshal([]byte(idpsValue), &idpsList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			for _, idp := range idpsList {
 				// check Max IAL
-				maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
+				maxIalAalKey := "MaxIalAalNode" + "|" + idp
 				maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 				if maxIalAalValue != nil {
 					var maxIalAal MaxIalAal
@@ -84,14 +84,44 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 					}
 					if maxIalAal.MaxIal >= funcParam.MinIal &&
 						maxIalAal.MaxAal >= funcParam.MinAal {
-						returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+						returnNodes.NodeID = append(returnNodes.NodeID, idp)
+					}
+				}
+			}
+		}
+	} else {
+		key := "MsqDestination" + "|" + funcParam.HashID
+		value := app.state.db.Get(prefixKey([]byte(key)))
+
+		if value != nil {
+			var nodes []Node
+			err = json.Unmarshal([]byte(value), &nodes)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+
+			for _, node := range nodes {
+				if node.Ial >= funcParam.MinIal {
+					// check Max IAL && AAL
+					maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
+					maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+					if maxIalAalValue != nil {
+						var maxIalAal MaxIalAal
+						err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+						if err != nil {
+							return ReturnQuery(nil, err.Error(), app.state.Height)
+						}
+						if maxIalAal.MaxIal >= funcParam.MinIal &&
+							maxIalAal.MaxAal >= funcParam.MinAal {
+							returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+						}
 					}
 				}
 			}
 		}
 	}
 
-	value, err = json.Marshal(returnNodes)
+	value, err := json.Marshal(returnNodes)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}

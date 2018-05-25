@@ -436,7 +436,8 @@ log: "success"
 ```sh
 {
   "hash_id": "���\u0010fV+�{��DD�F�;Hָ�`��椼q\u0017���",
-  "min_ial": 3
+  "min_ial": 3,
+  "min_aal": 3,
 }
 ```
 ### Expected Output

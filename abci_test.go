@@ -453,6 +453,34 @@ var idpPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	GN1apL6Q4DpjL2ktGkYgaKp6HW+5ogfOPPOJOICDScu5Ozl29+o=
 	-----END RSA PRIVATE KEY-----`
 
+var idpPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
+	MIIEowIBAAKCAQEArdcKj/gAetVyg6Nn2lDim/UJYQsQCav60EVbECm5EVT8Wgnp
+	zO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2SA8Xlf+ZDaCELba/85Nb+IppLBdP
+	ywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7jiU1lf37lwTZaO0COAuu8Vt9GcwYP
+	h7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DGr/ZKzEE9/5bJJJRS635OA2T4gIY9
+	XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15ycS4C35tjM8iT5djsRcR+MJeXyvu
+	rkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpDPwIDAQABAoIBAFAfcxDUH3R9+J/P
+	qsgmy6tSDxaZQLUUfS+NJ+GVOWVRpFXjh80bARm8r9Sy/mGQDS6Z9jJp8lDXgPyG
+	Rs0OFl40BozuF57+Qq3HM0WSv6sYME1QGUjdIuPRyh8KfoxBw4MBUzvQ42JyYf16
+	Xs/QKrNX5tYSqNaatI/muw2BlXb8Az/rTdI2i42BLHLDFHo9MS2+bAs+qg/O78pH
+	/x+H0jNj/5ClL0k7i04WKSCoQNIcFbSOtEtk5ZlaALUWEZavgNn0t8L1ZAd2NK5b
+	P5VYNwYiyrQhoX6fQkpUcCUwaVq6HnrWtDToBbZnr0pI2dtK+po5CSCLqQ1zr1pd
+	zRyAlXECgYEA1r5k+n7kGgj5SM1p6vK2KxtnYQ7YYTwTslYxtO+Fy2GhYEqGYTyf
+	Owe59grnv+RbINERQ3dxsKnC/3DjlS0+uarwfFdVPZYg/7W6FVGfn46FF30/SxqT
+	AeejFGRgpYGweFHmtCCDRFDCT8BvH0mLRdGI/vMn5p0okZFQaVBG40UCgYEAzzzn
+	nU1BpkeHMZuzQ+1amReN3Op2afrnr50ho3io8YyfTX2sJmyH0HnlxulJ8cB7bYmN
+	eqIvXTwLDKPldXaY4NbMXQ6zanbFX/psIPxlRTf2NVqysBBKMAVQg+ZHAUMN0gIs
+	xw7SCVTaGzSIxmq5FWvHidInf4Dphr2y4SuckrMCgYAE9E+QF+1bTGmz7ElNSlw5
+	kmBINPd5BtHNg3+SFRSZJJ98gTuocqWZzwvTSV0faD1R/IDRdagB02jUS950Sp7v
+	2anCtKEa0qPgQmkQpNlx7O/VIuaa7PoHSTjR957jMqLHo9wWu8lLgjF5dY8awa+c
+	5MCsYR/Cik2tThT02Q1JoQKBgES99CpGlS897Md02Ur/8Zx0prcQAwV2l+G14pGi
+	FZBCUBlZRYBdYdOyi5imi8OoUIjuJsL2B3YK07N2rkd/doimV5XKqZL4INKMc8+h
+	SUpjnMTn9/vU+3bgXGvUN9tgTbZKyGWjMeKshciebXw7rHdBkCfUUQvHTC9Iv4xX
+	dhFnAoGBAL+JIdwLcumdEZJyA3pBu6WfvQJzjDv0HE5N9FsLyTyqc3yacaxH/hv8
+	nplQvZKsbhmtxbu/MGbJfp1cH0LgO5OamHj5TBEdXWxtZKgE2nmxJz0Fm9L8vZ8b
+	H5plzde3fZP4YVOa+bK5XuHS5CrwjHoDItfvdPNF8D2rutrl77D9
+	-----END RSA PRIVATE KEY-----`
+
 var asPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	MIIEogIBAAKCAQEApT8lXT9CDRZZkvhZLBD66o7igZf6sj/o0XooaTuy2HuCt6yE
 	O8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQrdqGwpogvkZ3uUahwE9ZgOj6h4fq
@@ -1945,6 +1973,81 @@ func TestQueryGetNamespaceList(t *testing.T) {
 		},
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRegisterNodeIDP2(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK2)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param RegisterNode
+	param.NodeID = "IdP2"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := []byte("NDID")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+type GetMsqDestinationParam2 struct {
+	MinIal float64 `json:"min_ial"`
+	MinAal float64 `json:"min_aal"`
+}
+
+func TestQueryGetMsqDestination2(t *testing.T) {
+	fnName := "GetMsqDestination"
+	var param = GetMsqDestinationParam2{
+		3,
+		3,
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetMsqDestinationResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = []string{
+		"IdP1",
+		"IdP2",
+	}
+	if actual := res.NodeID; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

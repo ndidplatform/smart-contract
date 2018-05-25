@@ -65,6 +65,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 
 		// Add max_aal, min_ial when node is IdP
 		if funcParam.Role == "IdP" {
+			fmt.Println("IDPIDP =====")
 			maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
 			var maxIalAal MaxIalAal
 			maxIalAal.MaxAal = funcParam.MaxAal
@@ -74,6 +75,24 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
 			}
 			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalValue))
+
+			// Save all IdP's nodeID for GetMsqDestination
+			idpsKey := "IdPList"
+			idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+			var idpsList []string
+			if idpsValue != nil {
+				err := json.Unmarshal([]byte(idpsValue), &idpsList)
+				if err != nil {
+					return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+				}
+			}
+			idpsList = append(idpsList, funcParam.NodeID)
+			idpsValue, err = json.Marshal(idpsList)
+			if err != nil {
+				return ReturnDeliverTxLog(code.CodeTypeError, err.Error(), "")
+			}
+			fmt.Println("IdPValue := " + string(idpsValue))
+			app.SetStateDB([]byte(idpsKey), []byte(idpsValue))
 		}
 
 		return ReturnDeliverTxLog(code.CodeTypeOK, "success", "")
