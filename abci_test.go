@@ -26,11 +26,13 @@ type InitNDID struct {
 }
 
 type RegisterNode struct {
-	NodeID    string  `json:"node_id"`
-	PublicKey string  `json:"public_key"`
-	Role      string  `json:"role"`
-	MaxIal    float64 `json:"max_ial"`
-	MaxAal    float64 `json:"max_aal"`
+	NodeID          string  `json:"node_id"`
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
 }
 
 type DataRequest struct {
@@ -115,8 +117,13 @@ type GetMsqDestinationParam struct {
 	MinAal float64 `json:"min_aal"`
 }
 
+type MsqDestinationNode struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type GetMsqDestinationResult struct {
-	NodeID []string `json:"node_id"`
+	Node []MsqDestinationNode `json:"node"`
 }
 
 type GetAccessorMethodParam struct {
@@ -595,6 +602,8 @@ func TestRegisterNodeIDP(t *testing.T) {
 	var param RegisterNode
 	param.NodeID = "IdP1"
 	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes)
+	param.NodeName = "IdP Number 1 from ..."
 	param.Role = "IdP"
 	param.MaxIal = 3.0
 	param.MaxAal = 3.0
@@ -1075,10 +1084,13 @@ func TestQueryGetMsqDestination(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []string{
-		"IdP1",
+	var expected = []MsqDestinationNode{
+		{
+			"IdP1",
+			"IdP Number 1 from ...",
+		},
 	}
-	if actual := res.NodeID; !reflect.DeepEqual(actual, expected) {
+	if actual := res.Node; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
@@ -2043,11 +2055,17 @@ func TestQueryGetMsqDestination2(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []string{
-		"IdP1",
-		"IdP2",
+	var expected = []MsqDestinationNode{
+		{
+			"IdP1",
+			"IdP Number 1 from ...",
+		},
+		{
+			"IdP2",
+			"",
+		},
 	}
-	if actual := res.NodeID; !reflect.DeepEqual(actual, expected) {
+	if actual := res.Node; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

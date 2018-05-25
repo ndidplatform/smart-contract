@@ -176,7 +176,12 @@ func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		return string(value)
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ""
+		}
+		return nodeDetail.PublicKey
 	}
 	return ""
 }

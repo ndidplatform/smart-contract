@@ -38,8 +38,13 @@ type GetMsqDestinationParam struct {
 	MinAal float64 `json:"min_aal"`
 }
 
+type MsqDestinationNode struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type GetMsqDestinationResult struct {
-	NodeID []string `json:"node_id"`
+	Node []MsqDestinationNode `json:"node"`
 }
 
 type AccessorMethod struct {
@@ -149,11 +154,19 @@ type TransferNDIDParam struct {
 }
 
 type RegisterNode struct {
-	NodeID    string  `json:"node_id"`
-	PublicKey string  `json:"public_key"`
-	Role      string  `json:"role"`
-	MaxIal    float64 `json:"max_ial"`
-	MaxAal    float64 `json:"max_aal"`
+	NodeID          string  `json:"node_id"`
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+}
+
+type NodeDetail struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
 }
 
 type MaxIalAal struct {

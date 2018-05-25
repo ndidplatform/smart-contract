@@ -42,7 +42,12 @@ func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	res.PublicKey = ""
 
 	if value != nil {
-		res.PublicKey = string(value)
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		res.PublicKey = nodeDetail.PublicKey
 	}
 
 	value, err = json.Marshal(res)
@@ -50,6 +55,20 @@ func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return ReturnQuery(value, "success", app.state.Height)
+}
+
+func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
+	key := "NodeID" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ""
+		}
+		return nodeDetail.NodeName
+	}
+	return ""
 }
 
 func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
@@ -84,7 +103,12 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 					}
 					if maxIalAal.MaxIal >= funcParam.MinIal &&
 						maxIalAal.MaxAal >= funcParam.MinAal {
-						returnNodes.NodeID = append(returnNodes.NodeID, idp)
+						nodeName := getNodeNameByNodeID(idp, app)
+						var msqDesNode = MsqDestinationNode{
+							idp,
+							nodeName,
+						}
+						returnNodes.Node = append(returnNodes.Node, msqDesNode)
 					}
 				}
 			}
@@ -113,7 +137,13 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 						}
 						if maxIalAal.MaxIal >= funcParam.MinIal &&
 							maxIalAal.MaxAal >= funcParam.MinAal {
-							returnNodes.NodeID = append(returnNodes.NodeID, node.NodeID)
+							nodeName := getNodeNameByNodeID(node.NodeID, app)
+							var msqDesNode = MsqDestinationNode{
+								node.NodeID,
+								nodeName,
+							}
+							returnNodes.Node = append(returnNodes.Node, msqDesNode)
+
 						}
 					}
 				}

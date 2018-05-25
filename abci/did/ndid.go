@@ -29,9 +29,20 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
 	value := []byte("MasterNDID")
 	app.SetStateDB([]byte(key), []byte(value))
-	key = "NodeID" + "|" + funcParam.NodeID
-	value = []byte(funcParam.PublicKey)
-	app.SetStateDB([]byte(key), []byte(value))
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	// TODO: fix param InitNDID
+	var nodeDetail = NodeDetail{
+		funcParam.PublicKey,
+		funcParam.PublicKey,
+		"NDID",
+	}
+	nodeDetailValue, err := json.Marshal(nodeDetail)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+
 	key = "MasterNDID"
 	value = []byte(funcParam.PublicKey)
 	app.SetStateDB([]byte(key), []byte(value))
@@ -47,6 +58,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	}
 
 	key := "NodeID" + "|" + funcParam.NodeID
+	// check Duplicate Node ID
 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
@@ -55,12 +67,21 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	if funcParam.Role == "RP" ||
 		funcParam.Role == "IdP" ||
 		funcParam.Role == "AS" {
-		key := "NodeID" + "|" + funcParam.NodeID
-		value := funcParam.PublicKey
-		app.SetStateDB([]byte(key), []byte(value))
-		key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-		value = "Master" + funcParam.Role
-		app.SetStateDB([]byte(key), []byte(value))
+		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+		var nodeDetail = NodeDetail{
+			funcParam.PublicKey,
+			funcParam.MasterPublicKey,
+			funcParam.NodeName,
+		}
+		nodeDetailValue, err := json.Marshal(nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+
+		publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		publicKeyRoleValue := "Master" + funcParam.Role
+		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 		createTokenAccount(funcParam.NodeID, app)
 
 		// Add max_aal, min_ial when node is IdP
