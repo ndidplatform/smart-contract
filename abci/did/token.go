@@ -44,7 +44,7 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 	return errors.New("token account not found")
 }
 
-func setPriceFunc(param string, app *DIDApplication) types.ResponseDeliverTx {
+func setPriceFunc(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("SetPriceFunc")
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -118,7 +118,7 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 	return 0, errors.New("token account not found")
 }
 
-func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
+func setNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("SetNodeToken")
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -132,7 +132,7 @@ func setNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
+func addNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("AddNodeToken")
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -146,7 +146,7 @@ func addNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func reduceNodeToken(param string, app *DIDApplication) types.ResponseDeliverTx {
+func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("ReduceNodeToken")
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)

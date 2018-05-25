@@ -26,4 +26,6 @@ const (
 	DuplicateNamespace     uint32 = 21
 	NamespaceNotFound      uint32 = 22
 	DuplicateRequestID     uint32 = 23
+	NodeIDNotFound         uint32 = 24
+	DuplicatePublicKey     uint32 = 25
 )

@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func registerMsqDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
+func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqDestination")
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -61,7 +61,7 @@ func registerMsqDestination(param string, app *DIDApplication) types.ResponseDel
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverTx {
+func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("AddAccessorMethod")
 	var accessorMethod AccessorMethod
 	err := json.Unmarshal([]byte(param), &accessorMethod)
@@ -78,7 +78,7 @@ func addAccessorMethod(param string, app *DIDApplication) types.ResponseDeliverT
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func createIdpResponse(param string, app *DIDApplication) types.ResponseDeliverTx {
+func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("CreateIdpResponse")
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)

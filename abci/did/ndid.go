@@ -19,7 +19,7 @@ var isNDIDMethod = map[string]bool{
 	"DeleteNamespace": true,
 }
 
-func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
+func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("InitNDID")
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -49,7 +49,7 @@ func initNDID(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
+func registerNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterNode")
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -62,6 +62,20 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
+	}
+
+	// check Duplicate Master Key
+	key = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
+	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	if chkExists != nil {
+		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
+	}
+
+	// check Duplicate Key
+	key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
+	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	if chkExists != nil {
+		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
 	}
 
 	if funcParam.Role == "RP" ||
@@ -79,14 +93,20 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 		}
 		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-		publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		// Set master Role
+		publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
 		publicKeyRoleValue := "Master" + funcParam.Role
 		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+
+		// Set Role
+		publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		publicKeyRoleValue = funcParam.Role
+		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+
 		createTokenAccount(funcParam.NodeID, app)
 
 		// Add max_aal, min_ial when node is IdP
 		if funcParam.Role == "IdP" {
-			fmt.Println("IDPIDP =====")
 			maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
 			var maxIalAal MaxIalAal
 			maxIalAal.MaxAal = funcParam.MaxAal
@@ -121,7 +141,7 @@ func registerNode(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.WrongRole, "Wrong Role", "")
 }
 
-func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
+func addNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("AddNamespace")
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -156,7 +176,7 @@ func addNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func deleteNamespace(param string, app *DIDApplication) types.ResponseDeliverTx {
+func deleteNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("DeleteNamespace")
 	var funcParam DeleteNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)

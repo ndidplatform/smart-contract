@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func registerMsqAddress(param string, app *DIDApplication) types.ResponseDeliverTx {
+func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqAddress")
 	var funcParam RegisterMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -332,4 +332,54 @@ func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(value, "not found", app.state.Height)
 	}
 	return ReturnQuery(value, "success", app.state.Height)
+}
+
+func updateNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("UpdateNode")
+	var funcParam UpdateNodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	key := "NodeID" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		// update MasterPublicKey
+		if funcParam.MasterPublicKey != "" {
+
+			// set role old pubKey = ""
+			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.MasterPublicKey
+			publicKeyRoleValue := ""
+			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+
+			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+		}
+
+		// update PublicKey
+		if funcParam.PublicKey != "" {
+
+			// set role old pubKey = ""
+			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.PublicKey
+			publicKeyRoleValue := ""
+			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+
+			nodeDetail.PublicKey = funcParam.PublicKey
+		}
+
+		nodeDetailValue, err := json.Marshal(nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(key), []byte(nodeDetailValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }

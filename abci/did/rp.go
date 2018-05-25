@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
+func createRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("CreateRequest")
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
@@ -34,7 +34,7 @@ func createRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", request.RequestID)
 }
 
-func closeRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
+func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("CloseRequest")
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -68,7 +68,7 @@ func closeRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func timeOutRequest(param string, app *DIDApplication) types.ResponseDeliverTx {
+func timeOutRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("TimeOutRequest")
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)

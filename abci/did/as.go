@@ -8,7 +8,7 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
+func signData(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("SignData")
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
@@ -54,7 +54,7 @@ func signData(param string, app *DIDApplication) types.ResponseDeliverTx {
 	return ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
 }
 
-func registerServiceDestination(param string, app *DIDApplication) types.ResponseDeliverTx {
+func registerServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterServiceDestination")
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)

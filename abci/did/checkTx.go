@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -104,6 +105,18 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 	return ReturnCheckTx(false)
 }
 
+func checkIsMasterNode(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	fmt.Println(string(value))
+	if string(value) == "MasterIdP" ||
+		string(value) == "MasterRP" ||
+		string(value) == "MasterAS" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
 func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -172,6 +185,20 @@ func getPublicKeyInitNDID(param string) string {
 	return funcParam.PublicKey
 }
 
+func getMasterPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
+	key := "NodeID" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ""
+		}
+		return nodeDetail.MasterPublicKey
+	}
+	return ""
+}
+
 func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -209,11 +236,17 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"SetPriceFunc":               checkIsNDID,
 		"AddNamespace":               checkIsNDID,
 		"DeleteNamespace":            checkIsNDID,
+		"UpdateNode":                 checkIsMasterNode,
 	}
 
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
+		if publicKey == "" {
+			return ReturnCheckTx(false)
+		}
+	} else if method == "UpdateNode" {
+		publicKey = getMasterPublicKeyFromNodeID(nodeID, app)
 		if publicKey == "" {
 			return ReturnCheckTx(false)
 		}

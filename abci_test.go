@@ -265,6 +265,11 @@ type DeleteNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 
+type UpdateNodeParam struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+}
+
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
@@ -432,6 +437,34 @@ var rpPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	mtlAVXOCyaIG241q6LvHEcY9S/oc2DtPpnCJB4HiAf3lDLd81Hzkaw==
 	-----END RSA PRIVATE KEY-----`
 
+var rpPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
+	MIIEpAIBAAKCAQEA1QXXrV7X1b8uFL1PW7+FimlAwxwbEMG5hFru1CN8WsRt8ZVQ
+	IkXRpiwNNXh1GS0Qmshnv8pKaNCZ5q5wFdUelYspZHVRbIkHiQAaEU5yG9SyavHs
+	DntUOd50PQ3nC71feW+ff8tvQcJ7+gqf8nZ6UAWpG4bvakPtrJ81h4/Qc23vhtbc
+	ouP0adgdw6UA0kcdGhTESYMBU0dx/NNysvJhNx36z2UU6kbQ3a2/bINEZAgLfJ7/
+	Y+/647+tc7bUYdqj3dNkbnk1xiXh5dTLsiow5Xvukpy2uA44M/r2Q5VRfbH2ZrBZ
+	lgf/XEOZs7zppySgaTWRB5eDTm+YxxyOyykn8wIDAQABAoIBAQCd1/ttInbJkiSi
+	B3hzImHgIodzSzMe4n0Ffp+zHyw40Y4p0RqUmqly+Pc8pKoX4pWIK3D84vbp3Y/8
+	J0s0UjucUYZ1Qpz30D1+HU4zfq38w0kFB4eDX40UaCo3R0LpJwREphpIhkRFNMfK
+	ie7kqTeObfNVS1HBqt3E6B+w+DZcIEI9phmrOcnjEAzPDI4q4sDIUhpHv84tkb/6
+	lm1RWDlRxgDOGv3knUVXaOvAkTRqdBINKOhaS6dLPpN9FL9aj5UKEklxEtoPSaFP
+	ib2+RWWe4B+0FPEg0zuSTIH6hhUQK5CBa3CM+0WzfZmsqSpYFbCrmWeOT33tPGy9
+	NlgVQfwBAoGBAPUdTCFyJPrYdff6VDfxvCDMeLYKJckaa+l3M2Du5BtgFQJM+yPw
+	5JkNGUyF9MFNWX47cBm0W7pEU8IEiuokhF9XSizX/H8Tz9YyixIVU4krCTtyR6bX
+	xl36KsB9t8vNtXSN4M8VMMlAZWp5q/n36rzy7jpQKkFfq2todd1yGB3zAoGBAN57
+	sigfnvxIm41SjAxXnvY8KoP0jCTBxmlxgvLsFhpj9lUIZqQmxbYgeggI9c0MIBNa
+	/QzmrzLHnSSjtqoUxXy9XY3WKE60uHcvPzePKw5V7EdBWdZLWO+dnKFMziLg1gkx
+	ccXp0T7VtdQenKRga0PGWw82X/Sr+h90TTmPi04BAoGBAK1Xkb5ZZbOMHylGfAaw
+	SrX7RCag2IX2zHfn14rmhqShd1oQLM8HDfL643hNh4CoffCagjV7ah85MO6VndPm
+	DUMLjSZXfHY2AZZeWiFouZHYwIes0uU31U4im9dTUQatLHUH3QM13jGE+/Onpip5
+	3CTRvA27IZbn3GdyEWCQzmNnAoGAY+laxWgF5rfYmyuB1x0WNvAoC6Aru2oF515h
+	dyQMfQd9HQyrw3Xh/fsxsiAL+mxCj06iK0QBU6WO7WBT7KdtVKpZtBODgGzqFiPy
+	mMnDhSmS9SDk7jZiFyFJsKokPEeJ9xDsTfvFyxkAEeU5ZRwjr4kJZZh+mQsORUfe
+	UkYjQgECgYBEXdVe0uv3V1dUVATfGdBCaZ6BxJVO/VGDKNfoEtFCkR7rVsb+kY6u
+	DBW8CMBlUhoaSE+/BBEAyyzV++j0nC0cnlU1694HcM0hKx35F4CHPKEAH/ChrTVn
+	EClJgxaTPuL9ON4s2OaQevT+STkx/dWH/O1FkY5oTAR5JO/wbPZqoQ==
+	-----END RSA PRIVATE KEY-----`
+
 var idpPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	MIIEogIBAAKCAQEAwx9oT44DmDRiQJ1K0b9QolEsrQ51hBUDq3oCKTffBikYenSU
 	QNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9cNBMzSLMolltw0EerF0Ckz0Svvie
@@ -488,6 +521,34 @@ var idpPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
 	H5plzde3fZP4YVOa+bK5XuHS5CrwjHoDItfvdPNF8D2rutrl77D9
 	-----END RSA PRIVATE KEY-----`
 
+var idpPrivK3 = `-----BEGIN RSA PRIVATE KEY-----
+	MIIEpAIBAAKCAQEAz7N55vytQuBV17KHPzd1ILPonOpltFqcMCV+x81NJNcvf2Qc
+	DDemYK2oObcs8rDuavx3+aSAeBrGXmFIjvVT7YTpEfoCGVf50AJKeyOeuaGefVy1
+	2GlGUsxKxCWDJaWe6Vc7S+cOyiLHNp/U/La3rSRbJeS6+GLbbVtJZpXsJwIejrK5
+	2JwSnCTH9aeVUDovJZNfQvPHaKArqermyI7/44o8qfGkImAs4UhLLpcQVyyADaqH
+	MFKpRTE/cLISCB6Ut9Vb1lyBgk0xlGWLfrXa0erk96NK3tw0thd464qz2qFojNIS
+	mM1ddG+VSHoZUu7UJzeCUXyw0RkB1PZEXiwz7wIDAQABAoIBACO1JFj8ycC8lqV9
+	kNjibOWRaIVJmvCVv1Jbr98jwYZ65DSPfm7vRlBKqqg5gKW8m1CTVQD7Mgbz+3SQ
+	XwwMy0ADYJpxk9jNkiobqrhe2FProDbHMJAjES785kGwfUqEnbxZ/dy/vYAs2Hjg
+	o5pKw2sl2/G40BgRzs2PKyBS2AWgfSKoh+607mepFNKg0/Hhlvxs3eJv0h9//ez+
+	himAAg9OY37gkWHS5DlQ7DsQgfFhRUjCFPGcB9Wu3fuMAnOwthtpigDfrp5SqvZI
+	KrCwJKJkCiqpa7yd9qx4481zTQm/ZyASLiu8CXC9YVgLqhFcxwaOhh5Q0jdcID+Q
+	5BnGzgECgYEA+MSae2o0a/P1RyBI6IzRo9zDhtTBFA5XZD3tstOoeh0Huhsrp/KR
+	0L3nxMm9/EouibyW/SwyOVY3doxo9GNN4PWJg3p58bmYkG+ogwZD2VN1s8tAbU6A
+	YCFtlz9xIx/12Vx5PKL8fr1FQdWeLleI+F3VtrZ8wS083wcbqcySWwECgYEA1b09
+	+Gv6EGNaGDV3PwbDwAUg9AHTE7TB8QwkB6wkrNN5MuQc40xQpG6xzx/2kf89qEqX
+	q3gBaaVvFEtH9QCa8sjqix6/1Rs4+V8D8lfjva6FRBtgm2Yaovhrb/ew5npb7KFm
+	nz/cEUxJ7eXZ2QJJMsGCC0v0OPrlqkCXycp/Pu8CgYBnrfj8is0CWRDW7fu1AEu3
+	UaEkJrO52ihOHQleSJylGEhKJlzRiGWBbESWXcaSyZAP08vSBIOCJg7Dl81+XYzt
+	vyfq5jbAqiuNtxuyUAAjKYeawZE+fUM/zW7RZJ2QmBds2f+laAB4CgY9Y/yjL9Rk
+	Pyd9GR1xnZsLEPlUkXBGAQKBgQCpzI1OrXkbS9JnKRJyn40jHu/u6QQmw5LPTDXT
+	Yo5APkAqjc3lRNtLxiS7x0i682qoJ5oWPl/g7eww0x13JePyvGqX2vXK9rVsZm9c
+	NzZVmi+Ey7sTuSmwDmpLqRp//vTIJ/C+0pyhoVmaBN/r5kUAbXpCPzTlj2yktGvh
+	g11TQQKBgQCtUc8dgxRBEAnlCMjjhVK+8vyl4Tk2dcLL4U7stk+3hstN6bJUFWhl
+	lsPD7SyWCfa6BdAs9DsTLdUa4EGvfVkRn6oar8OMC+OMhDethRjUmIJV+wWS3ati
+	I4EPHrPYK3GNb75+G+qH9uJZ1e2FM7CGaDiBHVSthBkCqjEv2e5JGQ==
+	-----END RSA PRIVATE KEY-----`
+
 var asPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	MIIEogIBAAKCAQEApT8lXT9CDRZZkvhZLBD66o7igZf6sj/o0XooaTuy2HuCt6yE
 	O8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQrdqGwpogvkZ3uUahwE9ZgOj6h4fq
@@ -514,6 +575,34 @@ var asPrivK = `-----BEGIN RSA PRIVATE KEY-----
 	k/rVAoGAULKNeMhshK4hghLwYRrvKK+RvqTHzGRRilWqOmVOD5qm9VOpUlLNudao
 	IdZYlh07pA1L+IXtGdFHL4GlTNa0xXQBsLOTpklqIrTC62ou6026ADM1SC+K/5GE
 	98StPl4dYJRYvWjfKjfSkqI1J9pV6EPRIHwP+r5gB/EsBqKpmhc=
+	-----END RSA PRIVATE KEY-----`
+
+var asPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
+	MIIEpAIBAAKCAQEAzhJ5PP3dfQtpw9p0Kphb30gg9jpgsv425D5pzZaH00zPgYfN
+	TVZWfrLlTtc/ja8dbHvyDaCyzFD++Vr1vtmSSs9/j8ZhTJrTYHoiHvfG1ulTl1Qd
+	gwOcrKhpfhhjnCVCPOYjptgac/KPjhT7uiuYwB6axafx+RqPQqwQQhmuuxmTyy69
+	l/cqezDtYCYUJVA6nV29ZaaF1VjWoE05PK168mcB5quBdE6Vkc4n2k0wxaaTd/s9
+	LPy6STXtz5IBXH2Gy5RP0TGeXO6iur/ZSM2z/3vQkTMjY/mkDduGioXcB6ieNgVv
+	3XYbZg4VJEDSuOpRZReKcgLXvwk3CqZZdZRRjQIDAQABAoIBABfdn9jmdc5Tkg4y
+	sJ12Q72aNucNX8GbG3RXnh1HP7fC/4060xYP17iYs2HsH9oi27+Co0fcwphTERSD
+	6k4OGJk9asKV8RLUI4La4jS/8XFWWG4AOeLAelassnr+DBs7XW58IMjj4jxnbSTB
+	XV30Sp6FbNtTVfzJjKnmD4P4QXo9iKOqS1XHGMJ4cb3gizbtvsj4e2U3zVE5N+Um
+	zvzXcpvyTH1yJrEY2iiorYFUxDzccuWgyQPTOP0Rtn961JlVFVRQmzyf7briVPYJ
+	s6fjQqt5CH1pTiX1PRzJJx3Bef/6QAsogYDcYH+zZ5xz4ZZeRgPEVXH8tfonUr2E
+	whOdAykCgYEA/OQcQP67JxjXmRVo0SLSNA6G5fcVwDp875dfu6cnMP1LqNq6NW0w
+	D5g3prHPYZBz5556zKVitlWsjeq3ABCsxoknwbRBNPEMCWPG+7xi8ie/va8sQWqT
+	W5vFWlu16difrpCh77sJhOrGV7jwvANmjg2ltiPkKwte9bWIdipKyl8CgYEA0JsE
+	ODHO2XC+ggRfMItUndccT2GBgi48IEslnDiwVU+JSc9YKh9IxtFa7y43VMkbvncX
+	qClJ2U78IkPs4OlFbftk0AttqvZfZmWnys8rMZgzNFOhtjgnyBLlRPn5K6z4EjQ+
+	lEIQzNl0JmMq6x+P5HYxgHHvL5tncUQia9CdA5MCgYBiEvUCH8fk+bVjIPJtaNus
+	ZJXcSV6eFhCtuj7eP4zratAUw/7DCX1CDv5GH18VrzfD86ocA2es3rz0rLobxFu9
+	AyPv8z/2kCTi31cj+YNF9jReE7lOBU7wkBCRYk/CSMhkoqKqnhaq/YG+M3Lo90im
+	fpRtdq3eI6LIF4a8jNpEcQKBgQDGm5A84E8L/qeiqf7m/QCm9nLhsPfYtaRRKrq4
+	LdDUqFERkPNjxz1G7XQiXGIZuw9LG5/OXuEMoIK1LO6OhAmyWLL20KqtJrxVhVtn
+	YC7DnSDDJQzFrFlTx4m5TjXJO3lD+7HI/c14+1/2XFw0V2xsG4utusv7C35E/JW5
+	CHk1OQKBgQCdbhsGrBII6OaAYPKSLSsBQxczbvqE0EP5pH3E5IXKgrQFvkMLBm8D
+	t+QcA95WPK7J4AEAaU994SeUT1EzHCEU6orxYeFMdSHn3C6/HI9AtnftIPT4lPih
+	S0ya4kkk1gex6wejZdIAfSEoxNWJd//t9ERfGdGQVOOPsLiiu/W+Ig==
 	-----END RSA PRIVATE KEY-----`
 
 var userNamespace = "cid"
@@ -560,9 +649,16 @@ func TestRegisterNodeRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
+	rpKey2 := getPrivateKeyFromString(rpPrivK2)
+	rpPublicKeyBytes2, err := generatePublicKey(&rpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	var param RegisterNode
 	param.NodeID = "RP1"
 	param.PublicKey = string(rpPublicKeyBytes)
+	param.MasterPublicKey = string(rpPublicKeyBytes2)
 	param.Role = "RP"
 
 	paramJSON, err := json.Marshal(param)
@@ -599,10 +695,16 @@ func TestRegisterNodeIDP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
+	idpKey2 := getPrivateKeyFromString(idpPrivK2)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	var param RegisterNode
 	param.NodeID = "IdP1"
 	param.PublicKey = string(idpPublicKeyBytes)
-	param.MasterPublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 1 from ..."
 	param.Role = "IdP"
 	param.MaxIal = 3.0
@@ -642,9 +744,16 @@ func TestRegisterNodeAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
+	asKey2 := getPrivateKeyFromString(asPrivK2)
+	asPublicKeyBytes2, err := generatePublicKey(&asKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	var param RegisterNode
 	param.NodeID = "AS1"
 	param.PublicKey = string(asPublicKeyBytes)
+	param.MasterPublicKey = string(asPublicKeyBytes2)
 	param.Role = "AS"
 
 	paramJSON, err := json.Marshal(param)
@@ -1991,7 +2100,7 @@ func TestQueryGetNamespaceList(t *testing.T) {
 }
 
 func TestRegisterNodeIDP2(t *testing.T) {
-	idpKey := getPrivateKeyFromString(idpPrivK2)
+	idpKey := getPrivateKeyFromString(idpPrivK3)
 	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -2066,6 +2175,45 @@ func TestQueryGetMsqDestination2(t *testing.T) {
 		},
 	}
 	if actual := res.Node; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPUpdateNode(t *testing.T) {
+
+	idpKey2 := getPrivateKeyFromString(idpPrivK2)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param = UpdateNodeParam{
+		string(idpPublicKeyBytes2),
+		"",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	idpNodeID := []byte("IdP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey2, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

@@ -37,6 +37,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"TimeOutRequest":             timeOutRequest,
 		"AddNamespace":               addNamespace,
 		"DeleteNamespace":            deleteNamespace,
+		"UpdateNode":                 updateNode,
 	}
 
 	// ---- check authorization ----
@@ -49,7 +50,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		return result
 	}
 
-	value, _ := callDeliverTx(funcs, method, param, app)
+	value, _ := callDeliverTx(funcs, method, param, app, nodeID)
 	result := value[0].Interface().(types.ResponseDeliverTx)
 	// ---- Burn token ----
 	if result.Code == code.OK {
@@ -69,11 +70,12 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 	return result
 }
 
-func callDeliverTx(m map[string]interface{}, name string, param string, app *DIDApplication) (result []reflect.Value, err error) {
+func callDeliverTx(m map[string]interface{}, name string, param string, app *DIDApplication, nodeID string) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
-	in := make([]reflect.Value, 2)
+	in := make([]reflect.Value, 3)
 	in[0] = reflect.ValueOf(param)
 	in[1] = reflect.ValueOf(app)
+	in[2] = reflect.ValueOf(nodeID)
 	result = f.Call(in)
 	return
 }

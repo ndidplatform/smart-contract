@@ -247,3 +247,8 @@ type Namespace struct {
 type DeleteNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
+
+type UpdateNodeParam struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+}
