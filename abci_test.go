@@ -2219,4 +2219,5 @@ func TestIdPUpdateNode(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+// TODO add more test about DPKI
 // TODO add test about validators
