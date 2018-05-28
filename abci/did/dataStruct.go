@@ -47,13 +47,6 @@ type GetMsqDestinationResult struct {
 	Node []MsqDestinationNode `json:"node"`
 }
 
-type AccessorMethod struct {
-	AccessorID   string `json:"accessor_id"`
-	AccessorType string `json:"accessor_type"`
-	AccessorKey  string `json:"accessor_key"`
-	Commitment   string `json:"commitment"`
-}
-
 type GetAccessorMethodParam struct {
 	AccessorID string `json:"accessor_id"`
 }
@@ -264,4 +257,12 @@ type Accessor struct {
 	AccessorType      string `json:"accessor_type"`
 	AccessorPublicKey string `json:"accessor_public_key"`
 	AccessorGroupID   string `json:"accessor_group_id"`
+}
+
+type AccessorMethod struct {
+	AccessorID        string `json:"accessor_id"`
+	AccessorType      string `json:"accessor_type"`
+	AccessorPublicKey string `json:"accessor_public_key"`
+	AccessorGroupID   string `json:"accessor_group_id"`
+	RequestID         string `json:"request_id"`
 }

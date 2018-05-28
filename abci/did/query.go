@@ -22,7 +22,6 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 	funcs := map[string]interface{}{
 		"GetNodePublicKey":      getNodePublicKey,
 		"GetMsqDestination":     getMsqDestination,
-		"GetAccessorMethod":     getAccessorMethod,
 		"GetRequest":            getRequest,
 		"GetRequestDetail":      getRequestDetail,
 		"GetServiceDestination": getServiceDestination,

@@ -132,7 +132,6 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			if err != nil {
 				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
-			fmt.Println("IdPValue := " + string(idpsValue))
 			app.SetStateDB([]byte(idpsKey), []byte(idpsValue))
 		}
 

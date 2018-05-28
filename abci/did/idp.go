@@ -49,6 +49,52 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("AddAccessorMethod")
+	var funcParam AccessorMethod
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// AccessorGroupID: must already exist
+	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
+	chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	if chkAccessorGroupKeyExists == nil {
+		return ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
+	}
+
+	// AccessorID: must not duplicate
+	accessorKey := "Accessor" + "|" + funcParam.AccessorID
+	chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	if chkAccessorKeyExists != nil {
+		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
+	}
+
+	// Request must be completed, can be used only once, special type
+	var getRequestparam GetRequestParam
+	getRequestparam.RequestID = funcParam.RequestID
+	getRequestparamJSON, err := json.Marshal(getRequestparam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	var request = getRequest(string(getRequestparamJSON), app)
+	var requestResult GetRequestResult
+	err = json.Unmarshal([]byte(request.Value), &requestResult)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	fmt.Println(requestResult.Status)
+
+	// key := "AccessorMethod" + "|" + accessorMethod.AccessorID
+	// value, err := json.Marshal(accessorMethod)
+	// if err != nil {
+	// 	return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	// }
+	// app.SetStateDB([]byte(key), []byte(value))
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
 func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqDestination")
 	var funcParam RegisterMsqDestinationParam
@@ -99,23 +145,6 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		}
 	}
 
-	return ReturnDeliverTxLog(code.OK, "success", "")
-}
-
-func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("AddAccessorMethod")
-	var accessorMethod AccessorMethod
-	err := json.Unmarshal([]byte(param), &accessorMethod)
-	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-
-	key := "AccessorMethod" + "|" + accessorMethod.AccessorID
-	value, err := json.Marshal(accessorMethod)
-	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 

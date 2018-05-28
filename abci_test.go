@@ -62,13 +62,6 @@ type RegisterMsqDestination struct {
 	NodeID string `json:"node_id"`
 }
 
-type AccessorMethod struct {
-	AccessorID   string `json:"accessor_id"`
-	AccessorType string `json:"accessor_type"`
-	AccessorKey  string `json:"accessor_key"`
-	Commitment   string `json:"commitment"`
-}
-
 type Response struct {
 	RequestID     string `json:"request_id"`
 	Aal           int    `json:"aal"`
@@ -275,6 +268,14 @@ type CreateIdentityParam struct {
 	AccessorType      string `json:"accessor_type"`
 	AccessorPublicKey string `json:"accessor_public_key"`
 	AccessorGroupID   string `json:"accessor_group_id"`
+}
+
+type AccessorMethod struct {
+	AccessorID        string `json:"accessor_id"`
+	AccessorType      string `json:"accessor_type"`
+	AccessorPublicKey string `json:"accessor_public_key"`
+	AccessorGroupID   string `json:"accessor_group_id"`
+	RequestID         string `json:"request_id"`
 }
 
 func getEnv(key, defaultValue string) string {
@@ -1275,70 +1276,6 @@ func TestQueryGetMsqAddress(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdPAddAccessorMethod(t *testing.T) {
-	var param = AccessorMethod{
-		"TestAccessorID",
-		"TestAccessorType",
-		"TestAccessorKey",
-		"TestCommitment",
-	}
-
-	idpKey := getPrivateKeyFromString(idpPrivK)
-	idpNodeID := []byte("IdP1")
-
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
-
-	fnName := "AddAccessorMethod"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
-func TestQueryGetAccessorMethod(t *testing.T) {
-	fnName := "GetAccessorMethod"
-	var param = GetAccessorMethodParam{
-		"TestAccessorID",
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-
-	var res GetAccessorMethodResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = GetAccessorMethodResult{
-		"TestAccessorType",
-		"TestAccessorKey",
-		"TestCommitment",
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 func TestASRegisterServiceDestination(t *testing.T) {
 	var param = RegisterServiceDestinationParam{
 		"statement",
@@ -2131,6 +2068,43 @@ func TestIdPCreateIdentity(t *testing.T) {
 	hashed := pssh.Sum(nil)
 
 	fnName := "CreateIdentity"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPAddAccessorMethod(t *testing.T) {
+
+	var param = AccessorMethod{
+		"accessor_id_2",
+		"accessor_type_2",
+		"accessor_public_key_2",
+		"accessor_group_id",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "AddAccessorMethod"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
