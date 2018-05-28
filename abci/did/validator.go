@@ -53,7 +53,8 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 		powerS = "0"
 	}
 
-	publicKey, _ := base64.StdEncoding.DecodeString(pubkeyS)
+	// publicKey, _ := base64.StdEncoding.DecodeString(pubkeyS)
+	publicKey := pubkeyS
 	pubKey, _ := base64.StdEncoding.DecodeString(string(publicKey))
 	var pubKeyEd crypto.PubKeyEd25519
 	copy(pubKeyEd[:], pubKey)
