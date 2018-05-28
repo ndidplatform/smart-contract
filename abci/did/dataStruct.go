@@ -252,3 +252,16 @@ type UpdateNodeParam struct {
 	PublicKey       string `json:"public_key"`
 	MasterPublicKey string `json:"master_public_key"`
 }
+
+type CreateIdentityParam struct {
+	AccessorID        string `json:"accessor_id"`
+	AccessorType      string `json:"accessor_type"`
+	AccessorPublicKey string `json:"accessor_public_key"`
+	AccessorGroupID   string `json:"accessor_group_id"`
+}
+
+type Accessor struct {
+	AccessorType      string `json:"accessor_type"`
+	AccessorPublicKey string `json:"accessor_public_key"`
+	AccessorGroupID   string `json:"accessor_group_id"`
+}

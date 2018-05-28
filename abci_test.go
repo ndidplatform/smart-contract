@@ -270,6 +270,13 @@ type UpdateNodeParam struct {
 	MasterPublicKey string `json:"master_public_key"`
 }
 
+type CreateIdentityParam struct {
+	AccessorID        string `json:"accessor_id"`
+	AccessorType      string `json:"accessor_type"`
+	AccessorPublicKey string `json:"accessor_public_key"`
+	AccessorGroupID   string `json:"accessor_group_id"`
+}
+
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
@@ -2094,6 +2101,42 @@ func TestQueryGetNamespaceList(t *testing.T) {
 		},
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPCreateIdentity(t *testing.T) {
+
+	var param = CreateIdentityParam{
+		"accessor_id",
+		"accessor_type",
+		"accessor_public_key",
+		"accessor_group_id",
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "CreateIdentity"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

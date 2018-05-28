@@ -8,6 +8,47 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
+func createIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("CreateIdentity")
+	var funcParam CreateIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	accessorKey := "Accessor" + "|" + funcParam.AccessorID
+	var accessor = Accessor{
+		funcParam.AccessorType,
+		funcParam.AccessorPublicKey,
+		funcParam.AccessorGroupID,
+	}
+
+	accessorJSON, err := json.Marshal(accessor)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
+	accessorGroup := funcParam.AccessorGroupID
+
+	// Check duplicate accessor_id
+	chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	if chkAccessorKeyExists != nil {
+		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
+	}
+
+	// Check duplicate accessor_group_id
+	chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	if chkAccessorGroupKeyExists != nil {
+		return ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
+	}
+
+	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
+	app.SetStateDB([]byte(accessorGroupKey), []byte(accessorGroup))
+
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
 func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("RegisterMsqDestination")
 	var funcParam RegisterMsqDestinationParam

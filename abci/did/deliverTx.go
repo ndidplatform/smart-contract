@@ -38,6 +38,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"AddNamespace":               addNamespace,
 		"DeleteNamespace":            deleteNamespace,
 		"UpdateNode":                 updateNode,
+		"CreateIdentity":             createIdentity,
 	}
 
 	// ---- check authorization ----
