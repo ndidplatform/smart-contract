@@ -39,7 +39,7 @@
 
 [[constraint]]
   name = "github.com/tendermint/go-crypto"
-  version = "0.5.0"
+  version = "0.6.2"
 
 [prune]
   go-tests = true

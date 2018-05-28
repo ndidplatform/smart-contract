@@ -13,7 +13,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 ## Add new validator (For testing)
 get PubKey from pub_key.data in priv_validator.json 
 ```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
+curl -s 'localhost:45000/broadcast_tx_commit?tx="val:Base64(PubKey)"'
 ```
 
 ## Prerequisites

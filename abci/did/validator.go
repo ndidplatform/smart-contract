@@ -2,7 +2,7 @@ package did
 
 import (
 	"bytes"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
@@ -53,31 +53,10 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 		powerS = "0"
 	}
 
-	//get the pubkey and power
-	// pubKeyAndPower := strings.Split(string(tx), "/")
-	// if len(pubKeyAndPower) != 2 {
-	// 	return types.ResponseDeliverTx{
-	// 		Code: code.CodeTypeEncodingError,
-	// 		Log:  fmt.Sprintf("Expected 'pubkey/power'. Got %v", pubKeyAndPower)}
-	// }
-	// pubkeyS, powerS := pubKeyAndPower[0], pubKeyAndPower[1]
-
-	// decode the pubkey, ensuring its go-crypto encoded
-	pubkey, err := hex.DecodeString(pubkeyS)
+	publicKey, _ := base64.StdEncoding.DecodeString(pubkeyS)
+	pubKey, _ := base64.StdEncoding.DecodeString(string(publicKey))
 	var pubKeyEd crypto.PubKeyEd25519
-	copy(pubKeyEd[:], pubkey)
-
-	if err != nil {
-		return types.ResponseDeliverTx{
-			Code: code.EncodingError,
-			Log:  fmt.Sprintf("Pubkey (%s) is invalid hex", pubkeyS)}
-	}
-	/*_, err = crypto.PubKeyFromBytes(pubkey)
-	if err != nil {
-		return types.ResponseDeliverTx{
-			Code: code.CodeTypeEncodingError,
-			Log:  fmt.Sprintf("Pubkey (%X) is invalid go-crypto encoded", pubkey)}
-	}*/
+	copy(pubKeyEd[:], pubKey)
 
 	// decode the power
 	power, err := strconv.ParseInt(powerS, 10, 64)
