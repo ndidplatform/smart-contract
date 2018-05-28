@@ -152,13 +152,13 @@ docker-compose -f docker/docker-compose.yml up
     Commit
     ```
 
-    to show in the first terminal (`go run abci ...`) of both processes before starting `ndid-api` processes.
+    to show in the first terminal (`go run abci ...`) of both processes before starting `api` processes.
 
 3.  When IDP node and RP node run on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
-## Technical details to connect with `ndid-api`
+## Technical details to connect with `api`
 
-Interact with `ndid-api` in BASE64 format data.
+Interact with `api` in BASE64 format data.
 
 # Broadcast tx format
 ```sh
