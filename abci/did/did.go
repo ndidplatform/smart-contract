@@ -116,11 +116,13 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	}()
 
 	// TODO change method add Validator
+	// After scale test delete this
 	if isValidatorTx(tx) {
 		// update validators in the merkle tree
 		// and in app.ValUpdates
 		return app.execValidatorTx(tx)
 	}
+	// ---------------------
 
 	txString, err := base64.StdEncoding.DecodeString(string(tx))
 	if err != nil {
@@ -153,9 +155,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	}()
 
 	// TODO check permission before can add Validator
+	// After scale test delete this
 	if isValidatorTx(tx) {
 		return ReturnCheckTx(true)
 	}
+	// ---------------------
 
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
