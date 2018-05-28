@@ -1,24 +1,22 @@
 {
-  "genesis_time": "0001-01-01T00:00:00Z",
-  "chain_id": "test-chain-ndid",
+  "genesis_time": "2018-05-28T10:42:35.633494408+07:00",
+  "chain_id": "test-chain-NDID",
   "validators": [
     {
       "pub_key": {
-        "type": "ed25519",
-        "data":
-          "0416CC58761965A80C149C6E6F62757F4DAB7C1CF77EA19452F0FC51858292B0"
-      },
-      "power": 10,
-      "name": "RP"
-    },
-    {
-      "pub_key": {
-        "type": "ed25519",
-        "data":
-          "AF2BAE97BD1AD8703459C230AC63EDDFAD6A04E84335DA2687D53248955E4E58"
+        "type": "AC26791624DE60",
+        "value": "7/ThXSVOL7YkcpcJ8iatM+EXOlXv8aFtpsVAmWwMdC4="
       },
       "power": 10,
       "name": "IdP"
+    },
+    {
+      "pub_key": {
+        "type": "AC26791624DE60",
+        "value": "5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g="
+      },
+      "power": 10,
+      "name": "RP"
     }
   ],
   "app_hash": ""

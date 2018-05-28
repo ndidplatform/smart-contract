@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:46001"
 
 # A custom human readable name for this node
-moniker = "admins-MacBook-Air.local"
+moniker = "Node_RP"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -67,9 +67,10 @@ unsafe = false
 laddr = "tcp://0.0.0.0:47001"
 
 # Comma separated list of seed nodes to connect to
-seeds = "127.0.0.1:47000,127.0.0.1:47001,127.0.0.1:47002"
+seeds = "77477709c01c3ea40b6870a798b6bb6a07fc4ae6@127.0.0.1:47000,a3cd314da85fef8188536f2dd690368820527e90@127.0.0.1:47001"
 
 # Comma separated list of nodes to keep persistent connections to
+# Do not add private peers to this list if you don't want them advertised
 persistent_peers = ""
 
 # Path to address book
@@ -85,7 +86,7 @@ flush_throttle_timeout = 100
 max_num_peers = 50
 
 # Maximum size of a message packet payload, in bytes
-max_msg_packet_payload_size = 1024
+max_packet_msg_payload_size = 1024
 
 # Rate at which packets can be sent, in bytes/second
 send_rate = 512000
@@ -102,6 +103,12 @@ pex = true
 # Does not work if the peer-exchange reactor is disabled.
 seed_mode = false
 
+# Authenticated encryption
+auth_enc = true
+
+# Comma separated list of peer IDs to keep private (will not be gossiped to other peers)
+private_peer_ids = ""
+
 ##### mempool configuration options #####
 [mempool]
 
@@ -110,11 +117,16 @@ recheck_empty = true
 broadcast = true
 wal_dir = "data/mempool.wal"
 
+# size of the mempool
+size = 100000
+
+# size of the cache (used to filter transactions we saw earlier)
+cache_size = 100000
+
 ##### consensus configuration options #####
 [consensus]
 
 wal_file = "data/cs.wal/wal"
-wal_light = false
 
 # All timeouts are in milliseconds
 timeout_propose = 3000
