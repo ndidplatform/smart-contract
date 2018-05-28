@@ -23,13 +23,14 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:Base64(PubKey)"'
   * [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   * Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-* Tendermint 0.16.0
+* Tendermint 0.19.5
 
     ```sh
+    go get github.com/tendermint/tendermint/cmd/tendermint
     cd $GOPATH/src/github.com/tendermint/tendermint
-    git checkout v0.16.0
-    glide install
-    go install ./cmd/tendermint
+    git checkout v0.19.5
+    make get_vendor_deps
+    make install
     ```
 
 ## Setup
