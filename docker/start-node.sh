@@ -1,6 +1,9 @@
 #!/bin/sh
 
-if [ -z ${TMHOME} ]; then TMHOME=/tendermint; fi
+TMHOME=${TMHOME:-/tendermint}
+TM_RPC_PORT=${TM_RPC_PORT:-45000}
+TM_P2P_PORT=${TM_P2P_PORT:-47000}
+ABCI_PORT=${ABCI_PORT:-46000}
 
 usage() {
   echo "Usage: $(basename ${0}) <mode>"
@@ -22,6 +25,10 @@ tendermint_get_genesis_from_seed() {
   wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/genesis | jq -r .result.genesis > ${TMHOME}/config/genesis.json
 }
 
+tendermint_get_id_from_seed() {
+  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/status | jq -r .result.node_info.id
+}
+
 tendermint_new_priv_validator() {
   tendermint gen_validator > ${TMHOME}/config/priv_validator.json
 }
@@ -30,14 +37,15 @@ tendermint_wait_for_sync_complete() {
   local HOSTNAME=$1
   local PORT=$2
   while true; do
-    [ ! "$(wget -qO - http://${HOSTNAME}:${PORT}/status | jq -r .result.syncing)" = "false" ] || break
+    [ ! "$(wget -qO - http://${HOSTNAME}:${PORT}/status | jq -r .result.sync_info.syncing)" = "false" ] || break
     sleep 1
   done;
 }
 
 tendermint_add_validator() {
   tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT} 
-  local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.data)
+  # need to escape "/" and "+" with % encoding as pub_key.value is base64 in tendermint 0.19.5
+  local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.value | sed 's/\//%2F/g;s/+/%2B/g')
   wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
 }
 
@@ -54,10 +62,11 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
       tendermint_init
       tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
+      SEED_ID=$(tendermint_get_id_from_seed)
       tendermint_get_genesis_from_seed
       shift
       tendermint_add_validator &
-      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
+      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
     reset)
       tendermint_reset

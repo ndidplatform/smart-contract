@@ -9,7 +9,6 @@ main.go
 # localDB
 localDB/
 vendor/
-Gopkg.lock
 
 # tendermint data
 config/tendermint/IdP/data/
