@@ -82,16 +82,25 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	var requestResult GetRequestResult
 	err = json.Unmarshal([]byte(request.Value), &requestResult)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-	fmt.Println(requestResult.Status)
+	if requestResult.Status != "completed" {
+		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+	}
+	// TODO: check special type of Request && set can used only once
 
-	// key := "AccessorMethod" + "|" + accessorMethod.AccessorID
-	// value, err := json.Marshal(accessorMethod)
-	// if err != nil {
-	// 	return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// app.SetStateDB([]byte(key), []byte(value))
+	var accessor = Accessor{
+		funcParam.AccessorType,
+		funcParam.AccessorPublicKey,
+		funcParam.AccessorGroupID,
+	}
+
+	accessorJSON, err := json.Marshal(accessor)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
