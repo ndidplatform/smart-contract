@@ -75,7 +75,8 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 
 // add, update, or remove a validator
 func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeliverTx {
-	key := []byte("val:" + string(v.PubKey))
+	key := []byte("val:" + base64.StdEncoding.EncodeToString(v.PubKey))
+
 	if v.Power == 0 {
 		// remove validator
 		if !app.state.db.Has(key) {
@@ -93,13 +94,14 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Code: code.EncodingError,
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
-		app.SetStateDB(key, value.Bytes())
+		app.state.db.Set(key, value.Bytes())
+		app.state.Size++
 	}
 
 	// we only update the changes array if we successfully updated the tree
 	app.ValUpdates = append(app.ValUpdates, v)
 
-	return types.ResponseDeliverTx{Code: code.OK}
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func updateValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -110,25 +112,12 @@ func updateValidator(param string, app *DIDApplication, nodeID string) types.Res
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	// value := []byte("MasterNDID")
-	// app.SetStateDB([]byte(key), []byte(value))
+	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
+	if err != nil {
+		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+	}
+	var pubKeyEd crypto.PubKeyEd25519
+	copy(pubKeyEd[:], pubKey)
 
-	// nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	// // TODO: fix param InitNDID
-	// var nodeDetail = NodeDetail{
-	// 	funcParam.PublicKey,
-	// 	funcParam.PublicKey,
-	// 	"NDID",
-	// }
-	// nodeDetailValue, err := json.Marshal(nodeDetail)
-	// if err != nil {
-	// 	return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
-
-	// key = "MasterNDID"
-	// value = []byte(funcParam.PublicKey)
-	// app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.updateValidator(types.Validator{pubKeyEd.Bytes(), funcParam.Power})
 }

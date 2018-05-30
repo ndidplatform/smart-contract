@@ -17,6 +17,7 @@ var isNDIDMethod = map[string]bool{
 	"SetPriceFunc":    true,
 	"AddNamespace":    true,
 	"DeleteNamespace": true,
+	"UpdateValidator": true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {

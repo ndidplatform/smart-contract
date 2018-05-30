@@ -237,6 +237,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"AddNamespace":               checkIsNDID,
 		"DeleteNamespace":            checkIsNDID,
 		"UpdateNode":                 checkIsMasterNode,
+		"UpdateValidator":            checkIsNDID,
 	}
 
 	var publicKey string

@@ -416,6 +416,19 @@ log: "success"
 log: "success"
 ```
 
+## UpdateValidator
+### Parameter
+```sh
+{
+  "public_key": "5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=",
+  "power": 0
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
