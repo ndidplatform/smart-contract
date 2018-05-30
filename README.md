@@ -222,21 +222,6 @@ log: "success"
 log: "success"
 ```
 
-## AddAccessorMethod
-### Parameter
-```sh
-{
-  "accessor_id": "TestAccessorID",
-  "accessor_type": "TestAccessorType",
-  "accessor_key": "TestAccessorKey",
-  "commitment": "TestCommitment"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
 ## RegisterServiceDestination
 ### Parameter
 ```sh
@@ -277,7 +262,8 @@ log: "success"
   "min_ial": 1,
   "timeout": 259200,
   "data_request_list": null,
-  "message_hash": "hash('Please allow...')"
+  "message_hash": "hash('Please allow...')",
+  "specail": false
 }
 ```
 ### Expected Output
@@ -423,6 +409,37 @@ log: "success"
 {
   "public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n",
   "master_public_key": ""
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## CreateIdentity
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id",
+  "accessor_type": "accessor_type",
+  "accessor_public_key": "accessor_public_key",
+  "accessor_group_id": "accessor_group_id"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## AddAccessorMethod
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id_2",
+  "accessor_type": "accessor_type_2",
+  "accessor_public_key": "accessor_public_key_2",
+  "accessor_group_id": "accessor_group_id",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
 ### Expected Output
@@ -645,4 +662,32 @@ log: "success"
     "description": "Citizen ID"
   }
 ]
+```
+
+## CheckExistingIdentity
+### Parameter
+```sh
+{
+   "hash_id": "hash(ns+id)"
+}
+```
+### Expected Output
+```sh
+{
+  "exist": true
+}
+```
+
+## GetAccessorGroupID
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id_001"
+}
+```
+### Expected Output
+```sh
+{
+  "accessor_group_id": "accessor_group_id"
+}
 ```
