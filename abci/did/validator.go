@@ -3,6 +3,7 @@ package did
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,7 +75,8 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 
 // add, update, or remove a validator
 func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeliverTx {
-	key := []byte("val:" + string(v.PubKey))
+	key := []byte("val:" + base64.StdEncoding.EncodeToString(v.PubKey))
+
 	if v.Power == 0 {
 		// remove validator
 		if !app.state.db.Has(key) {
@@ -92,11 +94,30 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Code: code.EncodingError,
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
-		app.SetStateDB(key, value.Bytes())
+		app.state.db.Set(key, value.Bytes())
+		app.state.Size++
 	}
 
 	// we only update the changes array if we successfully updated the tree
 	app.ValUpdates = append(app.ValUpdates, v)
 
-	return types.ResponseDeliverTx{Code: code.OK}
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func updateValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("UpdateValidator")
+	var funcParam UpdateValidatorParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
+	if err != nil {
+		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+	}
+	var pubKeyEd crypto.PubKeyEd25519
+	copy(pubKeyEd[:], pubKey)
+
+	return app.updateValidator(types.Validator{pubKeyEd.Bytes(), funcParam.Power})
 }

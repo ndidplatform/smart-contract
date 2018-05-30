@@ -427,6 +427,15 @@ log: "success"
   "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
+
+## UpdateValidator
+### Parameter
+```sh
+{
+  "public_key": "5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=",
+  "power": 0
+}
+```
 ### Expected Output
 ```sh
 log: "success"

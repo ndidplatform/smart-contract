@@ -291,3 +291,8 @@ type GetAccessorKeyParam struct {
 type GetAccessorKeyResult struct {
 	AccessorPublicKey string `json:"accessor_public_key"`
 }
+
+type UpdateValidatorParam struct {
+	PublicKey string `json:"public_key"`
+	Power     int64  `json:"power"`
+}

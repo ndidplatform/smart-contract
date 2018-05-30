@@ -2312,5 +2312,42 @@ func TestIdPUpdateNode(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+type UpdateValidatorParam struct {
+	PublicKey string `json:"public_key"`
+	Power     int64  `json:"power"`
+}
+
+func TestUpdateValidator(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param UpdateValidatorParam
+	param.PublicKey = `7/ThXSVOL7YkcpcJ8iatM+EXOlXv8aFtpsVAmWwMdC4=`
+	// param.PublicKey = `5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=`
+	param.Power = 20
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateValidator"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 // TODO add more test about DPKI
-// TODO add test about validators
