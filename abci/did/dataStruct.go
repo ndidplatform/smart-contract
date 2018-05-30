@@ -252,3 +252,8 @@ type UpdateNodeParam struct {
 	PublicKey       string `json:"public_key"`
 	MasterPublicKey string `json:"master_public_key"`
 }
+
+type UpdateValidatorParam struct {
+	PublicKey string `json:"public_key"`
+	Power     int64  `json:"power"`
+}

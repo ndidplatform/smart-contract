@@ -3,6 +3,7 @@ package did
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -99,4 +100,35 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 	app.ValUpdates = append(app.ValUpdates, v)
 
 	return types.ResponseDeliverTx{Code: code.OK}
+}
+
+func updateValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("UpdateValidator")
+	var funcParam UpdateValidatorParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+	// value := []byte("MasterNDID")
+	// app.SetStateDB([]byte(key), []byte(value))
+
+	// nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	// // TODO: fix param InitNDID
+	// var nodeDetail = NodeDetail{
+	// 	funcParam.PublicKey,
+	// 	funcParam.PublicKey,
+	// 	"NDID",
+	// }
+	// nodeDetailValue, err := json.Marshal(nodeDetail)
+	// if err != nil {
+	// 	return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	// }
+	// app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+
+	// key = "MasterNDID"
+	// value = []byte(funcParam.PublicKey)
+	// app.SetStateDB([]byte(key), []byte(value))
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
