@@ -26,9 +26,12 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 * Tendermint 0.19.5
 
     ```sh
-    go get github.com/tendermint/tendermint/cmd/tendermint
-    cd $GOPATH/src/github.com/tendermint/tendermint
+    mkdir -p $GOPATH/src/github.com/tendermint
+    cd $GOPATH/src/github.com/tendermint
+    git clone https://github.com/tendermint/tendermint.git
+    cd tendermint
     git checkout v0.19.5
+    make get_tools
     make get_vendor_deps
     make install
     ```
