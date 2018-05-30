@@ -63,13 +63,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    go run abci/server.go tcp://127.0.0.1:46000
-    ```
-
-    Example
-
-    ```sh
-    go run abci/server.go tcp://127.0.0.1:46000
+    DB_NAME=IdP_DB go run abci/server.go tcp://127.0.0.1:46000
     ```
 
 2.  Run tendermint
@@ -87,13 +81,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    go run abci/server.go tcp://127.0.0.1:46001
-    ```
-
-    Example
-
-    ```sh
-    go run abci/server.go tcp://127.0.0.1:46001
+    DB_NAME=RP_DB go run abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
@@ -111,13 +99,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    go run abci/server.go tcp://127.0.0.1:46001
-    ```
-
-    Example
-
-    ```sh
-    go run abci/server.go tcp://127.0.0.1:46002
+    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
