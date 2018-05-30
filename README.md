@@ -294,7 +294,6 @@ log: "success"
   "ial": 3,
   "status": "accept",
   "signature": "signature",
-  "accessor_id": "TestAccessorID",
   "identity_proof": "Magic"
 }
 ```
@@ -560,7 +559,6 @@ log: "success"
       "ial": 3,
       "status": "accept",
       "signature": "signature",
-      "accessor_id": "TestAccessorID",
       "identity_proof": "Magic"
     }
   ]

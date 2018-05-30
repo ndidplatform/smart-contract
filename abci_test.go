@@ -68,7 +68,6 @@ type Response struct {
 	Ial           int    `json:"ial"`
 	Status        string `json:"status"`
 	Signature     string `json:"signature"`
-	AccessorID    string `json:"accessor_id"`
 	IdentityProof string `json:"identity_proof"`
 }
 
@@ -1472,7 +1471,6 @@ func TestIdPCreateIdpResponse(t *testing.T) {
 		3,
 		"accept",
 		"signature",
-		"TestAccessorID",
 		"Magic",
 	}
 

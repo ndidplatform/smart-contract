@@ -84,7 +84,6 @@ type Response struct {
 	Ial           float64 `json:"ial"`
 	Status        string  `json:"status"`
 	Signature     string  `json:"signature"`
-	AccessorID    string  `json:"accessor_id"`
 	IdentityProof string  `json:"identity_proof"`
 }
 
