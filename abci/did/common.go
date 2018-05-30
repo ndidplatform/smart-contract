@@ -192,6 +192,22 @@ func getMsqAddress(param string, app *DIDApplication) types.ResponseQuery {
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
+func getCanAddAccessor(requestID string, app *DIDApplication) bool {
+	result := false
+	key := "Request" + "|" + requestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var request Request
+		err := json.Unmarshal([]byte(value), &request)
+		if err == nil {
+			if request.CanAddAccessor && request.Special {
+				result = true
+			}
+		}
+	}
+	return result
+}
+
 func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetRequest")
 	var funcParam GetRequestParam

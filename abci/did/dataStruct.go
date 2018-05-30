@@ -76,6 +76,8 @@ type Request struct {
 	IsClosed        bool          `json:"is_closed"`
 	IsTimedOut      bool          `json:"is_timed_out"`
 	SignDataCount   int           `json:"sign_data_count"`
+	CanAddAccessor  bool          `json:"can_add_accessor"`
+	Special         bool          `json:"special"`
 }
 
 type Response struct {

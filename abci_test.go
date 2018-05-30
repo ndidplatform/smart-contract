@@ -50,6 +50,7 @@ type Request struct {
 	Timeout         int           `json:"timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"message_hash"`
+	Special         bool          `json:"special"`
 }
 
 type User struct {
@@ -1378,6 +1379,7 @@ func TestRPCreateRequest(t *testing.T) {
 		259200,
 		data,
 		"hash('Please allow...')",
+		true,
 	}
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
@@ -1830,6 +1832,7 @@ func TestCreateRequest(t *testing.T) {
 		259200,
 		datas,
 		"hash('Please allow...')",
+		false,
 	}
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
@@ -2114,47 +2117,6 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRegisterNodeIDP2(t *testing.T) {
-	idpKey := getPrivateKeyFromString(idpPrivK3)
-	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	var param RegisterNode
-	param.NodeID = "IdP2"
-	param.PublicKey = string(idpPublicKeyBytes)
-	param.Role = "IdP"
-	param.MaxIal = 3.0
-	param.MaxAal = 3.0
-
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	ndidKey := getPrivateKeyFromString(ndidPrivK)
-	ndidNodeID := []byte("NDID")
-
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
-
-	fnName := "RegisterNode"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 type CheckExistingIdentityParam struct {
 	HashID string `json:"hash_id"`
 }
@@ -2201,6 +2163,47 @@ func TestQueryGetAccessorGroupID(t *testing.T) {
 
 	var expected = `{"accessor_group_id":"accessor_group_id"}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRegisterNodeIDP2(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK3)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param RegisterNode
+	param.NodeID = "IdP2"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := []byte("NDID")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

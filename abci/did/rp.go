@@ -16,9 +16,17 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	fmt.Println(request.Special)
+
 	// set default value
 	request.IsClosed = false
 	request.IsTimedOut = false
+	request.CanAddAccessor = false
+
+	// set Can add accossor
+	if request.Special {
+		request.CanAddAccessor = true
+	}
 
 	key := "Request" + "|" + request.RequestID
 	value, err := json.Marshal(request)

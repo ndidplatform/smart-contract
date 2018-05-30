@@ -32,4 +32,5 @@ const (
 	DuplicateAccessorGroupID uint32 = 27
 	AccessorGroupIDNotFound  uint32 = 28
 	RequestIsNotCompleted    uint32 = 29
+	RequestIsNotSpecial      uint32 = 30
 )

@@ -49,6 +49,22 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
+	key := "Request" + "|" + requestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var request Request
+		err := json.Unmarshal([]byte(value), &request)
+		if err == nil {
+			request.CanAddAccessor = false
+			value, err := json.Marshal(request)
+			if err == nil {
+				app.SetStateDB([]byte(key), []byte(value))
+			}
+		}
+	}
+}
+
 func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	fmt.Println("AddAccessorMethod")
 	var funcParam AccessorMethod
@@ -87,7 +103,12 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	if requestResult.Status != "completed" {
 		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 	}
-	// TODO: check special type of Request && set can used only once
+	// check special type of Request && set can used only once
+	canAddAccessor := getCanAddAccessor(funcParam.RequestID, app)
+	if canAddAccessor != true {
+		return ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
+	}
+	setCanAddAccessorToFalse(funcParam.RequestID, app)
 
 	var accessor = Accessor{
 		funcParam.AccessorType,
