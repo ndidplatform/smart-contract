@@ -266,3 +266,11 @@ type AccessorMethod struct {
 	AccessorGroupID   string `json:"accessor_group_id"`
 	RequestID         string `json:"request_id"`
 }
+
+type CheckExistingIdentityParam struct {
+	HashID string `json:"hash_id"`
+}
+
+type CheckExistingIdentityResult struct {
+	Exist bool `json:"exist"`
+}

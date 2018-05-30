@@ -276,36 +276,6 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
-// func getAccessorMethod(param string, app *DIDApplication) types.ResponseQuery {
-// 	fmt.Println("GetAccessorMethod")
-// 	var funcParam GetAccessorMethodParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return ReturnQuery(nil, err.Error(), app.state.Height)
-// 	}
-// 	key := "AccessorMethod" + "|" + funcParam.AccessorID
-// 	value := app.state.db.Get(prefixKey([]byte(key)))
-
-// 	if value == nil {
-// 		value = []byte("")
-// 		return ReturnQuery(value, "not found", app.state.Height)
-// 	}
-// 	var accessorMethod AccessorMethod
-// 	err = json.Unmarshal([]byte(value), &accessorMethod)
-// 	if err != nil {
-// 		return ReturnQuery(nil, err.Error(), app.state.Height)
-// 	}
-// 	var res GetAccessorMethodResult
-// 	res.AccessorType = accessorMethod.AccessorType
-// 	res.AccessorKey = accessorMethod.AccessorKey
-// 	res.Commitment = accessorMethod.Commitment
-// 	value, err = json.Marshal(res)
-// 	if err != nil {
-// 		return ReturnQuery(nil, err.Error(), app.state.Height)
-// 	}
-// 	return ReturnQuery(value, "success", app.state.Height)
-// }
-
 func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
 	fmt.Println("GetNamespaceList")
 	key := "AllNamespace"
@@ -394,4 +364,33 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
 	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+}
+
+func checkExistingIdentity(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("CheckExistingIdentity")
+	var funcParam CheckExistingIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	var result CheckExistingIdentityResult
+	result.Exist = false
+
+	key := "MsqDestination" + "|" + funcParam.HashID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(value), &nodes)
+		if err == nil {
+			result.Exist = true
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height)
 }

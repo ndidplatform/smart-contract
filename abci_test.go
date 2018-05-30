@@ -2157,6 +2157,33 @@ func TestRegisterNodeIDP2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+type CheckExistingIdentityParam struct {
+	HashID string `json:"hash_id"`
+}
+
+func TestQueryCheckExistingIdentity(t *testing.T) {
+	fnName := "CheckExistingIdentity"
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+	var param = CheckExistingIdentityParam{
+		string(userHash),
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var expected = `{"exist":true}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 type GetMsqDestinationParam2 struct {
 	MinIal float64 `json:"min_ial"`
 	MinAal float64 `json:"min_aal"`
