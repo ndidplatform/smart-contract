@@ -1711,7 +1711,7 @@ func TestReportGetUsedTokenIdP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"AddAccessorMethod","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 
@@ -2178,6 +2178,30 @@ func TestQueryCheckExistingIdentity(t *testing.T) {
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
 	var expected = `{"exist":true}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+type GetAccessorGroupIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+func TestQueryGetAccessorGroupID(t *testing.T) {
+	fnName := "GetAccessorGroupID"
+	var param = GetAccessorGroupIDParam{
+		"accessor_id_2",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var expected = `{"accessor_group_id":"accessor_group_id"}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

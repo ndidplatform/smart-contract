@@ -32,6 +32,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetServiceDetail":      getServiceDetail,
 		"GetNamespaceList":      getNamespaceList,
 		"CheckExistingIdentity": checkExistingIdentity,
+		"GetAccessorGroupID":    getAccessorGroupID,
 	}
 	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

@@ -274,3 +274,11 @@ type CheckExistingIdentityParam struct {
 type CheckExistingIdentityResult struct {
 	Exist bool `json:"exist"`
 }
+
+type GetAccessorGroupIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type GetAccessorGroupIDResult struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+}
