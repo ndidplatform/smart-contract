@@ -27,7 +27,6 @@ type State struct {
 	CommitStr    string   `json:"commit_str"`
 }
 
-// TO DO save state as DB file
 func loadState(db dbm.DB) State {
 	stateBytes := db.Get(stateKey)
 	var state State
@@ -62,7 +61,17 @@ type DIDApplication struct {
 }
 
 func NewDIDApplication() *DIDApplication {
-	state := loadState(dbm.NewMemDB())
+
+	var dbDir = getEnv("DB_NAME", "DID")
+
+	name := "didDB"
+	db, err := dbm.NewGoLevelDB(name, dbDir)
+	if err != nil {
+		panic(err)
+	}
+
+	state := loadState(db)
+
 	return &DIDApplication{state: state}
 }
 
