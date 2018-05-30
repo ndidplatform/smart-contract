@@ -41,7 +41,8 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 	tx = tx[len(ValidatorSetChangePrefix):]
 
 	// TODO change get PubKey and Power when got ValidatorTx
-	pubKeyAndPower := strings.Split(string(tx), "/")
+	// Use "@" as separator since pubKey is base64 and may contain "/"
+	pubKeyAndPower := strings.Split(string(tx), "@")
 	if len(pubKeyAndPower) < 1 {
 		return types.ResponseDeliverTx{
 			Code: code.EncodingError,
@@ -53,7 +54,8 @@ func (app *DIDApplication) execValidatorTx(tx []byte) types.ResponseDeliverTx {
 		powerS = "0"
 	}
 
-	publicKey, _ := base64.StdEncoding.DecodeString(pubkeyS)
+	// publicKey, _ := base64.StdEncoding.DecodeString(pubkeyS)
+	publicKey := pubkeyS
 	pubKey, _ := base64.StdEncoding.DecodeString(string(publicKey))
 	var pubKeyEd crypto.PubKeyEd25519
 	copy(pubKeyEd[:], pubKey)
