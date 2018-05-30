@@ -676,3 +676,17 @@ log: "success"
   "accessor_group_id": "accessor_group_id"
 }
 ```
+
+## GetAccessorKey
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id_001"
+}
+```
+### Expected Output
+```sh
+{
+  "accessor_public_key": "accessor_public_key"
+}
+```

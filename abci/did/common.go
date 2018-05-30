@@ -439,3 +439,32 @@ func getAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	return ReturnQuery(returnValue, "success", app.state.Height)
 }
+
+func getAccessorKey(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetAccessorKey")
+	var funcParam GetAccessorKeyParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	var result GetAccessorKeyResult
+	result.AccessorPublicKey = ""
+
+	key := "Accessor" + "|" + funcParam.AccessorID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value != nil {
+		var accessor Accessor
+		err = json.Unmarshal([]byte(value), &accessor)
+		if err == nil {
+			result.AccessorPublicKey = accessor.AccessorPublicKey
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height)
+}

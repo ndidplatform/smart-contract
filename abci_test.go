@@ -2168,6 +2168,30 @@ func TestQueryGetAccessorGroupID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+type GetAccessorKeyParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+func TestQueryGetAccessorKey(t *testing.T) {
+	fnName := "GetAccessorKey"
+	var param = GetAccessorKeyParam{
+		"accessor_id",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var expected = `{"accessor_public_key":"accessor_public_key"}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestRegisterNodeIDP2(t *testing.T) {
 	idpKey := getPrivateKeyFromString(idpPrivK3)
 	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)

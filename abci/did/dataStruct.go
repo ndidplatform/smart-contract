@@ -283,3 +283,11 @@ type GetAccessorGroupIDParam struct {
 type GetAccessorGroupIDResult struct {
 	AccessorGroupID string `json:"accessor_group_id"`
 }
+
+type GetAccessorKeyParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type GetAccessorKeyResult struct {
+	AccessorPublicKey string `json:"accessor_public_key"`
+}
