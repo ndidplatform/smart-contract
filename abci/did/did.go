@@ -75,7 +75,10 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 }
 
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
-	return types.ResponseInfo{Data: fmt.Sprintf("{\"size\":%v}", app.state.Size)}
+	var res types.ResponseInfo
+	res.LastBlockHeight = app.state.Height
+	res.LastBlockAppHash = app.state.AppHash
+	return res
 }
 
 // Save the validators in the merkle tree

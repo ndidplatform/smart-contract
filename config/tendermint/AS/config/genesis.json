@@ -9,14 +9,6 @@
       },
       "power": 10,
       "name": "IdP"
-    },
-    {
-      "pub_key": {
-        "type": "AC26791624DE60",
-        "value": "5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g="
-      },
-      "power": 10,
-      "name": "RP"
     }
   ],
   "app_hash": ""
