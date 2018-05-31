@@ -3,6 +3,7 @@ package did
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -207,20 +208,17 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	}
 	h := sha256.New()
 	if newAppHashString != "" {
-		h.Write([]byte(app.state.CommitStr + newAppHashString))
+		dbStat := app.state.db.Stats()
+		newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
+		h.Write([]byte(newAppHashStr))
 		newAppHash := h.Sum(nil)
-		newAppHashBase64 := base64.StdEncoding.EncodeToString(newAppHash)
-		app.state.CommitStr = newAppHashBase64
+		app.state.CommitStr = hex.EncodeToString(newAppHash)
 	}
-	dbStat := app.state.db.Stats()
-	appHashStr := app.state.CommitStr + dbStat["database.size"]
-	h.Write([]byte(appHashStr))
-	appHash := h.Sum(nil)
-	app.state.AppHash = appHash
+	app.state.AppHash = []byte(app.state.CommitStr)
 	app.state.Height++
 	saveState(app.state)
 	app.state.UncommitKeys = nil
-	return types.ResponseCommit{Data: appHash}
+	return types.ResponseCommit{Data: app.state.AppHash}
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
