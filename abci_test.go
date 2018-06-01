@@ -1173,7 +1173,7 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetMsqDestination(t *testing.T) {
+func TestQueryGetIdpNodes(t *testing.T) {
 	fnName := "GetIdpNodes"
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
