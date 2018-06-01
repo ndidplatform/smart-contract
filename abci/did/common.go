@@ -178,7 +178,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "success", app.state.Height)
 	}
 	return ReturnQuery(value, "success", app.state.Height)
 }
