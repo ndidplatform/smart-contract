@@ -445,7 +445,7 @@ log: "success"
 }
 ```
 
-## GetMsqDestination
+## GetIdpNodes
 ### Parameter
 ```sh
 {
@@ -460,11 +460,15 @@ log: "success"
   "node": [
     {
       "id": "IdP1",
-      "name": "IdP Number 1 from ..."
+      "name": "IdP Number 1 from ...",
+      "max_ial": 3,
+      "max_aal": 3
     },
     {
       "id": "IdP2",
-      "name": ""
+      "name": "",
+      "max_ial": 3,
+      "max_aal": 3
     }
   ]
 }

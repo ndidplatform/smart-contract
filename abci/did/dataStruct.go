@@ -32,18 +32,20 @@ type MsqDestination struct {
 	Nodes []Node `json:"nodes"`
 }
 
-type GetMsqDestinationParam struct {
+type GetIdpNodesParam struct {
 	HashID string  `json:"hash_id"`
 	MinIal float64 `json:"min_ial"`
 	MinAal float64 `json:"min_aal"`
 }
 
 type MsqDestinationNode struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
 }
 
-type GetMsqDestinationResult struct {
+type GetIdpNodesResult struct {
 	Node []MsqDestinationNode `json:"node"`
 }
 
