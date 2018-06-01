@@ -177,12 +177,20 @@ type GetServiceDetailParam struct {
 	NodeID      string `json:"node_id"`
 }
 
-type GetServiceDestinationParam struct {
+type GetAsNodesByServiceIdParam struct {
 	AsServiceID string `json:"service_id"`
 }
 
-type GetServiceDestinationResult struct {
-	NodeID []string `json:"node_id"`
+type ASNode struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+	ServiceName string  `json:"service_name"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
 }
 
 type RegisterMsqAddressParam struct {
@@ -754,6 +762,7 @@ func TestRegisterNodeAS(t *testing.T) {
 	}
 
 	var param RegisterNode
+	param.NodeName = "AS1"
 	param.NodeID = "AS1"
 	param.PublicKey = string(asPublicKeyBytes)
 	param.MasterPublicKey = string(asPublicKeyBytes2)
@@ -1402,9 +1411,9 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetServiceDestination(t *testing.T) {
-	fnName := "GetServiceDestination"
-	var param = GetServiceDestinationParam{
+func TestQueryGetAsNodesByServiceId(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = GetAsNodesByServiceIdParam{
 		"statement",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1414,17 +1423,13 @@ func TestQueryGetServiceDestination(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res GetServiceDestinationResult
+	var res GetAsNodesByServiceIdResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetServiceDestinationResult{
-		[]string{
-			"AS1",
-		},
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
+	var expected = `{"node":[{"id":"AS1","name":"AS1","min_ial":1.1,"min_aal":1.2,"service_name":"Bank statement"}]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

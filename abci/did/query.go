@@ -25,7 +25,7 @@ func QueryRouter(method string, param string, app *DIDApplication) types.Respons
 		"GetAccessorMethod":     getAccessorMethod,
 		"GetRequest":            getRequest,
 		"GetRequestDetail":      getRequestDetail,
-		"GetServiceDestination": getServiceDestination,
+		"GetAsNodesByServiceId": getAsNodesByServiceId,
 		"GetMsqAddress":         getMsqAddress,
 		"GetNodeToken":          getNodeToken,
 		"GetPriceFunc":          getPriceFunc,

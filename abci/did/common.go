@@ -162,9 +162,9 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
-func getServiceDestination(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetServiceDestination")
-	var funcParam GetServiceDestinationParam
+func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetAsNodesByServiceId")
+	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
@@ -173,7 +173,11 @@ func getServiceDestination(param string, app *DIDApplication) types.ResponseQuer
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		value = []byte("")
+		var result GetAsNodesByServiceIdResult
+		value, err = json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height)
+		}
 		return ReturnQuery(value, "not found", app.state.Height)
 	}
 	return ReturnQuery(value, "success", app.state.Height)

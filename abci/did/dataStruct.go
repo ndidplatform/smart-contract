@@ -138,12 +138,20 @@ type GetServiceDetailParam struct {
 	NodeID      string `json:"node_id"`
 }
 
-type GetServiceDestinationParam struct {
+type GetAsNodesByServiceIdParam struct {
 	AsServiceID string `json:"service_id"`
 }
 
-type GetServiceDestinationResult struct {
-	NodeID []string `json:"node_id"`
+type ASNode struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+	ServiceName string  `json:"service_name"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
 }
 
 type InitNDIDParam struct {
