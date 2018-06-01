@@ -133,6 +133,23 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Validate user's ial is <= node's max_ial
+		for _, user := range funcParam.Users {
+			if user.Ial > maxIalAal.MaxIal {
+				return ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
+			}
+		}
+	}
+
+	// If validate passed then add Msq Destination
 	for _, user := range funcParam.Users {
 		key := "MsqDestination" + "|" + user.HashID
 		chkExists := app.state.db.Get(prefixKey([]byte(key)))

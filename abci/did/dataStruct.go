@@ -32,18 +32,20 @@ type MsqDestination struct {
 	Nodes []Node `json:"nodes"`
 }
 
-type GetMsqDestinationParam struct {
+type GetIdpNodesParam struct {
 	HashID string  `json:"hash_id"`
 	MinIal float64 `json:"min_ial"`
 	MinAal float64 `json:"min_aal"`
 }
 
 type MsqDestinationNode struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
 }
 
-type GetMsqDestinationResult struct {
+type GetIdpNodesResult struct {
 	Node []MsqDestinationNode `json:"node"`
 }
 
@@ -130,12 +132,20 @@ type GetServiceDetailParam struct {
 	NodeID      string `json:"node_id"`
 }
 
-type GetServiceDestinationParam struct {
+type GetAsNodesByServiceIdParam struct {
 	AsServiceID string `json:"service_id"`
 }
 
-type GetServiceDestinationResult struct {
-	NodeID []string `json:"node_id"`
+type ASNode struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+	ServiceName string  `json:"service_name"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
 }
 
 type InitNDIDParam struct {
