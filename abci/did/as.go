@@ -16,14 +16,13 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	key := "Request" + "|" + signData.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
-
-	if value == nil {
+	requestKey := "Request" + "|" + signData.RequestID
+	requestJSON := app.state.db.Get(prefixKey([]byte(requestKey)))
+	if requestJSON == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	err = json.Unmarshal([]byte(requestJSON), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -38,19 +37,26 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
-	key = "SignData" + "|" + signData.Signature
-	value, err = json.Marshal(signData)
+	signDataKey := "SignData" + "|" + signData.Signature
+	signDataJSON, err := json.Marshal(signData)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
-	key = "Request" + "|" + signData.RequestID
-	request.SignDataCount++
-	value, err = json.Marshal(request)
+
+	// Update answered_as_id_list in request
+	for index, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == signData.ServiceID {
+			request.DataRequestList[index].AnsweredAsIdList = append(dataRequest.AnsweredAsIdList, nodeID)
+		}
+	}
+
+	requestJSON, err = json.Marshal(request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+
+	app.SetStateDB([]byte(requestKey), []byte(requestJSON))
+	app.SetStateDB([]byte(signDataKey), []byte(signDataJSON))
 	return ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
 }
 

@@ -220,12 +220,6 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	asCount := 0
-	// Get AS count
-	for _, dataRequest := range request.DataRequestList {
-		asCount = asCount + dataRequest.Count
-	}
-
 	status := "pending"
 	acceptCount := 0
 	rejectCount := 0
@@ -249,7 +243,17 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 		status = "complicated"
 	}
 
-	if acceptCount >= request.MinIdp && request.SignDataCount >= asCount {
+	// check AS's answer
+	checkAS := true
+	// Get AS count
+	for _, dataRequest := range request.DataRequestList {
+		if len(dataRequest.AnsweredAsIdList) < dataRequest.Count {
+			checkAS = false
+			break
+		}
+	}
+
+	if acceptCount >= request.MinIdp && checkAS {
 		status = "completed"
 	}
 

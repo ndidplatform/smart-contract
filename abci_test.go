@@ -81,7 +81,7 @@ type Response struct {
 }
 
 type SignDataParam struct {
-	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`
 }
@@ -1436,14 +1436,25 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 }
 
 func TestRPCreateRequest(t *testing.T) {
-	var data []DataRequest
+	var datas []DataRequest
+	var data1 DataRequest
+	data1.ServiceID = "statement"
+	data1.As = []string{
+		"AS1",
+		"AS2",
+	}
+	data1.Count = 1
+	data1.RequestParamsHash = "hash"
+
+	datas = append(datas, data1)
+
 	var param = Request{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		1,
 		3,
 		3,
 		259200,
-		data,
+		datas,
 		"hash('Please allow...')",
 	}
 
@@ -1571,7 +1582,7 @@ func TestIdPCreateIdpResponse(t *testing.T) {
 
 func TestASSignData(t *testing.T) {
 	var param = SignDataParam{
-		"AS1",
+		"statement",
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		"sign(data,asKey)",
 	}
@@ -1645,14 +1656,8 @@ func TestQueryGetRequestDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-
-	var res RequestDetailResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = 1
-	if actual := len(res.Responses); actual != expected {
+	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"]}],"message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","accessor_id":"TestAccessorID","identity_proof":"Magic"}],"is_closed":false,"is_timed_out":false}`
+	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
@@ -1889,7 +1894,19 @@ func TestCreateRequest(t *testing.T) {
 	}
 	data1.Count = 2
 	data1.RequestParamsHash = "hash"
+
+	var data2 DataRequest
+	data2.ServiceID = "credit"
+	data2.As = []string{
+		"AS1",
+		"AS2",
+	}
+	data2.Count = 2
+	data2.RequestParamsHash = "hash"
+
 	datas = append(datas, data1)
+	datas = append(datas, data2)
+
 	var param = Request{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
 		1,

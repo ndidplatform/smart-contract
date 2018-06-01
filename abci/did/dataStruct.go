@@ -71,6 +71,7 @@ type DataRequest struct {
 	As                []string `json:"as_id_list"`
 	Count             int      `json:"count"`
 	RequestParamsHash string   `json:"request_params_hash"`
+	AnsweredAsIdList  []string `json:"answered_as_id_list"`
 }
 
 type Request struct {
@@ -84,7 +85,6 @@ type Request struct {
 	Responses       []Response    `json:"responses"`
 	IsClosed        bool          `json:"is_closed"`
 	IsTimedOut      bool          `json:"is_timed_out"`
-	SignDataCount   int           `json:"sign_data_count"`
 }
 
 type Response struct {
@@ -114,7 +114,7 @@ type Callback struct {
 }
 
 type SignDataParam struct {
-	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`
 }
