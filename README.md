@@ -195,7 +195,7 @@ log: "success"
 {
   "users": [
     {
-      "hash_id": "���\u0010fV+�{��DD�F�;Hָ�`��椼q\u0017���",
+      "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
       "ial": 3
     }
   ],
@@ -457,11 +457,11 @@ log: "success"
 }
 ```
 
-## GetMsqDestination
+## GetIdpNodes
 ### Parameter
 ```sh
 {
-  "hash_id": "���\u0010fV+�{��DD�F�;Hָ�`��椼q\u0017���",
+  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
   "min_ial": 3,
   "min_aal": 3,
 }
@@ -472,33 +472,21 @@ log: "success"
   "node": [
     {
       "id": "IdP1",
-      "name": "IdP Number 1 from ..."
+      "name": "IdP Number 1 from ...",
+      "max_ial": 3,
+      "max_aal": 3
     },
     {
       "id": "IdP2",
-      "name": ""
+      "name": "",
+      "max_ial": 3,
+      "max_aal": 3
     }
   ]
 }
 ```
 
-## GetAccessorMethod
-### Parameter
-```sh
-{
-  "accessor_id": "TestAccessorID"
-}
-```
-### Expected Output
-```sh
-{
-  "accessor_type": "TestAccessorType",
-  "accessor_key": "TestAccessorKey",
-  "commitment": "TestCommitment"
-}
-```
-
-## GetServiceDestination
+## GetAsNodesByServiceId
 ### Parameter
 ```sh
 {
@@ -508,8 +496,14 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "node_id": [
-    "AS1"
+  "node": [
+    {
+      "id": "AS1",
+      "name": "AS1",
+      "min_ial": 1.1,
+      "min_aal": 1.2,
+      "service_name": "Bank statement"
+    }
   ]
 }
 ```

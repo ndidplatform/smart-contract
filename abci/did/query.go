@@ -21,10 +21,10 @@ func ReturnQuery(value []byte, log string, height int64) types.ResponseQuery {
 func QueryRouter(method string, param string, app *DIDApplication) types.ResponseQuery {
 	funcs := map[string]interface{}{
 		"GetNodePublicKey":      getNodePublicKey,
-		"GetMsqDestination":     getMsqDestination,
+		"GetIdpNodes":           getIdpNodes,
 		"GetRequest":            getRequest,
 		"GetRequestDetail":      getRequestDetail,
-		"GetServiceDestination": getServiceDestination,
+		"GetAsNodesByServiceId": getAsNodesByServiceId,
 		"GetMsqAddress":         getMsqAddress,
 		"GetNodeToken":          getNodeToken,
 		"GetPriceFunc":          getPriceFunc,

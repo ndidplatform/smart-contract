@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -104,18 +105,20 @@ type GetNodePublicKeyResult struct {
 	PublicKey string `json:"public_key"`
 }
 
-type GetMsqDestinationParam struct {
+type GetIdpNodesParam struct {
 	HashID string  `json:"hash_id"`
 	MinIal float64 `json:"min_ial"`
 	MinAal float64 `json:"min_aal"`
 }
 
 type MsqDestinationNode struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
 }
 
-type GetMsqDestinationResult struct {
+type GetIdpNodesResult struct {
 	Node []MsqDestinationNode `json:"node"`
 }
 
@@ -167,12 +170,20 @@ type GetServiceDetailParam struct {
 	NodeID      string `json:"node_id"`
 }
 
-type GetServiceDestinationParam struct {
+type GetAsNodesByServiceIdParam struct {
 	AsServiceID string `json:"service_id"`
 }
 
-type GetServiceDestinationResult struct {
-	NodeID []string `json:"node_id"`
+type ASNode struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	MinIal      float64 `json:"min_ial"`
+	MinAal      float64 `json:"min_aal"`
+	ServiceName string  `json:"service_name"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
 }
 
 type RegisterMsqAddressParam struct {
@@ -759,6 +770,7 @@ func TestRegisterNodeAS(t *testing.T) {
 	}
 
 	var param RegisterNode
+	param.NodeName = "AS1"
 	param.NodeID = "AS1"
 	param.PublicKey = string(asPublicKeyBytes)
 	param.MasterPublicKey = string(asPublicKeyBytes2)
@@ -1141,7 +1153,7 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 
 	var users []User
 	var user = User{
-		string(userHash),
+		hex.EncodeToString(userHash),
 		3,
 	}
 	users = append(users, user)
@@ -1178,13 +1190,13 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetMsqDestination(t *testing.T) {
-	fnName := "GetMsqDestination"
+func TestQueryGetIdpNodes(t *testing.T) {
+	fnName := "GetIdpNodes"
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
-	var param = GetMsqDestinationParam{
-		string(userHash),
+	var param = GetIdpNodesParam{
+		hex.EncodeToString(userHash),
 		3,
 		3,
 	}
@@ -1196,7 +1208,7 @@ func TestQueryGetMsqDestination(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetMsqDestinationResult
+	var res GetIdpNodesResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -1205,6 +1217,8 @@ func TestQueryGetMsqDestination(t *testing.T) {
 		{
 			"IdP1",
 			"IdP Number 1 from ...",
+			3.0,
+			3.0,
 		},
 	}
 	if actual := res.Node; !reflect.DeepEqual(actual, expected) {
@@ -1341,9 +1355,9 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetServiceDestination(t *testing.T) {
-	fnName := "GetServiceDestination"
-	var param = GetServiceDestinationParam{
+func TestQueryGetAsNodesByServiceId(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = GetAsNodesByServiceIdParam{
 		"statement",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1353,17 +1367,13 @@ func TestQueryGetServiceDestination(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res GetServiceDestinationResult
+	var res GetAsNodesByServiceIdResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetServiceDestinationResult{
-		[]string{
-			"AS1",
-		},
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
+	var expected = `{"node":[{"id":"AS1","name":"AS1","min_ial":1.1,"min_aal":1.2,"service_name":"Bank statement"}]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
@@ -2127,7 +2137,7 @@ func TestQueryCheckExistingIdentity(t *testing.T) {
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
 	var param = CheckExistingIdentityParam{
-		string(userHash),
+		hex.EncodeToString(userHash),
 	}
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -2233,17 +2243,12 @@ func TestRegisterNodeIDP2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-type GetMsqDestinationParam2 struct {
-	MinIal float64 `json:"min_ial"`
-	MinAal float64 `json:"min_aal"`
-}
+func TestQueryGetIdpNodes2(t *testing.T) {
+	fnName := "GetIdpNodes"
+	var param GetIdpNodesParam
+	param.MinIal = 3
+	param.MinAal = 3
 
-func TestQueryGetMsqDestination2(t *testing.T) {
-	fnName := "GetMsqDestination"
-	var param = GetMsqDestinationParam2{
-		3,
-		3,
-	}
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -2252,7 +2257,7 @@ func TestQueryGetMsqDestination2(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetMsqDestinationResult
+	var res GetIdpNodesResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -2261,10 +2266,14 @@ func TestQueryGetMsqDestination2(t *testing.T) {
 		{
 			"IdP1",
 			"IdP Number 1 from ...",
+			3.0,
+			3.0,
 		},
 		{
 			"IdP2",
 			"",
+			3.0,
+			3.0,
 		},
 	}
 	if actual := res.Node; !reflect.DeepEqual(actual, expected) {

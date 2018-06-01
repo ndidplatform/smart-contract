@@ -71,15 +71,15 @@ func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
 	return ""
 }
 
-func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetMsqDestination")
-	var funcParam GetMsqDestinationParam
+func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetIdpNodes")
+	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	var returnNodes GetMsqDestinationResult
+	var returnNodes GetIdpNodesResult
 
 	if funcParam.HashID == "" {
 		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
@@ -107,6 +107,8 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 						var msqDesNode = MsqDestinationNode{
 							idp,
 							nodeName,
+							maxIalAal.MaxIal,
+							maxIalAal.MaxAal,
 						}
 						returnNodes.Node = append(returnNodes.Node, msqDesNode)
 					}
@@ -141,6 +143,8 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 							var msqDesNode = MsqDestinationNode{
 								node.NodeID,
 								nodeName,
+								maxIalAal.MaxIal,
+								maxIalAal.MaxAal,
 							}
 							returnNodes.Node = append(returnNodes.Node, msqDesNode)
 
@@ -158,9 +162,9 @@ func getMsqDestination(param string, app *DIDApplication) types.ResponseQuery {
 	return ReturnQuery(value, "success", app.state.Height)
 }
 
-func getServiceDestination(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetServiceDestination")
-	var funcParam GetServiceDestinationParam
+func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetAsNodesByServiceId")
+	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
@@ -169,8 +173,12 @@ func getServiceDestination(param string, app *DIDApplication) types.ResponseQuer
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		var result GetAsNodesByServiceIdResult
+		value, err = json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return ReturnQuery(value, "success", app.state.Height)
 	}
 	return ReturnQuery(value, "success", app.state.Height)
 }
