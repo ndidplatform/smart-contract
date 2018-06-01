@@ -118,7 +118,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			}
 			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalValue))
 
-			// Save all IdP's nodeID for GetMsqDestination
+			// Save all IdP's nodeID for GetIdpNodes
 			idpsKey := "IdPList"
 			idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
 			var idpsList []string
