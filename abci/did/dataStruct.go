@@ -89,6 +89,7 @@ type Response struct {
 	Status        string  `json:"status"`
 	Signature     string  `json:"signature"`
 	IdentityProof string  `json:"identity_proof"`
+  IdpID         string  `json:"idp_id"`
 }
 
 type GetRequestParam struct {
