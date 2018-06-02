@@ -78,7 +78,6 @@ type Request struct {
 	Responses       []Response    `json:"responses"`
 	IsClosed        bool          `json:"is_closed"`
 	IsTimedOut      bool          `json:"is_timed_out"`
-	SignDataCount   int           `json:"sign_data_count"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
 	Special         bool          `json:"special"`
 }
@@ -90,7 +89,7 @@ type Response struct {
 	Status        string  `json:"status"`
 	Signature     string  `json:"signature"`
 	IdentityProof string  `json:"identity_proof"`
-  IdpID         string  `json:"idp_id"`
+	IdpID         string  `json:"idp_id"`
 }
 
 type GetRequestParam struct {
