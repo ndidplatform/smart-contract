@@ -59,11 +59,13 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
+      sed -i 's/addr_book_strict = true/addr_book_strict = false/' ${TMHOME}/config/config.toml
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
       tendermint_init
+      sed -i 's/addr_book_strict = true/addr_book_strict = false/' ${TMHOME}/config/config.toml
       tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
       SEED_ID=$(tendermint_get_id_from_seed)
       tendermint_get_genesis_from_seed
