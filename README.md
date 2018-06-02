@@ -243,12 +243,22 @@ log: "success"
 {
   "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "min_idp": 1,
-  "min_aal": 1,
-  "min_ial": 1,
+  "min_aal": 3,
+  "min_ial": 3,
   "timeout": 259200,
-  "data_request_list": null,
-  "message_hash": "hash('Please allow...')",
-  "specail": false
+  "data_request_list": [
+    {
+      "service_id": "statement",
+      "as_id_list": [
+        "AS1",
+        "AS2"
+      ],
+      "count": 1,
+      "request_params_hash": "hash"
+    }
+  ],
+  "message_hash": "hash('Please allow...')"
+  "special": false
 }
 ```
 ### Expected Output
@@ -277,7 +287,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "node_id": "AS1",
+  "service_id": "statement",
   "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "signature": "sign(data,asKey)"
 }
@@ -552,10 +562,23 @@ log: "success"
 {
   "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "min_idp": 1,
-  "min_aal": 1,
-  "min_ial": 1,
+  "min_aal": 3,
+  "min_ial": 3,
   "timeout": 259200,
-  "data_request_list": null,
+  "data_request_list": [
+    {
+      "service_id": "statement",
+      "as_id_list": [
+        "AS1",
+        "AS2"
+      ],
+      "count": 1,
+      "request_params_hash": "hash",
+      "answered_as_id_list": [
+        "AS1"
+      ]
+    }
+  ],
   "message_hash": "hash('Please allow...')",
   "responses": [
     {
@@ -566,7 +589,9 @@ log: "success"
       "signature": "signature",
       "identity_proof": "Magic"
     }
-  ]
+  ],
+  "is_closed": false,
+  "is_timed_out": false
 }
 ```
 
