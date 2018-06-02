@@ -1,12 +1,18 @@
-version: '3'
+version: '3.3'
 services:
   tendermint:
     build: 
       context: ../
       dockerfile: docker/Dockerfile-tendermint
+      labels:
+        build.commit: ${BUILD_COMMIT}
+        build.date: ${BUILD_DATE}
     image: ndidplatform/tendermint:latest
   abci:
     build:
       context: ../
       dockerfile: docker/Dockerfile-abci
+      labels:
+        build.commit: ${BUILD_COMMIT}
+        build.date: ${BUILD_DATE}
     image: ndidplatform/abci:latest

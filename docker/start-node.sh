@@ -26,7 +26,10 @@ tendermint_get_genesis_from_seed() {
 }
 
 tendermint_get_id_from_seed() {
-  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/status | jq -r .result.node_info.id
+  if [ ! -f ${TMHOME}/config/seed.host ]; then
+    wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/status | jq -r .result.node_info.id > ${TMHOME}/config/seed.host
+  fi
+  cat ${TMHOME}/config/seed.host
 }
 
 tendermint_new_priv_validator() {
@@ -43,28 +46,29 @@ tendermint_wait_for_sync_complete() {
 }
 
 tendermint_add_validator() {
-  tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT} 
+  tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT}
   # need to escape "/" and "+" with % encoding as pub_key.value is base64 in tendermint 0.19.5
   local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.value | sed 's/\//%2F/g;s/+/%2B/g')
   wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
 }
 
 TYPE=${1}
+shift
 
 if [ ! -f ${TMHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
-      shift
+      sed -i 's/addr_book_strict = true/addr_book_strict = false/' ${TMHOME}/config/config.toml
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
       tendermint_init
+      sed -i 's/addr_book_strict = true/addr_book_strict = false/' ${TMHOME}/config/config.toml
       tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
       SEED_ID=$(tendermint_get_id_from_seed)
       tendermint_get_genesis_from_seed
-      shift
       tendermint_add_validator &
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
@@ -78,6 +82,21 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       ;;
   esac
 else
-  shift
-  tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
+  case ${TYPE} in
+    genesis) 
+      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
+      ;;
+    secondary)
+      SEED_ID=$(tendermint_get_id_from_seed)
+      tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
+      ;;
+    reset)
+      tendermint_reset
+      exit 0
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
 fi

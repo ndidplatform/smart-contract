@@ -1,0 +1,19 @@
+
+# misc
+.DS_Store
+
+*.swp
+
+main.go
+
+# localDB
+localDB/
+vendor/
+
+# tendermint data
+config/tendermint/IdP/data/
+config/tendermint/RP/data/
+config/tendermint/AS/data/
+config/tendermint/IdP/config/*
+config/tendermint/RP/config/*
+config/tendermint/AS/config/*
