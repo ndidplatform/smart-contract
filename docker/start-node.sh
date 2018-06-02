@@ -26,7 +26,10 @@ tendermint_get_genesis_from_seed() {
 }
 
 tendermint_get_id_from_seed() {
-  wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/status | jq -r .result.node_info.id
+  if [ ! -f ${TMHOME}/config/seed.host ]; then
+    wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/status | jq -r .result.node_info.id > ${TMHOME}/config/seed.host
+  fi
+  cat ${TMHOME}/config/seed.host
 }
 
 tendermint_new_priv_validator() {
@@ -85,7 +88,6 @@ else
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} $@
       ;;
     secondary)
-      tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
       SEED_ID=$(tendermint_get_id_from_seed)
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
