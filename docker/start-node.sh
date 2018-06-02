@@ -46,6 +46,7 @@ tendermint_wait_for_sync_complete() {
 }
 
 tendermint_add_validator() {
+  tendermint_wait_for_sync_complete localhost ${TM_RPC_PORT}
   # need to escape "/" and "+" with % encoding as pub_key.value is base64 in tendermint 0.19.5
   local PUBKEY=$(cat ${TMHOME}/config/priv_validator.json | jq -r .pub_key.value | sed 's/\//%2F/g;s/+/%2B/g')
   wget -qO - http://${SEED_HOSTNAME}:${TM_RPC_PORT}/broadcast_tx_commit?tx=\"val:${PUBKEY}\"
@@ -66,7 +67,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${TM_RPC_PORT}
       SEED_ID=$(tendermint_get_id_from_seed)
       tendermint_get_genesis_from_seed
-      tendermint_add_validator
+      tendermint_add_validator &
       tendermint node --consensus.create_empty_blocks=false --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
     reset)
