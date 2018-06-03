@@ -112,13 +112,13 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 
 ## Run in Docker
 Required
-- Docker CE [Install docker](https://docs.docker.com/install/)
-- docker-compose [Install docker-compose](https://docs.docker.com/compose/install/)
+- Docker CE 17.06+ [Install docker](https://docs.docker.com/install/)
+- docker-compose 1.14.0+ [Install docker-compose](https://docs.docker.com/compose/install/)
 
 ### Build
 
 ```
-docker-compose -f docker/docker-compose.build.yml build
+./docker/build.sh
 ```
 
 ### Run
