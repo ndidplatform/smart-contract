@@ -587,11 +587,14 @@ log: "success"
       "ial": 3,
       "status": "accept",
       "signature": "signature",
-      "identity_proof": "Magic"
+      "identity_proof": "Magic",
+      "idp_id": "IdP1"
     }
   ],
-  "is_closed": false,
-  "is_timed_out": false
+  "is_closed": true,
+  "is_timed_out": false,
+  "special": true,
+  "status": "completed"
 }
 ```
 

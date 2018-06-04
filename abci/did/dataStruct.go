@@ -103,6 +103,21 @@ type GetRequestResult struct {
 	MessageHash string `json:"messageHash"`
 }
 
+type GetRequestDetailResult struct {
+	RequestID       string        `json:"request_id"`
+	MinIdp          int           `json:"min_idp"`
+	MinAal          float64       `json:"min_aal"`
+	MinIal          float64       `json:"min_ial"`
+	Timeout         int           `json:"timeout"`
+	DataRequestList []DataRequest `json:"data_request_list"`
+	MessageHash     string        `json:"message_hash"`
+	Responses       []Response    `json:"responses"`
+	IsClosed        bool          `json:"is_closed"`
+	IsTimedOut      bool          `json:"is_timed_out"`
+	Special         bool          `json:"special"`
+	Status          string        `json:"status"`
+}
+
 type Callback struct {
 	RequestID string `json:"requestId"`
 	Height    int64  `json:"height"`

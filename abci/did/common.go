@@ -294,6 +294,7 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
+
 	key := "Request" + "|" + funcParam.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
@@ -301,7 +302,30 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 		value = []byte("")
 		return ReturnQuery(value, "not found", app.state.Height)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+
+	resultStatus := getRequest(param, app)
+	var requestResult GetRequestResult
+	err = json.Unmarshal([]byte(resultStatus.Value), &requestResult)
+	if err != nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+
+	var result GetRequestDetailResult
+	err = json.Unmarshal([]byte(value), &result)
+	if err != nil {
+		value = []byte("")
+		return ReturnQuery(value, err.Error(), app.state.Height)
+	}
+	result.Status = requestResult.Status
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		value = []byte("")
+		return ReturnQuery(value, err.Error(), app.state.Height)
+	}
+
+	return ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
