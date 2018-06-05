@@ -204,7 +204,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	}
 
 	key := "Request" + "|" + response.RequestID
-  response.IdpID = nodeID
+	response.IdpID = nodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
