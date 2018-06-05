@@ -83,13 +83,14 @@ type Request struct {
 }
 
 type Response struct {
-	RequestID     string  `json:"request_id"`
-	Aal           float64 `json:"aal"`
-	Ial           float64 `json:"ial"`
-	Status        string  `json:"status"`
-	Signature     string  `json:"signature"`
-	IdentityProof string  `json:"identity_proof"`
-	IdpID         string  `json:"idp_id"`
+	RequestID         string  `json:"request_id"`
+	Aal               float64 `json:"aal"`
+	Ial               float64 `json:"ial"`
+	Status            string  `json:"status"`
+	Signature         string  `json:"signature"`
+	IdentityProof     string  `json:"identity_proof"`
+	PrivateProofHash  string  `json:"private_proof_hash"`
+	IdpID             string  `json:"idp_id"`
 }
 
 type GetRequestParam struct {
