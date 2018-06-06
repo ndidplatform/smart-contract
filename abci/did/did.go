@@ -84,6 +84,11 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 	app.state.Size++
 }
 
+func (app *DIDApplication) DeleteStateDB(key []byte) {
+	app.state.db.Delete(prefixKey(key))
+	app.state.Size--
+}
+
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.LastBlockHeight = app.state.Height

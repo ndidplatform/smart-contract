@@ -346,7 +346,7 @@ func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "Service" + "|" + funcParam.AsServiceID + "|" + funcParam.NodeID
+	key := "Service" + "|" + funcParam.AsServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {

@@ -18,6 +18,8 @@ var isNDIDMethod = map[string]bool{
 	"AddNamespace":    true,
 	"DeleteNamespace": true,
 	"UpdateValidator": true,
+	"RegisterService": true,
+	"DeleteService":   true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -211,4 +213,47 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	return ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
+}
+
+func registerService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("RegisterService")
+	var funcParam RegisterServiceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if chkExists != nil {
+		return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
+	}
+
+	// Add new service
+	var service = Service{
+		funcParam.ServiceName,
+	}
+	serviceJSON, err := json.Marshal(service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func deleteService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("DeleteService")
+	var funcParam DeleteServiceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if chkExists == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	app.DeleteStateDB([]byte(serviceKey))
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }

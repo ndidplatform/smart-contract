@@ -68,27 +68,21 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Add Service Detail
-	key := "Service" + "|" + funcParam.AsServiceID + "|" + funcParam.NodeID
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
-	if chkExists != nil {
-		return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
-	} else {
-		var service = Service{
-			funcParam.ServiceName,
-			funcParam.MinIal,
-			funcParam.MinAal,
-		}
-		value, err := json.Marshal(service)
-		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-		}
-		app.SetStateDB([]byte(key), []byte(value))
+	// Check Service ID
+	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service Service
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Add ServiceDestination
-	key = "ServiceDestination" + "|" + funcParam.AsServiceID
-	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.AsServiceID
+	chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if chkExists != nil {
 		var nodes GetAsNodesByServiceIdResult
@@ -101,14 +95,14 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			getNodeNameByNodeID(funcParam.NodeID, app),
 			funcParam.MinIal,
 			funcParam.MinAal,
-			funcParam.ServiceName,
+			service.ServiceName,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		app.SetStateDB([]byte(key), []byte(value))
+		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	} else {
 		var nodes GetAsNodesByServiceIdResult
 		var newNode = ASNode{
@@ -116,14 +110,14 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			getNodeNameByNodeID(funcParam.NodeID, app),
 			funcParam.MinIal,
 			funcParam.MinAal,
-			funcParam.ServiceName,
+			service.ServiceName,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		app.SetStateDB([]byte(key), []byte(value))
+		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	}
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }

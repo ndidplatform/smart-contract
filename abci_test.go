@@ -154,20 +154,16 @@ type GetRequestResult struct {
 type RegisterServiceDestinationParam struct {
 	AsServiceID string  `json:"service_id"`
 	NodeID      string  `json:"node_id"`
-	ServiceName string  `json:"service_name"`
 	MinIal      float64 `json:"min_ial"`
 	MinAal      float64 `json:"min_aal"`
 }
 
 type Service struct {
-	ServiceName string  `json:"service_name"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
+	ServiceName string `json:"service_name"`
 }
 
 type GetServiceDetailParam struct {
 	AsServiceID string `json:"service_id"`
-	NodeID      string `json:"node_id"`
 }
 
 type GetAsNodesByServiceIdParam struct {
@@ -287,6 +283,15 @@ type AccessorMethod struct {
 	AccessorPublicKey string `json:"accessor_public_key"`
 	AccessorGroupID   string `json:"accessor_group_id"`
 	RequestID         string `json:"request_id"`
+}
+
+type RegisterServiceParam struct {
+	AsServiceID string `json:"service_id"`
+	ServiceName string `json:"service_name"`
+}
+
+type DeleteServiceParam struct {
+	AsServiceID string `json:"service_id"`
 }
 
 func getEnv(key, defaultValue string) string {
@@ -1145,6 +1150,104 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestNDIDRegisterService(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = RegisterServiceParam{
+		"statement",
+		"Bank statement",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterService"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestNDIDDeleteService(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = DeleteServiceParam{
+		"statement",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DeleteService"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestNDIDRegisterServiceAgain(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = RegisterServiceParam{
+		"statement",
+		"Bank statement",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterService"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestIdPRegisterMsqDestination(t *testing.T) {
 
 	h := sha256.New()
@@ -1294,7 +1397,6 @@ func TestASRegisterServiceDestination(t *testing.T) {
 	var param = RegisterServiceDestinationParam{
 		"statement",
 		"AS1",
-		"Bank statement",
 		1.1,
 		1.2,
 	}
@@ -1330,7 +1432,6 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	fnName := "GetServiceDetail"
 	var param = GetServiceDetailParam{
 		"statement",
-		"AS1",
 	}
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -1346,8 +1447,6 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	}
 	var expected = Service{
 		"Bank statement",
-		1.1,
-		1.2,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)

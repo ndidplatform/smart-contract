@@ -83,14 +83,14 @@ type Request struct {
 }
 
 type Response struct {
-	RequestID         string  `json:"request_id"`
-	Aal               float64 `json:"aal"`
-	Ial               float64 `json:"ial"`
-	Status            string  `json:"status"`
-	Signature         string  `json:"signature"`
-	IdentityProof     string  `json:"identity_proof"`
-	PrivateProofHash  string  `json:"private_proof_hash"`
-	IdpID             string  `json:"idp_id"`
+	RequestID        string  `json:"request_id"`
+	Aal              float64 `json:"aal"`
+	Ial              float64 `json:"ial"`
+	Status           string  `json:"status"`
+	Signature        string  `json:"signature"`
+	IdentityProof    string  `json:"identity_proof"`
+	PrivateProofHash string  `json:"private_proof_hash"`
+	IdpID            string  `json:"idp_id"`
 }
 
 type GetRequestParam struct {
@@ -130,23 +130,28 @@ type SignDataParam struct {
 	Signature string `json:"signature"`
 }
 
+type RegisterServiceParam struct {
+	AsServiceID string `json:"service_id"`
+	ServiceName string `json:"service_name"`
+}
+
+type DeleteServiceParam struct {
+	AsServiceID string `json:"service_id"`
+}
+
 type RegisterServiceDestinationParam struct {
 	AsServiceID string  `json:"service_id"`
 	NodeID      string  `json:"node_id"`
-	ServiceName string  `json:"service_name"`
 	MinIal      float64 `json:"min_ial"`
 	MinAal      float64 `json:"min_aal"`
 }
 
 type Service struct {
-	ServiceName string  `json:"service_name"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
+	ServiceName string `json:"service_name"`
 }
 
 type GetServiceDetailParam struct {
 	AsServiceID string `json:"service_id"`
-	NodeID      string `json:"node_id"`
 }
 
 type GetAsNodesByServiceIdParam struct {
