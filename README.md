@@ -257,7 +257,7 @@ log: "success"
       "request_params_hash": "hash"
     }
   ],
-  "message_hash": "hash('Please allow...')"
+  "request_message_hash": "hash('Please allow...')"
   "special": false
 }
 ```
@@ -544,8 +544,8 @@ log: "success"
 ```sh
 {
   "status": "pending",
-  "is_closed": false,
-  "is_timed_out": true,
+  "closed": false,
+  "timed_out": true,
   "messageHash": "hash('Please allow...')"
 }
 ```
@@ -579,7 +579,7 @@ log: "success"
       ]
     }
   ],
-  "message_hash": "hash('Please allow...')",
+  "request_message_hash": "hash('Please allow...')",
   "responses": [
     {
       "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
@@ -591,8 +591,8 @@ log: "success"
       "idp_id": "IdP1"
     }
   ],
-  "is_closed": true,
-  "is_timed_out": false,
+  "closed": true,
+  "timed_out": false,
   "special": true,
   "status": "completed"
 }
