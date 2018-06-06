@@ -96,6 +96,16 @@ func checkIsRP(param string, publicKey string, app *DIDApplication) types.Respon
 	return ReturnCheckTx(false)
 }
 
+func checkIsRPorIdP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + publicKey
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if string(value) == "RP" || string(value) == "MasterRP" ||
+		string(value) == "IdP" || string(value) == "MasterIdP" {
+		return ReturnCheckTx(true)
+	}
+	return ReturnCheckTx(false)
+}
+
 func checkIsAS(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -228,7 +238,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"CreateIdpResponse":          checkIsIDP,
 		"SignData":                   checkIsAS,
 		"RegisterServiceDestination": checkIsAS,
-		"CreateRequest":              checkIsRP,
+		"CreateRequest":              checkIsRPorIdP,
 		"RegisterMsqAddress":         checkTxRegisterMsqAddress,
 		"AddNodeToken":               checkIsNDID,
 		"ReduceNodeToken":            checkIsNDID,
