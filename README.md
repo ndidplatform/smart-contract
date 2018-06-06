@@ -570,7 +570,7 @@ log: "success"
   "status": "pending",
   "closed": false,
   "timed_out": true,
-  "messageHash": "hash('Please allow...')"
+  "request_message_hash": "hash('Please allow...')"
 }
 ```
 

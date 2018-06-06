@@ -148,7 +148,7 @@ type GetRequestResult struct {
 	Status      string `json:"status"`
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
-	MessageHash string `json:"messageHash"`
+	MessageHash string `json:"request_message_hash"`
 }
 
 type RegisterServiceDestinationParam struct {
