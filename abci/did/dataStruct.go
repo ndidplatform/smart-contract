@@ -72,12 +72,12 @@ type Request struct {
 	MinIdp          int           `json:"min_idp"`
 	MinAal          float64       `json:"min_aal"`
 	MinIal          float64       `json:"min_ial"`
-	Timeout         int           `json:"timeout"`
+	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"message_hash"`
+	MessageHash     string        `json:"request_message_hash"`
 	Responses       []Response    `json:"responses"`
-	IsClosed        bool          `json:"is_closed"`
-	IsTimedOut      bool          `json:"is_timed_out"`
+	IsClosed        bool          `json:"closed"`
+	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
 	Special         bool          `json:"special"`
 }
@@ -99,8 +99,8 @@ type GetRequestParam struct {
 
 type GetRequestResult struct {
 	Status      string `json:"status"`
-	IsClosed    bool   `json:"is_closed"`
-	IsTimedOut  bool   `json:"is_timed_out"`
+	IsClosed    bool   `json:"closed"`
+	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"messageHash"`
 }
 
@@ -109,12 +109,12 @@ type GetRequestDetailResult struct {
 	MinIdp          int           `json:"min_idp"`
 	MinAal          float64       `json:"min_aal"`
 	MinIal          float64       `json:"min_ial"`
-	Timeout         int           `json:"timeout"`
+	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"message_hash"`
+	MessageHash     string        `json:"request_message_hash"`
 	Responses       []Response    `json:"responses"`
-	IsClosed        bool          `json:"is_closed"`
-	IsTimedOut      bool          `json:"is_timed_out"`
+	IsClosed        bool          `json:"closed"`
+	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
 	Status          string        `json:"status"`
 }
