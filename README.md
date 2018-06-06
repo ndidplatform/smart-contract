@@ -207,13 +207,37 @@ log: "success"
 log: "success"
 ```
 
+## RegisterService
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "service_name": "Bank statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## DeleteService
+### Parameter
+```sh
+{
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 ## RegisterServiceDestination
 ### Parameter
 ```sh
 {
   "service_id": "statement",
   "node_id": "AS1",
-  "service_name": "Bank statement",
   "min_ial": 1.1,
   "min_aal": 1.2
 }
@@ -653,8 +677,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "service_id": "statement",
-  "node_id": "AS1"
+  "service_id": "statement"
 }
 ```
 ### Expected Output
