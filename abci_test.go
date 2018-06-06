@@ -48,7 +48,7 @@ type Request struct {
 	MinIdp          int           `json:"min_idp"`
 	MinAal          int           `json:"min_aal"`
 	MinIal          int           `json:"min_ial"`
-	Timeout         int           `json:"timeout"`
+	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
 	Special         bool          `json:"special"`
@@ -202,7 +202,7 @@ type RequestDetailResult struct {
 	MinIdp          int           `json:"min_idp"`
 	MinAal          int           `json:"min_aal"`
 	MinIal          int           `json:"min_ial"`
-	Timeout         int           `json:"timeout"`
+	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
 	Responses       []Response    `json:"responses"`
