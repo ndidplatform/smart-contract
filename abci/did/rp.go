@@ -16,15 +16,17 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	fmt.Println(request.Special)
-
 	// set default value
 	request.IsClosed = false
 	request.IsTimedOut = false
 	request.CanAddAccessor = false
 
+	// set Owner
+	request.Owner = nodeID
+
 	// set Can add accossor
-	if request.Special {
+	ownerRole := getRoleFromNodeID(nodeID, app)
+	if string(ownerRole) == "IdP" || string(ownerRole) == "MasterIdP" {
 		request.CanAddAccessor = true
 	}
 

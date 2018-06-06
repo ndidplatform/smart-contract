@@ -223,6 +223,22 @@ func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	return ""
 }
 
+func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
+	key := "NodeID" + "|" + nodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ""
+		}
+		roleKey := "NodePublicKeyRole" + "|" + nodeDetail.PublicKey
+		roleValue := app.state.db.Get(prefixKey([]byte(roleKey)))
+		return string(roleValue)
+	}
+	return ""
+}
+
 var IsCheckOwnerRequestMethod = map[string]bool{
 	"CloseRequest":   true,
 	"TimeOutRequest": true,

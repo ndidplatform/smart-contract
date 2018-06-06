@@ -208,7 +208,7 @@ func getCanAddAccessor(requestID string, app *DIDApplication) bool {
 		var request Request
 		err := json.Unmarshal([]byte(value), &request)
 		if err == nil {
-			if request.CanAddAccessor && request.Special {
+			if request.CanAddAccessor {
 				result = true
 			}
 		}
