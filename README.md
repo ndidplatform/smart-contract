@@ -115,17 +115,22 @@ Required
 - Docker CE 17.06+ [Install docker](https://docs.docker.com/install/)
 - docker-compose 1.14.0+ [Install docker-compose](https://docs.docker.com/compose/install/)
 
+### Run
+
+```
+docker-compose -f docker/docker-compose.yml up
+```
+
 ### Build
 
 ```
 ./docker/build.sh
 ```
 
-### Run
+### Note
 
-```
-docker-compose -f docker/docker-compose.yml up
-```
+* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/mart-contract/).
+* To pull latest image from Dockerhub, run `docker pull ndidplatform/smart-contract`
     
 ## IMPORTANT NOTE
 
