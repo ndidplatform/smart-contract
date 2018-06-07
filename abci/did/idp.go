@@ -95,13 +95,22 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	var request = getRequest(string(getRequestparamJSON), app)
+	var requestDetail = getRequestDetail(string(getRequestparamJSON), app)
 	var requestResult GetRequestResult
+	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(request.Value), &requestResult)
+	if err != nil {
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
 	if err != nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	if requestResult.Status != "completed" {
 		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+	}
+	if requestDetailResult.MinIdp < 1 {
+		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
 	// check special type of Request && set can used only once
 	canAddAccessor := getCanAddAccessor(funcParam.RequestID, app)

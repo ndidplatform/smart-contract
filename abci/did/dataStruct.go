@@ -79,7 +79,7 @@ type Request struct {
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
-	Special         bool          `json:"special"`
+	Owner           string        `json:"owner"`
 }
 
 type Response struct {

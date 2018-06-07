@@ -33,5 +33,6 @@ const (
 	AccessorGroupIDNotFound  uint32 = 28
 	RequestIsNotCompleted    uint32 = 29
 	RequestIsNotSpecial      uint32 = 30
-	ServiceIDNotFound        uint32 = 31
+	InvalidMinIdp            uint32 = 31
+	ServiceIDNotFound        uint32 = 32
 )

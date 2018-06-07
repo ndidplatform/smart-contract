@@ -51,7 +51,6 @@ type Request struct {
 	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Special         bool          `json:"special"`
 }
 
 type User struct {
@@ -1499,7 +1498,6 @@ func TestRPCreateRequest(t *testing.T) {
 		259200,
 		datas,
 		"hash('Please allow...')",
-		true,
 	}
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
@@ -1699,8 +1697,84 @@ func TestQueryGetRequestDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":true,"status":"completed"}`
+	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"status":"completed"}`
 	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPCreateRequestSpecial(t *testing.T) {
+	var datas []DataRequest
+	var param = Request{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
+		1,
+		3,
+		3,
+		259200,
+		datas,
+		"hash('Please allow...')",
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "CreateRequest"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
+	var param = Response{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
+		3,
+		3,
+		"accept",
+		"signature",
+		"Magic",
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "CreateIdpResponse"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
@@ -1825,7 +1899,7 @@ func TestReportGetUsedTokenIdP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 
@@ -1958,7 +2032,6 @@ func TestCreateRequest(t *testing.T) {
 		259200,
 		datas,
 		"hash('Please allow...')",
-		false,
 	}
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
@@ -2213,7 +2286,7 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 		"accessor_type_2",
 		"accessor_public_key_2",
 		"accessor_group_id",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
 	}
 
 	idpKey := getPrivateKeyFromString(idpPrivK)
