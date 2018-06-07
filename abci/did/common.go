@@ -470,6 +470,12 @@ func getAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
 	}
 
 	returnValue, err := json.Marshal(result)
+
+	// If value == nil set log = "not found"
+	if value == nil {
+		return ReturnQuery(returnValue, "not found", app.state.Height)
+	}
+
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -499,6 +505,12 @@ func getAccessorKey(param string, app *DIDApplication) types.ResponseQuery {
 	}
 
 	returnValue, err := json.Marshal(result)
+
+	// If value == nil set log = "not found"
+	if value == nil {
+		return ReturnQuery(returnValue, "not found", app.state.Height)
+	}
+
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
