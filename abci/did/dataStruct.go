@@ -60,11 +60,12 @@ type GetAccessorMethodResult struct {
 }
 
 type DataRequest struct {
-	ServiceID         string   `json:"service_id"`
-	As                []string `json:"as_id_list"`
-	Count             int      `json:"count"`
-	RequestParamsHash string   `json:"request_params_hash"`
-	AnsweredAsIdList  []string `json:"answered_as_id_list"`
+	ServiceID            string   `json:"service_id"`
+	As                   []string `json:"as_id_list"`
+	Count                int      `json:"count"`
+	RequestParamsHash    string   `json:"request_params_hash"`
+	AnsweredAsIdList     []string `json:"answered_as_id_list"`
+	ReceivedDataFromList []string `json:"received_data_from_list"`
 }
 
 type Request struct {
@@ -322,4 +323,10 @@ type GetAccessorKeyResult struct {
 type UpdateValidatorParam struct {
 	PublicKey string `json:"public_key"`
 	Power     int64  `json:"power"`
+}
+
+type SetDataReceivedParam struct {
+	RequestID string `json:"requestId"`
+	ServiceID string `json:"service_id"`
+	AsID      string `json:"as_id"`
 }

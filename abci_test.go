@@ -288,6 +288,12 @@ type AccessorMethod struct {
 	RequestID         string `json:"request_id"`
 }
 
+type SetDataReceivedParam struct {
+	RequestID string `json:"requestId"`
+	ServiceID string `json:"service_id"`
+	AsID      string `json:"as_id"`
+}
+
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {
@@ -1556,6 +1562,41 @@ func TestASSignData(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestRPSetDataReceived(t *testing.T) {
+
+	var param = SetDataReceivedParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"statement",
+		"AS1",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetDataReceived"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetRequestComplete(t *testing.T) {
 	fnName := "GetRequest"
 	var param = GetRequestParam{
@@ -1598,7 +1639,7 @@ func TestQueryGetRequestDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"status":"completed"}`
+	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"status":"completed"}`
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -1771,7 +1812,7 @@ func TestReportGetUsedTokenRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	expectedString := `[{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"SetDataReceived","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 

@@ -240,8 +240,9 @@ func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 }
 
 var IsCheckOwnerRequestMethod = map[string]bool{
-	"CloseRequest":   true,
-	"TimeOutRequest": true,
+	"CloseRequest":    true,
+	"TimeOutRequest":  true,
+	"SetDataReceived": true,
 }
 
 // CheckTxRouter is Pointer to function

@@ -37,6 +37,8 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
+	// TODO: check nodeID is in as_id_list
+
 	signDataKey := "SignData" + "|" + signData.Signature
 	signDataJSON, err := json.Marshal(signData)
 	if err != nil {
