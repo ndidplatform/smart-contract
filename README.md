@@ -115,17 +115,22 @@ Required
 - Docker CE 17.06+ [Install docker](https://docs.docker.com/install/)
 - docker-compose 1.14.0+ [Install docker-compose](https://docs.docker.com/compose/install/)
 
+### Run
+
+```
+docker-compose -f docker/docker-compose.yml up
+```
+
 ### Build
 
 ```
 ./docker/build.sh
 ```
 
-### Run
+### Note
 
-```
-docker-compose -f docker/docker-compose.yml up
-```
+* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/mart-contract/).
+* To pull latest image from Dockerhub, run `docker pull ndidplatform/smart-contract`
     
 ## IMPORTANT NOTE
 
@@ -474,6 +479,20 @@ log: "success"
 log: "success"
 ```
 
+## SetDataReceived
+### Parameter
+```sh
+{
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "service_id": "statement",
+  "as_id": "AS1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
@@ -566,7 +585,6 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "status": "pending",
   "closed": false,
   "timed_out": true,
   "request_message_hash": "hash('Please allow...')"
@@ -587,7 +605,7 @@ log: "success"
   "min_idp": 1,
   "min_aal": 3,
   "min_ial": 3,
-  "timeout": 259200,
+  "request_timeout": 259200,
   "data_request_list": [
     {
       "service_id": "statement",
@@ -598,6 +616,9 @@ log: "success"
       "count": 1,
       "request_params_hash": "hash",
       "answered_as_id_list": [
+        "AS1"
+      ],
+      "received_data_from_list": [
         "AS1"
       ]
     }
@@ -611,12 +632,13 @@ log: "success"
       "status": "accept",
       "signature": "signature",
       "identity_proof": "Magic",
+      "private_proof_hash": "",
       "idp_id": "IdP1"
     }
   ],
-  "closed": true,
+  "closed": false,
   "timed_out": false,
-  "status": "completed"
+  "special": false
 }
 ```
 

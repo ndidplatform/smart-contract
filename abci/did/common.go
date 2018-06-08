@@ -236,45 +236,45 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	status := "pending"
-	acceptCount := 0
-	rejectCount := 0
-	for _, response := range request.Responses {
-		if response.Status == "accept" {
-			acceptCount++
-		} else if response.Status == "reject" {
-			rejectCount++
-		}
-	}
+	// Not derive status in ABCI
+	// status := "pending"
+	// acceptCount := 0
+	// rejectCount := 0
+	// for _, response := range request.Responses {
+	// 	if response.Status == "accept" {
+	// 		acceptCount++
+	// 	} else if response.Status == "reject" {
+	// 		rejectCount++
+	// 	}
+	// }
 
-	if acceptCount > 0 {
-		status = "confirmed"
-	}
+	// if acceptCount > 0 {
+	// 	status = "confirmed"
+	// }
 
-	if rejectCount > 0 {
-		status = "rejected"
-	}
+	// if rejectCount > 0 {
+	// 	status = "rejected"
+	// }
 
-	if acceptCount > 0 && rejectCount > 0 {
-		status = "complicated"
-	}
+	// if acceptCount > 0 && rejectCount > 0 {
+	// 	status = "complicated"
+	// }
 
-	// check AS's answer
-	checkAS := true
-	// Get AS count
-	for _, dataRequest := range request.DataRequestList {
-		if len(dataRequest.AnsweredAsIdList) < dataRequest.Count {
-			checkAS = false
-			break
-		}
-	}
+	// // check AS's answer
+	// checkAS := true
+	// // Get AS count
+	// for _, dataRequest := range request.DataRequestList {
+	// 	if len(dataRequest.AnsweredAsIdList) < dataRequest.Count {
+	// 		checkAS = false
+	// 		break
+	// 	}
+	// }
 
-	if acceptCount >= request.MinIdp && checkAS {
-		status = "completed"
-	}
+	// if acceptCount >= request.MinIdp && checkAS {
+	// 	status = "completed"
+	// }
 
 	var res GetRequestResult
-	res.Status = status
 	res.IsClosed = request.IsClosed
 	res.IsTimedOut = request.IsTimedOut
 	res.MessageHash = request.MessageHash
@@ -303,13 +303,14 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(value, "not found", app.state.Height)
 	}
 
-	resultStatus := getRequest(param, app)
-	var requestResult GetRequestResult
-	err = json.Unmarshal([]byte(resultStatus.Value), &requestResult)
-	if err != nil {
-		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
-	}
+	// not get status
+	// resultStatus := getRequest(param, app)
+	// var requestResult GetRequestResult
+	// err = json.Unmarshal([]byte(resultStatus.Value), &requestResult)
+	// if err != nil {
+	// 	value = []byte("")
+	// 	return ReturnQuery(value, "not found", app.state.Height)
+	// }
 
 	var result GetRequestDetailResult
 	err = json.Unmarshal([]byte(value), &result)
@@ -317,7 +318,8 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 		value = []byte("")
 		return ReturnQuery(value, err.Error(), app.state.Height)
 	}
-	result.Status = requestResult.Status
+	// not set status
+	// result.Status = requestResult.Status
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {

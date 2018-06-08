@@ -37,6 +37,22 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
+	// Check nodeID is exist in as_id_list
+	exist := false
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == signData.ServiceID {
+			for _, as := range dataRequest.As {
+				if as == nodeID {
+					exist = true
+					break
+				}
+			}
+		}
+	}
+	if exist == false {
+		return ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
+	}
+
 	signDataKey := "SignData" + "|" + signData.Signature
 	signDataJSON, err := json.Marshal(signData)
 	if err != nil {

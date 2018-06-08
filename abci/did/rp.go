@@ -112,3 +112,55 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
+
+func setDataReceived(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("SetDataReceived")
+	var funcParam SetDataReceivedParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	key := "Request" + "|" + funcParam.RequestID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	if value == nil {
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+
+	var request Request
+	err = json.Unmarshal([]byte(value), &request)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check as_id is exist in as_id_list
+	exist := false
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == funcParam.ServiceID {
+			for _, as := range dataRequest.As {
+				if as == funcParam.AsID {
+					exist = true
+					break
+				}
+			}
+		}
+	}
+	if exist == false {
+		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in AS list", "")
+	}
+
+	// Update received_data_from_list in request
+	for index, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == funcParam.ServiceID {
+			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
+		}
+	}
+
+	value, err = json.Marshal(request)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(key), []byte(value))
+	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+}
