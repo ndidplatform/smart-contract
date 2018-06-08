@@ -106,9 +106,18 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	if err != nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-	if requestResult.Status != "completed" {
+
+	// Check accept result >= min_idp
+	acceptCount := 0
+	for _, response := range requestDetailResult.Responses {
+		if response.Status == "accept" {
+			acceptCount++
+		}
+	}
+	if acceptCount < requestDetailResult.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 	}
+
 	if requestDetailResult.MinIdp < 1 {
 		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}

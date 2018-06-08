@@ -99,7 +99,6 @@ type GetRequestParam struct {
 }
 
 type GetRequestResult struct {
-	Status      string `json:"status"`
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"request_message_hash"`
@@ -117,7 +116,6 @@ type GetRequestDetailResult struct {
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
-	Status          string        `json:"status"`
 }
 
 type Callback struct {

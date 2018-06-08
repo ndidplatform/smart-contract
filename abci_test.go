@@ -144,7 +144,6 @@ type TimeOutRequestParam struct {
 }
 
 type GetRequestResult struct {
-	Status      string `json:"status"`
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"request_message_hash"`
@@ -1461,36 +1460,6 @@ func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetRequestPending(t *testing.T) {
-	fnName := "GetRequest"
-	var param = GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-
-	var res GetRequestResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = GetRequestResult{
-		"pending",
-		false,
-		false,
-		"hash('Please allow...')",
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 func TestIdPCreateIdpResponse(t *testing.T) {
 	var param = Response{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
@@ -1597,36 +1566,6 @@ func TestRPSetDataReceived(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetRequestComplete(t *testing.T) {
-	fnName := "GetRequest"
-	var param = GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-
-	var res GetRequestResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = GetRequestResult{
-		"completed",
-		false,
-		false,
-		"hash('Please allow...')",
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 func TestQueryGetRequestDetail(t *testing.T) {
 	fnName := "GetRequestDetail"
 	var param = GetRequestParam{
@@ -1639,7 +1578,7 @@ func TestQueryGetRequestDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"status":"completed"}`
+	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false}`
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -1932,7 +1871,6 @@ func TestQueryGetRequestClosed(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var expected = GetRequestResult{
-		"completed",
 		true,
 		false,
 		"hash('Please allow...')",
@@ -2055,7 +1993,6 @@ func TestQueryGetRequestTimedOut(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var expected = GetRequestResult{
-		"pending",
 		false,
 		true,
 		"hash('Please allow...')",
