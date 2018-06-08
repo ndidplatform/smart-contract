@@ -134,6 +134,14 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 		return ReturnCheckTx(false)
 	}
 
+	// Check request is exist
+	requestKey := "Request" + "|" + funcParam.RequestID
+	requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+
+	if requestValue == nil {
+		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
+	}
+
 	key := "SpendGas" + "|" + nodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
