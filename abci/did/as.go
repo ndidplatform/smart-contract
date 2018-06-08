@@ -85,7 +85,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
 	serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -97,7 +97,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	}
 
 	// Add ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.AsServiceID
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
 	chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if chkExists != nil {

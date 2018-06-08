@@ -130,19 +130,19 @@ type SignDataParam struct {
 }
 
 type RegisterServiceParam struct {
-	AsServiceID string `json:"service_id"`
+	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
 }
 
 type DeleteServiceParam struct {
-	AsServiceID string `json:"service_id"`
+	ServiceID string `json:"service_id"`
 }
 
 type RegisterServiceDestinationParam struct {
-	AsServiceID string  `json:"service_id"`
-	NodeID      string  `json:"node_id"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
+	ServiceID string  `json:"service_id"`
+	NodeID    string  `json:"node_id"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
 }
 
 type Service struct {
@@ -150,11 +150,11 @@ type Service struct {
 }
 
 type GetServiceDetailParam struct {
-	AsServiceID string `json:"service_id"`
+	ServiceID string `json:"service_id"`
 }
 
 type GetAsNodesByServiceIdParam struct {
-	AsServiceID string `json:"service_id"`
+	ServiceID string `json:"service_id"`
 }
 
 type ASNode struct {
@@ -332,4 +332,9 @@ type SetDataReceivedParam struct {
 	RequestID string `json:"requestId"`
 	ServiceID string `json:"service_id"`
 	AsID      string `json:"as_id"`
+}
+
+type ServiceDetail struct {
+	ServiceID   string `json:"service_id"`
+	ServiceName string `json:"service_name"`
 }

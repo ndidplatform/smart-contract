@@ -223,7 +223,7 @@ func registerService(param string, app *DIDApplication, nodeID string) types.Res
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
 	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
@@ -237,6 +237,37 @@ func registerService(param string, app *DIDApplication, nodeID string) types.Res
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
+	// Add detail to service directory
+	allServiceKey := "AllService"
+	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+
+	var services []ServiceDetail
+
+	if allServiceValue != nil {
+		err = json.Unmarshal([]byte(allServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		// Check duplicate namespace
+		for _, service := range services {
+			if service.ServiceID == funcParam.ServiceID {
+				return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
+			}
+		}
+	}
+	newService := ServiceDetail{
+		funcParam.ServiceID,
+		funcParam.ServiceName,
+	}
+	services = append(services, newService)
+	allServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
 	app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -249,11 +280,38 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	serviceKey := "Service" + "|" + funcParam.AsServiceID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
 	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
+
+	// Dekete detail in service directory
+	allServiceKey := "AllService"
+	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+
+	var services []ServiceDetail
+
+	if allServiceValue != nil {
+		err = json.Unmarshal([]byte(allServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		for index, service := range services {
+			if service.ServiceID == funcParam.ServiceID {
+				services = append(services[:index], services[index+1:]...)
+				break
+			}
+		}
+
+		allServiceJSON, err := json.Marshal(services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
+	}
+
 	app.DeleteStateDB([]byte(serviceKey))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }

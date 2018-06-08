@@ -764,3 +764,17 @@ log: "success"
   "accessor_public_key": "accessor_public_key"
 }
 ```
+
+## GetServiceList
+### Parameter
+```sh
+```
+### Expected Output
+```sh
+[
+  {
+    "service_id": "statement",
+    "service_name": "Bank statement"
+  }
+]
+```

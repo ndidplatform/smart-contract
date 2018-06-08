@@ -169,7 +169,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "ServiceDestination" + "|" + funcParam.AsServiceID
+	key := "ServiceDestination" + "|" + funcParam.ServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
@@ -348,7 +348,7 @@ func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "Service" + "|" + funcParam.AsServiceID
+	key := "Service" + "|" + funcParam.ServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
@@ -517,4 +517,15 @@ func getAccessorKey(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func getServiceList(param string, app *DIDApplication) types.ResponseQuery {
+	fmt.Println("GetServiceList")
+	key := "AllService"
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	if value == nil {
+		value = []byte("")
+		return ReturnQuery(value, "not found", app.state.Height)
+	}
+	return ReturnQuery(value, "success", app.state.Height)
 }
