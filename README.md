@@ -455,6 +455,20 @@ log: "success"
 log: "success"
 ```
 
+## SetDataReceived
+### Parameter
+```sh
+{
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "service_id": "statement",
+  "as_id": "AS1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodePublicKey
@@ -547,7 +561,6 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "status": "pending",
   "closed": false,
   "timed_out": true,
   "request_message_hash": "hash('Please allow...')"
@@ -568,7 +581,7 @@ log: "success"
   "min_idp": 1,
   "min_aal": 3,
   "min_ial": 3,
-  "timeout": 259200,
+  "request_timeout": 259200,
   "data_request_list": [
     {
       "service_id": "statement",
@@ -579,6 +592,9 @@ log: "success"
       "count": 1,
       "request_params_hash": "hash",
       "answered_as_id_list": [
+        "AS1"
+      ],
+      "received_data_from_list": [
         "AS1"
       ]
     }
@@ -592,12 +608,13 @@ log: "success"
       "status": "accept",
       "signature": "signature",
       "identity_proof": "Magic",
+      "private_proof_hash": "",
       "idp_id": "IdP1"
     }
   ],
-  "closed": true,
+  "closed": false,
   "timed_out": false,
-  "status": "completed"
+  "special": false
 }
 ```
 
