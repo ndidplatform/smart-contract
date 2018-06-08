@@ -34,4 +34,6 @@ const (
 	RequestIsNotCompleted    uint32 = 29
 	RequestIsNotSpecial      uint32 = 30
 	InvalidMinIdp            uint32 = 31
+	NodeIDIsNotExistInASList uint32 = 32
+	AsIDIsNotExistInASList   uint32 = 32
 )
