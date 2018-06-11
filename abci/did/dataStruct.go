@@ -129,7 +129,7 @@ type SignDataParam struct {
 	Signature string `json:"signature"`
 }
 
-type RegisterServiceParam struct {
+type AddServiceParam struct {
 	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
 }

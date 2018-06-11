@@ -18,7 +18,7 @@ var isNDIDMethod = map[string]bool{
 	"AddNamespace":    true,
 	"DeleteNamespace": true,
 	"UpdateValidator": true,
-	"RegisterService": true,
+	"AddService":      true,
 	"DeleteService":   true,
 }
 
@@ -215,9 +215,9 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	return ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 }
 
-func registerService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("RegisterService")
-	var funcParam RegisterServiceParam
+func addService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	fmt.Println("AddService")
+	var funcParam AddServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

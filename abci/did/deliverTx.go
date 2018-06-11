@@ -40,7 +40,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"UpdateNode":                 updateNode,
 		"CreateIdentity":             createIdentity,
 		"UpdateValidator":            updateValidator,
-		"RegisterService":            registerService,
+		"AddService":                 addService,
 		"DeleteService":              deleteService,
 		"SetDataReceived":            setDataReceived,
 	}

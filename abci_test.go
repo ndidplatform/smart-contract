@@ -283,7 +283,7 @@ type AccessorMethod struct {
 	RequestID         string `json:"request_id"`
 }
 
-type RegisterServiceParam struct {
+type AddServiceParam struct {
 	AsServiceID string `json:"service_id"`
 	ServiceName string `json:"service_name"`
 }
@@ -1159,11 +1159,11 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDRegisterService(t *testing.T) {
+func TestNDIDAddService(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = RegisterServiceParam{
+	var param = AddServiceParam{
 		"statement",
 		"Bank statement",
 	}
@@ -1180,7 +1180,7 @@ func TestNDIDRegisterService(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "RegisterService"
+	fnName := "AddService"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
@@ -1224,11 +1224,11 @@ func TestNDIDDeleteService(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDRegisterServiceAgain(t *testing.T) {
+func TestNDIDAddServiceAgain(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = RegisterServiceParam{
+	var param = AddServiceParam{
 		"statement",
 		"Bank statement",
 	}
@@ -1245,7 +1245,7 @@ func TestNDIDRegisterServiceAgain(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "RegisterService"
+	fnName := "AddService"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)

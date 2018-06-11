@@ -212,7 +212,7 @@ log: "success"
 log: "success"
 ```
 
-## RegisterService
+## AddService
 ### Parameter
 ```sh
 {
