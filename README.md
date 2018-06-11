@@ -466,7 +466,7 @@ log: "success"
 }
 ```
 
-## UpdateValidator
+## SetValidator
 ### Parameter
 ```sh
 {

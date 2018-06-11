@@ -2493,16 +2493,16 @@ func TestIdPUpdateNode(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-type UpdateValidatorParam struct {
+type SetValidatorParam struct {
 	PublicKey string `json:"public_key"`
 	Power     int64  `json:"power"`
 }
 
-func TestUpdateValidator(t *testing.T) {
+func TestSetValidator(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param UpdateValidatorParam
+	var param SetValidatorParam
 	param.PublicKey = `7/ThXSVOL7YkcpcJ8iatM+EXOlXv8aFtpsVAmWwMdC4=`
 	// param.PublicKey = `5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=`
 	param.Power = 20
@@ -2519,7 +2519,7 @@ func TestUpdateValidator(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UpdateValidator"
+	fnName := "SetValidator"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)

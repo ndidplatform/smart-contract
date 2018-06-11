@@ -271,7 +271,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"DeleteNamespace":            checkIsNDID,
 		"UpdateNode":                 checkIsMasterNode,
 		"CreateIdentity":             checkIsIDP,
-		"UpdateValidator":            checkIsNDID,
+		"SetValidator":               checkIsNDID,
 		"AddService":                 checkIsNDID,
 		"DeleteService":              checkIsNDID,
 	}

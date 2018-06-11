@@ -16,7 +16,7 @@ var isNDIDMethod = map[string]bool{
 	"SetPriceFunc":    true,
 	"AddNamespace":    true,
 	"DeleteNamespace": true,
-	"UpdateValidator": true,
+	"SetValidator":    true,
 	"AddService":      true,
 	"DeleteService":   true,
 }

@@ -104,9 +104,9 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func updateValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateValidator, Parameter: %s", param)
-	var funcParam UpdateValidatorParam
+func setValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetValidator, Parameter: %s", param)
+	var funcParam SetValidatorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
