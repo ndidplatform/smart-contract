@@ -703,9 +703,7 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "service_name": "Bank statement",
-  "min_ial": 1.1,
-  "min_aal": 1.2
+  "service_name": "Bank statement"
 }
 ```
 
