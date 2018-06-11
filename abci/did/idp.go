@@ -2,14 +2,13 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 )
 
 func createIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("CreateIdentity")
+	app.logger.Infof("CreateIdentity, Parameter: %s", param)
 	var funcParam CreateIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -66,7 +65,7 @@ func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
 }
 
 func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("AddAccessorMethod")
+	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
 	var funcParam AccessorMethod
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -144,7 +143,7 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 }
 
 func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("RegisterMsqDestination")
+	app.logger.Infof("RegisterMsqDestination, Parameter: %s", param)
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -214,7 +213,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 }
 
 func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("CreateIdpResponse")
+	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var response Response
 	err := json.Unmarshal([]byte(param), &response)
 	if err != nil {

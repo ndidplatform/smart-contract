@@ -24,11 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-
-[[constraint]]
-  name = "github.com/fatih/color"
-  version = "1.6.0"
-
 [[constraint]]
   name = "github.com/tendermint/abci"
   version = "0.10.3"
@@ -40,6 +35,10 @@
 [[constraint]]
   name = "github.com/tendermint/go-crypto"
   version = "0.6.2"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.5"
 
 [prune]
   go-tests = true

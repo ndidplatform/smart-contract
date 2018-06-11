@@ -3,7 +3,6 @@ package did
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -45,7 +44,7 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 }
 
 func setPriceFunc(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("SetPriceFunc")
+	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -56,11 +55,11 @@ func setPriceFunc(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetPriceFunc")
+	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	price := getTokenPriceByFunc(funcParam.Func, app)
 	var res = GetPriceFuncResult{
@@ -68,9 +67,9 @@ func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func addToken(nodeID string, amount float64, app *DIDApplication) error {
@@ -119,7 +118,7 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 }
 
 func setNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("SetNodeToken")
+	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -133,7 +132,7 @@ func setNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func addNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("AddNodeToken")
+	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -147,7 +146,7 @@ func addNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("ReduceNodeToken")
+	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -161,22 +160,22 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 }
 
 func getNodeToken(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetNodeToken")
+	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	tokenAmount, err := getToken(funcParam.NodeID, app)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }

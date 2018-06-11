@@ -5,11 +5,9 @@ import (
 	"os"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/fatih/color"
 	server "github.com/tendermint/abci/server"
 	"github.com/tendermint/abci/types"
 	cmn "github.com/tendermint/tmlibs/common"
-	tdmLog "github.com/tendermint/tmlibs/log"
 )
 
 func main() {
@@ -18,9 +16,6 @@ func main() {
 
 func runABCIServer(args []string) {
 	address := args[1]
-	fmt.Println(address)
-
-	logger := tdmLog.NewTMLogger(tdmLog.NewSyncWriter(os.Stdout))
 
 	var app types.Application
 	app = did.NewDIDApplication()
@@ -28,11 +23,10 @@ func runABCIServer(args []string) {
 	// Start the listener
 	srv, err := server.NewServer(address, "socket", app)
 	if err != nil {
-		color.Red("%s", err)
+		fmt.Println(err.Error())
 	}
-	srv.SetLogger(logger.With("module", "abci-server"))
 	if err := srv.Start(); err != nil {
-		color.Red("%s", err)
+		fmt.Println(err.Error())
 	}
 
 	// Wait forever

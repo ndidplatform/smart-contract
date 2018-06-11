@@ -2,7 +2,6 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
@@ -23,7 +22,7 @@ var isNDIDMethod = map[string]bool{
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("InitNDID")
+	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -53,7 +52,7 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 }
 
 func registerNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("RegisterNode")
+	app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -144,7 +143,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func addNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("AddNamespace")
+	app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -179,7 +178,7 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func deleteNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("DeleteNamespace")
+	app.logger.Infof("DeleteNamespace, Parameter: %s", param)
 	var funcParam DeleteNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -216,7 +215,7 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 }
 
 func addService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("AddService")
+	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -273,7 +272,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 }
 
 func deleteService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("DeleteService")
+	app.logger.Infof("DeleteService, Parameter: %s", param)
 	var funcParam DeleteServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

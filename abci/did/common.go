@@ -2,14 +2,13 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 )
 
 func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("RegisterMsqAddress")
+	app.logger.Infof("RegisterMsqAddress, Parameter: %s", param)
 	var funcParam RegisterMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -29,11 +28,11 @@ func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.
 }
 
 func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetNodePublicKey")
+	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
 	var funcParam GetNodePublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -45,16 +44,16 @@ func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 		var nodeDetail NodeDetail
 		err := json.Unmarshal([]byte(value), &nodeDetail)
 		if err != nil {
-			return ReturnQuery(nil, err.Error(), app.state.Height)
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
 		}
 		res.PublicKey = nodeDetail.PublicKey
 	}
 
 	value, err = json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
@@ -72,11 +71,11 @@ func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
 }
 
 func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetIdpNodes")
+	app.logger.Infof("GetIdpNodes, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	var returnNodes GetIdpNodesResult
@@ -89,7 +88,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 		if idpsValue != nil {
 			err := json.Unmarshal([]byte(idpsValue), &idpsList)
 			if err != nil {
-				return ReturnQuery(nil, err.Error(), app.state.Height)
+				return ReturnQuery(nil, err.Error(), app.state.Height, app)
 			}
 			for _, idp := range idpsList {
 				// check Max IAL
@@ -99,7 +98,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 					var maxIalAal MaxIalAal
 					err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
 					if err != nil {
-						return ReturnQuery(nil, err.Error(), app.state.Height)
+						return ReturnQuery(nil, err.Error(), app.state.Height, app)
 					}
 					if maxIalAal.MaxIal >= funcParam.MinIal &&
 						maxIalAal.MaxAal >= funcParam.MinAal {
@@ -123,7 +122,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 			var nodes []Node
 			err = json.Unmarshal([]byte(value), &nodes)
 			if err != nil {
-				return ReturnQuery(nil, err.Error(), app.state.Height)
+				return ReturnQuery(nil, err.Error(), app.state.Height, app)
 			}
 
 			for _, node := range nodes {
@@ -135,7 +134,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 						var maxIalAal MaxIalAal
 						err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
 						if err != nil {
-							return ReturnQuery(nil, err.Error(), app.state.Height)
+							return ReturnQuery(nil, err.Error(), app.state.Height, app)
 						}
 						if maxIalAal.MaxIal >= funcParam.MinIal &&
 							maxIalAal.MaxAal >= funcParam.MinAal {
@@ -157,17 +156,17 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 
 	value, err := json.Marshal(returnNodes)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetAsNodesByServiceId")
+	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "ServiceDestination" + "|" + funcParam.ServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
@@ -176,28 +175,28 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 		var result GetAsNodesByServiceIdResult
 		value, err = json.Marshal(result)
 		if err != nil {
-			return ReturnQuery(nil, err.Error(), app.state.Height)
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
 		}
-		return ReturnQuery(value, "success", app.state.Height)
+		return ReturnQuery(value, "success", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getMsqAddress(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetMsqAddress")
+	app.logger.Infof("GetMsqAddress, Parameter: %s", param)
 	var funcParam GetMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "MsqAddress" + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getCanAddAccessor(requestID string, app *DIDApplication) bool {
@@ -217,23 +216,23 @@ func getCanAddAccessor(requestID string, app *DIDApplication) bool {
 }
 
 func getRequest(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetRequest")
+	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "Request" + "|" + funcParam.RequestID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	// Not derive status in ABCI
@@ -281,18 +280,18 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 
 	value, err = json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetRequestDetail")
+	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
@@ -300,7 +299,7 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
 
 	// not get status
@@ -316,7 +315,7 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	err = json.Unmarshal([]byte(value), &result)
 	if err != nil {
 		value = []byte("")
-		return ReturnQuery(value, err.Error(), app.state.Height)
+		return ReturnQuery(value, err.Error(), app.state.Height, app)
 	}
 	// not set status
 	// result.Status = requestResult.Status
@@ -324,42 +323,42 @@ func getRequestDetail(param string, app *DIDApplication) types.ResponseQuery {
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
-		return ReturnQuery(value, err.Error(), app.state.Height)
+		return ReturnQuery(value, err.Error(), app.state.Height, app)
 	}
 
-	return ReturnQuery(resultJSON, "success", app.state.Height)
+	return ReturnQuery(resultJSON, "success", app.state.Height, app)
 }
 
 func getNamespaceList(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetNamespaceList")
+	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	key := "AllNamespace"
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func getServiceDetail(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetServiceDetail")
+	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "Service" + "|" + funcParam.ServiceID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }
 
 func updateNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("UpdateNode")
+	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -421,11 +420,11 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 }
 
 func checkExistingIdentity(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("CheckExistingIdentity")
+	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	var result CheckExistingIdentityResult
@@ -444,17 +443,17 @@ func checkExistingIdentity(param string, app *DIDApplication) types.ResponseQuer
 
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(returnValue, "success", app.state.Height)
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
 }
 
 func getAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetAccessorGroupID")
+	app.logger.Infof("GetAccessorGroupID, Parameter: %s", param)
 	var funcParam GetAccessorGroupIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	var result GetAccessorGroupIDResult
@@ -475,21 +474,21 @@ func getAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
 
 	// If value == nil set log = "not found"
 	if value == nil {
-		return ReturnQuery(returnValue, "not found", app.state.Height)
+		return ReturnQuery(returnValue, "not found", app.state.Height, app)
 	}
 
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(returnValue, "success", app.state.Height)
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
 }
 
 func getAccessorKey(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetAccessorKey")
+	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 
 	var result GetAccessorKeyResult
@@ -510,22 +509,22 @@ func getAccessorKey(param string, app *DIDApplication) types.ResponseQuery {
 
 	// If value == nil set log = "not found"
 	if value == nil {
-		return ReturnQuery(returnValue, "not found", app.state.Height)
+		return ReturnQuery(returnValue, "not found", app.state.Height, app)
 	}
 
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(returnValue, "success", app.state.Height)
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
 }
 
 func getServiceList(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetServiceList")
+	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }

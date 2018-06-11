@@ -2,14 +2,13 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 )
 
 func signData(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("SignData")
+	app.logger.Infof("SignData, Parameter: %s", param)
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
 	if err != nil {
@@ -77,7 +76,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 }
 
 func registerServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("RegisterServiceDestination")
+	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

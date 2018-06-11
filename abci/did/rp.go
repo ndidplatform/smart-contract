@@ -2,14 +2,13 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
 )
 
 func createRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("CreateRequest")
+	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
 	if err != nil {
@@ -53,7 +52,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 }
 
 func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("CloseRequest")
+	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -87,7 +86,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func timeOutRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("TimeOutRequest")
+	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -122,7 +121,7 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 }
 
 func setDataReceived(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("SetDataReceived")
+	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

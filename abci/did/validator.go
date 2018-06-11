@@ -22,7 +22,7 @@ func isValidatorTx(tx []byte) bool {
 }
 
 func (app *DIDApplication) Validators() (validators []types.Validator) {
-	fmt.Println("Validators")
+	app.logger.Infof("Validators")
 	itr := app.state.db.Iterator(nil, nil)
 	for ; itr.Valid(); itr.Next() {
 		if isValidatorTx(itr.Key()) {
@@ -105,7 +105,7 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 }
 
 func updateValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	fmt.Println("UpdateValidator")
+	app.logger.Infof("UpdateValidator, Parameter: %s", param)
 	var funcParam UpdateValidatorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

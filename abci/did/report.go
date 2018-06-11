@@ -2,7 +2,6 @@ package did
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/tendermint/abci/types"
 )
@@ -40,17 +39,17 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 }
 
 func getUsedTokenReport(param string, app *DIDApplication) types.ResponseQuery {
-	fmt.Println("GetUsedTokenReport")
+	app.logger.Infof("GetUsedTokenReport, Parameter: %s", param)
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height)
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "SpendGas" + "|" + funcParam.NodeID
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height)
+	return ReturnQuery(value, "success", app.state.Height, app)
 }

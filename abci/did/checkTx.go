@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"reflect"
 	"strings"
 
@@ -118,7 +117,6 @@ func checkIsAS(param string, publicKey string, app *DIDApplication) types.Respon
 func checkIsMasterNode(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
 	key := "NodePublicKeyRole" + "|" + publicKey
 	value := app.state.db.Get(prefixKey([]byte(key)))
-	fmt.Println(string(value))
 	if string(value) == "MasterIdP" ||
 		string(value) == "MasterRP" ||
 		string(value) == "MasterAS" {
