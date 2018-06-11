@@ -73,21 +73,6 @@ func NewDIDApplication() *DIDApplication {
 	}
 
 	state := loadState(db)
-
-	// Set default logrus
-	logFile, err := os.OpenFile("DID.log", os.O_CREATE|os.O_WRONLY, 0666)
-	// TODO: add evironment for write log
-	// Set write log to file
-	if false {
-		logrus.SetOutput(logFile)
-	} else {
-		logrus.SetOutput(os.Stdout)
-	}
-	logrus.SetLevel(logrus.DebugLevel)
-	customFormatter := new(logrus.TextFormatter)
-	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	customFormatter.FullTimestamp = true
-	logrus.SetFormatter(customFormatter)
 	return &DIDApplication{state: state, logger: logrus.WithFields(logrus.Fields{"module": "abci-app"})}
 }
 
