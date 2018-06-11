@@ -30,7 +30,15 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		request.CanAddAccessor = true
 	}
 
+	// set default value
+	request.Responses = make([]Response, 0)
+	for index := range request.DataRequestList {
+		request.DataRequestList[index].AnsweredAsIdList = make([]string, 0)
+		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
+	}
+
 	key := "Request" + "|" + request.RequestID
+
 	value, err := json.Marshal(request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
