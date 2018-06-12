@@ -110,7 +110,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			getNodeNameByNodeID(funcParam.NodeID, app),
 			funcParam.MinIal,
 			funcParam.MinAal,
-			service.ServiceName,
+			funcParam.ServiceID,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)
@@ -125,7 +125,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			getNodeNameByNodeID(funcParam.NodeID, app),
 			funcParam.MinIal,
 			funcParam.MinAal,
-			service.ServiceName,
+			funcParam.ServiceID,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)

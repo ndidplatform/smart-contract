@@ -173,13 +173,36 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 
 	if value == nil {
 		var result GetAsNodesByServiceIdResult
-		value, err = json.Marshal(result)
+		result.Node = make([]ASNode, 0)
+		value, err := json.Marshal(result)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.Height, app)
 		}
-		return ReturnQuery(value, "success", app.state.Height, app)
+		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
+
+	var storedData GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(value), &storedData)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result GetAsNodesByServiceIdWithNameResult
+	for index := range storedData.Node {
+		var newRow = ASNodeResult{
+			storedData.Node[index].ID,
+			storedData.Node[index].Name,
+			storedData.Node[index].MinIal,
+			storedData.Node[index].MinAal,
+			getServiceNameByServiceID(storedData.Node[index].ServiceID, app),
+		}
+		result.Node = append(result.Node, newRow)
+	}
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(resultJSON, "success", app.state.Height, app)
 }
 
 func getMsqAddress(param string, app *DIDApplication) types.ResponseQuery {
@@ -523,8 +546,26 @@ func getServiceList(param string, app *DIDApplication) types.ResponseQuery {
 	key := "AllService"
 	value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
-		value = []byte("")
+		result := make([]ServiceDetail, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
 		return ReturnQuery(value, "not found", app.state.Height, app)
 	}
 	return ReturnQuery(value, "success", app.state.Height, app)
+}
+
+func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
+	key := "Service" + "|" + serviceID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+	var result ServiceDetail
+	if value != nil {
+		err := json.Unmarshal([]byte(value), &result)
+		if err != nil {
+			return ""
+		}
+		return result.ServiceName
+	}
+	return ""
 }

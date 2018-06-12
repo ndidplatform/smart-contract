@@ -158,6 +158,18 @@ type GetAsNodesByServiceIdParam struct {
 }
 
 type ASNode struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
+	ServiceID string  `json:"service_id"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
+}
+
+type ASNodeResult struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	MinIal      float64 `json:"min_ial"`
@@ -165,8 +177,8 @@ type ASNode struct {
 	ServiceName string  `json:"service_name"`
 }
 
-type GetAsNodesByServiceIdResult struct {
-	Node []ASNode `json:"node"`
+type GetAsNodesByServiceIdWithNameResult struct {
+	Node []ASNodeResult `json:"node"`
 }
 
 type InitNDIDParam struct {
