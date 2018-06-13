@@ -19,21 +19,22 @@ func ReturnQuery(value []byte, log string, height int64, app *DIDApplication) ty
 // QueryRouter is Pointer to function
 func QueryRouter(method string, param string, app *DIDApplication) types.ResponseQuery {
 	funcs := map[string]interface{}{
-		"GetNodePublicKey":      getNodePublicKey,
-		"GetIdpNodes":           getIdpNodes,
-		"GetRequest":            getRequest,
-		"GetRequestDetail":      getRequestDetail,
-		"GetAsNodesByServiceId": getAsNodesByServiceId,
-		"GetMsqAddress":         getMsqAddress,
-		"GetNodeToken":          getNodeToken,
-		"GetPriceFunc":          getPriceFunc,
-		"GetUsedTokenReport":    getUsedTokenReport,
-		"GetServiceDetail":      getServiceDetail,
-		"GetNamespaceList":      getNamespaceList,
-		"CheckExistingIdentity": checkExistingIdentity,
-		"GetAccessorGroupID":    getAccessorGroupID,
-		"GetAccessorKey":        getAccessorKey,
-		"GetServiceList":        getServiceList,
+		"GetNodePublicKey":       getNodePublicKey,
+		"GetIdpNodes":            getIdpNodes,
+		"GetRequest":             getRequest,
+		"GetRequestDetail":       getRequestDetail,
+		"GetAsNodesByServiceId":  getAsNodesByServiceId,
+		"GetMsqAddress":          getMsqAddress,
+		"GetNodeToken":           getNodeToken,
+		"GetPriceFunc":           getPriceFunc,
+		"GetUsedTokenReport":     getUsedTokenReport,
+		"GetServiceDetail":       getServiceDetail,
+		"GetNamespaceList":       getNamespaceList,
+		"CheckExistingIdentity":  checkExistingIdentity,
+		"GetAccessorGroupID":     getAccessorGroupID,
+		"GetAccessorKey":         getAccessorKey,
+		"GetServiceList":         getServiceList,
+		"GetNodeMasterPublicKey": getNodeMasterPublicKey,
 	}
 	value, _ := callQuery(funcs, method, param, app)
 	return value[0].Interface().(types.ResponseQuery)

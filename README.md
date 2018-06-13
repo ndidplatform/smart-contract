@@ -495,6 +495,20 @@ log: "success"
 
 # Query function
 
+## GetNodeMasterPublicKey
+### Parameter
+```sh
+{
+  "node_id": "RP1"
+}
+```
+### Expected Output
+```sh
+{
+  "master_public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1QXXrV7X1b8uFL1PW7+F\nimlAwxwbEMG5hFru1CN8WsRt8ZVQIkXRpiwNNXh1GS0Qmshnv8pKaNCZ5q5wFdUe\nlYspZHVRbIkHiQAaEU5yG9SyavHsDntUOd50PQ3nC71feW+ff8tvQcJ7+gqf8nZ6\nUAWpG4bvakPtrJ81h4/Qc23vhtbcouP0adgdw6UA0kcdGhTESYMBU0dx/NNysvJh\nNx36z2UU6kbQ3a2/bINEZAgLfJ7/Y+/647+tc7bUYdqj3dNkbnk1xiXh5dTLsiow\n5Xvukpy2uA44M/r2Q5VRfbH2ZrBZlgf/XEOZs7zppySgaTWRB5eDTm+YxxyOyykn\n8wIDAQAB\n-----END PUBLIC KEY-----\n"
+}
+```
+
 ## GetNodePublicKey
 ### Parameter
 ```sh

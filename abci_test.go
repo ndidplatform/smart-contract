@@ -104,6 +104,14 @@ type GetNodePublicKeyResult struct {
 	PublicKey string `json:"public_key"`
 }
 
+type GetNodeMasterPublicKeyParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeMasterPublicKeyResult struct {
+	MasterPublicKey string `json:"master_public_key"`
+}
+
 type GetIdpNodesParam struct {
 	HashID string  `json:"hash_id"`
 	MinIal float64 `json:"min_ial"`
@@ -844,6 +852,38 @@ func TestQueryGetNodePublicKeyRP(t *testing.T) {
 
 	expected := string(rpPublicKeyBytes)
 	if actual := res.PublicKey; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
+	fnName := "GetNodeMasterPublicKey"
+	var param = GetNodeMasterPublicKeyParam{
+		"RP1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res GetNodeMasterPublicKeyResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK2)
+	rpPublicKeyBytes, err := generatePublicKey(&rpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expected := string(rpPublicKeyBytes)
+	if actual := res.MasterPublicKey; actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

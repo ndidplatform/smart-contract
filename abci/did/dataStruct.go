@@ -13,6 +13,14 @@ type GetNodePublicKeyResult struct {
 	PublicKey string `json:"public_key"`
 }
 
+type GetNodeMasterPublicKeyParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeMasterPublicKeyResult struct {
+	MasterPublicKey string `json:"master_public_key"`
+}
+
 type User struct {
 	HashID string  `json:"hash_id"`
 	Ial    float64 `json:"ial"`

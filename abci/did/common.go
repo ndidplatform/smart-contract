@@ -27,6 +27,35 @@ func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+func getNodeMasterPublicKey(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
+	var funcParam GetNodeMasterPublicKeyParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	key := "NodeID" + "|" + funcParam.NodeID
+	value := app.state.db.Get(prefixKey([]byte(key)))
+
+	var res GetNodeMasterPublicKeyResult
+	res.MasterPublicKey = ""
+
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+		res.MasterPublicKey = nodeDetail.MasterPublicKey
+	}
+
+	value, err = json.Marshal(res)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(value, "success", app.state.Height, app)
+}
+
 func getNodePublicKey(param string, app *DIDApplication) types.ResponseQuery {
 	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
 	var funcParam GetNodePublicKeyParam
