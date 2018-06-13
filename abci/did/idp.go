@@ -117,6 +117,10 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 	}
 
+	if requestDetailResult.Mode != 3 {
+		return ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
+	}
+
 	if requestDetailResult.MinIdp < 1 {
 		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
