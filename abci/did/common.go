@@ -329,7 +329,7 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 	res.IsClosed = request.IsClosed
 	res.IsTimedOut = request.IsTimedOut
 	res.MessageHash = request.MessageHash
-  res.Mode = request.Mode
+	res.Mode = request.Mode
 
 	value, err = json.Marshal(res)
 	if err != nil {

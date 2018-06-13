@@ -80,6 +80,7 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 	if string(key) != "stateKey" {
 		app.state.UncommitKeys = append(app.state.UncommitKeys, string(key))
 	}
+	app.logger.Errorf("Key: %s \n Value: %s", string(key), string(value))
 	app.state.db.Set(prefixKey(key), value)
 	app.state.Size++
 }
@@ -190,8 +191,6 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
-		// return CheckTxRouter(method, param, nonce, signature, nodeID, app)
-
 		// If can decode and field != "" always return true
 		return ReturnCheckTx(true)
 	} else {

@@ -89,7 +89,7 @@ type Request struct {
 	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
 	Owner           string        `json:"owner"`
-  Mode            int           `json:"mode"`
+	Mode            int           `json:"mode"`
 }
 
 type Response struct {
@@ -111,7 +111,7 @@ type GetRequestResult struct {
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"request_message_hash"`
-  Mode            int           `json:"mode"`
+	Mode        int    `json:"mode"`
 }
 
 type GetRequestDetailResult struct {
@@ -126,7 +126,7 @@ type GetRequestDetailResult struct {
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
-  Mode            int           `json:"mode"`
+	Mode            int           `json:"mode"`
 }
 
 type Callback struct {
