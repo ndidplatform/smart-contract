@@ -38,22 +38,22 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
 
 ## Setup
 
-1.  Get dependency (tendermint ABCI)
-
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract/abci
-    dep ensure
-    ```
-
-2.  Create a directory for the project
+1.  Create a directory for the project
 
     ```sh
     mkdir -p $GOPATH/src/github.com/ndidplatform/smart-contract
     ```
 
-3.  Clone the project
+2.  Clone the project
     ```sh
     git clone https://github.com/ndidplatform/smart-contract.git $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+3.  Get dependency (tendermint ABCI)
+
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+    dep ensure
     ```
 
 ### Run IdP node
