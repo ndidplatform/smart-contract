@@ -80,7 +80,6 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 	if string(key) != "stateKey" {
 		app.state.UncommitKeys = append(app.state.UncommitKeys, string(key))
 	}
-	app.logger.Errorf("Key: %s \n Value: %s", string(key), string(value))
 	app.state.db.Set(prefixKey(key), value)
 	app.state.Size++
 }
