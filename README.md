@@ -286,7 +286,8 @@ log: "success"
       "request_params_hash": "hash"
     }
   ],
-  "request_message_hash": "hash('Please allow...')"
+  "request_message_hash": "hash('Please allow...')",
+  "mode": 3
 }
 ```
 ### Expected Output
@@ -652,7 +653,8 @@ log: "success"
   ],
   "closed": false,
   "timed_out": false,
-  "special": false
+  "special": false,
+  "mode": 3
 }
 ```
 
