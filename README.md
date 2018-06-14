@@ -792,3 +792,14 @@ log: "success"
   }
 ]
 ```
+
+## GetNodeInfo
+### Parameter
+```sh
+```
+### Expected Output
+```sh
+{
+  "version": "0.0.1"
+}
+```

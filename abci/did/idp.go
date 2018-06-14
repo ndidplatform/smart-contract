@@ -273,6 +273,26 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 	if chk == false {
 		request.Responses = append(request.Responses, response)
+
+		// NO data request. If accept >= min_idp, then auto close request
+		// if len(request.DataRequestList) == 0 {
+		// 	app.logger.Info("Auto close")
+		// 	accept := 0
+		// 	reject := 0
+		// 	for _, response := range request.Responses {
+		// 		if response.Status == "accept" {
+		// 			accept++
+		// 		} else {
+		// 			reject++
+		// 		}
+		// 	}
+		// 	if accept >= request.MinIdp && reject == 0 {
+		// 		request.IsClosed = true
+		// 	}
+		// } else {
+		// 	app.logger.Info("No auto close")
+		// }
+
 		value, err := json.Marshal(request)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

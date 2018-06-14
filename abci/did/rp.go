@@ -164,6 +164,21 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		}
 	}
 
+	// Request has data request. If received data, signed answer > data request count on each data request
+	// dataRequestCompletedCount := 0
+	// for _, dataRequest := range request.DataRequestList {
+	// 	if len(dataRequest.AnsweredAsIdList) >= dataRequest.Count &&
+	// 		len(dataRequest.ReceivedDataFromList) >= dataRequest.Count {
+	// 		dataRequestCompletedCount++
+	// 	}
+	// }
+	// if dataRequestCompletedCount == len(request.DataRequestList) {
+	// 	app.logger.Info("Auto close")
+	// 	request.IsClosed = true
+	// } else {
+	// 	app.logger.Info("Auto close")
+	// }
+
 	value, err = json.Marshal(request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

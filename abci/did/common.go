@@ -599,3 +599,14 @@ func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
 	}
 	return ""
 }
+
+func getNodeInfo(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+	var result GetNodeInfoResult
+	result.Version = app.Version
+	value, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(value, "success", app.state.Height, app)
+}

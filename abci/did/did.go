@@ -60,6 +60,7 @@ type DIDApplication struct {
 	state      State
 	ValUpdates []types.Validator
 	logger     *logrus.Entry
+	Version    string
 }
 
 func NewDIDApplication() *DIDApplication {
@@ -73,7 +74,10 @@ func NewDIDApplication() *DIDApplication {
 	}
 
 	state := loadState(db)
-	return &DIDApplication{state: state, logger: logrus.WithFields(logrus.Fields{"module": "abci-app"})}
+	return &DIDApplication{state: state,
+		logger:  logrus.WithFields(logrus.Fields{"module": "abci-app"}),
+		Version: "0.0.1", // Hard code set version
+	}
 }
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
@@ -91,6 +95,7 @@ func (app *DIDApplication) DeleteStateDB(key []byte) {
 
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
+	res.Version = app.Version
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	return res

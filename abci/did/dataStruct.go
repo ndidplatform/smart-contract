@@ -361,3 +361,7 @@ type ServiceDetail struct {
 	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
 }
+
+type GetNodeInfoResult struct {
+	Version string `json:"version"`
+}

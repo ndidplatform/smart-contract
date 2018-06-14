@@ -2599,4 +2599,17 @@ func TestQueryGetServiceList(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestQueryGetNodeInfo(t *testing.T) {
+	fnName := "GetNodeInfo"
+	paramJSON := []byte("")
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	expected := string(`{"version":"0.0.1"}`)
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 // TODO add more test about DPKI
