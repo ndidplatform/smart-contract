@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.10
+    working_directory: /go/src/github.com/ndidplatform/smart-contract
+    steps:
+      - checkout
+      - run:
+          name: Install Tendermint 0.19.5
+          command: |
+            mkdir -p /go/src/github.com/tendermint
+            cd /go/src/github.com/tendermint
+            git clone https://github.com/tendermint/tendermint.git
+            cd tendermint
+            git checkout v0.19.5
+            make get_tools
+            make get_vendor_deps
+            make install
+
+      - run:
+          name: Setup Smartcontract
+          command: |
+            go get github.com/tendermint/tmlibs/common
+            cd abci
+            dep ensure
+  
+      - run:
+          name: Start ABCI
+          command: |
+            DB_NAME=RP_DB go run abci/server.go tcp://127.0.0.1:46001
+          background: true
+
+      - run:
+          name: Start Tendermint
+          command: |
+            tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
+          background: true
+
+      - run: sleep 15
+      - run:
+          name: Test ABCI
+          command: |
+            TENDERMINT_ADDRESS=http://localhost:45000 go test -v
+      #- store_test_results:
+      #    path: ./test-result
+      #- store_artifacts:
+      #    path: ./test-result
+      #    destination: project
