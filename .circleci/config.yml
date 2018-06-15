@@ -28,13 +28,13 @@ jobs:
       - run:
           name: Start ABCI
           command: |
-            DB_NAME=RP_DB go run abci/server.go tcp://127.0.0.1:46001
+            DB_NAME=IdP_DB go run abci/server.go tcp://127.0.0.1:46000
           background: true
 
       - run:
           name: Start Tendermint
           command: |
-            tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
+            tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
           background: true
 
       - run: sleep 90
