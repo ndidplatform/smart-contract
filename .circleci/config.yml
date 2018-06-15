@@ -37,7 +37,7 @@ jobs:
             tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
           background: true
 
-      - run: sleep 90
+      - run: sleep 15
       - run:
           name: Test ABCI
           command: |
