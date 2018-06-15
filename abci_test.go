@@ -1532,10 +1532,10 @@ func TestRPCreateRequest(t *testing.T) {
 	var datas []DataRequest
 	var data1 DataRequest
 	data1.ServiceID = "statement"
-	data1.As = []string{
-		"AS1",
-		"AS2",
-	}
+	// data1.As = []string{
+	// 	"AS1",
+	// 	"AS2",
+	// }
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
 

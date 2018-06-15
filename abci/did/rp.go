@@ -145,7 +145,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceID == funcParam.ServiceID {
-			for _, as := range dataRequest.As {
+			for _, as := range dataRequest.AnsweredAsIdList {
 				if as == funcParam.AsID {
 					exist = true
 					break
@@ -154,7 +154,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		}
 	}
 	if exist == false {
-		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in AS list", "")
+		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
 	}
 
 	// Update received_data_from_list in request
