@@ -42,9 +42,10 @@ jobs:
           name: Test ABCI
           command: |
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
+
   deploy:
     docker:
-      - image: circleci/golang:1.10
+      - image: docker:stable-git
     steps:
       - checkout
       - setup_remote_docker
@@ -59,9 +60,12 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push bomubomu/abci:latest
             docker push bomubomu/tendermint:latest
+
 workflows:
   version: 2
   build_and_deploy:
     jobs:
       - build
-      - deploy
+      - push_to_docker_hub:
+          requires:
+            - build
