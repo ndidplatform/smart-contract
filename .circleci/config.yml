@@ -43,7 +43,7 @@ jobs:
           command: |
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
-  deploy:
+  push_to_docker_hub:
     docker:
       - image: docker:stable-git
     steps:
