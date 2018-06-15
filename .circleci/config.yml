@@ -45,7 +45,7 @@ jobs:
 
   push_to_docker_hub:
     docker:
-      - image: docker:stable-git
+      - image: circleci/node:carbon
     steps:
       - checkout
       - setup_remote_docker
