@@ -32,6 +32,9 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	// set default value
 	request.Responses = make([]Response, 0)
 	for index := range request.DataRequestList {
+		if request.DataRequestList[index].As == nil {
+			request.DataRequestList[index].As = make([]string, 0)
+		}
 		request.DataRequestList[index].AnsweredAsIdList = make([]string, 0)
 		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
 	}

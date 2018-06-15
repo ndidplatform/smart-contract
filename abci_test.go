@@ -1724,7 +1724,8 @@ func TestQueryGetRequestDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"mode":3}`
+	// fmt.Println(string(resultString))
+	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":[],"count":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","responses":[{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","aal":3,"ial":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"","idp_id":"IdP1"}],"closed":false,"timed_out":false,"special":false,"mode":3}`
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
