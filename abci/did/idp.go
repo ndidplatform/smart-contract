@@ -256,6 +256,23 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 	}
 
+	// Check AAL, IAL with MaxIalAal
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if response.Aal > maxIalAal.MaxAal {
+			return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		}
+		if response.Ial > maxIalAal.MaxIal {
+			return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		}
+	}
+
 	// Check min_idp
 	if len(request.Responses) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")

@@ -362,6 +362,40 @@ type ServiceDetail struct {
 	ServiceName string `json:"service_name"`
 }
 
+// type GetNodeInfoResult struct {
+// 	Version string `json:"version"`
+// }
+
+type CheckExistingAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type CheckExistingAccessorGroupIDParam struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+}
+
+type CheckExistingResult struct {
+	Exist bool `json:"exist"`
+}
+
+type GetNodeInfoParam struct {
+	NodeID string `json:"node_id"`
+}
+
 type GetNodeInfoResult struct {
-	Version string `json:"version"`
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+}
+
+type GetIdentityInfoParam struct {
+	HashID string `json:"hash_id"`
+	NodeID string `json:"node_id"`
+}
+
+type GetIdentityInfoResult struct {
+	Ial float64 `json:"ial"`
 }
