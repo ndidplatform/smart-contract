@@ -89,6 +89,7 @@ type Request struct {
 	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
 	Owner           string        `json:"owner"`
+	Mode            int           `json:"mode"`
 }
 
 type Response struct {
@@ -110,6 +111,7 @@ type GetRequestResult struct {
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"request_message_hash"`
+	Mode        int    `json:"mode"`
 }
 
 type GetRequestDetailResult struct {
@@ -124,6 +126,7 @@ type GetRequestDetailResult struct {
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
+	Mode            int           `json:"mode"`
 }
 
 type Callback struct {
@@ -357,4 +360,42 @@ type SetDataReceivedParam struct {
 type ServiceDetail struct {
 	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
+}
+
+// type GetNodeInfoResult struct {
+// 	Version string `json:"version"`
+// }
+
+type CheckExistingAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type CheckExistingAccessorGroupIDParam struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+}
+
+type CheckExistingResult struct {
+	Exist bool `json:"exist"`
+}
+
+type GetNodeInfoParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeInfoResult struct {
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+}
+
+type GetIdentityInfoParam struct {
+	HashID string `json:"hash_id"`
+	NodeID string `json:"node_id"`
+}
+
+type GetIdentityInfoResult struct {
+	Ial float64 `json:"ial"`
 }

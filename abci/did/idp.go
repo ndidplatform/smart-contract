@@ -117,6 +117,10 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 	}
 
+	if requestDetailResult.Mode != 3 {
+		return ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
+	}
+
 	if requestDetailResult.MinIdp < 1 {
 		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
@@ -252,6 +256,23 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 	}
 
+	// Check AAL, IAL with MaxIalAal
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if response.Aal > maxIalAal.MaxAal {
+			return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		}
+		if response.Ial > maxIalAal.MaxIal {
+			return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		}
+	}
+
 	// Check min_idp
 	if len(request.Responses) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
@@ -269,6 +290,26 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 	if chk == false {
 		request.Responses = append(request.Responses, response)
+
+		// NO data request. If accept >= min_idp, then auto close request
+		// if len(request.DataRequestList) == 0 {
+		// 	app.logger.Info("Auto close")
+		// 	accept := 0
+		// 	reject := 0
+		// 	for _, response := range request.Responses {
+		// 		if response.Status == "accept" {
+		// 			accept++
+		// 		} else {
+		// 			reject++
+		// 		}
+		// 	}
+		// 	if accept >= request.MinIdp && reject == 0 {
+		// 		request.IsClosed = true
+		// 	}
+		// } else {
+		// 	app.logger.Info("No auto close")
+		// }
+
 		value, err := json.Marshal(request)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

@@ -329,6 +329,7 @@ func getRequest(param string, app *DIDApplication) types.ResponseQuery {
 	res.IsClosed = request.IsClosed
 	res.IsTimedOut = request.IsTimedOut
 	res.MessageHash = request.MessageHash
+	res.Mode = request.Mode
 
 	value, err = json.Marshal(res)
 	if err != nil {
@@ -597,4 +598,152 @@ func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
 		return result.ServiceName
 	}
 	return ""
+}
+
+// func getNodeInfo(param string, app *DIDApplication) types.ResponseQuery {
+// 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+// 	var result GetNodeInfoResult
+// 	result.Version = app.Version
+// 	value, err := json.Marshal(result)
+// 	if err != nil {
+// 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+// 	}
+// 	return ReturnQuery(value, "success", app.state.Height, app)
+// }
+
+func checkExistingAccessorID(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
+	var funcParam CheckExistingAccessorIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result CheckExistingResult
+	result.Exist = false
+
+	accessorKey := "Accessor" + "|" + funcParam.AccessorID
+	accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	if accessorValue != nil {
+		var accessor Accessor
+		err = json.Unmarshal([]byte(accessorValue), &accessor)
+		if err == nil {
+			result.Exist = true
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
+}
+
+func checkExistingAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("CheckExistingAccessorGroupID, Parameter: %s", param)
+	var funcParam CheckExistingAccessorGroupIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result CheckExistingResult
+	result.Exist = false
+
+	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
+	accessorGroupValue := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	if accessorGroupValue != nil {
+		result.Exist = true
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
+}
+
+func getNodeInfo(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+	var funcParam GetNodeInfoParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result GetNodeInfoResult
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue != nil {
+		var nodeDetail NodeDetail
+		err = json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+		result.MasterPublicKey = nodeDetail.MasterPublicKey
+		result.PublicKey = nodeDetail.PublicKey
+		result.NodeName = nodeDetail.NodeName
+	}
+
+	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+		result.MaxIal = maxIalAal.MaxIal
+		result.MaxAal = maxIalAal.MaxAal
+	}
+
+	publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
+	role := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
+	result.Role = string(role)
+
+	value, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(value, "success", app.state.Height, app)
+}
+
+func getIdentityInfo(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
+	var funcParam GetIdentityInfoParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result GetIdentityInfoResult
+
+	key := "MsqDestination" + "|" + funcParam.HashID
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	if chkExists != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(chkExists), &nodes)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+
+		for _, node := range nodes {
+			if node.NodeID == funcParam.NodeID {
+				result.Ial = node.Ial
+				break
+			}
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	if result.Ial > 0.0 {
+		return ReturnQuery(returnValue, "success", app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "not found", app.state.Height, app)
 }

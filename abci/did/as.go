@@ -36,14 +36,19 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
-	// Check nodeID is exist in as_id_list
+	// if AS != [], Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceID == signData.ServiceID {
-			for _, as := range dataRequest.As {
-				if as == nodeID {
-					exist = true
-					break
+			if len(dataRequest.As) == 0 {
+				exist = true
+				break
+			} else {
+				for _, as := range dataRequest.As {
+					if as == nodeID {
+						exist = true
+						break
+					}
 				}
 			}
 		}

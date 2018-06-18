@@ -32,6 +32,9 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	// set default value
 	request.Responses = make([]Response, 0)
 	for index := range request.DataRequestList {
+		if request.DataRequestList[index].As == nil {
+			request.DataRequestList[index].As = make([]string, 0)
+		}
 		request.DataRequestList[index].AnsweredAsIdList = make([]string, 0)
 		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
 	}
@@ -145,7 +148,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceID == funcParam.ServiceID {
-			for _, as := range dataRequest.As {
+			for _, as := range dataRequest.AnsweredAsIdList {
 				if as == funcParam.AsID {
 					exist = true
 					break
@@ -154,7 +157,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		}
 	}
 	if exist == false {
-		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in AS list", "")
+		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
 	}
 
 	// Update received_data_from_list in request
@@ -163,6 +166,21 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
 		}
 	}
+
+	// Request has data request. If received data, signed answer > data request count on each data request
+	// dataRequestCompletedCount := 0
+	// for _, dataRequest := range request.DataRequestList {
+	// 	if len(dataRequest.AnsweredAsIdList) >= dataRequest.Count &&
+	// 		len(dataRequest.ReceivedDataFromList) >= dataRequest.Count {
+	// 		dataRequestCompletedCount++
+	// 	}
+	// }
+	// if dataRequestCompletedCount == len(request.DataRequestList) {
+	// 	app.logger.Info("Auto close")
+	// 	request.IsClosed = true
+	// } else {
+	// 	app.logger.Info("Auto close")
+	// }
 
 	value, err = json.Marshal(request)
 	if err != nil {
