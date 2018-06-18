@@ -406,7 +406,7 @@ type UpdateNodeByNDIDParam struct {
 	MaxAal float64 `json:"max_aal"`
 }
 
-type UpdateIdentity struct {
+type UpdateIdentityParam struct {
 	HashID string  `json:"hash_id"`
 	Ial    float64 `json:"ial"`
 }

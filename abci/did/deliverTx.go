@@ -44,6 +44,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"DeleteService":              deleteService,
 		"SetDataReceived":            setDataReceived,
 		"UpdateNodeByNDID":           updateNodeByNDID,
+		"UpdateIdentity":             updateIdentity,
 	}
 
 	// ---- check authorization ----

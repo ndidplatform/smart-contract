@@ -18,6 +18,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ndidplatform/smart-contract/abci/did"
 	"github.com/tendermint/tmlibs/common"
 )
 
@@ -2711,6 +2712,44 @@ func TestQueryCheckExistingAccessorGroupID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestIdPUpdateIdentity(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+
+	var param = did.UpdateIdentityParam{
+		hex.EncodeToString(userHash),
+		2.2,
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK2)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateIdentity"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetIdentityInfo(t *testing.T) {
 	fnName := "GetIdentityInfo"
 	var param GetIdentityInfoParam
@@ -2726,7 +2765,7 @@ func TestQueryGetIdentityInfo(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	expected := string(`{"ial":3}`)
+	expected := string(`{"ial":2.2}`)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

@@ -319,3 +319,34 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	}
 	return ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 }
+
+func updateIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
+	var funcParam UpdateIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
+	msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
+	if msqDesValue != nil {
+		var msqDes []Node
+		err := json.Unmarshal([]byte(msqDesValue), &msqDes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		for index := range msqDes {
+			if msqDes[index].NodeID == nodeID {
+				msqDes[index].Ial = funcParam.Ial
+				break
+			}
+		}
+		msqDesJSON, err := json.Marshal(msqDes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+}

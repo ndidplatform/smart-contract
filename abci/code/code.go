@@ -38,4 +38,5 @@ const (
 	AsIDIsNotExistInASList   uint32 = 33
 	ServiceIDNotFound        uint32 = 34
 	InvalidMode              uint32 = 35
+	HashIDNotFound           uint32 = 36
 )
