@@ -58,8 +58,8 @@ jobs:
           name: Push to docker hub
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push bomubomu/abci:latest
-            docker push bomubomu/tendermint:latest
+            docker push $REPO_NAME/abci:$DOCKER_TAG
+            docker push $REPO_NAME/tendermint:$DOCKER_TAG
 
 workflows:
   version: 2
