@@ -120,8 +120,8 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
+	ID     string  `json:"node_id"`
+	Name   string  `json:"node_name"`
 	MaxIal float64 `json:"max_ial"`
 	MaxAal float64 `json:"max_aal"`
 }
