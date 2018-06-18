@@ -218,14 +218,21 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
-	var response Response
-	err := json.Unmarshal([]byte(param), &response)
+	var funcParam CreateIdpResponseParam
+	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	key := "Request" + "|" + response.RequestID
+	key := "Request" + "|" + funcParam.RequestID
+	var response Response
+	response.Ial = funcParam.Ial
+	response.Aal = funcParam.Aal
+	response.Status = funcParam.Status
+	response.Signature = funcParam.Signature
 	response.IdpID = nodeID
+	response.IdentityProof = funcParam.IdentityProof
+	response.PrivateProofHash = funcParam.PrivateProofHash
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
@@ -315,7 +322,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(value))
-		return ReturnDeliverTxLog(code.OK, "success", response.RequestID)
+		return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 	}
 	return ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 }

@@ -93,14 +93,25 @@ type Request struct {
 }
 
 type Response struct {
-	RequestID        string  `json:"request_id"`
-	Aal              float64 `json:"aal"`
 	Ial              float64 `json:"ial"`
+	Aal              float64 `json:"aal"`
 	Status           string  `json:"status"`
 	Signature        string  `json:"signature"`
 	IdentityProof    string  `json:"identity_proof"`
 	PrivateProofHash string  `json:"private_proof_hash"`
 	IdpID            string  `json:"idp_id"`
+	ValidProof       *bool   `json:"valid_proof"`
+	ValidIal         *bool   `json:"valid_ial"`
+}
+
+type CreateIdpResponseParam struct {
+	RequestID        string  `json:"request_id"`
+	Ial              float64 `json:"ial"`
+	Aal              float64 `json:"aal"`
+	Status           string  `json:"status"`
+	Signature        string  `json:"signature"`
+	IdentityProof    string  `json:"identity_proof"`
+	PrivateProofHash string  `json:"private_proof_hash"`
 }
 
 type GetRequestParam struct {
@@ -181,10 +192,10 @@ type GetAsNodesByServiceIdResult struct {
 }
 
 type ASNodeResult struct {
-	ID          string  `json:"node_id"`
-	Name        string  `json:"node_name"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
+	ID     string  `json:"node_id"`
+	Name   string  `json:"node_name"`
+	MinIal float64 `json:"min_ial"`
+	MinAal float64 `json:"min_aal"`
 }
 
 type GetAsNodesByServiceIdWithNameResult struct {
