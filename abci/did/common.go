@@ -188,11 +188,11 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
-	// if len(returnNodes.Node) > 0 {
-	// 	return ReturnQuery(value, "success", app.state.Height, app)
-	// }
-	// return ReturnQuery(value, "not found", app.state.Height, app)
+	// return ReturnQuery(value, "success", app.state.Height, app)
+	if len(returnNodes.Node) > 0 {
+		return ReturnQuery(value, "success", app.state.Height, app)
+	}
+	return ReturnQuery(value, "not found", app.state.Height, app)
 }
 
 func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuery {
