@@ -1262,7 +1262,7 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = `{"node":[{"id":"AS1","name":"AS1","min_ial":1.1,"min_aal":1.2,"service_name":"Bank statement"}]}`
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.1,"min_aal":1.2}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
