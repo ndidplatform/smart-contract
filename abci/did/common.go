@@ -223,7 +223,6 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 			storedData.Node[index].Name,
 			storedData.Node[index].MinIal,
 			storedData.Node[index].MinAal,
-			getServiceNameByServiceID(storedData.Node[index].ServiceID, app),
 		}
 		result.Node = append(result.Node, newRow)
 	}

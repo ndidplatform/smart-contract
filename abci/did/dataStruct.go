@@ -181,11 +181,10 @@ type GetAsNodesByServiceIdResult struct {
 }
 
 type ASNodeResult struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
+	ID          string  `json:"node_id"`
+	Name        string  `json:"node_name"`
 	MinIal      float64 `json:"min_ial"`
 	MinAal      float64 `json:"min_aal"`
-	ServiceName string  `json:"service_name"`
 }
 
 type GetAsNodesByServiceIdWithNameResult struct {
