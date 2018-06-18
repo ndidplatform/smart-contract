@@ -154,7 +154,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
 	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
@@ -182,7 +182,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
-			newNode := Node{user.Ial, funcParam.NodeID}
+			newNode := Node{user.Ial, nodeID}
 			// Check duplicate before add
 			chkDup := false
 			for _, node := range nodes {
@@ -203,7 +203,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 		} else {
 			var nodes []Node
-			newNode := Node{user.Ial, funcParam.NodeID}
+			newNode := Node{user.Ial, nodeID}
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
 			if err != nil {

@@ -399,3 +399,14 @@ type GetIdentityInfoParam struct {
 type GetIdentityInfoResult struct {
 	Ial float64 `json:"ial"`
 }
+
+type UpdateNodeByNDIDParam struct {
+	NodeID string  `json:"node_id"`
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
+}
+
+type UpdateIdentity struct {
+	HashID string  `json:"hash_id"`
+	Ial    float64 `json:"ial"`
+}
