@@ -751,3 +751,27 @@ func getIdentityInfo(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	return ReturnQuery(returnValue, "not found", app.state.Height, app)
 }
+
+func getDataSignature(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetDataSignature, Parameter: %s", param)
+	var funcParam GetDataSignatureParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
+	signDataValue := app.state.db.Get(prefixKey([]byte(signDataKey)))
+
+	var result GetDataSignatureResult
+
+	if signDataValue != nil {
+		result.Signature = string(signDataValue)
+	}
+
+	returnValue, err := json.Marshal(result)
+	if signDataValue != nil {
+		return ReturnQuery(returnValue, "success", app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "not found", app.state.Height, app)
+}

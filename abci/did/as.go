@@ -57,11 +57,12 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
 	}
 
-	signDataKey := "SignData" + "|" + signData.Signature
-	signDataJSON, err := json.Marshal(signData)
-	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
+	signDataKey := "SignData" + "|" + nodeID + "|" + signData.ServiceID + "|" + signData.RequestID
+	signDataValue := signData.Signature
+	// signDataJSON, err := json.Marshal(signData)
+	// if err != nil {
+	// 	return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	// }
 
 	// Update answered_as_id_list in request
 	for index, dataRequest := range request.DataRequestList {
@@ -76,7 +77,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	}
 
 	app.SetStateDB([]byte(requestKey), []byte(requestJSON))
-	app.SetStateDB([]byte(signDataKey), []byte(signDataJSON))
+	app.SetStateDB([]byte(signDataKey), []byte(signDataValue))
 	return ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
 }
 

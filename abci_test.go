@@ -2581,4 +2581,24 @@ func TestQueryGetIdentityInfo(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestQueryGetDataSignature(t *testing.T) {
+	fnName := "GetDataSignature"
+	var param did.GetDataSignatureParam
+	param.NodeID = "AS1"
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.ServiceID = "statement"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	expected := string(`{"signature":"sign(data,asKey)"}`)
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 // TODO add more test about DPKI

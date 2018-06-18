@@ -436,3 +436,13 @@ type ResponseValid struct {
 	ValidProof bool   `json:"valid_proof"`
 	ValidIal   bool   `json:"valid_ial"`
 }
+
+type GetDataSignatureParam struct {
+	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
+	RequestID string `json:"request_id"`
+}
+
+type GetDataSignatureResult struct {
+	Signature string `json:"signature"`
+}
