@@ -56,7 +56,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 
 func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
-	var funcParam RequestIDParam
+	var funcParam CloseRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -79,6 +79,15 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
+	for _, valid := range funcParam.ResponseValidList {
+		for index := range request.Responses {
+			if valid.IdpID == request.Responses[index].IdpID {
+				request.Responses[index].ValidProof = &valid.ValidProof
+				request.Responses[index].ValidIal = &valid.ValidIal
+			}
+		}
+	}
+
 	request.IsClosed = true
 	value, err = json.Marshal(request)
 	if err != nil {
@@ -90,7 +99,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 
 func timeOutRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
-	var funcParam RequestIDParam
+	var funcParam TimeOutRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -111,6 +120,15 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 
 	if request.IsClosed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
+	}
+
+	for _, valid := range funcParam.ResponseValidList {
+		for index := range request.Responses {
+			if valid.IdpID == request.Responses[index].IdpID {
+				request.Responses[index].ValidProof = &valid.ValidProof
+				request.Responses[index].ValidIal = &valid.ValidIal
+			}
+		}
 	}
 
 	request.IsTimedOut = true

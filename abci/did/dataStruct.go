@@ -420,3 +420,19 @@ type UpdateIdentityParam struct {
 	HashID string  `json:"hash_id"`
 	Ial    float64 `json:"ial"`
 }
+
+type CloseRequestParam struct {
+	RequestID         string          `json:"requestId"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
+type TimeOutRequestParam struct {
+	RequestID         string          `json:"requestId"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
+type ResponseValid struct {
+	IdpID      string `json:"idp_id"`
+	ValidProof bool   `json:"valid_proof"`
+	ValidIal   bool   `json:"valid_ial"`
+}
