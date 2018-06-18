@@ -282,7 +282,7 @@ log: "success"
         "AS1",
         "AS2"
       ],
-      "count": 1,
+      "min_as": 1,
       "request_params_hash": "hash"
     }
   ],
@@ -627,7 +627,7 @@ log: "success"
         "AS1",
         "AS2"
       ],
-      "count": 1,
+      "min_as": 1,
       "request_params_hash": "hash",
       "answered_as_id_list": [
         "AS1"

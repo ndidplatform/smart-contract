@@ -70,7 +70,7 @@ type GetAccessorMethodResult struct {
 type DataRequest struct {
 	ServiceID            string   `json:"service_id"`
 	As                   []string `json:"as_id_list"`
-	Count                int      `json:"count"`
+	Count                int      `json:"min_as"`
 	RequestParamsHash    string   `json:"request_params_hash"`
 	AnsweredAsIdList     []string `json:"answered_as_id_list"`
 	ReceivedDataFromList []string `json:"received_data_from_list"`
