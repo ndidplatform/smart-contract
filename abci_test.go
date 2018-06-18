@@ -22,64 +22,6 @@ import (
 	"github.com/tendermint/tmlibs/common"
 )
 
-type InitNDID struct {
-	NodeID    string `json:"node_id"`
-	PublicKey string `json:"public_key"`
-}
-
-type RegisterNode struct {
-	NodeID          string  `json:"node_id"`
-	PublicKey       string  `json:"public_key"`
-	MasterPublicKey string  `json:"master_public_key"`
-	NodeName        string  `json:"node_name"`
-	Role            string  `json:"role"`
-	MaxIal          float64 `json:"max_ial"`
-	MaxAal          float64 `json:"max_aal"`
-}
-
-type DataRequest struct {
-	ServiceID         string   `json:"service_id"`
-	As                []string `json:"as_id_list"`
-	Count             int      `json:"min_as"`
-	RequestParamsHash string   `json:"request_params_hash"`
-}
-
-type Request struct {
-	RequestID       string        `json:"request_id"`
-	MinIdp          int           `json:"min_idp"`
-	MinAal          int           `json:"min_aal"`
-	MinIal          int           `json:"min_ial"`
-	Timeout         int           `json:"request_timeout"`
-	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"request_message_hash"`
-	Mode            int           `json:"mode"`
-}
-
-type User struct {
-	HashID string `json:"hash_id"`
-	Ial    int    `json:"ial"`
-}
-
-type RegisterMsqDestination struct {
-	Users  []User `json:"users"`
-	NodeID string `json:"node_id"`
-}
-
-type Response struct {
-	RequestID     string `json:"request_id"`
-	Aal           int    `json:"aal"`
-	Ial           int    `json:"ial"`
-	Status        string `json:"status"`
-	Signature     string `json:"signature"`
-	IdentityProof string `json:"identity_proof"`
-}
-
-type SignDataParam struct {
-	ServiceID string `json:"service_id"`
-	RequestID string `json:"request_id"`
-	Signature string `json:"signature"`
-}
-
 type ResponseTx struct {
 	Result struct {
 		Height  int `json:"height"`
@@ -98,124 +40,6 @@ type ResponseTx struct {
 	ID      string `json:"id"`
 }
 
-type GetNodePublicKey struct {
-	NodeID string `json:"node_id"`
-}
-
-type GetNodePublicKeyResult struct {
-	PublicKey string `json:"public_key"`
-}
-
-type GetNodeMasterPublicKeyParam struct {
-	NodeID string `json:"node_id"`
-}
-
-type GetNodeMasterPublicKeyResult struct {
-	MasterPublicKey string `json:"master_public_key"`
-}
-
-type GetIdpNodesParam struct {
-	HashID string  `json:"hash_id"`
-	MinIal float64 `json:"min_ial"`
-	MinAal float64 `json:"min_aal"`
-}
-
-type MsqDestinationNode struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
-	MaxIal float64 `json:"max_ial"`
-	MaxAal float64 `json:"max_aal"`
-}
-
-type GetIdpNodesResult struct {
-	Node []MsqDestinationNode `json:"node"`
-}
-
-type GetAccessorMethodParam struct {
-	AccessorID string `json:"accessor_id"`
-}
-
-type GetAccessorMethodResult struct {
-	AccessorType string `json:"accessor_type"`
-	AccessorKey  string `json:"accessor_key"`
-	Commitment   string `json:"commitment"`
-}
-
-type GetRequestParam struct {
-	RequestID string `json:"requestId"`
-}
-
-type CloseRequestParam struct {
-	RequestID string `json:"requestId"`
-}
-
-type TimeOutRequestParam struct {
-	RequestID string `json:"requestId"`
-}
-
-type GetRequestResult struct {
-	IsClosed    bool   `json:"closed"`
-	IsTimedOut  bool   `json:"timed_out"`
-	MessageHash string `json:"request_message_hash"`
-}
-
-type RegisterServiceDestinationParam struct {
-	AsServiceID string  `json:"service_id"`
-	NodeID      string  `json:"node_id"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
-}
-
-type Service struct {
-	ServiceName string `json:"service_name"`
-}
-
-type GetServiceDetailParam struct {
-	AsServiceID string `json:"service_id"`
-}
-
-type GetAsNodesByServiceIdParam struct {
-	AsServiceID string `json:"service_id"`
-}
-
-type ASNode struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
-	ServiceName string  `json:"service_name"`
-}
-
-type GetAsNodesByServiceIdResult struct {
-	Node []ASNode `json:"node"`
-}
-
-type RegisterMsqAddressParam struct {
-	NodeID string `json:"node_id"`
-	IP     string `json:"ip"`
-	Port   int64  `json:"port"`
-}
-
-type GetMsqAddressParam struct {
-	NodeID string `json:"node_id"`
-}
-
-type MsqAddress struct {
-	IP   string `json:"ip"`
-	Port int64  `json:"port"`
-}
-
-type RequestDetailResult struct {
-	RequestID       string        `json:"request_id"`
-	MinIdp          int           `json:"min_idp"`
-	MinAal          int           `json:"min_aal"`
-	MinIal          int           `json:"min_ial"`
-	Timeout         int           `json:"request_timeout"`
-	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"responses"`
-}
-
 type ResponseQuery struct {
 	Jsonrpc string `json:"jsonrpc"`
 	ID      string `json:"id"`
@@ -226,114 +50,6 @@ type ResponseQuery struct {
 			Height string `json:"height"`
 		} `json:"response"`
 	} `json:"result"`
-}
-
-type SetNodeTokenParam struct {
-	NodeID string  `json:"node_id"`
-	Amount float64 `json:"amount"`
-}
-
-type AddNodeTokenParam struct {
-	NodeID string  `json:"node_id"`
-	Amount float64 `json:"amount"`
-}
-
-type ReduceNodeTokenParam struct {
-	NodeID string  `json:"node_id"`
-	Amount float64 `json:"amount"`
-}
-
-type GetNodeTokenParam struct {
-	NodeID string `json:"node_id"`
-}
-
-type GetNodeTokenResult struct {
-	Amount float64 `json:"amount"`
-}
-
-type SetPriceFuncParam struct {
-	Func  string  `json:"func"`
-	Price float64 `json:"price"`
-}
-
-type GetPriceFuncParam struct {
-	Func string `json:"func"`
-}
-
-type GetPriceFuncResult struct {
-	Price float64 `json:"price"`
-}
-
-type Namespace struct {
-	Namespace   string `json:"namespace"`
-	Description string `json:"description"`
-}
-
-type DeleteNamespaceParam struct {
-	Namespace string `json:"namespace"`
-}
-
-type UpdateNodeParam struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-}
-
-type CreateIdentityParam struct {
-	AccessorID        string `json:"accessor_id"`
-	AccessorType      string `json:"accessor_type"`
-	AccessorPublicKey string `json:"accessor_public_key"`
-	AccessorGroupID   string `json:"accessor_group_id"`
-}
-
-type AccessorMethod struct {
-	AccessorID        string `json:"accessor_id"`
-	AccessorType      string `json:"accessor_type"`
-	AccessorPublicKey string `json:"accessor_public_key"`
-	AccessorGroupID   string `json:"accessor_group_id"`
-	RequestID         string `json:"request_id"`
-}
-
-type AddServiceParam struct {
-	AsServiceID string `json:"service_id"`
-	ServiceName string `json:"service_name"`
-}
-
-type DeleteServiceParam struct {
-	AsServiceID string `json:"service_id"`
-}
-
-type SetDataReceivedParam struct {
-	RequestID string `json:"requestId"`
-	ServiceID string `json:"service_id"`
-	AsID      string `json:"as_id"`
-}
-
-type ServiceDetail struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
-}
-
-type GetNodeInfoParam struct {
-	NodeID string `json:"node_id"`
-}
-
-type CheckExistingAccessorIDParam struct {
-	AccessorID string `json:"accessor_id"`
-}
-
-type CheckExistingAccessorGroupIDParam struct {
-	AccessorGroupID string `json:"accessor_group_id"`
-}
-
-type GetIdentityInfoParam struct {
-	HashID string `json:"hash_id"`
-	NodeID string `json:"node_id"`
-}
-
-type UpdateNodeByNDIDParam struct {
-	NodeID string  `json:"node_id"`
-	MaxIal float64 `json:"max_ial"`
-	MaxAal float64 `json:"max_aal"`
 }
 
 func getEnv(key, defaultValue string) string {
@@ -680,7 +396,7 @@ func TestInitNDID(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var initNDIDparam InitNDID
+	var initNDIDparam did.InitNDIDParam
 	initNDIDparam.NodeID = "NDID"
 	initNDIDparam.PublicKey = string(ndidpublicKeyBytes)
 
@@ -721,7 +437,7 @@ func TestRegisterNodeRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param RegisterNode
+	var param did.RegisterNode
 	param.NodeID = "RP1"
 	param.PublicKey = string(rpPublicKeyBytes)
 	param.MasterPublicKey = string(rpPublicKeyBytes2)
@@ -768,7 +484,7 @@ func TestRegisterNodeIDP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param RegisterNode
+	var param did.RegisterNode
 	param.NodeID = "IdP1"
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
@@ -817,7 +533,7 @@ func TestRegisterNodeAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param RegisterNode
+	var param did.RegisterNode
 	param.NodeName = "AS1"
 	param.NodeID = "AS1"
 	param.PublicKey = string(asPublicKeyBytes)
@@ -853,7 +569,7 @@ func TestRegisterNodeAS(t *testing.T) {
 
 func TestQueryGetNodePublicKeyRP(t *testing.T) {
 	fnName := "GetNodePublicKey"
-	var param = GetNodePublicKey{
+	var param = did.GetNodePublicKeyParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -864,7 +580,7 @@ func TestQueryGetNodePublicKeyRP(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodePublicKeyResult
+	var res did.GetNodePublicKeyResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -885,7 +601,7 @@ func TestQueryGetNodePublicKeyRP(t *testing.T) {
 
 func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 	fnName := "GetNodeMasterPublicKey"
-	var param = GetNodeMasterPublicKeyParam{
+	var param = did.GetNodePublicKeyParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -896,7 +612,7 @@ func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodeMasterPublicKeyResult
+	var res did.GetNodeMasterPublicKeyResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -917,7 +633,7 @@ func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 
 func TestQueryGetNodePublicKeyIdP(t *testing.T) {
 	fnName := "GetNodePublicKey"
-	var param = GetNodePublicKey{
+	var param = did.GetNodePublicKeyParam{
 		"IdP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -928,7 +644,7 @@ func TestQueryGetNodePublicKeyIdP(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodePublicKeyResult
+	var res did.GetNodePublicKeyResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -949,7 +665,7 @@ func TestQueryGetNodePublicKeyIdP(t *testing.T) {
 
 func TestQueryGetNodePublicKeyAS(t *testing.T) {
 	fnName := "GetNodePublicKey"
-	var param = GetNodePublicKey{
+	var param = did.GetNodePublicKeyParam{
 		"AS1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -960,7 +676,7 @@ func TestQueryGetNodePublicKeyAS(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodePublicKeyResult
+	var res did.GetNodePublicKeyResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -983,7 +699,7 @@ func TestAddNodeTokenRP(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = AddNodeTokenParam{
+	var param = did.AddNodeTokenParam{
 		"RP1",
 		111.11,
 	}
@@ -1016,7 +732,7 @@ func TestAddNodeTokenIdP(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = AddNodeTokenParam{
+	var param = did.AddNodeTokenParam{
 		"IdP1",
 		222.22,
 	}
@@ -1049,7 +765,7 @@ func TestAddNodeTokenAS(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = AddNodeTokenParam{
+	var param = did.AddNodeTokenParam{
 		"AS1",
 		333.33,
 	}
@@ -1080,7 +796,7 @@ func TestAddNodeTokenAS(t *testing.T) {
 
 func TestQueryGetNodeTokenRP(t *testing.T) {
 	fnName := "GetNodeToken"
-	var param = GetNodeTokenParam{
+	var param = did.GetNodeTokenParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1091,12 +807,12 @@ func TestQueryGetNodeTokenRP(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodeTokenResult
+	var res did.GetNodeTokenResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetNodeTokenResult{
+	var expected = did.GetNodeTokenResult{
 		111.11,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1109,7 +825,7 @@ func TestReduceNodeTokenRP(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = ReduceNodeTokenParam{
+	var param = did.ReduceNodeTokenParam{
 		"RP1",
 		61.11,
 	}
@@ -1140,7 +856,7 @@ func TestReduceNodeTokenRP(t *testing.T) {
 
 func TestQueryGetNodeTokenRPAfterReduce(t *testing.T) {
 	fnName := "GetNodeToken"
-	var param = GetNodeTokenParam{
+	var param = did.GetNodeTokenParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1151,12 +867,12 @@ func TestQueryGetNodeTokenRPAfterReduce(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodeTokenResult
+	var res did.GetNodeTokenResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetNodeTokenResult{
+	var expected = did.GetNodeTokenResult{
 		50.0,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1169,7 +885,7 @@ func TestSetNodeTokenRP(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = SetNodeTokenParam{
+	var param = did.SetNodeTokenParam{
 		"RP1",
 		100.0,
 	}
@@ -1200,7 +916,7 @@ func TestSetNodeTokenRP(t *testing.T) {
 
 func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 	fnName := "GetNodeToken"
-	var param = GetNodeTokenParam{
+	var param = did.GetNodeTokenParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1211,12 +927,12 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodeTokenResult
+	var res did.GetNodeTokenResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetNodeTokenResult{
+	var expected = did.GetNodeTokenResult{
 		100.0,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1229,7 +945,7 @@ func TestNDIDAddService(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = AddServiceParam{
+	var param = did.AddServiceParam{
 		"statement",
 		"Bank statement",
 	}
@@ -1262,7 +978,7 @@ func TestNDIDDeleteService(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = DeleteServiceParam{
+	var param = did.DeleteServiceParam{
 		"statement",
 	}
 
@@ -1294,7 +1010,7 @@ func TestNDIDAddServiceAgain(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = AddServiceParam{
+	var param = did.AddServiceParam{
 		"statement",
 		"Bank statement",
 	}
@@ -1329,14 +1045,14 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
 
-	var users []User
-	var user = User{
+	var users []did.User
+	var user = did.User{
 		hex.EncodeToString(userHash),
 		3,
 	}
 	users = append(users, user)
 
-	var param = RegisterMsqDestination{
+	var param = did.RegisterMsqDestinationParam{
 		users,
 		"IdP1",
 	}
@@ -1373,7 +1089,7 @@ func TestQueryGetIdpNodes(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
-	var param = GetIdpNodesParam{
+	var param = did.GetIdpNodesParam{
 		hex.EncodeToString(userHash),
 		3,
 		3,
@@ -1386,12 +1102,12 @@ func TestQueryGetIdpNodes(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetIdpNodesResult
+	var res did.GetIdpNodesResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []MsqDestinationNode{
+	var expected = []did.MsqDestinationNode{
 		{
 			"IdP1",
 			"IdP Number 1 from ...",
@@ -1407,7 +1123,7 @@ func TestQueryGetIdpNodes(t *testing.T) {
 
 func TestIdPRegisterMsqAddress(t *testing.T) {
 
-	var param = RegisterMsqAddressParam{
+	var param = did.RegisterMsqAddressParam{
 		"IdP1",
 		"192.168.3.99",
 		8000,
@@ -1442,7 +1158,7 @@ func TestIdPRegisterMsqAddress(t *testing.T) {
 
 func TestQueryGetMsqAddress(t *testing.T) {
 	fnName := "GetMsqAddress"
-	var param = GetMsqAddressParam{
+	var param = did.GetMsqAddressParam{
 		"IdP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1453,12 +1169,12 @@ func TestQueryGetMsqAddress(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res MsqAddress
+	var res did.MsqAddress
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = MsqAddress{
+	var expected = did.MsqAddress{
 		"192.168.3.99",
 		8000,
 	}
@@ -1469,7 +1185,7 @@ func TestQueryGetMsqAddress(t *testing.T) {
 }
 
 func TestASRegisterServiceDestination(t *testing.T) {
-	var param = RegisterServiceDestinationParam{
+	var param = did.RegisterServiceDestinationParam{
 		"statement",
 		"AS1",
 		1.1,
@@ -1505,7 +1221,7 @@ func TestASRegisterServiceDestination(t *testing.T) {
 
 func TestQueryGetServiceDetail(t *testing.T) {
 	fnName := "GetServiceDetail"
-	var param = GetServiceDetailParam{
+	var param = did.GetServiceDetailParam{
 		"statement",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1515,12 +1231,12 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res Service
+	var res did.Service
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = Service{
+	var expected = did.Service{
 		"Bank statement",
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1531,7 +1247,7 @@ func TestQueryGetServiceDetail(t *testing.T) {
 
 func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	fnName := "GetAsNodesByServiceId"
-	var param = GetAsNodesByServiceIdParam{
+	var param = did.GetAsNodesByServiceIdParam{
 		"statement",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1541,7 +1257,7 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res GetAsNodesByServiceIdResult
+	var res did.GetAsNodesByServiceIdResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -1554,8 +1270,8 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 }
 
 func TestRPCreateRequest(t *testing.T) {
-	var datas []DataRequest
-	var data1 DataRequest
+	var datas []did.DataRequest
+	var data1 did.DataRequest
 	data1.ServiceID = "statement"
 	// data1.As = []string{
 	// 	"AS1",
@@ -1566,16 +1282,15 @@ func TestRPCreateRequest(t *testing.T) {
 
 	datas = append(datas, data1)
 
-	var param = Request{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-		1,
-		3,
-		3,
-		259200,
-		datas,
-		"hash('Please allow...')",
-		3,
-	}
+	var param did.Request
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
 	rpNodeID := []byte("RP1")
@@ -1606,7 +1321,7 @@ func TestRPCreateRequest(t *testing.T) {
 
 func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	fnName := "GetNodeToken"
-	var param = GetNodeTokenParam{
+	var param = did.GetNodeTokenParam{
 		"RP1",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1617,12 +1332,12 @@ func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetNodeTokenResult
+	var res did.GetNodeTokenResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetNodeTokenResult{
+	var expected = did.GetNodeTokenResult{
 		99.0,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1632,13 +1347,15 @@ func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 }
 
 func TestIdPCreateIdpResponse(t *testing.T) {
-	var param = Response{
+	var param = did.Response{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		3,
 		3,
 		"accept",
 		"signature",
 		"Magic",
+		"",
+		"",
 	}
 
 	idpKey := getPrivateKeyFromString(idpPrivK)
@@ -1669,7 +1386,7 @@ func TestIdPCreateIdpResponse(t *testing.T) {
 }
 
 func TestASSignData(t *testing.T) {
-	var param = SignDataParam{
+	var param = did.SignDataParam{
 		"statement",
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		"sign(data,asKey)",
@@ -1704,7 +1421,7 @@ func TestASSignData(t *testing.T) {
 
 func TestRPSetDataReceived(t *testing.T) {
 
-	var param = SetDataReceivedParam{
+	var param = did.SetDataReceivedParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 		"statement",
 		"AS1",
@@ -1739,7 +1456,7 @@ func TestRPSetDataReceived(t *testing.T) {
 
 func TestQueryGetRequestDetail(t *testing.T) {
 	fnName := "GetRequestDetail"
-	var param = GetRequestParam{
+	var param = did.GetRequestParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1758,17 +1475,16 @@ func TestQueryGetRequestDetail(t *testing.T) {
 }
 
 func TestIdPCreateRequestSpecial(t *testing.T) {
-	var datas []DataRequest
-	var param = Request{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
-		1,
-		3,
-		3,
-		259200,
-		datas,
-		"hash('Please allow...')",
-		3,
-	}
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c55555"
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
 
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpNodeID := []byte("IdP1")
@@ -1798,13 +1514,15 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 }
 
 func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
-	var param = Response{
+	var param = did.Response{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
 		3,
 		3,
 		"accept",
 		"signature",
 		"Magic",
+		"",
+		"",
 	}
 
 	idpKey := getPrivateKeyFromString(idpPrivK)
@@ -1836,7 +1554,7 @@ func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
 
 func TestNDIDSetPrice(t *testing.T) {
 
-	var param = SetPriceFuncParam{
+	var param = did.SetPriceFuncParam{
 		"CreateRequest",
 		9.99,
 	}
@@ -1870,7 +1588,7 @@ func TestNDIDSetPrice(t *testing.T) {
 
 func TestNDIDGetPrice(t *testing.T) {
 	fnName := "GetPriceFunc"
-	var param = GetPriceFuncParam{
+	var param = did.GetPriceFuncParam{
 		"CreateRequest",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -1881,12 +1599,12 @@ func TestNDIDGetPrice(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetPriceFuncResult
+	var res did.GetPriceFuncResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetPriceFuncResult{
+	var expected = did.GetPriceFuncResult{
 		9.99,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -1994,7 +1712,7 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 
 func TestRPCloseRequest(t *testing.T) {
 
-	var param = CloseRequestParam{
+	var param = did.RequestIDParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 	}
 
@@ -2027,7 +1745,7 @@ func TestRPCloseRequest(t *testing.T) {
 
 func TestQueryGetRequestClosed(t *testing.T) {
 	fnName := "GetRequest"
-	var param = GetRequestParam{
+	var param = did.GetRequestParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -2038,15 +1756,16 @@ func TestQueryGetRequestClosed(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetRequestResult
+	var res did.GetRequestResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetRequestResult{
+	var expected = did.GetRequestResult{
 		true,
 		false,
 		"hash('Please allow...')",
+		3,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -2055,8 +1774,8 @@ func TestQueryGetRequestClosed(t *testing.T) {
 }
 
 func TestCreateRequest(t *testing.T) {
-	var datas []DataRequest
-	var data1 DataRequest
+	var datas []did.DataRequest
+	var data1 did.DataRequest
 	data1.ServiceID = "statement"
 	data1.As = []string{
 		"AS1",
@@ -2065,7 +1784,7 @@ func TestCreateRequest(t *testing.T) {
 	data1.Count = 2
 	data1.RequestParamsHash = "hash"
 
-	var data2 DataRequest
+	var data2 did.DataRequest
 	data2.ServiceID = "credit"
 	data2.As = []string{
 		"AS1",
@@ -2077,16 +1796,15 @@ func TestCreateRequest(t *testing.T) {
 	datas = append(datas, data1)
 	datas = append(datas, data2)
 
-	var param = Request{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
-		1,
-		1,
-		1,
-		259200,
-		datas,
-		"hash('Please allow...')",
-		3,
-	}
+	var param did.Request
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
 
 	rpKey := getPrivateKeyFromString(rpPrivK)
 	rpNodeID := []byte("RP1")
@@ -2117,7 +1835,7 @@ func TestCreateRequest(t *testing.T) {
 
 func TestRPTimeOutRequest(t *testing.T) {
 
-	var param = TimeOutRequestParam{
+	var param = did.RequestIDParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
 	}
 
@@ -2150,7 +1868,7 @@ func TestRPTimeOutRequest(t *testing.T) {
 
 func TestQueryGetRequestTimedOut(t *testing.T) {
 	fnName := "GetRequest"
-	var param = GetRequestParam{
+	var param = did.GetRequestParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -2161,15 +1879,16 @@ func TestQueryGetRequestTimedOut(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetRequestResult
+	var res did.GetRequestResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = GetRequestResult{
+	var expected = did.GetRequestResult{
 		false,
 		true,
 		"hash('Please allow...')",
+		3,
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -2181,7 +1900,7 @@ func TestAddNamespaceCID(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	nodeID := "NDID"
 
-	var funcparam Namespace
+	var funcparam did.Namespace
 	funcparam.Namespace = "CID"
 	funcparam.Description = "Citizen ID"
 
@@ -2213,7 +1932,7 @@ func TestAddNamespaceTel(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	nodeID := "NDID"
 
-	var funcparam Namespace
+	var funcparam did.Namespace
 	funcparam.Namespace = "Tel"
 	funcparam.Description = "Tel number"
 
@@ -2245,7 +1964,7 @@ func TestDeleteNamespace(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	nodeID := "NDID"
 
-	var funcparam DeleteNamespaceParam
+	var funcparam did.DeleteNamespaceParam
 	funcparam.Namespace = "Tel"
 
 	funcparamJSON, err := json.Marshal(funcparam)
@@ -2279,13 +1998,13 @@ func TestQueryGetNamespaceList(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res []Namespace
+	var res []did.Namespace
 	err := json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []Namespace{
-		Namespace{
+	var expected = []did.Namespace{
+		did.Namespace{
 			"CID",
 			"Citizen ID",
 		},
@@ -2298,7 +2017,7 @@ func TestQueryGetNamespaceList(t *testing.T) {
 
 func TestIdPCreateIdentity(t *testing.T) {
 
-	var param = CreateIdentityParam{
+	var param = did.CreateIdentityParam{
 		"accessor_id",
 		"accessor_type",
 		"accessor_public_key",
@@ -2334,7 +2053,7 @@ func TestIdPCreateIdentity(t *testing.T) {
 
 func TestIdPAddAccessorMethod(t *testing.T) {
 
-	var param = AccessorMethod{
+	var param = did.AccessorMethod{
 		"accessor_id_2",
 		"accessor_type_2",
 		"accessor_public_key_2",
@@ -2451,7 +2170,7 @@ func TestRegisterNodeIDP2(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param RegisterNode
+	var param did.RegisterNode
 	param.NodeID = "IdP2"
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.Role = "IdP"
@@ -2487,7 +2206,7 @@ func TestRegisterNodeIDP2(t *testing.T) {
 
 func TestQueryGetIdpNodes2(t *testing.T) {
 	fnName := "GetIdpNodes"
-	var param GetIdpNodesParam
+	var param did.GetIdpNodesParam
 	param.MinIal = 3
 	param.MinAal = 3
 
@@ -2499,12 +2218,12 @@ func TestQueryGetIdpNodes2(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res GetIdpNodesResult
+	var res did.GetIdpNodesResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []MsqDestinationNode{
+	var expected = []did.MsqDestinationNode{
 		{
 			"IdP1",
 			"IdP Number 1 from ...",
@@ -2532,7 +2251,7 @@ func TestIdPUpdateNode(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	var param = UpdateNodeParam{
+	var param = did.UpdateNodeParam{
 		string(idpPublicKeyBytes2),
 		"",
 	}
@@ -2608,13 +2327,13 @@ func TestQueryGetServiceList(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res []ServiceDetail
+	var res []did.ServiceDetail
 	err := json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = []ServiceDetail{
-		ServiceDetail{
+	var expected = []did.ServiceDetail{
+		did.ServiceDetail{
 			"statement",
 			"Bank statement",
 		},
@@ -2626,7 +2345,7 @@ func TestQueryGetServiceList(t *testing.T) {
 }
 
 func TestUpdateNodeByNDID(t *testing.T) {
-	var param UpdateNodeByNDIDParam
+	var param did.UpdateNodeByNDIDParam
 	param.NodeID = "IdP1"
 	param.MaxIal = 2.3
 	param.MaxAal = 2.4
@@ -2660,7 +2379,7 @@ func TestUpdateNodeByNDID(t *testing.T) {
 
 func TestQueryGetNodeInfo(t *testing.T) {
 	fnName := "GetNodeInfo"
-	var param GetNodeInfoParam
+	var param did.GetNodeInfoParam
 	param.NodeID = "IdP1"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -2678,7 +2397,7 @@ func TestQueryGetNodeInfo(t *testing.T) {
 
 func TestQueryCheckExistingAccessorID(t *testing.T) {
 	fnName := "CheckExistingAccessorID"
-	var param CheckExistingAccessorIDParam
+	var param did.CheckExistingAccessorIDParam
 	param.AccessorID = "accessor_id"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -2696,7 +2415,7 @@ func TestQueryCheckExistingAccessorID(t *testing.T) {
 
 func TestQueryCheckExistingAccessorGroupID(t *testing.T) {
 	fnName := "CheckExistingAccessorGroupID"
-	var param CheckExistingAccessorGroupIDParam
+	var param did.CheckExistingAccessorGroupIDParam
 	param.AccessorGroupID = "accessor_group_id"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -2752,7 +2471,7 @@ func TestIdPUpdateIdentity(t *testing.T) {
 
 func TestQueryGetIdentityInfo(t *testing.T) {
 	fnName := "GetIdentityInfo"
-	var param GetIdentityInfoParam
+	var param did.GetIdentityInfoParam
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
