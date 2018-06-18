@@ -108,6 +108,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 	}
 
 	var returnNodes GetIdpNodesResult
+	returnNodes.Node = make([]MsqDestinationNode, 0)
 
 	if funcParam.HashID == "" {
 		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
