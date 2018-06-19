@@ -84,7 +84,7 @@ type Request struct {
 	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"responses"`
+	Responses       []Response    `json:"response_list"`
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
@@ -133,7 +133,7 @@ type GetRequestDetailResult struct {
 	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"responses"`
+	Responses       []Response    `json:"response_list"`
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`

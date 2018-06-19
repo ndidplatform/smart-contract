@@ -678,7 +678,7 @@ log: "success"
     }
   ],
   "request_message_hash": "hash('Please allow...')",
-  "responses": [
+  "response_list": [
     {
       "ial": 3,
       "aal": 3,
