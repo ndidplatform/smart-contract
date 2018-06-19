@@ -295,6 +295,19 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 	}
 
+	// Check identity proof
+	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	proofPassed := false
+	if identityProofValue != nil {
+		if funcParam.IdentityProof == string(identityProofValue) {
+			proofPassed = true
+		}
+	}
+	if proofPassed == false {
+		return ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
+	}
+
 	if chk == false {
 		request.Responses = append(request.Responses, response)
 
@@ -359,4 +372,21 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
 	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+}
+
+func declareIdentityProof(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
+	var funcParam DeclareIdentityProofParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	if identityProofValue == nil {
+		identityProofValue := funcParam.IdentityProof
+		app.SetStateDB([]byte(identityProofKey), []byte(identityProofValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }

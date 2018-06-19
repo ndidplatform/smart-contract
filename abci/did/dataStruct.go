@@ -446,3 +446,17 @@ type GetDataSignatureParam struct {
 type GetDataSignatureResult struct {
 	Signature string `json:"signature"`
 }
+
+type DeclareIdentityProofParam struct {
+	IdentityProof string `json:"identity_proof"`
+	RequestID     string `json:"request_id"`
+}
+
+type GetIdentityProofParam struct {
+	IdpID     string `json:"idp_id"`
+	RequestID string `json:"request_id"`
+}
+
+type GetIdentityProofResult struct {
+	IdentityProof string `json:"identity_proof"`
+}

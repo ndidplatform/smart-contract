@@ -1346,6 +1346,66 @@ func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestIdPDeclareIdentityProof(t *testing.T) {
+	var param did.DeclareIdentityProofParam
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.IdentityProof = "Magic"
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DeclareIdentityProof"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetIdentityProof(t *testing.T) {
+	fnName := "GetIdentityProof"
+	var param = did.GetIdentityProofParam{
+		"IdP1",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetIdentityProofResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = did.GetIdentityProofResult{
+		"Magic",
+	}
+	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestIdPCreateIdpResponse(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
@@ -1492,6 +1552,37 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestIdPDeclareIdentityProof2(t *testing.T) {
+	var param did.DeclareIdentityProofParam
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c55555"
+	param.IdentityProof = "Magic"
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DeclareIdentityProof"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
 func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
 		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
@@ -1648,8 +1739,8 @@ func TestReportGetUsedTokenIdP(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"}]`
+	// fmt.Println(string(resultString))
+	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 
@@ -1849,6 +1940,38 @@ func TestCreateRequest(t *testing.T) {
 	fnName := "CreateRequest"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPDeclareIdentityProof3(t *testing.T) {
+	var param did.DeclareIdentityProofParam
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+	param.IdentityProof = "Magic"
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DeclareIdentityProof"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {

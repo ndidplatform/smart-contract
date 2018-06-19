@@ -535,6 +535,19 @@ log: "success"
 log: "success"
 ```
 
+## DeclareIdentityProof
+### Parameter
+```sh
+{
+  "identity_proof": "Magic",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
@@ -908,5 +921,20 @@ log: "success"
 ```sh
 {
   "signature": "sign(data,asKey)"
+}
+```
+
+## GetIdentityProof
+### Parameter
+```sh
+{
+  "idp_id": "IdP1",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+### Expected Output
+```sh
+{
+  "identity_proof": "Magic"
 }
 ```
