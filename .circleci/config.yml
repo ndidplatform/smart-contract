@@ -53,10 +53,21 @@ jobs:
           name: Build docker images
           command: |
             cd docker
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG:-latest}
             ./build.sh
       - run:
           name: Push to docker hub
           command: |
+            if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
+            then
+              echo "Missing required environment variables"
+              echo "- DOCKER_USER"
+              echo "- DOCKER_PASS"
+              exit 1
+            fi
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG:-latest}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push $REPO_NAME/abci:$DOCKER_TAG
             docker push $REPO_NAME/tendermint:$DOCKER_TAG
