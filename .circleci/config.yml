@@ -24,7 +24,7 @@ jobs:
             go get github.com/tendermint/tmlibs/common
             cd abci
             dep ensure
-  
+
       - run:
           name: Start ABCI
           command: |
@@ -34,7 +34,8 @@ jobs:
       - run:
           name: Start Tendermint
           command: |
-            tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+            tendermint --home ./config/tendermint/IdP unsafe_reset_all
+            tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
           background: true
 
       - run: sleep 15
@@ -49,7 +50,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: 
+      - run:
           name: Build docker images
           command: |
             cd docker
