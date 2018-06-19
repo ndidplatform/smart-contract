@@ -342,10 +342,13 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
-		for index := range msqDes {
-			if msqDes[index].NodeID == nodeID {
-				msqDes[index].Ial = funcParam.Ial
-				break
+		// Selective update
+		if funcParam.Ial > 0 {
+			for index := range msqDes {
+				if msqDes[index].NodeID == nodeID {
+					msqDes[index].Ial = funcParam.Ial
+					break
+				}
 			}
 		}
 		msqDesJSON, err := json.Marshal(msqDes)

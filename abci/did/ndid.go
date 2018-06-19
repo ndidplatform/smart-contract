@@ -331,8 +331,13 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
-		maxIalAal.MaxIal = funcParam.MaxIal
-		maxIalAal.MaxAal = funcParam.MaxAal
+		// Selective update
+		if funcParam.MaxIal > 0 {
+			maxIalAal.MaxIal = funcParam.MaxIal
+		}
+		if funcParam.MaxAal > 0 {
+			maxIalAal.MaxAal = funcParam.MaxAal
+		}
 		maxIalAalJSON, err := json.Marshal(maxIalAal)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

@@ -2527,10 +2527,9 @@ func TestIdPUpdateIdentity(t *testing.T) {
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
 
-	var param = did.UpdateIdentityParam{
-		hex.EncodeToString(userHash),
-		2.2,
-	}
+	var param did.UpdateIdentityParam
+	param.HashID = hex.EncodeToString(userHash)
+	param.Ial = 2.2
 
 	idpKey := getPrivateKeyFromString(idpPrivK2)
 	idpNodeID := []byte("IdP1")
