@@ -178,6 +178,22 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
 	}
 
+	// Check Duplicate AS ID
+	duplicate := false
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == funcParam.ServiceID {
+			for _, as := range dataRequest.ReceivedDataFromList {
+				if as == funcParam.AsID {
+					duplicate = true
+					break
+				}
+			}
+		}
+	}
+	if duplicate == true {
+		return ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
+	}
+
 	// Update received_data_from_list in request
 	for index, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceID == funcParam.ServiceID {

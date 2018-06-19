@@ -1478,6 +1478,40 @@ func TestASSignData(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestASSignData2(t *testing.T) {
+	var param = did.SignDataParam{
+		"statement",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"sign(data,asKey)",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SignData"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Duplicate AS ID in answered AS list"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestRPSetDataReceived(t *testing.T) {
 
 	var param = did.SetDataReceivedParam{
@@ -1506,6 +1540,41 @@ func TestRPSetDataReceived(t *testing.T) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRPSetDataReceived2(t *testing.T) {
+
+	var param = did.SetDataReceivedParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"statement",
+		"AS1",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetDataReceived"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Duplicate AS ID in data request"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)

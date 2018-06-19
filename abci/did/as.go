@@ -57,6 +57,22 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
 	}
 
+	// Check Duplicate AS ID
+	duplicate := false
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == signData.ServiceID {
+			for _, as := range dataRequest.AnsweredAsIdList {
+				if as == nodeID {
+					duplicate = true
+					break
+				}
+			}
+		}
+	}
+	if duplicate == true {
+		return ReturnDeliverTxLog(code.DuplicateAnsweredAsIDList, "Duplicate AS ID in answered AS list", "")
+	}
+
 	signDataKey := "SignData" + "|" + nodeID + "|" + signData.ServiceID + "|" + signData.RequestID
 	signDataValue := signData.Signature
 	// signDataJSON, err := json.Marshal(signData)
