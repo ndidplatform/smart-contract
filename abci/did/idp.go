@@ -154,7 +154,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
 	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
@@ -182,7 +182,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
-			newNode := Node{user.Ial, funcParam.NodeID}
+			newNode := Node{user.Ial, nodeID}
 			// Check duplicate before add
 			chkDup := false
 			for _, node := range nodes {
@@ -203,7 +203,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 		} else {
 			var nodes []Node
-			newNode := Node{user.Ial, funcParam.NodeID}
+			newNode := Node{user.Ial, nodeID}
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
 			if err != nil {
@@ -218,14 +218,21 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
-	var response Response
-	err := json.Unmarshal([]byte(param), &response)
+	var funcParam CreateIdpResponseParam
+	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	key := "Request" + "|" + response.RequestID
+	key := "Request" + "|" + funcParam.RequestID
+	var response Response
+	response.Ial = funcParam.Ial
+	response.Aal = funcParam.Aal
+	response.Status = funcParam.Status
+	response.Signature = funcParam.Signature
 	response.IdpID = nodeID
+	response.IdentityProof = funcParam.IdentityProof
+	response.PrivateProofHash = funcParam.PrivateProofHash
 	value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
@@ -256,6 +263,23 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 	}
 
+	// Check AAL, IAL with MaxIalAal
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if response.Aal > maxIalAal.MaxAal {
+			return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		}
+		if response.Ial > maxIalAal.MaxIal {
+			return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		}
+	}
+
 	// Check min_idp
 	if len(request.Responses) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
@@ -269,6 +293,19 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	// Check IsTimedOut
 	if request.IsTimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
+	}
+
+	// Check identity proof
+	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	proofPassed := false
+	if identityProofValue != nil {
+		if funcParam.IdentityProof == string(identityProofValue) {
+			proofPassed = true
+		}
+	}
+	if proofPassed == false {
+		return ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
 	}
 
 	if chk == false {
@@ -298,7 +335,58 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(value))
-		return ReturnDeliverTxLog(code.OK, "success", response.RequestID)
+		return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 	}
 	return ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
+}
+
+func updateIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
+	var funcParam UpdateIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
+	msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
+	if msqDesValue != nil {
+		var msqDes []Node
+		err := json.Unmarshal([]byte(msqDesValue), &msqDes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Selective update
+		if funcParam.Ial > 0 {
+			for index := range msqDes {
+				if msqDes[index].NodeID == nodeID {
+					msqDes[index].Ial = funcParam.Ial
+					break
+				}
+			}
+		}
+		msqDesJSON, err := json.Marshal(msqDes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+}
+
+func declareIdentityProof(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
+	var funcParam DeclareIdentityProofParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	if identityProofValue == nil {
+		identityProofValue := funcParam.IdentityProof
+		app.SetStateDB([]byte(identityProofKey), []byte(identityProofValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }

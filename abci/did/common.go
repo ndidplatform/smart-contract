@@ -108,6 +108,7 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 	}
 
 	var returnNodes GetIdpNodesResult
+	returnNodes.Node = make([]MsqDestinationNode, 0)
 
 	if funcParam.HashID == "" {
 		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
@@ -187,7 +188,11 @@ func getIdpNodes(param string, app *DIDApplication) types.ResponseQuery {
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
+	// return ReturnQuery(value, "success", app.state.Height, app)
+	if len(returnNodes.Node) > 0 {
+		return ReturnQuery(value, "success", app.state.Height, app)
+	}
+	return ReturnQuery(value, "not found", app.state.Height, app)
 }
 
 func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuery {
@@ -223,7 +228,6 @@ func getAsNodesByServiceId(param string, app *DIDApplication) types.ResponseQuer
 			storedData.Node[index].Name,
 			storedData.Node[index].MinIal,
 			storedData.Node[index].MinAal,
-			getServiceNameByServiceID(storedData.Node[index].ServiceID, app),
 		}
 		result.Node = append(result.Node, newRow)
 	}
@@ -433,7 +437,7 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 
 			// set role old pubKey = ""
 			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.MasterPublicKey
-			value := app.state.db.Get(prefixKey([]byte(key)))
+			value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
 			role := string(value)
 			publicKeyRoleValue := ""
 			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
@@ -450,7 +454,7 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 
 			// set role old pubKey = ""
 			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.PublicKey
-			value := app.state.db.Get(prefixKey([]byte(key)))
+			value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
 			role := string(value)
 			publicKeyRoleValue := ""
 			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
@@ -600,13 +604,194 @@ func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
 	return ""
 }
 
+// func getNodeInfo(param string, app *DIDApplication) types.ResponseQuery {
+// 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+// 	var result GetNodeInfoResult
+// 	result.Version = app.Version
+// 	value, err := json.Marshal(result)
+// 	if err != nil {
+// 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+// 	}
+// 	return ReturnQuery(value, "success", app.state.Height, app)
+// }
+
+func checkExistingAccessorID(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
+	var funcParam CheckExistingAccessorIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result CheckExistingResult
+	result.Exist = false
+
+	accessorKey := "Accessor" + "|" + funcParam.AccessorID
+	accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	if accessorValue != nil {
+		var accessor Accessor
+		err = json.Unmarshal([]byte(accessorValue), &accessor)
+		if err == nil {
+			result.Exist = true
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
+}
+
+func checkExistingAccessorGroupID(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("CheckExistingAccessorGroupID, Parameter: %s", param)
+	var funcParam CheckExistingAccessorGroupIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result CheckExistingResult
+	result.Exist = false
+
+	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
+	accessorGroupValue := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	if accessorGroupValue != nil {
+		result.Exist = true
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.Height, app)
+}
+
 func getNodeInfo(param string, app *DIDApplication) types.ResponseQuery {
 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+	var funcParam GetNodeInfoParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
 	var result GetNodeInfoResult
-	result.Version = app.Version
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue != nil {
+		var nodeDetail NodeDetail
+		err = json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+		result.MasterPublicKey = nodeDetail.MasterPublicKey
+		result.PublicKey = nodeDetail.PublicKey
+		result.NodeName = nodeDetail.NodeName
+	}
+
+	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+		result.MaxIal = maxIalAal.MaxIal
+		result.MaxAal = maxIalAal.MaxAal
+	}
+
+	publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
+	role := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
+	result.Role = string(role)
+
 	value, err := json.Marshal(result)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	return ReturnQuery(value, "success", app.state.Height, app)
+}
+
+func getIdentityInfo(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
+	var funcParam GetIdentityInfoParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	var result GetIdentityInfoResult
+
+	key := "MsqDestination" + "|" + funcParam.HashID
+	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	if chkExists != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(chkExists), &nodes)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		}
+
+		for _, node := range nodes {
+			if node.NodeID == funcParam.NodeID {
+				result.Ial = node.Ial
+				break
+			}
+		}
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	if result.Ial > 0.0 {
+		return ReturnQuery(returnValue, "success", app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "not found", app.state.Height, app)
+}
+
+func getDataSignature(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetDataSignature, Parameter: %s", param)
+	var funcParam GetDataSignatureParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+
+	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
+	signDataValue := app.state.db.Get(prefixKey([]byte(signDataKey)))
+
+	var result GetDataSignatureResult
+
+	if signDataValue != nil {
+		result.Signature = string(signDataValue)
+	}
+
+	returnValue, err := json.Marshal(result)
+	if signDataValue != nil {
+		return ReturnQuery(returnValue, "success", app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "not found", app.state.Height, app)
+}
+
+func getIdentityProof(param string, app *DIDApplication) types.ResponseQuery {
+	app.logger.Infof("GetIdentityProof, Parameter: %s", param)
+	var funcParam GetIdentityProofParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+	}
+	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
+	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	var result GetIdentityProofResult
+	if identityProofValue != nil {
+		result.IdentityProof = string(identityProofValue)
+	}
+	returnValue, err := json.Marshal(result)
+	if identityProofValue != nil {
+		return ReturnQuery(returnValue, "success", app.state.Height, app)
+	}
+	return ReturnQuery(returnValue, "not found", app.state.Height, app)
 }

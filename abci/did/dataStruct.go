@@ -47,8 +47,8 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID     string  `json:"id"`
-	Name   string  `json:"name"`
+	ID     string  `json:"node_id"`
+	Name   string  `json:"node_name"`
 	MaxIal float64 `json:"max_ial"`
 	MaxAal float64 `json:"max_aal"`
 }
@@ -70,7 +70,7 @@ type GetAccessorMethodResult struct {
 type DataRequest struct {
 	ServiceID            string   `json:"service_id"`
 	As                   []string `json:"as_id_list"`
-	Count                int      `json:"count"`
+	Count                int      `json:"min_as"`
 	RequestParamsHash    string   `json:"request_params_hash"`
 	AnsweredAsIdList     []string `json:"answered_as_id_list"`
 	ReceivedDataFromList []string `json:"received_data_from_list"`
@@ -84,7 +84,7 @@ type Request struct {
 	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"responses"`
+	Responses       []Response    `json:"response_list"`
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	CanAddAccessor  bool          `json:"can_add_accessor"`
@@ -93,14 +93,25 @@ type Request struct {
 }
 
 type Response struct {
-	RequestID        string  `json:"request_id"`
-	Aal              float64 `json:"aal"`
 	Ial              float64 `json:"ial"`
+	Aal              float64 `json:"aal"`
 	Status           string  `json:"status"`
 	Signature        string  `json:"signature"`
 	IdentityProof    string  `json:"identity_proof"`
 	PrivateProofHash string  `json:"private_proof_hash"`
 	IdpID            string  `json:"idp_id"`
+	ValidProof       *bool   `json:"valid_proof"`
+	ValidIal         *bool   `json:"valid_ial"`
+}
+
+type CreateIdpResponseParam struct {
+	RequestID        string  `json:"request_id"`
+	Ial              float64 `json:"ial"`
+	Aal              float64 `json:"aal"`
+	Status           string  `json:"status"`
+	Signature        string  `json:"signature"`
+	IdentityProof    string  `json:"identity_proof"`
+	PrivateProofHash string  `json:"private_proof_hash"`
 }
 
 type GetRequestParam struct {
@@ -122,7 +133,7 @@ type GetRequestDetailResult struct {
 	Timeout         int           `json:"request_timeout"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"responses"`
+	Responses       []Response    `json:"response_list"`
 	IsClosed        bool          `json:"closed"`
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
@@ -181,11 +192,10 @@ type GetAsNodesByServiceIdResult struct {
 }
 
 type ASNodeResult struct {
-	ID          string  `json:"id"`
-	Name        string  `json:"name"`
-	MinIal      float64 `json:"min_ial"`
-	MinAal      float64 `json:"min_aal"`
-	ServiceName string  `json:"service_name"`
+	ID     string  `json:"node_id"`
+	Name   string  `json:"node_name"`
+	MinIal float64 `json:"min_ial"`
+	MinAal float64 `json:"min_aal"`
 }
 
 type GetAsNodesByServiceIdWithNameResult struct {
@@ -362,6 +372,91 @@ type ServiceDetail struct {
 	ServiceName string `json:"service_name"`
 }
 
+// type GetNodeInfoResult struct {
+// 	Version string `json:"version"`
+// }
+
+type CheckExistingAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type CheckExistingAccessorGroupIDParam struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+}
+
+type CheckExistingResult struct {
+	Exist bool `json:"exist"`
+}
+
+type GetNodeInfoParam struct {
+	NodeID string `json:"node_id"`
+}
+
 type GetNodeInfoResult struct {
-	Version string `json:"version"`
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+}
+
+type GetIdentityInfoParam struct {
+	HashID string `json:"hash_id"`
+	NodeID string `json:"node_id"`
+}
+
+type GetIdentityInfoResult struct {
+	Ial float64 `json:"ial"`
+}
+
+type UpdateNodeByNDIDParam struct {
+	NodeID string  `json:"node_id"`
+	MaxIal float64 `json:"max_ial"`
+	MaxAal float64 `json:"max_aal"`
+}
+
+type UpdateIdentityParam struct {
+	HashID string  `json:"hash_id"`
+	Ial    float64 `json:"ial"`
+}
+
+type CloseRequestParam struct {
+	RequestID         string          `json:"requestId"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
+type TimeOutRequestParam struct {
+	RequestID         string          `json:"requestId"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
+type ResponseValid struct {
+	IdpID      string `json:"idp_id"`
+	ValidProof bool   `json:"valid_proof"`
+	ValidIal   bool   `json:"valid_ial"`
+}
+
+type GetDataSignatureParam struct {
+	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
+	RequestID string `json:"request_id"`
+}
+
+type GetDataSignatureResult struct {
+	Signature string `json:"signature"`
+}
+
+type DeclareIdentityProofParam struct {
+	IdentityProof string `json:"identity_proof"`
+	RequestID     string `json:"request_id"`
+}
+
+type GetIdentityProofParam struct {
+	IdpID     string `json:"idp_id"`
+	RequestID string `json:"request_id"`
+}
+
+type GetIdentityProofResult struct {
+	IdentityProof string `json:"identity_proof"`
 }

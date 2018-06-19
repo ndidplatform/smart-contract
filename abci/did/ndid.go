@@ -8,17 +8,18 @@ import (
 )
 
 var isNDIDMethod = map[string]bool{
-	"InitNDID":        true,
-	"RegisterNode":    true,
-	"AddNodeToken":    true,
-	"ReduceNodeToken": true,
-	"SetNodeToken":    true,
-	"SetPriceFunc":    true,
-	"AddNamespace":    true,
-	"DeleteNamespace": true,
-	"SetValidator":    true,
-	"AddService":      true,
-	"DeleteService":   true,
+	"InitNDID":         true,
+	"RegisterNode":     true,
+	"AddNodeToken":     true,
+	"ReduceNodeToken":  true,
+	"SetNodeToken":     true,
+	"SetPriceFunc":     true,
+	"AddNamespace":     true,
+	"DeleteNamespace":  true,
+	"SetValidator":     true,
+	"AddService":       true,
+	"DeleteService":    true,
+	"UpdateNodeByNDID": true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -313,4 +314,36 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 
 	app.DeleteStateDB([]byte(serviceKey))
 	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
+	var funcParam UpdateNodeByNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Selective update
+		if funcParam.MaxIal > 0 {
+			maxIalAal.MaxIal = funcParam.MaxIal
+		}
+		if funcParam.MaxAal > 0 {
+			maxIalAal.MaxAal = funcParam.MaxAal
+		}
+		maxIalAalJSON, err := json.Marshal(maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalJSON))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }

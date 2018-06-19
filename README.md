@@ -282,7 +282,7 @@ log: "success"
         "AS1",
         "AS2"
       ],
-      "count": 1,
+      "min_as": 1,
       "request_params_hash": "hash"
     }
   ],
@@ -382,7 +382,14 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "response_valid_list": [
+    {
+      "idp_id": "IdP1",
+      "valid_proof": true,
+      "valid_ial": true
+    }
+  ]
 }
 ```
 ### Expected Output
@@ -394,7 +401,14 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+  "response_valid_list": [
+    {
+      "idp_id": "IdP1",
+      "valid_proof": false,
+      "valid_ial": false
+    }
+  ]
 }
 ```
 ### Expected Output
@@ -487,6 +501,46 @@ log: "success"
   "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "service_id": "statement",
   "as_id": "AS1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## UpdateNodeByNDID
+### Parameter
+```sh
+{
+  "node_id": "IdP1",
+  "max_ial": 2.3,
+  "max_aal": 2.4
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## UpdateIdentity
+### Parameter
+```sh
+{
+  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
+  "ial": 2.2
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## DeclareIdentityProof
+### Parameter
+```sh
+{
+  "identity_proof": "Magic",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
 ### Expected Output
@@ -600,9 +654,10 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "closed": false,
-  "timed_out": true,
-  "request_message_hash": "hash('Please allow...')"
+  "closed": true,
+  "timed_out": false,
+  "request_message_hash": "hash('Please allow...')",
+  "mode": 3
 }
 ```
 
@@ -624,11 +679,8 @@ log: "success"
   "data_request_list": [
     {
       "service_id": "statement",
-      "as_id_list": [
-        "AS1",
-        "AS2"
-      ],
-      "count": 1,
+      "as_id_list": [],
+      "min_as": 1,
       "request_params_hash": "hash",
       "answered_as_id_list": [
         "AS1"
@@ -639,19 +691,20 @@ log: "success"
     }
   ],
   "request_message_hash": "hash('Please allow...')",
-  "responses": [
+  "response_list": [
     {
-      "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-      "aal": 3,
       "ial": 3,
+      "aal": 3,
       "status": "accept",
       "signature": "signature",
       "identity_proof": "Magic",
-      "private_proof_hash": "",
-      "idp_id": "IdP1"
+      "private_proof_hash": "Magic",
+      "idp_id": "IdP1",
+      "valid_proof": true,
+      "valid_ial": true
     }
   ],
-  "closed": false,
+  "closed": true,
   "timed_out": false,
   "special": false,
   "mode": 3
@@ -796,10 +849,92 @@ log: "success"
 ## GetNodeInfo
 ### Parameter
 ```sh
+{
+  "node_id": "IdP1"
+}
 ```
 ### Expected Output
 ```sh
 {
-  "version": "0.0.1"
+  "public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n",
+  "master_public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n",
+  "node_name": "IdP Number 1 from ...",
+  "role": "IdP",
+  "max_ial": 3,
+  "max_aal": 3
+}
+```
+
+## CheckExistingAccessorID
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id"
+}
+```
+### Expected Output
+```sh
+{
+  "exist": true
+}
+```
+
+## CheckExistingAccessorGroupID
+### Parameter
+```sh
+{
+  "accessor_group_id": "accessor_group_id"
+}
+```
+### Expected Output
+```sh
+{
+  "exist": true
+}
+```
+
+## GetIdentityInfo
+### Parameter
+```sh
+{
+  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
+  "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+{
+  "ial": 3
+}
+```
+
+## GetDataSignature
+### Parameter
+```sh
+{
+  "node_id": "AS1",
+  "service_id": "statement",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+### Expected Output
+```sh
+{
+  "signature": "sign(data,asKey)"
+}
+```
+
+## GetIdentityProof
+### Parameter
+```sh
+{
+  "idp_id": "IdP1",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+}
+```
+### Expected Output
+```sh
+{
+  "identity_proof": "Magic"
 }
 ```
