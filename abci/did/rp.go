@@ -39,6 +39,17 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
 	}
 
+	// check duplicate service ID in Data Request
+	serviceIDCount := make(map[string]int)
+	for _, dataRequest := range request.DataRequestList {
+		serviceIDCount[dataRequest.ServiceID]++
+	}
+	for _, count := range serviceIDCount {
+		if count > 1 {
+			return ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
+		}
+	}
+
 	key := "Request" + "|" + request.RequestID
 
 	value, err := json.Marshal(request)
