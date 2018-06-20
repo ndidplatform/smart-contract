@@ -68,7 +68,10 @@ type DIDApplication struct {
 func NewDIDApplication() *DIDApplication {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
 	defer func() {
-		logger.Errorf("%s", identifyPanic())
+		if r := recover(); r != nil {
+			logger.Errorf("%s", identifyPanic())
+			panic(r)
+		}
 	}()
 	logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
