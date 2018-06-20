@@ -548,6 +548,20 @@ log: "success"
 log: "success"
 ```
 
+## UpdateServiceDestination
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "min_ial": 1.4,
+  "min_aal": 1.5
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
