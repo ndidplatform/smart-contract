@@ -86,7 +86,7 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
 
-func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, publicKey []byte) (interface{}, error) {
+func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
 	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
 	var path []byte
 	path = append(path, fnName...)
@@ -97,7 +97,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 	path = append(path, []byte("|")...)
 	path = append(path, []byte(signatureBase64)...)
 	path = append(path, []byte("|")...)
-	path = append(path, publicKey...)
+	path = append(path, nodeID...)
 
 	// fmt.Println(string(path))
 	pathBase64 := base64.StdEncoding.EncodeToString(path)

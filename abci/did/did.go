@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -65,6 +67,9 @@ type DIDApplication struct {
 
 func NewDIDApplication() *DIDApplication {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	defer func() {
+		logger.Errorf("%s", identifyPanic())
+	}()
 	logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
@@ -126,7 +131,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
 		}
 	}()
@@ -164,7 +169,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnCheckTx(false)
 		}
 	}()
@@ -227,7 +232,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnQuery(nil, "wrong query format", app.state.Height, app)
 		}
 	}()
@@ -255,4 +260,32 @@ func getEnv(key, defaultValue string) string {
 		value = defaultValue
 	}
 	return value
+}
+
+func identifyPanic() string {
+	var name, file string
+	var line int
+	var pc [16]uintptr
+
+	n := runtime.Callers(3, pc[:])
+	for _, pc := range pc[:n] {
+		fn := runtime.FuncForPC(pc)
+		if fn == nil {
+			continue
+		}
+		file, line = fn.FileLine(pc)
+		name = fn.Name()
+		if !strings.HasPrefix(name, "runtime.") {
+			break
+		}
+	}
+
+	switch {
+	case name != "":
+		return fmt.Sprintf("%v:%v", name, line)
+	case file != "":
+		return fmt.Sprintf("%v:%v", file, line)
+	}
+
+	return fmt.Sprintf("pc:%x", pc)
 }
