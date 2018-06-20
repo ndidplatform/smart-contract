@@ -64,18 +64,14 @@ type DIDApplication struct {
 }
 
 func NewDIDApplication() *DIDApplication {
-
+	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
-
 	name := "didDB"
-	db, err := dbm.NewGoLevelDB(name, dbDir)
-	if err != nil {
-		panic(err)
-	}
-
+	db := dbm.NewDB(name, "leveldb", dbDir)
 	state := loadState(db)
 	return &DIDApplication{state: state,
-		logger:  logrus.WithFields(logrus.Fields{"module": "abci-app"}),
+		logger:  logger,
 		Version: "0.0.1", // Hard code set version
 	}
 }
