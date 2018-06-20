@@ -295,17 +295,19 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 	}
 
-	// Check identity proof
-	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
-	proofPassed := false
-	if identityProofValue != nil {
-		if funcParam.IdentityProof == string(identityProofValue) {
-			proofPassed = true
+	// Check identity proof if mode == 3
+	if request.Mode == 3 {
+		identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+		identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+		proofPassed := false
+		if identityProofValue != nil {
+			if funcParam.IdentityProof == string(identityProofValue) {
+				proofPassed = true
+			}
 		}
-	}
-	if proofPassed == false {
-		return ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
+		if proofPassed == false {
+			return ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
+		}
 	}
 
 	if chk == false {
