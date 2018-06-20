@@ -44,4 +44,5 @@ const (
 	DuplicateASInDataRequest        uint32 = 39
 	DuplicateAnsweredAsIDList       uint32 = 40
 	DuplicateServiceIDInDataRequest uint32 = 41
+	ServiceDestinationNotFound      uint32 = 42
 )

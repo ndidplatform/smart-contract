@@ -1187,7 +1187,6 @@ func TestQueryGetMsqAddress(t *testing.T) {
 func TestASRegisterServiceDestination(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
 		"statement",
-		"AS1",
 		1.1,
 		1.2,
 	}
@@ -1245,6 +1244,40 @@ func TestQueryGetServiceDetail(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestASUpdateServiceDestination(t *testing.T) {
+	var param = did.UpdateServiceDestinationParam{
+		"statement",
+		1.4,
+		1.5,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	fnName := "GetAsNodesByServiceId"
 	var param = did.GetAsNodesByServiceIdParam{
@@ -1262,7 +1295,7 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.1,"min_aal":1.2}]}`
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -1838,7 +1871,7 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 

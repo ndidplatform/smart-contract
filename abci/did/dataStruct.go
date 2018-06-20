@@ -162,7 +162,6 @@ type DeleteServiceParam struct {
 
 type RegisterServiceDestinationParam struct {
 	ServiceID string  `json:"service_id"`
-	NodeID    string  `json:"node_id"`
 	MinIal    float64 `json:"min_ial"`
 	MinAal    float64 `json:"min_aal"`
 }
@@ -459,4 +458,10 @@ type GetIdentityProofParam struct {
 
 type GetIdentityProofResult struct {
 	IdentityProof string `json:"identity_proof"`
+}
+
+type UpdateServiceDestinationParam struct {
+	ServiceID string  `json:"service_id"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
 }
