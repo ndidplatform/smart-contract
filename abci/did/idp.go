@@ -420,6 +420,35 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	// Check the request
+	requestKey := "Request" + "|" + funcParam.RequestID
+	requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+
+	if requestValue == nil {
+		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	var request Request
+	err = json.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// check number of responses
+	if len(request.Responses) >= request.MinIdp {
+		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
+	}
+
+	// Check IsClosed
+	if request.IsClosed {
+		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
+	}
+
+	// Check IsTimedOut
+	if request.IsTimedOut {
+		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
+	}
+
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
 	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
 	if identityProofValue == nil {
