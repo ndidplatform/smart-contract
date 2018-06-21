@@ -465,3 +465,8 @@ type UpdateServiceDestinationParam struct {
 	MinIal    float64 `json:"min_ial"`
 	MinAal    float64 `json:"min_aal"`
 }
+
+type UpdateServiceParam struct {
+	ServiceID   string `json:"service_id"`
+	ServiceName string `json:"service_name"`
+}

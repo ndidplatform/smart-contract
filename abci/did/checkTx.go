@@ -278,6 +278,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"UpdateIdentity":             checkIsIDP,
 		"DeclareIdentityProof":       checkIsIDP,
 		"UpdateServiceDestination":   checkIsAS,
+		"UpdateService":              checkIsNDID,
 	}
 
 	var publicKey string
