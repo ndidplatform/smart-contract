@@ -95,6 +95,15 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.DuplicateAnsweredAsIDList, "Duplicate AS ID in answered AS list", "")
 	}
 
+	// Check min_as
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == signData.ServiceID {
+			if len(dataRequest.AnsweredAsIdList) >= dataRequest.Count {
+				return ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
+			}
+		}
+	}
+
 	signDataKey := "SignData" + "|" + nodeID + "|" + signData.ServiceID + "|" + signData.RequestID
 	signDataValue := signData.Signature
 	// signDataJSON, err := json.Marshal(signData)
