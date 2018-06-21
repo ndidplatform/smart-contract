@@ -371,6 +371,21 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	// Check IAL must less than Max IAL
+	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
+	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	if maxIalAalValue != nil {
+		var maxIalAal MaxIalAal
+		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if funcParam.Ial > maxIalAal.MaxIal {
+			return ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
+		}
+	}
+
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
 	msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
 	if msqDesValue != nil {
