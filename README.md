@@ -562,6 +562,19 @@ log: "success"
 log: "success"
 ```
 
+## UpdateService
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
