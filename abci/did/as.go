@@ -149,6 +149,14 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
+
+		// Check duplicate node ID before add
+		for _, node := range nodes.Node {
+			if node.ID == nodeID {
+				return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
+			}
+		}
+
 		var newNode = ASNode{
 			nodeID,
 			getNodeNameByNodeID(nodeID, app),
