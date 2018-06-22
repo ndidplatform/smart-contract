@@ -23,9 +23,7 @@
 package did
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -233,27 +231,33 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
-	newAppHashString := ""
-	for _, key := range app.state.UncommitKeys {
-		_, value := app.state.db.Get(prefixKey([]byte(key)))
-		if value != nil {
-			newAppHashString += string(key) + string(value)
-		}
-	}
-	h := sha256.New()
-	if newAppHashString != "" {
-		// dbStat := app.state.db.Stats()
-		// newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
-		newAppHashStr := app.state.CommitStr + newAppHashString
-		h.Write([]byte(newAppHashStr))
-		newAppHash := h.Sum(nil)
-		app.state.CommitStr = hex.EncodeToString(newAppHash)
-	}
-	app.state.AppHash = []byte(app.state.CommitStr)
-	app.state.Height++
-	saveState(app.state)
-	app.state.UncommitKeys = nil
+	// newAppHashString := ""
+	// for _, key := range app.state.UncommitKeys {
+	// 	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	// 	if value != nil {
+	// 		newAppHashString += string(key) + string(value)
+	// 	}
+	// }
+	// h := sha256.New()
+	// if newAppHashString != "" {
+	// 	// dbStat := app.state.db.Stats()
+	// 	// newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
+	// 	newAppHashStr := app.state.CommitStr + newAppHashString
+	// 	h.Write([]byte(newAppHashStr))
+	// 	newAppHash := h.Sum(nil)
+	// 	app.state.CommitStr = hex.EncodeToString(newAppHash)
+	// }
+	// app.state.AppHash = []byte(app.state.CommitStr)
+	// app.state.Height++
+	// saveState(app.state)
+	// app.state.UncommitKeys = nil
+
+	app.state.db.SaveVersion()
+	app.state.AppHash = app.state.db.Hash()
+	fmt.Printf("%X\n", app.state.AppHash)
 	return types.ResponseCommit{Data: app.state.AppHash}
+
+	// return types.ResponseCommit{Data: app.state.AppHash}
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
@@ -277,8 +281,13 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	app.logger.Infof("Query: %s", method)
 
+	height := reqQuery.Height
+	if height == 0 {
+		height = app.state.db.Version64()
+	}
+
 	if method != "" {
-		return QueryRouter(method, param, app, reqQuery.Height)
+		return QueryRouter(method, param, app, height)
 	}
 	return ReturnQuery(nil, "method can't empty", app.state.Height, app)
 }

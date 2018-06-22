@@ -374,7 +374,8 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+	// _, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("")
