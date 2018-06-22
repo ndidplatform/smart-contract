@@ -38,7 +38,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	}
 
 	requestKey := "Request" + "|" + signData.RequestID
-	requestJSON := app.state.db.Get(prefixKey([]byte(requestKey)))
+	_, requestJSON := app.state.db.Get(prefixKey([]byte(requestKey)))
 	if requestJSON == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -138,7 +138,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -150,7 +150,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 
 	// Add ServiceDestination
 	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
-	chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if chkExists != nil {
 		var nodes GetAsNodesByServiceIdResult
@@ -208,7 +208,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -220,7 +220,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 
 	// Update ServiceDestination
 	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
-	serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if serviceDestinationValue == nil {
 		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")

@@ -45,17 +45,32 @@ func isValidatorTx(tx []byte) bool {
 
 func (app *DIDApplication) Validators() (validators []types.Validator) {
 	app.logger.Infof("Validators")
-	itr := app.state.db.Iterator(nil, nil)
-	for ; itr.Valid(); itr.Next() {
-		if isValidatorTx(itr.Key()) {
-			validator := new(types.Validator)
-			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
-			if err != nil {
-				panic(err)
-			}
-			validators = append(validators, *validator)
+	// itr := app.state.db.Iterate(nil, nil)
+	// for ; itr.Valid(); itr.Next() {
+	// 	if isValidatorTx(itr.Key()) {
+	// 		validator := new(types.Validator)
+	// 		err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 		validators = append(validators, *validator)
+	// 	}
+	// }
+
+	// viewed := []string{}
+	app.state.db.Iterate(func(key []byte, value []byte) bool {
+		// viewed = append(viewed, string(key))
+
+		validator := new(types.Validator)
+		err := types.ReadMessage(bytes.NewBuffer(key), validator)
+		if err != nil {
+			panic(err)
 		}
-	}
+		validators = append(validators, *validator)
+
+		return false
+	})
+
 	return
 }
 
@@ -106,7 +121,8 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Code: code.Unauthorized,
 				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
 		}
-		app.state.db.Delete(key)
+		app.state.db.Remove(key)
+		// app.state.db.Delete(key)
 		app.state.Size--
 	} else {
 		// add or update validator

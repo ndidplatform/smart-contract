@@ -53,13 +53,13 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	accessorGroup := funcParam.AccessorGroupID
 
 	// Check duplicate accessor_id
-	chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	_, chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
 	if chkAccessorKeyExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
 
 	// Check duplicate accessor_group_id
-	chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	_, chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
 	if chkAccessorGroupKeyExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
 	}
@@ -72,7 +72,7 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 
 func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
 	key := "Request" + "|" + requestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		var request Request
 		err := json.Unmarshal([]byte(value), &request)
@@ -96,14 +96,14 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 
 	// AccessorGroupID: must already exist
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
-	chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	_, chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
 	if chkAccessorGroupKeyExists == nil {
 		return ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
 	}
 
 	// AccessorID: must not duplicate
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	_, chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
 	if chkAccessorKeyExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
@@ -115,8 +115,8 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var request = getRequest(string(getRequestparamJSON), app)
-	var requestDetail = getRequestDetail(string(getRequestparamJSON), app)
+	var request = getRequest(string(getRequestparamJSON), app, app.state.db.Version64())
+	var requestDetail = getRequestDetail(string(getRequestparamJSON), app, app.state.db.Version64())
 	var requestResult GetRequestResult
 	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(request.Value), &requestResult)
@@ -177,7 +177,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 	}
 
 	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -195,7 +195,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 	// If validate passed then add Msq Destination
 	for _, user := range funcParam.Users {
 		key := "MsqDestination" + "|" + user.HashID
-		chkExists := app.state.db.Get(prefixKey([]byte(key)))
+		_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 		if chkExists != nil {
 			var nodes []Node
@@ -255,7 +255,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	response.IdpID = nodeID
 	response.IdentityProof = funcParam.IdentityProof
 	response.PrivateProofHash = funcParam.PrivateProofHash
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -287,7 +287,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 	// Check AAL, IAL with MaxIalAal
 	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -320,7 +320,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	// Check identity proof if mode == 3
 	if request.Mode == 3 {
 		identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-		identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+		_, identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
 		proofPassed := false
 		if identityProofValue != nil {
 			if funcParam.IdentityProof == string(identityProofValue) {
@@ -374,7 +374,7 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 
 	// Check IAL must less than Max IAL
 	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -387,7 +387,7 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	}
 
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-	msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
+	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
 	if msqDesValue != nil {
 		var msqDes []Node
 		err := json.Unmarshal([]byte(msqDesValue), &msqDes)
@@ -423,7 +423,7 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 
 	// Check the request
 	requestKey := "Request" + "|" + funcParam.RequestID
-	requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
 
 	if requestValue == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -450,7 +450,7 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	}
 
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-	identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	_, identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
 	if identityProofValue == nil {
 		identityProofValue := funcParam.IdentityProof
 		app.SetStateDB([]byte(identityProofKey), []byte(identityProofValue))

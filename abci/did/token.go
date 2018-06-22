@@ -33,7 +33,7 @@ import (
 
 func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s
@@ -56,7 +56,7 @@ func createTokenAccount(nodeID string, app *DIDApplication) {
 
 func setToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		value := strconv.FormatFloat(amount, 'f', -1, 64)
 		app.SetStateDB([]byte(key), []byte(value))
@@ -76,7 +76,7 @@ func setPriceFunc(param string, app *DIDApplication, nodeID string) types.Respon
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
+func getPriceFunc(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -96,7 +96,7 @@ func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
 
 func addToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, err := strconv.ParseFloat(string(value), 64)
 		if err != nil {
@@ -112,7 +112,7 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 
 func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, err := strconv.ParseFloat(string(value), 64)
 		if err != nil {
@@ -131,7 +131,7 @@ func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 
 func getToken(nodeID string, app *DIDApplication) (float64, error) {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s, nil
@@ -181,7 +181,7 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getNodeToken(param string, app *DIDApplication) types.ResponseQuery {
+func getNodeToken(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
