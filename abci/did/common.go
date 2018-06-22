@@ -57,7 +57,7 @@ func getNodeMasterPublicKey(param string, app *DIDApplication, height int64) typ
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	var res GetNodeMasterPublicKeyResult
 	res.MasterPublicKey = ""
@@ -86,7 +86,7 @@ func getNodePublicKey(param string, app *DIDApplication, height int64) types.Res
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	var res GetNodePublicKeyResult
 	res.PublicKey = ""
@@ -135,7 +135,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 	if funcParam.HashID == "" {
 		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
 		idpsKey := "IdPList"
-		_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+		_, idpsValue := app.state.db.GetVersioned(prefixKey([]byte(idpsKey)), height)
 		var idpsList []string
 		if idpsValue != nil {
 			err := json.Unmarshal([]byte(idpsValue), &idpsList)
@@ -145,7 +145,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 			for _, idp := range idpsList {
 				// check Max IAL
 				maxIalAalKey := "MaxIalAalNode" + "|" + idp
-				_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+				_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
 				if maxIalAalValue != nil {
 					var maxIalAal MaxIalAal
 					err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -168,7 +168,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 		}
 	} else {
 		key := "MsqDestination" + "|" + funcParam.HashID
-		_, value := app.state.db.Get(prefixKey([]byte(key)))
+		_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 		if value != nil {
 			var nodes []Node
@@ -181,7 +181,8 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 				if node.Ial >= funcParam.MinIal {
 					// check Max IAL && AAL
 					maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
-					_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+					_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
+
 					if maxIalAalValue != nil {
 						var maxIalAal MaxIalAal
 						err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -225,7 +226,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "ServiceDestination" + "|" + funcParam.ServiceID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
 		var result GetAsNodesByServiceIdResult
@@ -268,7 +269,7 @@ func getMsqAddress(param string, app *DIDApplication, height int64) types.Respon
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "MsqAddress" + "|" + funcParam.NodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
 		value = []byte("")
@@ -301,7 +302,7 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
 		value = []byte("")
@@ -375,7 +376,6 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-	// _, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		value = []byte("")
@@ -412,7 +412,7 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 func getNamespaceList(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	key := "AllNamespace"
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found", app.state.Height, app)
@@ -428,7 +428,7 @@ func getServiceDetail(param string, app *DIDApplication, height int64) types.Res
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "Service" + "|" + funcParam.ServiceID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
 		value = []byte("")
@@ -511,7 +511,7 @@ func checkExistingIdentity(param string, app *DIDApplication, height int64) type
 	result.Exist = false
 
 	key := "MsqDestination" + "|" + funcParam.HashID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value != nil {
 		var nodes []Node
@@ -540,7 +540,7 @@ func getAccessorGroupID(param string, app *DIDApplication, height int64) types.R
 	result.AccessorGroupID = ""
 
 	key := "Accessor" + "|" + funcParam.AccessorID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value != nil {
 		var accessor Accessor
@@ -575,7 +575,7 @@ func getAccessorKey(param string, app *DIDApplication, height int64) types.Respo
 	result.AccessorPublicKey = ""
 
 	key := "Accessor" + "|" + funcParam.AccessorID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value != nil {
 		var accessor Accessor
@@ -601,7 +601,7 @@ func getAccessorKey(param string, app *DIDApplication, height int64) types.Respo
 func getServiceList(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
 		result := make([]ServiceDetail, 0)
 		value, err := json.Marshal(result)
@@ -650,7 +650,7 @@ func checkExistingAccessorID(param string, app *DIDApplication, height int64) ty
 	result.Exist = false
 
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	_, accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
+	_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
 	if accessorValue != nil {
 		var accessor Accessor
 		err = json.Unmarshal([]byte(accessorValue), &accessor)
@@ -678,7 +678,7 @@ func checkExistingAccessorGroupID(param string, app *DIDApplication, height int6
 	result.Exist = false
 
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
-	_, accessorGroupValue := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
+	_, accessorGroupValue := app.state.db.GetVersioned(prefixKey([]byte(accessorGroupKey)), height)
 	if accessorGroupValue != nil {
 		result.Exist = true
 	}
@@ -701,7 +701,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	var result GetNodeInfoResult
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(nodeDetailKey)), height)
 	if nodeDetailValue != nil {
 		var nodeDetail NodeDetail
 		err = json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -714,7 +714,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	}
 
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -726,7 +726,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	}
 
 	publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
-	_, role := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
+	_, role := app.state.db.GetVersioned(prefixKey([]byte(publicKeyRoleKey)), height)
 	result.Role = string(role)
 
 	value, err := json.Marshal(result)
@@ -747,7 +747,7 @@ func getIdentityInfo(param string, app *DIDApplication, height int64) types.Resp
 	var result GetIdentityInfoResult
 
 	key := "MsqDestination" + "|" + funcParam.HashID
-	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if chkExists != nil {
 		var nodes []Node
@@ -784,7 +784,7 @@ func getDataSignature(param string, app *DIDApplication, height int64) types.Res
 	}
 
 	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
-	_, signDataValue := app.state.db.Get(prefixKey([]byte(signDataKey)))
+	_, signDataValue := app.state.db.GetVersioned(prefixKey([]byte(signDataKey)), height)
 
 	var result GetDataSignatureResult
 
@@ -807,7 +807,7 @@ func getIdentityProof(param string, app *DIDApplication, height int64) types.Res
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
-	_, identityProofValue := app.state.db.Get(prefixKey([]byte(identityProofKey)))
+	_, identityProofValue := app.state.db.GetVersioned(prefixKey([]byte(identityProofKey)), height)
 	var result GetIdentityProofResult
 	if identityProofValue != nil {
 		result.IdentityProof = string(identityProofValue)
