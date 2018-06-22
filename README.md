@@ -99,7 +99,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46001
+    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint
@@ -129,8 +129,8 @@ docker-compose -f docker/docker-compose.yml up
 
 ### Note
 
-* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/mart-contract/).
-* To pull latest image from Dockerhub, run `docker pull ndidplatform/smart-contract`
+* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/).
+* To pull latest image from Dockerhub, run `docker pull ndidplatform/abci`
     
 ## IMPORTANT NOTE
 
