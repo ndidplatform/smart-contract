@@ -53,8 +53,9 @@ type ResponseTx struct {
 			Fee  struct{} `json:"fee"`
 		} `json:"check_tx"`
 		DeliverTx struct {
-			Log string   `json:"log"`
-			Fee struct{} `json:"fee"`
+			Log  string   `json:"log"`
+			Fee  struct{} `json:"fee"`
+			Tags []common.KVPair
 		} `json:"deliver_tx"`
 		Hash string `json:"hash"`
 	} `json:"result"`
@@ -486,6 +487,10 @@ func TestRegisterNodeRP(t *testing.T) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
+	// for _, item := range resultObj.Result.DeliverTx.Tags {
+	// 	fmt.Println(string(item.Key))
+	// 	fmt.Println(string(item.Value))
+	// }
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)

@@ -28,14 +28,26 @@ import (
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
+	cmn "github.com/tendermint/tmlibs/common"
 )
 
 // ReturnDeliverTxLog return types.ResponseDeliverTx
 func ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
+	var tags []cmn.KVPair
+	if code == 0 {
+		tags = []cmn.KVPair{
+			{[]byte("success"), []byte("true")},
+		}
+	} else {
+		tags = []cmn.KVPair{
+			{[]byte("success"), []byte("false")},
+		}
+	}
 	return types.ResponseDeliverTx{
 		Code: code,
 		Log:  fmt.Sprintf(log),
 		Data: []byte(extraData),
+		Tags: tags,
 	}
 }
 
