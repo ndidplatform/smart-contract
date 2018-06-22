@@ -35,6 +35,7 @@ import (
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/abci/types"
+	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tmlibs/db"
 )
 
@@ -44,7 +45,7 @@ var (
 )
 
 type State struct {
-	db           dbm.DB
+	db           *iavl.VersionedTree
 	Size         int64    `json:"size"`
 	Height       int64    `json:"height"`
 	AppHash      []byte   `json:"app_hash"`
@@ -52,14 +53,15 @@ type State struct {
 	CommitStr    string   `json:"commit_str"`
 }
 
-func loadState(db dbm.DB) State {
-	stateBytes := db.Get(stateKey)
+func loadState(db *iavl.VersionedTree) State {
+	_, stateBytes := db.Get(stateKey)
 	var state State
 	if len(stateBytes) != 0 {
 		err := json.Unmarshal(stateBytes, &state)
 		if err != nil {
 			panic(err)
 		}
+		fmt.Println(string(stateBytes))
 	}
 	state.db = db
 	return state
@@ -99,7 +101,8 @@ func NewDIDApplication() *DIDApplication {
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
 	db := dbm.NewDB(name, "leveldb", dbDir)
-	state := loadState(db)
+	tree := iavl.NewVersionedTree(db, 0)
+	state := loadState(tree)
 	return &DIDApplication{state: state,
 		logger:  logger,
 		Version: "0.0.1", // Hard code set version
@@ -115,7 +118,7 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 }
 
 func (app *DIDApplication) DeleteStateDB(key []byte) {
-	app.state.db.Delete(prefixKey(key))
+	app.state.db.Remove(prefixKey(key))
 	app.state.Size--
 }
 
@@ -232,15 +235,16 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	newAppHashString := ""
 	for _, key := range app.state.UncommitKeys {
-		value := app.state.db.Get(prefixKey([]byte(key)))
+		_, value := app.state.db.Get(prefixKey([]byte(key)))
 		if value != nil {
 			newAppHashString += string(key) + string(value)
 		}
 	}
 	h := sha256.New()
 	if newAppHashString != "" {
-		dbStat := app.state.db.Stats()
-		newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
+		// dbStat := app.state.db.Stats()
+		// newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
+		newAppHashStr := app.state.CommitStr + newAppHashString
 		h.Write([]byte(newAppHashStr))
 		newAppHash := h.Sum(nil)
 		app.state.CommitStr = hex.EncodeToString(newAppHash)
@@ -274,7 +278,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	app.logger.Infof("Query: %s", method)
 
 	if method != "" {
-		return QueryRouter(method, param, app)
+		return QueryRouter(method, param, app, reqQuery.Height)
 	}
 	return ReturnQuery(nil, "method can't empty", app.state.Height, app)
 }

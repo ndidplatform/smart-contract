@@ -79,7 +79,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	existValue := app.state.db.Get(prefixKey([]byte(key)))
+	_, existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
 		return ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
@@ -96,7 +96,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -139,7 +139,7 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -183,7 +183,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")

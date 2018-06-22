@@ -85,21 +85,21 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 
 	key := "NodeID" + "|" + funcParam.NodeID
 	// check Duplicate Node ID
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
 
 	// check Duplicate Master Key
 	key = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists = app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
 	}
 
 	// check Duplicate Key
 	key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists = app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
 	}
@@ -145,7 +145,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 
 			// Save all IdP's nodeID for GetIdpNodes
 			idpsKey := "IdPList"
-			idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+			_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
 			var idpsList []string
 			if idpsValue != nil {
 				err := json.Unmarshal([]byte(idpsValue), &idpsList)
@@ -175,7 +175,7 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 
 	key := "AllNamespace"
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 	var namespaces []Namespace
 
@@ -210,7 +210,7 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	key := "AllNamespace"
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 	var namespaces []Namespace
 
@@ -247,7 +247,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 	}
 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
 	}
@@ -263,7 +263,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 
 	// Add detail to service directory
 	allServiceKey := "AllService"
-	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
 	var services []ServiceDetail
 
@@ -304,14 +304,14 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 	}
 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 
 	// Dekete detail in service directory
 	allServiceKey := "AllService"
-	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
 	var services []ServiceDetail
 
@@ -347,7 +347,7 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -380,7 +380,7 @@ func updateService(param string, app *DIDApplication, nodeID string) types.Respo
 	}
 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceValue == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -396,7 +396,7 @@ func updateService(param string, app *DIDApplication, nodeID string) types.Respo
 
 	// Update detail in service directory
 	allServiceKey := "AllService"
-	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
 	var services []ServiceDetail
 

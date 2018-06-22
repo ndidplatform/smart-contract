@@ -30,7 +30,7 @@ import (
 
 func writeBurnTokenReport(nodeID string, method string, price float64, data string, app *DIDApplication) error {
 	key := "SpendGas" + "|" + nodeID
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	newReport := Report{
 		method,
 		price,
@@ -60,7 +60,7 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 	return nil
 }
 
-func getUsedTokenReport(param string, app *DIDApplication) types.ResponseQuery {
+func getUsedTokenReport(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetUsedTokenReport, Parameter: %s", param)
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -68,7 +68,7 @@ func getUsedTokenReport(param string, app *DIDApplication) types.ResponseQuery {
 		return ReturnQuery(nil, err.Error(), app.state.Height, app)
 	}
 	key := "SpendGas" + "|" + funcParam.NodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		value = []byte("")
 		return ReturnQuery(value, "not found", app.state.Height, app)
