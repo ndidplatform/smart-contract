@@ -123,7 +123,7 @@ func (app *DIDApplication) DeleteStateDB(key []byte) {
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
-	res.LastBlockHeight = app.state.Height
+	res.LastBlockHeight = app.state.db.Version64()
 	res.LastBlockAppHash = app.state.AppHash
 	return res
 }
