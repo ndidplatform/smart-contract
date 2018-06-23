@@ -122,8 +122,6 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
 		}
 		app.state.db.Remove(key)
-		// app.state.db.Delete(key)
-		app.state.Size--
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
@@ -133,7 +131,6 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
 		app.state.db.Set(key, value.Bytes())
-		app.state.Size++
 	}
 
 	// we only update the changes array if we successfully updated the tree

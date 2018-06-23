@@ -65,13 +65,13 @@ func getUsedTokenReport(param string, app *DIDApplication, height int64) types.R
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	key := "SpendGas" + "|" + funcParam.NodeID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
 		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.Height, app)
+		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
+	return ReturnQuery(value, "success", app.state.db.Version64(), app)
 }
