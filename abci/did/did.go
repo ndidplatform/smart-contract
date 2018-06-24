@@ -77,7 +77,7 @@ func NewDIDApplication() *DIDApplication {
 	state.db = tree
 	return &DIDApplication{state: state,
 		logger:  logger,
-		Version: "0.0.1", // Hard code set version
+		Version: "0.1.0", // Hard code set version
 	}
 }
 
