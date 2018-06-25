@@ -273,6 +273,10 @@ var IsCheckOwnerRequestMethod = map[string]bool{
 	"SetDataReceived": true,
 }
 
+var IsMasterKeyMethod = map[string]bool{
+	"UpdateNode": true,
+}
+
 // CheckTxRouter is Pointer to function
 func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	funcs := map[string]interface{}{
@@ -331,6 +335,9 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	// special case checkIsOwnerRequest
 	if IsCheckOwnerRequestMethod[method] {
 		result = checkIsOwnerRequest(param, nodeID, app)
+	} else if IsMasterKeyMethod[method] {
+		// If verifyResult is true, return true
+		return ReturnCheckTx(true)
 	} else {
 		value, _ := callCheckTx(funcs, method, param, publicKey, app)
 		result = value[0].Interface().(types.ResponseCheckTx)

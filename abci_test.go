@@ -410,6 +410,34 @@ var asPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
 	S0ya4kkk1gex6wejZdIAfSEoxNWJd//t9ERfGdGQVOOPsLiiu/W+Ig==
 	-----END RSA PRIVATE KEY-----`
 
+var allMasterKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEAukTxVg8qpwXebALGCrlyiv8PNNxLo0CEX3N33cR1TNfImItd
+5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlCBayeMiMT8tDmOtv1RqIxyLjEU8M0
+RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNraI8YDfbjb9fNtSICiDzn3UcQj13iL
+z5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV+s6b3JdqU2zdHeuaj9XjX7aNV7mv
+njYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBOez6GqF2hZzqR9nM1K4aOedBMHint
+Vnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03XDQIDAQABAoIBAHOrRlaTun/XlCRs
+oICeYnPQKahAuLOa59jCQogzbEgYo5eey+PDRBKlJa0XpQGcMMyQnF9w1TRlBg64
+SS2fakFNzTsDL2sUsDOSzcBcDiBAJKKDUJyHsbE0pxdFDi9r7QaXcrtfRqkKFV1U
+zB0NsnKOjzJuLiGQVae1QW3FKEDcRBqjEtfGkxpSjGW+zvz23RhMIMfEgdezvtJM
+dl1j+u2scy39m1fZuc4bU3fOoppe5LxlqazkVu6WiwbE3dN6QfJhiR8nXMg2RHIh
+A5PuI+iqLmmiFW2uu9v4/8ISu/lMlwWU6rTJ0zX9ixO4aonpp6H7KCSmCmXOCM+E
+WtMmDGECgYEA9G0O2oYNP+ZN5hbv3w95clbfnIoRZPpBOD8H2jbGlXdowUqQL72m
+MfoFpq6VKYbDxPYzPfjZUoeta13bMgu3+4h+LehIR7uTjPvLTFH60Qr4z85RH6AF
+SeOIjYBfIaVo/W/7KH0ezVgPZNvq0SwZyv2TwVrkVtMRc6xK1fxC5rkCgYEAwxbo
+JS0XwodK5BX4hBh2MxI3r8lx2VZd6DzngwTz2mB3BwjPnqS3HVMOdYr5I4UJqQPn
+HTtRrEIIdynh81n5H5Qkw0DVzGVmpJSItsJBzr46grY9p0OZfYZyYmeV+N28JNEY
+QPqpFZSI2oyCn7km/2eqj2YYM75zjoBBrhP7SPUCgYEA2kzcy0aWZs+mGy25JpuH
+eBsms4SMbIcl4LpKpRXu3mc7ZAbYKAtVd6U5jti119TI3AyXT24FirQqqo20y0m0
+FC6foximFYruCSiJNayyOil2dwJpabldf9R7jQVt8Xrt/gwZYNv+up8/gHD5k7+z
+eZxobnRjIzh3ibwDSoJ2reECgYEAgKgWqI24YZ1/kjO7FMJdEQkumEstPbtrasDf
+nNQjTRzY4la5NVJDQJ+JpZLlAru1xzS/sdNw5T0XAB8q16W6WU0FgY68cHNe4aLj
+FkO9ym5Bf/pXZnt6OgH0ZVkS2nDApzcN26xy3bx7FEYdzt/4C+9919vokhdDdfK3
+XennihECgYEAo7gsAeulbJbeLDv4KntoRwl49n1YkO5yKza/icSASo/Qpk9n8Tr7
+0Tr4yud9RbBwpnMsuj0FBwS6xrED+sqRlhl4Hg6rdPcj8Jl9+WndcwLjDLdo0Xrc
+dEtsboiI40w8gQBC7GvFQ9ihmYQDOyhOlPLCmc4w2Yg2nkyfctJ9kcA=
+-----END RSA PRIVATE KEY-----`
+
 var userNamespace = "cid"
 var userID = "1234567890123"
 
@@ -454,7 +482,7 @@ func TestRegisterNodeRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	rpKey2 := getPrivateKeyFromString(rpPrivK2)
+	rpKey2 := getPrivateKeyFromString(allMasterKey)
 	rpPublicKeyBytes2, err := generatePublicKey(&rpKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -505,7 +533,7 @@ func TestRegisterNodeIDP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	idpKey2 := getPrivateKeyFromString(idpPrivK2)
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
 	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -554,7 +582,7 @@ func TestRegisterNodeAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	asKey2 := getPrivateKeyFromString(asPrivK2)
+	asKey2 := getPrivateKeyFromString(allMasterKey)
 	asPublicKeyBytes2, err := generatePublicKey(&asKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -645,7 +673,7 @@ func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	rpKey := getPrivateKeyFromString(rpPrivK2)
+	rpKey := getPrivateKeyFromString(allMasterKey)
 	rpPublicKeyBytes, err := generatePublicKey(&rpKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -2654,6 +2682,8 @@ func TestQueryGetIdpNodes2(t *testing.T) {
 
 func TestIdPUpdateNode(t *testing.T) {
 
+	masterIdPKey := getPrivateKeyFromString(allMasterKey)
+
 	idpKey2 := getPrivateKeyFromString(idpPrivK2)
 	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
 	if err != nil {
@@ -2680,7 +2710,7 @@ func TestIdPUpdateNode(t *testing.T) {
 	hashed := pssh.Sum(nil)
 
 	fnName := "UpdateNode"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey2, newhash, hashed)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, masterIdPKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
@@ -2797,7 +2827,7 @@ func TestQueryGetNodeInfo(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

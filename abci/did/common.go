@@ -459,17 +459,17 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 		if funcParam.MasterPublicKey != "" {
 
 			// set role old pubKey = ""
-			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.MasterPublicKey
-			_, value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
-			role := string(value)
-			publicKeyRoleValue := ""
-			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+			// publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.MasterPublicKey
+			// _, value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
+			// role := string(value)
+			// publicKeyRoleValue := ""
+			// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
-			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
-			// set role new pubKey
-			publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-			publicKeyRoleValue = role
-			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+			// nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+			// // set role new pubKey
+			// publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
+			// publicKeyRoleValue = role
+			// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 		}
 
 		// update PublicKey
