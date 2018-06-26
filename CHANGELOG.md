@@ -6,7 +6,7 @@ BREAKING CHANGES:
 - [Key/Value store] Remove key "NodePublicKeyRole"|<node’s public key> because allow to have duplicate key in network (unique only nodeID)
 
 BUG FIXES:
-- [DPKI] Fix can not update public key at second time
+- [DPKI] Fix when update public key with exist key in network and system set wrong role in stateDB
 
 ## 0.1.0 (June 24, 2018)
 
