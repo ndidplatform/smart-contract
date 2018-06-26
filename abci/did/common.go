@@ -457,36 +457,12 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 
 		// update MasterPublicKey
 		if funcParam.MasterPublicKey != "" {
-
-			// set role old pubKey = ""
-			// publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.MasterPublicKey
-			// _, value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
-			// role := string(value)
-			// publicKeyRoleValue := ""
-			// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
-
-			// nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
-			// // set role new pubKey
-			// publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-			// publicKeyRoleValue = role
-			// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
 		}
 
 		// update PublicKey
 		if funcParam.PublicKey != "" {
-
-			// set role old pubKey = ""
-			publicKeyRoleKey := "NodePublicKeyRole" + "|" + nodeDetail.PublicKey
-			_, value := app.state.db.Get(prefixKey([]byte(publicKeyRoleKey)))
-			role := string(value)
-			publicKeyRoleValue := ""
-			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
-
 			nodeDetail.PublicKey = funcParam.PublicKey
-			// set role new pubKey
-			publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-			publicKeyRoleValue = role
-			app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 		}
 
 		nodeDetailValue, err := json.Marshal(nodeDetail)
@@ -711,6 +687,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.MasterPublicKey = nodeDetail.MasterPublicKey
 		result.PublicKey = nodeDetail.PublicKey
 		result.NodeName = nodeDetail.NodeName
+		result.Role = nodeDetail.Role
 	}
 
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
@@ -725,9 +702,8 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.MaxAal = maxIalAal.MaxAal
 	}
 
-	publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
-	_, role := app.state.db.GetVersioned(prefixKey([]byte(publicKeyRoleKey)), height)
-	result.Role = string(role)
+	// publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
+	// _, role := app.state.db.GetVersioned(prefixKey([]byte(publicKeyRoleKey)), height)
 
 	value, err := json.Marshal(result)
 	if err != nil {

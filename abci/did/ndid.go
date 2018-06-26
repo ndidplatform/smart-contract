@@ -52,15 +52,16 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	value := []byte("MasterNDID")
-	app.SetStateDB([]byte(key), []byte(value))
+	// key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+	// value := []byte("MasterNDID")
+	// app.SetStateDB([]byte(key), []byte(value))
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	// TODO: fix param InitNDID
 	var nodeDetail = NodeDetail{
 		funcParam.PublicKey,
 		funcParam.PublicKey,
+		"NDID",
 		"NDID",
 	}
 	nodeDetailValue, err := json.Marshal(nodeDetail)
@@ -69,8 +70,8 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	}
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-	key = "MasterNDID"
-	value = []byte(funcParam.PublicKey)
+	key := "MasterNDID"
+	value := []byte(funcParam.PublicKey)
 	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -112,6 +113,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			funcParam.PublicKey,
 			funcParam.MasterPublicKey,
 			funcParam.NodeName,
+			funcParam.Role,
 		}
 		nodeDetailValue, err := json.Marshal(nodeDetail)
 		if err != nil {
@@ -125,9 +127,9 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
 		// Set Role
-		publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-		publicKeyRoleValue := funcParam.Role
-		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+		// publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		// publicKeyRoleValue := funcParam.Role
+		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
 		createTokenAccount(funcParam.NodeID, app)
 
