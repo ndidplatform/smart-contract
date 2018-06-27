@@ -255,8 +255,10 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 	}
 
 	// Add new service
-	var service = Service{
+	var service = ServiceDetail{
+		funcParam.ServiceID,
 		funcParam.ServiceName,
+		true,
 	}
 	serviceJSON, err := json.Marshal(service)
 	if err != nil {
@@ -285,6 +287,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 	newService := ServiceDetail{
 		funcParam.ServiceID,
 		funcParam.ServiceName,
+		true,
 	}
 	services = append(services, newService)
 	allServiceJSON, err := json.Marshal(services)
@@ -311,7 +314,7 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 
-	// Dekete detail in service directory
+	// Delete detail in service directory
 	allServiceKey := "AllService"
 	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
@@ -325,19 +328,32 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 
 		for index, service := range services {
 			if service.ServiceID == funcParam.ServiceID {
-				services = append(services[:index], services[index+1:]...)
+				services[index].Active = false
 				break
 			}
 		}
+
+		var service ServiceDetail
+		err = json.Unmarshal([]byte(chkExists), &service)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		service.Active = false
 
 		allServiceJSON, err := json.Marshal(services)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
+
+		serviceJSON, err := json.Marshal(service)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+
+		app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
 		app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
 	}
 
-	app.DeleteStateDB([]byte(serviceKey))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -387,7 +403,7 @@ func updateService(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Update service
-	var service Service
+	var service ServiceDetail
 	err = json.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

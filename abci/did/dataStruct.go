@@ -190,10 +190,6 @@ type RegisterServiceDestinationParam struct {
 	MinAal    float64 `json:"min_aal"`
 }
 
-type Service struct {
-	ServiceName string `json:"service_name"`
-}
-
 type GetServiceDetailParam struct {
 	ServiceID string `json:"service_id"`
 }
@@ -397,11 +393,8 @@ type SetDataReceivedParam struct {
 type ServiceDetail struct {
 	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
+	Active      bool   `json:"active"`
 }
-
-// type GetNodeInfoResult struct {
-// 	Version string `json:"version"`
-// }
 
 type CheckExistingAccessorIDParam struct {
 	AccessorID string `json:"accessor_id"`

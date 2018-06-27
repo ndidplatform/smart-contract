@@ -588,7 +588,24 @@ func getServiceList(param string, app *DIDApplication, height int64) types.Respo
 		}
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+
+	result := make([]ServiceDetail, 0)
+	// filter flag==true
+	var services []ServiceDetail
+	err := json.Unmarshal([]byte(value), &services)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	for _, service := range services {
+		if service.Active {
+			result = append(result, service)
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 }
 
 func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {

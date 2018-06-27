@@ -142,7 +142,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service Service
+	var service ServiceDetail
 	err = json.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -212,7 +212,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service Service
+	var service ServiceDetail
 	err = json.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

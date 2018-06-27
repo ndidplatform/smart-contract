@@ -823,7 +823,8 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "service_name": "Bank statement"
+  "service_name": "Bank statement",
+  "active": true
 }
 ```
 
@@ -893,7 +894,8 @@ log: "success"
 [
   {
     "service_id": "statement",
-    "service_name": "Bank statement"
+    "service_name": "Bank statement",
+    "active": true
   }
 ]
 ```
