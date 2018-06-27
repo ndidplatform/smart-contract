@@ -262,6 +262,34 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
+	// filter serive is active
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceValue != nil {
+		var service ServiceDetail
+		err = json.Unmarshal([]byte(serviceValue), &service)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		if service.Active == false {
+			var result GetAsNodesByServiceIdResult
+			result.Node = make([]ASNode, 0)
+			value, err := json.Marshal(result)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			return ReturnQuery(value, "service is not active", app.state.db.Version64(), app)
+		}
+	} else {
+		var result GetAsNodesByServiceIdResult
+		result.Node = make([]ASNode, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+	}
+
 	var storedData GetAsNodesByServiceIdResult
 	err = json.Unmarshal([]byte(value), &storedData)
 	if err != nil {
