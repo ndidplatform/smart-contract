@@ -70,5 +70,5 @@ const (
 	DataRequestIsCompleted          uint32 = 43
 	NotFirstIdP                     uint32 = 44
 	AccessorIDNotFound              uint32 = 45
-	NotOwnerOfAccessor              uint32 = 45
+	NotOwnerOfAccessor              uint32 = 46
 )
