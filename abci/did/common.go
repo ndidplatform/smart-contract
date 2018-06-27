@@ -559,6 +559,7 @@ func getAccessorKey(param string, app *DIDApplication, height int64) types.Respo
 		err = json.Unmarshal([]byte(value), &accessor)
 		if err == nil {
 			result.AccessorPublicKey = accessor.AccessorPublicKey
+			result.Active = accessor.Active
 		}
 	}
 

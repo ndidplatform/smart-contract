@@ -42,6 +42,7 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 		funcParam.AccessorType,
 		funcParam.AccessorPublicKey,
 		funcParam.AccessorGroupID,
+		true,
 	}
 
 	accessorJSON, err := json.Marshal(accessor)
@@ -157,6 +158,7 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		funcParam.AccessorType,
 		funcParam.AccessorPublicKey,
 		funcParam.AccessorGroupID,
+		true,
 	}
 
 	accessorJSON, err := json.Marshal(accessor)

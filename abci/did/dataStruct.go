@@ -346,6 +346,7 @@ type Accessor struct {
 	AccessorType      string `json:"accessor_type"`
 	AccessorPublicKey string `json:"accessor_public_key"`
 	AccessorGroupID   string `json:"accessor_group_id"`
+	Active            bool   `json:"active"`
 }
 
 type AccessorMethod struct {
@@ -378,6 +379,7 @@ type GetAccessorKeyParam struct {
 
 type GetAccessorKeyResult struct {
 	AccessorPublicKey string `json:"accessor_public_key"`
+	Active            bool   `json:"active"`
 }
 
 type SetValidatorParam struct {

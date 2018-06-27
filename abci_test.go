@@ -2608,13 +2608,9 @@ func TestQueryCheckExistingIdentity(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-type GetAccessorGroupIDParam struct {
-	AccessorID string `json:"accessor_id"`
-}
-
 func TestQueryGetAccessorGroupID(t *testing.T) {
 	fnName := "GetAccessorGroupID"
-	var param = GetAccessorGroupIDParam{
+	var param = did.GetAccessorGroupIDParam{
 		"accessor_id_2",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -2632,13 +2628,9 @@ func TestQueryGetAccessorGroupID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-type GetAccessorKeyParam struct {
-	AccessorID string `json:"accessor_id"`
-}
-
 func TestQueryGetAccessorKey(t *testing.T) {
 	fnName := "GetAccessorKey"
-	var param = GetAccessorKeyParam{
+	var param = did.GetAccessorGroupIDParam{
 		"accessor_id",
 	}
 	paramJSON, err := json.Marshal(param)
@@ -2649,7 +2641,7 @@ func TestQueryGetAccessorKey(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var expected = `{"accessor_public_key":"accessor_public_key"}`
+	var expected = `{"accessor_public_key":"accessor_public_key","active":true}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

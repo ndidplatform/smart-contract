@@ -866,7 +866,8 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "accessor_public_key": "accessor_public_key"
+  "accessor_public_key": "accessor_public_key",
+  "active": true
 }
 ```
 
