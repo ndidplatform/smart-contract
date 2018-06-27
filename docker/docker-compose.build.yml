@@ -7,7 +7,7 @@ services:
       labels:
         build.commit: ${BUILD_COMMIT}
         build.date: ${BUILD_DATE}
-    image: ndidplatform/tendermint:latest
+    image: ${REPO_NAME:-ndidplatform}/tendermint:${DOCKER_TAG:-latest}
   abci:
     build:
       context: ../
@@ -15,4 +15,4 @@ services:
       labels:
         build.commit: ${BUILD_COMMIT}
         build.date: ${BUILD_DATE}
-    image: ndidplatform/abci:latest
+    image: ${REPO_NAME:-ndidplatform}/abci:${DOCKER_TAG:-latest}
