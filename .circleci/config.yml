@@ -79,5 +79,8 @@ workflows:
     jobs:
       - build
       - push_to_docker_hub:
+          filters:
+            branches:
+              only: master
           requires:
             - build
