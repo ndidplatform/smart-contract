@@ -321,6 +321,7 @@ type RequestIDParam struct {
 type Namespace struct {
 	Namespace   string `json:"namespace"`
 	Description string `json:"description"`
+	Active      bool   `json:"active"`
 }
 
 type DeleteNamespaceParam struct {

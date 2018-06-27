@@ -2502,6 +2502,7 @@ func TestQueryGetNamespaceList(t *testing.T) {
 		did.Namespace{
 			"CID",
 			"Citizen ID",
+			true,
 		},
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {

@@ -878,7 +878,8 @@ log: "success"
 [
   {
     "namespace": "CID",
-    "description": "Citizen ID"
+    "description": "Citizen ID",
+    "active": true
   }
 ]
 ```

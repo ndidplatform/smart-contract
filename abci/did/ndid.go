@@ -199,6 +199,8 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 			}
 		}
 	}
+	// set active flag
+	funcParam.Active = true
 	namespaces = append(namespaces, funcParam)
 	value, err := json.Marshal(namespaces)
 	if err != nil {
@@ -229,7 +231,7 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 
 		for index, namespace := range namespaces {
 			if namespace.Namespace == funcParam.Namespace {
-				namespaces = append(namespaces[:index], namespaces[index+1:]...)
+				namespaces[index].Active = false
 				break
 			}
 		}

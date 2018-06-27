@@ -454,7 +454,24 @@ func getNamespaceList(param string, app *DIDApplication, height int64) types.Res
 		value = []byte("")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+
+	result := make([]Namespace, 0)
+	// filter flag==true
+	var namespaces []Namespace
+	err := json.Unmarshal([]byte(value), &namespaces)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	for _, namespace := range namespaces {
+		if namespace.Active {
+			result = append(result, namespace)
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 }
 
 func getServiceDetail(param string, app *DIDApplication, height int64) types.ResponseQuery {
