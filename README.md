@@ -575,6 +575,18 @@ log: "success"
 log: "success"
 ```
 
+## UnRegisterMsqDestination
+### Parameter
+```sh
+{
+  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

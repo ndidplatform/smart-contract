@@ -495,3 +495,7 @@ type UpdateServiceParam struct {
 	ServiceID   string `json:"service_id"`
 	ServiceName string `json:"service_name"`
 }
+
+type UnRegisterMsqDestinationParam struct {
+	HashID string `json:"hash_id"`
+}

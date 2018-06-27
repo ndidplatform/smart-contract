@@ -190,7 +190,8 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 							return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 						}
 						if maxIalAal.MaxIal >= funcParam.MinIal &&
-							maxIalAal.MaxAal >= funcParam.MinAal {
+							maxIalAal.MaxAal >= funcParam.MinAal &&
+							node.Active {
 							nodeName := getNodeNameByNodeID(node.NodeID, app)
 							var msqDesNode = MsqDestinationNode{
 								node.NodeID,
