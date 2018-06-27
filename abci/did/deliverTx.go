@@ -86,6 +86,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"UnAddAccessorMethod":              unAddAccessorMethod,
 		"RegisterServiceDestinationByNDID": registerServiceDestinationByNDID,
 		"UpdateServiceDestinationByNDID":   updateServiceDestinationByNDID,
+		"UnRegisterNode":                   unRegisterNode,
 	}
 
 	// ---- check authorization ----

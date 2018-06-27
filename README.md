@@ -628,6 +628,19 @@ log: "success"
 log: "success"
 ```
 
+## UnRegisterNode
+### Parameter
+Posible role is RP,IdP and AS
+```sh
+{
+  "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

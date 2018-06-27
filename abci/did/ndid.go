@@ -45,6 +45,7 @@ var isNDIDMethod = map[string]bool{
 	"UpdateService":                    true,
 	"RegisterServiceDestinationByNDID": true,
 	"UpdateServiceDestinationByNDID":   true,
+	"UnRegisterNode":                   true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -65,6 +66,7 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		funcParam.PublicKey,
 		"NDID",
 		"NDID",
+		true,
 	}
 	nodeDetailValue, err := json.Marshal(nodeDetail)
 	if err != nil {
@@ -116,6 +118,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			funcParam.MasterPublicKey,
 			funcParam.NodeName,
 			funcParam.Role,
+			true,
 		}
 		nodeDetailValue, err := json.Marshal(nodeDetail)
 		if err != nil {
@@ -574,4 +577,35 @@ func updateServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 	}
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func unRegisterNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UnRegisterNode, Parameter: %s", param)
+	var funcParam UnRegisterNodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+
+	if nodeDetailValue != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		nodeDetail.Active = false
+
+		nodeDetailValue, err := json.Marshal(nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+
+	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }

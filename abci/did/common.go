@@ -161,7 +161,19 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 							maxIalAal.MaxIal,
 							maxIalAal.MaxAal,
 						}
-						returnNodes.Node = append(returnNodes.Node, msqDesNode)
+						// filter node is active
+						nodeDetailKey := "NodeID" + "|" + idp
+						_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+						if nodeDetailValue != nil {
+							var nodeDetail NodeDetail
+							err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+							if err != nil {
+								return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+							}
+							if nodeDetail.Active {
+								returnNodes.Node = append(returnNodes.Node, msqDesNode)
+							}
+						}
 					}
 				}
 			}
@@ -199,8 +211,19 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 								maxIalAal.MaxIal,
 								maxIalAal.MaxAal,
 							}
-							returnNodes.Node = append(returnNodes.Node, msqDesNode)
-
+							// filter node is active
+							nodeDetailKey := "NodeID" + "|" + node.NodeID
+							_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+							if nodeDetailValue != nil {
+								var nodeDetail NodeDetail
+								err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+								if err != nil {
+									return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+								}
+								if nodeDetail.Active {
+									returnNodes.Node = append(returnNodes.Node, msqDesNode)
+								}
+							}
 						}
 					}
 				}
@@ -253,7 +276,20 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 			storedData.Node[index].MinIal,
 			storedData.Node[index].MinAal,
 		}
-		result.Node = append(result.Node, newRow)
+
+		// filter node is active
+		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].ID
+		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+		if nodeDetailValue != nil {
+			var nodeDetail NodeDetail
+			err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			if nodeDetail.Active {
+				result.Node = append(result.Node, newRow)
+			}
+		}
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {

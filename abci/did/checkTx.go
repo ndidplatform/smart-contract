@@ -319,6 +319,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"UnAddAccessorMethod":              checkIsIDP,
 		"RegisterServiceDestinationByNDID": checkIsNDID,
 		"UpdateServiceDestinationByNDID":   checkIsNDID,
+		"UnRegisterNode":                   checkIsNDID,
 	}
 
 	var publicKey string

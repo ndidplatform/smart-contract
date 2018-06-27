@@ -245,6 +245,7 @@ type NodeDetail struct {
 	MasterPublicKey string `json:"master_public_key"`
 	NodeName        string `json:"node_name"`
 	Role            string `json:"role"`
+	Active          bool   `json:"active"`
 }
 
 type MaxIalAal struct {
@@ -512,4 +513,8 @@ type UpdateServiceDestinationByNDIDParam struct {
 	NodeID    string  `json:"node_id"`
 	MinIal    float64 `json:"min_ial"`
 	MinAal    float64 `json:"min_aal"`
+}
+
+type UnRegisterNodeParam struct {
+	NodeID string `json:"node_id"`
 }
