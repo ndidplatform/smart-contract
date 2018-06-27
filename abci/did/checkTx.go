@@ -316,6 +316,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"UpdateServiceDestination":   checkIsAS,
 		"UpdateService":              checkIsNDID,
 		"UnRegisterMsqDestination":   checkIsIDP,
+		"UnAddAccessorMethod":        checkIsIDP,
 	}
 
 	var publicKey string

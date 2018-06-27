@@ -347,6 +347,7 @@ type Accessor struct {
 	AccessorPublicKey string `json:"accessor_public_key"`
 	AccessorGroupID   string `json:"accessor_group_id"`
 	Active            bool   `json:"active"`
+	Owner             string `json:"owner"`
 }
 
 type AccessorMethod struct {
@@ -500,4 +501,8 @@ type UpdateServiceParam struct {
 
 type UnRegisterMsqDestinationParam struct {
 	HashID string `json:"hash_id"`
+}
+
+type UnAddAccessorMethodParam struct {
+	AccessorID string `json:"accessor_id"`
 }

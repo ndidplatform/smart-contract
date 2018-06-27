@@ -83,6 +83,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"UpdateServiceDestination":   updateServiceDestination,
 		"UpdateService":              updateService,
 		"UnRegisterMsqDestination":   unRegisterMsqDestination,
+		"UnAddAccessorMethod":        unAddAccessorMethod,
 	}
 
 	// ---- check authorization ----

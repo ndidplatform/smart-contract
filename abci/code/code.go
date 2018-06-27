@@ -69,4 +69,6 @@ const (
 	ServiceDestinationNotFound      uint32 = 42
 	DataRequestIsCompleted          uint32 = 43
 	NotFirstIdP                     uint32 = 44
+	AccessorIDNotFound              uint32 = 45
+	NotOwnerOfAccessor              uint32 = 45
 )

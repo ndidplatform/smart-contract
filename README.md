@@ -579,13 +579,26 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
+  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba"
 }
 ```
 ### Expected Output
 ```sh
 log: "success"
 ```
+
+## UnAddAccessorMethod
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 
 # Query function
 
