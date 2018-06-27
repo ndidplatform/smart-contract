@@ -204,7 +204,13 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
-			newNode := Node{user.Ial, nodeID}
+			newNode := Node{
+				user.Ial,
+				nodeID,
+				true,
+				user.First,
+			}
+
 			// Check duplicate before add
 			chkDup := false
 			for _, node := range nodes {
@@ -230,7 +236,12 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 		} else {
 			var nodes []Node
-			newNode := Node{user.Ial, nodeID}
+			newNode := Node{
+				user.Ial,
+				nodeID,
+				true,
+				user.First,
+			}
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
 			if err != nil {

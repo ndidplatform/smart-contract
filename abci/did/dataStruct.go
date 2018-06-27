@@ -56,6 +56,8 @@ type RegisterMsqDestinationParam struct {
 type Node struct {
 	Ial    float64 `json:"ial"`
 	NodeID string  `json:"node_id"`
+	Active bool    `json:"active"`
+	First  bool    `json:"first"`
 }
 
 type MsqDestination struct {
