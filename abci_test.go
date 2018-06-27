@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package main
 
 import (
@@ -31,8 +53,9 @@ type ResponseTx struct {
 			Fee  struct{} `json:"fee"`
 		} `json:"check_tx"`
 		DeliverTx struct {
-			Log string   `json:"log"`
-			Fee struct{} `json:"fee"`
+			Log  string   `json:"log"`
+			Fee  struct{} `json:"fee"`
+			Tags []common.KVPair
 		} `json:"deliver_tx"`
 		Hash string `json:"hash"`
 	} `json:"result"`
@@ -86,7 +109,7 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
 
-func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, publicKey []byte) (interface{}, error) {
+func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
 	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
 	var path []byte
 	path = append(path, fnName...)
@@ -97,7 +120,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 	path = append(path, []byte("|")...)
 	path = append(path, []byte(signatureBase64)...)
 	path = append(path, []byte("|")...)
-	path = append(path, publicKey...)
+	path = append(path, nodeID...)
 
 	// fmt.Println(string(path))
 	pathBase64 := base64.StdEncoding.EncodeToString(path)
@@ -387,6 +410,90 @@ var asPrivK2 = `-----BEGIN RSA PRIVATE KEY-----
 	S0ya4kkk1gex6wejZdIAfSEoxNWJd//t9ERfGdGQVOOPsLiiu/W+Ig==
 	-----END RSA PRIVATE KEY-----`
 
+var allMasterKey = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpQIBAAKCAQEAukTxVg8qpwXebALGCrlyiv8PNNxLo0CEX3N33cR1TNfImItd
+5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlCBayeMiMT8tDmOtv1RqIxyLjEU8M0
+RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNraI8YDfbjb9fNtSICiDzn3UcQj13iL
+z5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV+s6b3JdqU2zdHeuaj9XjX7aNV7mv
+njYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBOez6GqF2hZzqR9nM1K4aOedBMHint
+Vnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03XDQIDAQABAoIBAHOrRlaTun/XlCRs
+oICeYnPQKahAuLOa59jCQogzbEgYo5eey+PDRBKlJa0XpQGcMMyQnF9w1TRlBg64
+SS2fakFNzTsDL2sUsDOSzcBcDiBAJKKDUJyHsbE0pxdFDi9r7QaXcrtfRqkKFV1U
+zB0NsnKOjzJuLiGQVae1QW3FKEDcRBqjEtfGkxpSjGW+zvz23RhMIMfEgdezvtJM
+dl1j+u2scy39m1fZuc4bU3fOoppe5LxlqazkVu6WiwbE3dN6QfJhiR8nXMg2RHIh
+A5PuI+iqLmmiFW2uu9v4/8ISu/lMlwWU6rTJ0zX9ixO4aonpp6H7KCSmCmXOCM+E
+WtMmDGECgYEA9G0O2oYNP+ZN5hbv3w95clbfnIoRZPpBOD8H2jbGlXdowUqQL72m
+MfoFpq6VKYbDxPYzPfjZUoeta13bMgu3+4h+LehIR7uTjPvLTFH60Qr4z85RH6AF
+SeOIjYBfIaVo/W/7KH0ezVgPZNvq0SwZyv2TwVrkVtMRc6xK1fxC5rkCgYEAwxbo
+JS0XwodK5BX4hBh2MxI3r8lx2VZd6DzngwTz2mB3BwjPnqS3HVMOdYr5I4UJqQPn
+HTtRrEIIdynh81n5H5Qkw0DVzGVmpJSItsJBzr46grY9p0OZfYZyYmeV+N28JNEY
+QPqpFZSI2oyCn7km/2eqj2YYM75zjoBBrhP7SPUCgYEA2kzcy0aWZs+mGy25JpuH
+eBsms4SMbIcl4LpKpRXu3mc7ZAbYKAtVd6U5jti119TI3AyXT24FirQqqo20y0m0
+FC6foximFYruCSiJNayyOil2dwJpabldf9R7jQVt8Xrt/gwZYNv+up8/gHD5k7+z
+eZxobnRjIzh3ibwDSoJ2reECgYEAgKgWqI24YZ1/kjO7FMJdEQkumEstPbtrasDf
+nNQjTRzY4la5NVJDQJ+JpZLlAru1xzS/sdNw5T0XAB8q16W6WU0FgY68cHNe4aLj
+FkO9ym5Bf/pXZnt6OgH0ZVkS2nDApzcN26xy3bx7FEYdzt/4C+9919vokhdDdfK3
+XennihECgYEAo7gsAeulbJbeLDv4KntoRwl49n1YkO5yKza/icSASo/Qpk9n8Tr7
+0Tr4yud9RbBwpnMsuj0FBwS6xrED+sqRlhl4Hg6rdPcj8Jl9+WndcwLjDLdo0Xrc
+dEtsboiI40w8gQBC7GvFQ9ihmYQDOyhOlPLCmc4w2Yg2nkyfctJ9kcA=
+-----END RSA PRIVATE KEY-----`
+
+var idpPrivK4 = `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEApbxaA5aKnkpnV7+dMW5x7iEINouvjhQ8gl6+8A6ApiVbYIzJ
+CCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaHOk1FfX6tk5i5uGWifRQHueXhXjR8
+HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7XHdh9Mqz+XAkq4T6vtdaocduarNG6
+ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3THkM9noP2AYEH2MBHCzuu+bifCwur
+OBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jdAmbbqMyGpAsF+WjW4V2rcTMFZOoY
+FYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP2wIDAQABAoIBAHnL21K7tQ7ymtOP
+i1OiWLOpLsH3EYKWOImOWz9LSRvQZECl9a65wwA5g69pNoN7s/Z39cVH73X6VNYh
+EIFrUqFz29eH2sOW/xUWC71jlPH2kBKM+5DkF0DPluGfdsH/PcotCA5FvA1c5hK6
+eHr2cJwMVqWBIEQ+sHZrfPFi2NMiYl7RB0gxwt+CY6ezDUY7TOqdx/3UIDXQa9nA
+PQ2GvV8cfKQfLl3rfsoF2ObO+fs6Kmsp3aYJxRVu8aaD+UKS+ljPsD+/IYGa/8Z1
+ixXVSHscDrIfRR7LmYDXtOal1pwo0gdErNAMivPXwY1XZ03iHTm7pihhTFd86jDs
+9nLRjUECgYEA2jC3sPHDLEeXn8tVMj8B5VBSdFi+H5tyzJbR5ef0QAl7vslbi5sq
+MGXtFhRMDjeTwLBAa5YMnYhqHV53GB2zK95+FJeQy1rfSQsxZwIFL0L4wySP19EI
+aXaUpPDgdRKS1SC05auiQp5PE2AxmIHfBc77HDE8iU5SiS2TOKFf+isCgYEAwnSp
+0Pa/lkHqfEqe6I56Zoi28eUGwjVWc/USdNsM8sfCja49UCryHHHljm1PfgFX4IFy
+Kzupm7l1cHQsFI3o1VYWxo/DvXKJ6NjGZLvhbWMLsAaMptcWrkMZ/NDDThuyg9hg
+QE3cvNYUk2eoy4PKcyqPeXggYd7Ue54EO+scmRECgYBya5no8N+pGOIqqjbDYsdb
+ugODgAY0DRDmuTDZoAo2isKaCn43d+dn+guayIoZ6otRQRyHTujOs/rx69gIjYqo
+NsVnhxQnkEAHzhbaLfUKE9TggQvt4XDH3aeV17vdqR/XJI+44Yj15o8RWiCoGXMb
+WK/W2PsmBizCQ2QxDm+GgQKBgEicd6zn9rKM+ppe4ufEDECtXGMHOnbao+W45aNt
+CHC/1w5AufRtlOq6PRXqC3zp036p14/9P2A+6HONbchfFUpUUzziAh2D36trBuom
+ng7SpVKdn3fNaVK5C8Mz0TohbY9+BLL+YCbDafuBAa69D6PhiKG7EZx6MK3YW4xk
+RtGBAoGBAMMb1JaB7GF7Yia/8K98PCUeIYOKiPL2XVo0Vpf8z59cytvo/l3VAXXe
+tMtaNcpcjJxooc3p9fVlZrU39Zs2fwL53qwlrsIhDFcGWwSCZB6Bcec+LD+MSTr+
+rdDFuWTHd+msuASyCbJ2vX3SwnL7g/vapR24umMI6lrJqFGu2aSF
+-----END RSA PRIVATE KEY-----`
+
+var idpPrivK5 = `-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAu9+CK/vznpXtAUC0QhuJgYKCfMMBiIgVcp2A+e+SsKvv6ESQ
+72R8K6nQAhH2MGtnj3ScLI0tMwCtgotWCEGiyUXKXLVTiqAqtwflCUVuxCDVuvOm
+3GQCxvwzE34jEgbGZ33G3tV7uKTtifhoJzVYD+WkZVslBhaBgQCUewCX4zkCCTYC
+5VEhkr7K8HGEr6n1eBOO5VORCkrHKYoZK7euNjyWvWYyVN07F8K0RhgIF9Xsa6Ti
+u1Yf8zuyJ/awR6U4Nw+oTkvRpx64+caBNYgR4n8peg9ZJeTAwV49o1ymx34pPjHU
+gSdpyhZX4i3z9ji+o7KbNkA/O0l+3doMuH1exwIDAQABAoIBAGyLLcILxy0QoeXf
+ZEXtcvyIUquSXwhq1zlpFmNQrwezzt/6/WHSRItViQApMHu5EhQn4zM6PasB8T1D
+E2mhwlNXJxt5B9NHxmYJAaLhoqVd8x4YN4eNoK0meLwCXHDFyUtxt7x2ywxa/YKB
+Kmu8viwxGVIV3sYtqpTFqQOHzDlScRLv+qsgXw4OimjOTtvz1Gas7MnGnSweTYOo
+6CAs3daORZ+tWwvwnAwjVIJItYC3T1hOOLJHkiB47EcKONjmt5jjy1Qvx7QRjK2c
+/WOjGsO2tTAqfSW0jiEnybHTBqEqEKyufkDHKaChtur8sq5FFKdRaxnqKAfnQE3e
+NaIMosECgYEA3lHLQT3kNUJk7UzxaBTlfmyaUG7pI4teFiPOCm6NQwQyiatPWSkt
+Bo6uZ54r0Om2N6gPGl5rNC9M9njq0vPyOAKg2HT1E4LeoGPonEu65wiRdclLbtkW
+NId7DYEtTCBI/imfncwSnMtLPTbnlZCCjQZljcuCk6A4hJ0SnxOS7FMCgYEA2FXH
+zfcTt3rvTwMfrK44lxotOftlWbwu4nIjZQ57E+2JIV4eBg4hoOV3YoYVDb0nqBwk
+5MGFJqrQoL9/1KbV/hkYZ4NDaCtT1U4iZ168rmbtQ1tO1QrA5D5IXjS0khC6syzO
+716qZI1Y+xqQbnEEjEpzYnmwFL1PH6XFnqV+1T0CgYEArkV1y92lPy6diPrwnYML
+5s9hI73dWXSNO1Oz1q+UYj0vFIXKPH0vg11jT2xIsooRwY0m0afD53NQpEBi6xw4
++jjtNuBvoGzM8POASsx+ZU5tH+S8EddwNZsiFZL2HB+OuFWOfpaS3H/rqb+ZR7+w
+5rVl9AHciLZmt2WdTD9+w2sCgYEAqXwK3UIFIGofsjcwSYj0rOzFIffinzrfQGlL
+cZC2vBYMqSejPfs0PWmI7pc9R1Y6C2qBPPaf6ntIl6dv7poGbNwcUnx0AthvBV4B
+dhqyl6/rkimmySFznV1uNN/117lji5w/QylXNQ/H9nIJVX0VoxNw8mWDnbvykUi+
+Wlwt0cECgYA9jlWS+rLppVflVTA4CAMNfXt8qyjDc3Wl3HUB0rgApRXbkMQb875U
+6czVLqkWbRiIabfPXYrJRaTjG8thQuquzpaS6+U/ed6t0vUJuxTXkmj1HS3a/dJT
+VTVj/BlsFEVvTc0wuiA3mwlgNirRI1UH0GYWlk22hUF3MpMF46SAVQ==
+-----END RSA PRIVATE KEY-----`
+
 var userNamespace = "cid"
 var userID = "1234567890123"
 
@@ -431,7 +538,7 @@ func TestRegisterNodeRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	rpKey2 := getPrivateKeyFromString(rpPrivK2)
+	rpKey2 := getPrivateKeyFromString(allMasterKey)
 	rpPublicKeyBytes2, err := generatePublicKey(&rpKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -464,6 +571,10 @@ func TestRegisterNodeRP(t *testing.T) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
+	// for _, item := range resultObj.Result.DeliverTx.Tags {
+	// 	fmt.Println(string(item.Key))
+	// 	fmt.Println(string(item.Value))
+	// }
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -478,7 +589,7 @@ func TestRegisterNodeIDP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	idpKey2 := getPrivateKeyFromString(idpPrivK2)
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
 	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -527,7 +638,7 @@ func TestRegisterNodeAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	asKey2 := getPrivateKeyFromString(asPrivK2)
+	asKey2 := getPrivateKeyFromString(allMasterKey)
 	asPublicKeyBytes2, err := generatePublicKey(&asKey2.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -618,7 +729,7 @@ func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	rpKey := getPrivateKeyFromString(rpPrivK2)
+	rpKey := getPrivateKeyFromString(allMasterKey)
 	rpPublicKeyBytes, err := generatePublicKey(&rpKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -1187,7 +1298,6 @@ func TestQueryGetMsqAddress(t *testing.T) {
 func TestASRegisterServiceDestination(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
 		"statement",
-		"AS1",
 		1.1,
 		1.2,
 	}
@@ -1219,6 +1329,73 @@ func TestASRegisterServiceDestination(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestASRegisterServiceDestination2(t *testing.T) {
+	var param = did.RegisterServiceDestinationParam{
+		"statement",
+		1.1,
+		1.2,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Duplicate node ID"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestNDIDUpdateService(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.UpdateServiceParam{
+		"statement",
+		"Bank statement (ย้อนหลัง 3 เดือน)",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateService"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetServiceDetail(t *testing.T) {
 	fnName := "GetServiceDetail"
 	var param = did.GetServiceDetailParam{
@@ -1237,9 +1414,43 @@ func TestQueryGetServiceDetail(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var expected = did.Service{
-		"Bank statement",
+		"Bank statement (ย้อนหลัง 3 เดือน)",
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASUpdateServiceDestination(t *testing.T) {
+	var param = did.UpdateServiceDestinationParam{
+		"statement",
+		1.4,
+		1.5,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
@@ -1262,7 +1473,7 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.1,"min_aal":1.2}]}`
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -1478,6 +1689,40 @@ func TestASSignData(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestASSignData2(t *testing.T) {
+	var param = did.SignDataParam{
+		"statement",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"sign(data,asKey)",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SignData"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Duplicate AS ID in answered AS list"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestRPSetDataReceived(t *testing.T) {
 
 	var param = did.SetDataReceivedParam{
@@ -1506,6 +1751,41 @@ func TestRPSetDataReceived(t *testing.T) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRPSetDataReceived2(t *testing.T) {
+
+	var param = did.SetDataReceivedParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		"statement",
+		"AS1",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	rpKey := getPrivateKeyFromString(rpPrivK)
+	rpNodeID := []byte("RP1")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetDataReceived"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, rpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, rpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Duplicate AS ID in data request"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -1769,7 +2049,7 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 
-	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
 	var expected []Report
 	json.Unmarshal([]byte(expectedString), &expected)
 
@@ -2458,6 +2738,8 @@ func TestQueryGetIdpNodes2(t *testing.T) {
 
 func TestIdPUpdateNode(t *testing.T) {
 
+	masterIdPKey := getPrivateKeyFromString(allMasterKey)
+
 	idpKey2 := getPrivateKeyFromString(idpPrivK2)
 	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
 	if err != nil {
@@ -2484,7 +2766,7 @@ func TestIdPUpdateNode(t *testing.T) {
 	hashed := pssh.Sum(nil)
 
 	fnName := "UpdateNode"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey2, newhash, hashed)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, masterIdPKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
@@ -2548,7 +2830,7 @@ func TestQueryGetServiceList(t *testing.T) {
 	var expected = []did.ServiceDetail{
 		did.ServiceDetail{
 			"statement",
-			"Bank statement",
+			"Bank statement (ย้อนหลัง 3 เดือน)",
 		},
 	}
 	if actual := res; !reflect.DeepEqual(actual, expected) {
@@ -2601,7 +2883,7 @@ func TestQueryGetNodeInfo(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -2724,3 +3006,285 @@ func TestQueryGetDataSignature(t *testing.T) {
 }
 
 // TODO add more test about DPKI
+
+func TestRegisterNodeIDP4(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK4)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param did.RegisterNode
+	param.NodeID = "IdP4"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes2)
+	param.NodeName = "IdP Number 4 from ..."
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := []byte("NDID")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRegisterNodeIDP5(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param did.RegisterNode
+	param.NodeID = "IdP5"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes2)
+	param.NodeName = "IdP Number 5 from ..."
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := []byte("NDID")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestSetNodeTokenIDP4(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.SetNodeTokenParam{
+		"IdP4",
+		100.0,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestSetNodeTokenIDP5(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.SetNodeTokenParam{
+		"IdP5",
+		100.0,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPUpdateNode4(t *testing.T) {
+
+	masterIdPKey := getPrivateKeyFromString(allMasterKey)
+
+	idpKey2 := getPrivateKeyFromString(idpPrivK5)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param = did.UpdateNodeParam{
+		string(idpPublicKeyBytes2),
+		"",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	idpNodeID := []byte("IdP4")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, masterIdPKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdPUpdateNode5(t *testing.T) {
+
+	masterIdPKey := getPrivateKeyFromString(allMasterKey)
+
+	idpKey2 := getPrivateKeyFromString(idpPrivK4)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param = did.UpdateNodeParam{
+		string(idpPublicKeyBytes2),
+		string(idpPublicKeyBytes2),
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	idpNodeID := []byte("IdP5")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, masterIdPKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeInfoIdP4(t *testing.T) {
+	fnName := "GetNodeInfo"
+	var param did.GetNodeInfoParam
+	param.NodeID = "IdP4"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9+CK/vznpXtAUC0QhuJ\ngYKCfMMBiIgVcp2A+e+SsKvv6ESQ72R8K6nQAhH2MGtnj3ScLI0tMwCtgotWCEGi\nyUXKXLVTiqAqtwflCUVuxCDVuvOm3GQCxvwzE34jEgbGZ33G3tV7uKTtifhoJzVY\nD+WkZVslBhaBgQCUewCX4zkCCTYC5VEhkr7K8HGEr6n1eBOO5VORCkrHKYoZK7eu\nNjyWvWYyVN07F8K0RhgIF9Xsa6Tiu1Yf8zuyJ/awR6U4Nw+oTkvRpx64+caBNYgR\n4n8peg9ZJeTAwV49o1ymx34pPjHUgSdpyhZX4i3z9ji+o7KbNkA/O0l+3doMuH1e\nxwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 4 from ...","role":"IdP","max_ial":3,"max_aal":3}`)
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeInfoIdP5(t *testing.T) {
+	fnName := "GetNodeInfo"
+	var param did.GetNodeInfoParam
+	param.NodeID = "IdP5"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 5 from ...","role":"IdP","max_ial":3,"max_aal":3}`)
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

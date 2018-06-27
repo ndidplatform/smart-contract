@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -20,6 +42,7 @@ var isNDIDMethod = map[string]bool{
 	"AddService":       true,
 	"DeleteService":    true,
 	"UpdateNodeByNDID": true,
+	"UpdateService":    true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -29,15 +52,16 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	value := []byte("MasterNDID")
-	app.SetStateDB([]byte(key), []byte(value))
+	// key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+	// value := []byte("MasterNDID")
+	// app.SetStateDB([]byte(key), []byte(value))
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	// TODO: fix param InitNDID
 	var nodeDetail = NodeDetail{
 		funcParam.PublicKey,
 		funcParam.PublicKey,
+		"NDID",
 		"NDID",
 	}
 	nodeDetailValue, err := json.Marshal(nodeDetail)
@@ -46,8 +70,8 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	}
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-	key = "MasterNDID"
-	value = []byte(funcParam.PublicKey)
+	key := "MasterNDID"
+	value := []byte(funcParam.PublicKey)
 	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -62,21 +86,21 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 
 	key := "NodeID" + "|" + funcParam.NodeID
 	// check Duplicate Node ID
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
 
 	// check Duplicate Master Key
-	key = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-	chkExists = app.state.db.Get(prefixKey([]byte(key)))
-	if chkExists != nil {
-		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
-	}
+	// key = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
+	// _, chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	// if chkExists != nil {
+	// 	return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
+	// }
 
 	// check Duplicate Key
 	key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	chkExists = app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists = app.state.db.Get(prefixKey([]byte(key)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
 	}
@@ -89,6 +113,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			funcParam.PublicKey,
 			funcParam.MasterPublicKey,
 			funcParam.NodeName,
+			funcParam.Role,
 		}
 		nodeDetailValue, err := json.Marshal(nodeDetail)
 		if err != nil {
@@ -97,14 +122,14 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
 		// Set master Role
-		publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-		publicKeyRoleValue := "Master" + funcParam.Role
-		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+		// publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
+		// publicKeyRoleValue := "Master" + funcParam.Role
+		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
 		// Set Role
-		publicKeyRoleKey = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-		publicKeyRoleValue = funcParam.Role
-		app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
+		// publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
+		// publicKeyRoleValue := funcParam.Role
+		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
 		createTokenAccount(funcParam.NodeID, app)
 
@@ -122,7 +147,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 
 			// Save all IdP's nodeID for GetIdpNodes
 			idpsKey := "IdPList"
-			idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+			_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
 			var idpsList []string
 			if idpsValue != nil {
 				err := json.Unmarshal([]byte(idpsValue), &idpsList)
@@ -152,7 +177,7 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 
 	key := "AllNamespace"
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 	var namespaces []Namespace
 
@@ -187,7 +212,7 @@ func deleteNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	key := "AllNamespace"
-	chkExists := app.state.db.Get(prefixKey([]byte(key)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 	var namespaces []Namespace
 
@@ -224,7 +249,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 	}
 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists != nil {
 		return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
 	}
@@ -240,7 +265,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 
 	// Add detail to service directory
 	allServiceKey := "AllService"
-	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
 	var services []ServiceDetail
 
@@ -250,7 +275,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
-		// Check duplicate namespace
+		// Check duplicate service
 		for _, service := range services {
 			if service.ServiceID == funcParam.ServiceID {
 				return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
@@ -281,14 +306,14 @@ func deleteService(param string, app *DIDApplication, nodeID string) types.Respo
 	}
 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if chkExists == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 
 	// Dekete detail in service directory
 	allServiceKey := "AllService"
-	allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
 
 	var services []ServiceDetail
 
@@ -324,7 +349,7 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-	maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
 		var maxIalAal MaxIalAal
 		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
@@ -346,4 +371,64 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
 	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+}
+
+func updateService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateService, Parameter: %s", param)
+	var funcParam UpdateServiceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceValue == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	// Update service
+	var service Service
+	err = json.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if funcParam.ServiceName != "" {
+		service.ServiceName = funcParam.ServiceName
+	}
+
+	// Update detail in service directory
+	allServiceKey := "AllService"
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+
+	var services []ServiceDetail
+
+	if allServiceValue != nil {
+		err = json.Unmarshal([]byte(allServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		// Update service
+		for index, service := range services {
+			if service.ServiceID == funcParam.ServiceID {
+				if funcParam.ServiceName != "" {
+					services[index].ServiceName = funcParam.ServiceName
+				}
+			}
+		}
+	}
+
+	serviceJSON, err := json.Marshal(service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	allServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
+	app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }

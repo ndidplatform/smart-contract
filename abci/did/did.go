@@ -1,16 +1,38 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
-	"encoding/json"
+	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/abci/types"
+	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tmlibs/db"
 )
 
@@ -20,33 +42,7 @@ var (
 )
 
 type State struct {
-	db           dbm.DB
-	Size         int64    `json:"size"`
-	Height       int64    `json:"height"`
-	AppHash      []byte   `json:"app_hash"`
-	UncommitKeys []string `json:"uncommit_keys"`
-	CommitStr    string   `json:"commit_str"`
-}
-
-func loadState(db dbm.DB) State {
-	stateBytes := db.Get(stateKey)
-	var state State
-	if len(stateBytes) != 0 {
-		err := json.Unmarshal(stateBytes, &state)
-		if err != nil {
-			panic(err)
-		}
-	}
-	state.db = db
-	return state
-}
-
-func saveState(state State) {
-	stateBytes, err := json.Marshal(state)
-	if err != nil {
-		panic(err)
-	}
-	state.db.Set(stateKey, stateBytes)
+	db *iavl.VersionedTree
 }
 
 func prefixKey(key []byte) []byte {
@@ -64,40 +60,40 @@ type DIDApplication struct {
 }
 
 func NewDIDApplication() *DIDApplication {
-
+	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Errorf("%s", identifyPanic())
+			panic(r)
+		}
+	}()
+	logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
-
 	name := "didDB"
-	db, err := dbm.NewGoLevelDB(name, dbDir)
-	if err != nil {
-		panic(err)
-	}
-
-	state := loadState(db)
+	db := dbm.NewDB(name, "leveldb", dbDir)
+	tree := iavl.NewVersionedTree(db, 0)
+	tree.Load()
+	var state State
+	state.db = tree
 	return &DIDApplication{state: state,
-		logger:  logrus.WithFields(logrus.Fields{"module": "abci-app"}),
-		Version: "0.0.1", // Hard code set version
+		logger:  logger,
+		Version: "0.1.1", // Hard code set version
 	}
 }
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
-	if string(key) != "stateKey" {
-		app.state.UncommitKeys = append(app.state.UncommitKeys, string(key))
-	}
 	app.state.db.Set(prefixKey(key), value)
-	app.state.Size++
 }
 
 func (app *DIDApplication) DeleteStateDB(key []byte) {
-	app.state.db.Delete(prefixKey(key))
-	app.state.Size--
+	app.state.db.Remove(prefixKey(key))
 }
 
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
-	res.LastBlockHeight = app.state.Height
-	res.LastBlockAppHash = app.state.AppHash
+	res.LastBlockHeight = app.state.db.Version64()
+	res.LastBlockAppHash = app.state.db.Hash()
 	return res
 }
 
@@ -130,7 +126,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
 		}
 	}()
@@ -168,7 +164,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnCheckTx(false)
 		}
 	}()
@@ -204,26 +200,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
-	newAppHashString := ""
-	for _, key := range app.state.UncommitKeys {
-		value := app.state.db.Get(prefixKey([]byte(key)))
-		if value != nil {
-			newAppHashString += string(key) + string(value)
-		}
-	}
-	h := sha256.New()
-	if newAppHashString != "" {
-		dbStat := app.state.db.Stats()
-		newAppHashStr := app.state.CommitStr + newAppHashString + dbStat["database.size"]
-		h.Write([]byte(newAppHashStr))
-		newAppHash := h.Sum(nil)
-		app.state.CommitStr = hex.EncodeToString(newAppHash)
-	}
-	app.state.AppHash = []byte(app.state.CommitStr)
-	app.state.Height++
-	saveState(app.state)
-	app.state.UncommitKeys = nil
-	return types.ResponseCommit{Data: app.state.AppHash}
+	app.state.db.SaveVersion()
+	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
@@ -231,14 +209,14 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Error("Recovered in f", r)
-			res = ReturnQuery(nil, "wrong query format", app.state.Height, app)
+			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
+			res = ReturnQuery(nil, "wrong query format", app.state.db.Version64(), app)
 		}
 	}()
 
 	txString, err := base64.StdEncoding.DecodeString(string(reqQuery.Data))
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	parts := strings.Split(string(txString), "|")
 
@@ -247,10 +225,15 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	app.logger.Infof("Query: %s", method)
 
-	if method != "" {
-		return QueryRouter(method, param, app)
+	height := reqQuery.Height
+	if height == 0 {
+		height = app.state.db.Version64()
 	}
-	return ReturnQuery(nil, "method can't empty", app.state.Height, app)
+
+	if method != "" {
+		return QueryRouter(method, param, app, height)
+	}
+	return ReturnQuery(nil, "method can't empty", app.state.db.Version64(), app)
 }
 
 func getEnv(key, defaultValue string) string {
@@ -259,4 +242,32 @@ func getEnv(key, defaultValue string) string {
 		value = defaultValue
 	}
 	return value
+}
+
+func identifyPanic() string {
+	var name, file string
+	var line int
+	var pc [16]uintptr
+
+	n := runtime.Callers(3, pc[:])
+	for _, pc := range pc[:n] {
+		fn := runtime.FuncForPC(pc)
+		if fn == nil {
+			continue
+		}
+		file, line = fn.FileLine(pc)
+		name = fn.Name()
+		if !strings.HasPrefix(name, "runtime.") {
+			break
+		}
+	}
+
+	switch {
+	case name != "":
+		return fmt.Sprintf("%v:%v", name, line)
+	case file != "":
+		return fmt.Sprintf("%v:%v", file, line)
+	}
+
+	return fmt.Sprintf("pc:%x", pc)
 }

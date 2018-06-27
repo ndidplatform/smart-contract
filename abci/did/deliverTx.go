@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -6,14 +28,26 @@ import (
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/abci/types"
+	cmn "github.com/tendermint/tmlibs/common"
 )
 
 // ReturnDeliverTxLog return types.ResponseDeliverTx
 func ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
+	var tags []cmn.KVPair
+	if code == 0 {
+		tags = []cmn.KVPair{
+			{[]byte("success"), []byte("true")},
+		}
+	} else {
+		tags = []cmn.KVPair{
+			{[]byte("success"), []byte("false")},
+		}
+	}
 	return types.ResponseDeliverTx{
 		Code: code,
 		Log:  fmt.Sprintf(log),
 		Data: []byte(extraData),
+		Tags: tags,
 	}
 }
 
@@ -46,6 +80,8 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"UpdateNodeByNDID":           updateNodeByNDID,
 		"UpdateIdentity":             updateIdentity,
 		"DeclareIdentityProof":       declareIdentityProof,
+		"UpdateServiceDestination":   updateServiceDestination,
+		"UpdateService":              updateService,
 	}
 
 	// ---- check authorization ----

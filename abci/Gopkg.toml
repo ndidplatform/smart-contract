@@ -40,6 +40,10 @@
   name = "github.com/sirupsen/logrus"
   version = "1.0.5"
 
+[[constraint]]
+  name = "github.com/tendermint/iavl"
+  version = "0.8.0-rc0"
+  
 [prune]
   go-tests = true
   unused-packages = true

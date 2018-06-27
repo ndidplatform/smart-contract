@@ -99,7 +99,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46001
+    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint
@@ -129,8 +129,8 @@ docker-compose -f docker/docker-compose.yml up
 
 ### Note
 
-* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/mart-contract/).
-* To pull latest image from Dockerhub, run `docker pull ndidplatform/smart-contract`
+* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/).
+* To pull latest image from Dockerhub, run `docker pull ndidplatform/abci`
     
 ## IMPORTANT NOTE
 
@@ -548,6 +548,33 @@ log: "success"
 log: "success"
 ```
 
+## UpdateServiceDestination
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "min_ial": 1.4,
+  "min_aal": 1.5
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## UpdateService
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
@@ -592,13 +619,13 @@ log: "success"
 {
   "node": [
     {
-      "id": "IdP1",
+      "node_id": "IdP1",
       "name": "IdP Number 1 from ...",
       "max_ial": 3,
       "max_aal": 3
     },
     {
-      "id": "IdP2",
+      "node_id": "IdP2",
       "name": "",
       "max_ial": 3,
       "max_aal": 3
@@ -619,7 +646,7 @@ log: "success"
 {
   "node": [
     {
-      "id": "AS1",
+      "node_id": "AS1",
       "name": "AS1",
       "min_ial": 1.1,
       "min_aal": 1.2,

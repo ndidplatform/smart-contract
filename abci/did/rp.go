@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -39,6 +61,17 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
 	}
 
+	// check duplicate service ID in Data Request
+	serviceIDCount := make(map[string]int)
+	for _, dataRequest := range request.DataRequestList {
+		serviceIDCount[dataRequest.ServiceID]++
+	}
+	for _, count := range serviceIDCount {
+		if count > 1 {
+			return ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
+		}
+	}
+
 	key := "Request" + "|" + request.RequestID
 
 	value, err := json.Marshal(request)
@@ -46,7 +79,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	existValue := app.state.db.Get(prefixKey([]byte(key)))
+	_, existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
 		return ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
@@ -63,7 +96,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -106,7 +139,7 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -150,7 +183,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -176,6 +209,22 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	}
 	if exist == false {
 		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
+	}
+
+	// Check Duplicate AS ID
+	duplicate := false
+	for _, dataRequest := range request.DataRequestList {
+		if dataRequest.ServiceID == funcParam.ServiceID {
+			for _, as := range dataRequest.ReceivedDataFromList {
+				if as == funcParam.AsID {
+					duplicate = true
+					break
+				}
+			}
+		}
+	}
+	if duplicate == true {
+		return ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
 	}
 
 	// Update received_data_from_list in request

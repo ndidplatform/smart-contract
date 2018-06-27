@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -14,18 +36,18 @@ import (
 	"github.com/tendermint/abci/types"
 )
 
-func checkTxInitNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
+func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	key := "MasterNDID"
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
 }
 
-func checkIsMember(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
+func checkIsMember(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if string(value) == "RP" ||
 		string(value) == "IdP" ||
 		string(value) == "AS" ||
@@ -37,86 +59,98 @@ func checkIsMember(param string, publicKey string, app *DIDApplication) types.Re
 	return ReturnCheckTx(false)
 }
 
-func checkTxRegisterMsqAddress(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "RP" ||
-		string(value) == "IdP" ||
-		string(value) == "AS" ||
-		string(value) == "MasterRP" ||
-		string(value) == "MasterIdP" ||
-		string(value) == "MasterAS" {
-
-		var funcParam RegisterMsqAddressParam
-		err := json.Unmarshal([]byte(param), &funcParam)
-		if err != nil {
-			return ReturnCheckTx(false)
-		}
-		publicKeyFromStateDB := getPublicKeyFromNodeID(funcParam.NodeID, app)
-		if publicKeyFromStateDB == "" {
-			return ReturnCheckTx(false)
-		}
-		if publicKeyFromStateDB == publicKey {
-			return ReturnCheckTx(true)
-		}
+func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
 		return ReturnCheckTx(false)
+	}
+
+	if string(node.Role) == "RP" ||
+		string(node.Role) == "IdP" ||
+		string(node.Role) == "AS" {
+		return ReturnCheckTx(true)
 	}
 	return ReturnCheckTx(false)
 }
 
-func checkNDID(param string, publicKey string, app *DIDApplication) bool {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "NDID" || string(value) == "MasterNDID" {
+func checkNDID(param string, nodeID string, app *DIDApplication) bool {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
+		return false
+	}
+	if node.Role == "NDID" {
 		return true
 	}
 	return false
 }
 
-func checkIsNDID(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(checkNDID(param, publicKey, app))
-}
-
-func checkIsIDP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "IdP" || string(value) == "MasterIdP" {
-		return ReturnCheckTx(true)
+func checkIdP(param string, nodeID string, app *DIDApplication) bool {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
+		return false
 	}
-	return ReturnCheckTx(false)
-}
-
-func checkIsRP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "RP" || string(value) == "MasterRP" {
-		return ReturnCheckTx(true)
+	if node.Role == "IdP" {
+		return true
 	}
-	return ReturnCheckTx(false)
+	return false
 }
 
-func checkIsRPorIdP(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "RP" || string(value) == "MasterRP" ||
-		string(value) == "IdP" || string(value) == "MasterIdP" {
-		return ReturnCheckTx(true)
+func checkAS(param string, nodeID string, app *DIDApplication) bool {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
+		return false
 	}
-	return ReturnCheckTx(false)
-}
-
-func checkIsAS(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "AS" || string(value) == "MasterAS" {
-		return ReturnCheckTx(true)
+	if node.Role == "AS" {
+		return true
 	}
-	return ReturnCheckTx(false)
+	return false
 }
 
-func checkIsMasterNode(param string, publicKey string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + publicKey
-	value := app.state.db.Get(prefixKey([]byte(key)))
+func checkIdPorRP(param string, nodeID string, app *DIDApplication) bool {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
+		return false
+	}
+	if node.Role == "IdP" || node.Role == "RP" {
+		return true
+	}
+	return false
+}
+
+func checkIsNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	return ReturnCheckTx(checkNDID(param, nodeID, app))
+}
+
+func checkIsIDP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	return ReturnCheckTx(checkIdP(param, nodeID, app))
+}
+
+func checkIsAS(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	return ReturnCheckTx(checkAS(param, nodeID, app))
+}
+
+func checkIsRPorIdP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	return ReturnCheckTx(checkIdPorRP(param, nodeID, app))
+}
+
+func checkIsMasterNode(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	key := "NodePublicKeyRole" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if string(value) == "MasterIdP" ||
 		string(value) == "MasterRP" ||
 		string(value) == "MasterAS" {
@@ -134,14 +168,14 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 
 	// Check request is exist
 	requestKey := "Request" + "|" + funcParam.RequestID
-	requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
 
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
 
 	key := "SpendGas" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	var reports []Report
 	err = json.Unmarshal([]byte(value), &reports)
@@ -203,7 +237,7 @@ func getPublicKeyInitNDID(param string) string {
 
 func getMasterPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		var nodeDetail NodeDetail
 		err := json.Unmarshal([]byte(value), &nodeDetail)
@@ -217,7 +251,7 @@ func getMasterPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 
 func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		var nodeDetail NodeDetail
 		err := json.Unmarshal([]byte(value), &nodeDetail)
@@ -231,16 +265,14 @@ func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 
 func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		var nodeDetail NodeDetail
 		err := json.Unmarshal([]byte(value), &nodeDetail)
 		if err != nil {
 			return ""
 		}
-		roleKey := "NodePublicKeyRole" + "|" + nodeDetail.PublicKey
-		roleValue := app.state.db.Get(prefixKey([]byte(roleKey)))
-		return string(roleValue)
+		return string(nodeDetail.Role)
 	}
 	return ""
 }
@@ -249,6 +281,10 @@ var IsCheckOwnerRequestMethod = map[string]bool{
 	"CloseRequest":    true,
 	"TimeOutRequest":  true,
 	"SetDataReceived": true,
+}
+
+var IsMasterKeyMethod = map[string]bool{
+	"UpdateNode": true,
 }
 
 // CheckTxRouter is Pointer to function
@@ -277,6 +313,8 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"UpdateNodeByNDID":           checkIsNDID,
 		"UpdateIdentity":             checkIsIDP,
 		"DeclareIdentityProof":       checkIsIDP,
+		"UpdateServiceDestination":   checkIsAS,
+		"UpdateService":              checkIsNDID,
 	}
 
 	var publicKey string
@@ -307,13 +345,16 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	// special case checkIsOwnerRequest
 	if IsCheckOwnerRequestMethod[method] {
 		result = checkIsOwnerRequest(param, nodeID, app)
+	} else if IsMasterKeyMethod[method] {
+		// If verifyResult is true, return true
+		return ReturnCheckTx(true)
 	} else {
-		value, _ := callCheckTx(funcs, method, param, publicKey, app)
+		value, _ := callCheckTx(funcs, method, param, nodeID, app)
 		result = value[0].Interface().(types.ResponseCheckTx)
 	}
 	// check token for create Tx
 	if result.Code == code.OK {
-		if !checkNDID(nodeID, publicKey, app) && method != "InitNDID" {
+		if !checkNDID(nodeID, nodeID, app) && method != "InitNDID" {
 			needToken := getTokenPriceByFunc(method, app)
 			nodeToken, err := getToken(nodeID, app)
 			if err != nil {
@@ -329,11 +370,11 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	return result
 }
 
-func callCheckTx(m map[string]interface{}, name string, param string, publicKey string, app *DIDApplication) (result []reflect.Value, err error) {
+func callCheckTx(m map[string]interface{}, name string, param string, nodeID string, app *DIDApplication) (result []reflect.Value, err error) {
 	f := reflect.ValueOf(m[name])
 	in := make([]reflect.Value, 3)
 	in[0] = reflect.ValueOf(param)
-	in[1] = reflect.ValueOf(publicKey)
+	in[1] = reflect.ValueOf(nodeID)
 	in[2] = reflect.ValueOf(app)
 	result = f.Call(in)
 	return

@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -23,17 +45,32 @@ func isValidatorTx(tx []byte) bool {
 
 func (app *DIDApplication) Validators() (validators []types.Validator) {
 	app.logger.Infof("Validators")
-	itr := app.state.db.Iterator(nil, nil)
-	for ; itr.Valid(); itr.Next() {
-		if isValidatorTx(itr.Key()) {
-			validator := new(types.Validator)
-			err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
-			if err != nil {
-				panic(err)
-			}
-			validators = append(validators, *validator)
+	// itr := app.state.db.Iterate(nil, nil)
+	// for ; itr.Valid(); itr.Next() {
+	// 	if isValidatorTx(itr.Key()) {
+	// 		validator := new(types.Validator)
+	// 		err := types.ReadMessage(bytes.NewBuffer(itr.Value()), validator)
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 		validators = append(validators, *validator)
+	// 	}
+	// }
+
+	// viewed := []string{}
+	app.state.db.Iterate(func(key []byte, value []byte) bool {
+		// viewed = append(viewed, string(key))
+
+		validator := new(types.Validator)
+		err := types.ReadMessage(bytes.NewBuffer(key), validator)
+		if err != nil {
+			panic(err)
 		}
-	}
+		validators = append(validators, *validator)
+
+		return false
+	})
+
 	return
 }
 
@@ -84,8 +121,7 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Code: code.Unauthorized,
 				Log:  fmt.Sprintf("Cannot remove non-existent validator %X", key)}
 		}
-		app.state.db.Delete(key)
-		app.state.Size--
+		app.state.db.Remove(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
@@ -95,7 +131,6 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 				Log:  fmt.Sprintf("Error encoding validator: %v", err)}
 		}
 		app.state.db.Set(key, value.Bytes())
-		app.state.Size++
 	}
 
 	// we only update the changes array if we successfully updated the tree

@@ -1,3 +1,25 @@
+/**
+ * Copyright (c) 2018, 2019 National Digital ID COMPANY LIMITED
+ *
+ * This file is part of NDID software.
+ *
+ * NDID is the free software: you can redistribute it and/or modify it under
+ * the terms of the Affero GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or any later
+ * version.
+ *
+ * NDID is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the Affero GNU General Public License for more details.
+ *
+ * You should have received a copy of the Affero GNU General Public License
+ * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
+ *
+ * Please contact info@ndid.co.th for any further questions
+ *
+ */
+
 package did
 
 import (
@@ -11,7 +33,7 @@ import (
 
 func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s
@@ -34,7 +56,7 @@ func createTokenAccount(nodeID string, app *DIDApplication) {
 
 func setToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		value := strconv.FormatFloat(amount, 'f', -1, 64)
 		app.SetStateDB([]byte(key), []byte(value))
@@ -54,12 +76,12 @@ func setPriceFunc(param string, app *DIDApplication, nodeID string) types.Respon
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
+func getPriceFunc(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	price := getTokenPriceByFunc(funcParam.Func, app)
 	var res = GetPriceFuncResult{
@@ -67,14 +89,14 @@ func getPriceFunc(param string, app *DIDApplication) types.ResponseQuery {
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
+	return ReturnQuery(value, "success", app.state.db.Version64(), app)
 }
 
 func addToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, err := strconv.ParseFloat(string(value), 64)
 		if err != nil {
@@ -90,7 +112,7 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 
 func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, err := strconv.ParseFloat(string(value), 64)
 		if err != nil {
@@ -109,7 +131,7 @@ func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 
 func getToken(nodeID string, app *DIDApplication) (float64, error) {
 	key := "Token" + "|" + nodeID
-	value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s, nil
@@ -159,23 +181,23 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getNodeToken(param string, app *DIDApplication) types.ResponseQuery {
+func getNodeToken(param string, app *DIDApplication, height int64) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	tokenAmount, err := getToken(funcParam.NodeID, app)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.Height, app)
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.Height, app)
+	return ReturnQuery(value, "success", app.state.db.Version64(), app)
 }
