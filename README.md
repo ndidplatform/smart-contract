@@ -619,13 +619,13 @@ log: "success"
 {
   "node": [
     {
-      "id": "IdP1",
+      "node_id": "IdP1",
       "name": "IdP Number 1 from ...",
       "max_ial": 3,
       "max_aal": 3
     },
     {
-      "id": "IdP2",
+      "node_id": "IdP2",
       "name": "",
       "max_ial": 3,
       "max_aal": 3
@@ -646,7 +646,7 @@ log: "success"
 {
   "node": [
     {
-      "id": "AS1",
+      "node_id": "AS1",
       "name": "AS1",
       "min_ial": 1.1,
       "min_aal": 1.2
