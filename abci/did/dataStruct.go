@@ -499,3 +499,17 @@ type UnRegisterMsqDestinationParam struct {
 type UnAddAccessorMethodParam struct {
 	AccessorID string `json:"accessor_id"`
 }
+
+type RegisterServiceDestinationByNDIDParam struct {
+	ServiceID string  `json:"service_id"`
+	NodeID    string  `json:"node_id"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
+}
+
+type UpdateServiceDestinationByNDIDParam struct {
+	ServiceID string  `json:"service_id"`
+	NodeID    string  `json:"node_id"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
+}

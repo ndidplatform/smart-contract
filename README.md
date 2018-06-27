@@ -242,7 +242,6 @@ log: "success"
 ```sh
 {
   "service_id": "statement",
-  "node_id": "AS1",
   "min_ial": 1.1,
   "min_aal": 1.2
 }
@@ -599,6 +598,35 @@ log: "success"
 log: "success"
 ```
 
+## RegisterServiceDestinationByNDID
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "node_id": "AS2",
+  "min_ial": 2.2,
+  "min_aal": 1.1
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## UpdateServiceDestinationByNDID
+### Parameter
+```sh
+{
+  "service_id": "statement",
+  "node_id": "AS2",
+  "min_ial": 2.8,
+  "min_aal": 2.9
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
 
 # Query function
 

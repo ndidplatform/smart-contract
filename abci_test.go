@@ -3521,3 +3521,144 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func TestRegisterNodeAS2(t *testing.T) {
+	asKey := getPrivateKeyFromString(asPrivK)
+	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	asKey2 := getPrivateKeyFromString(allMasterKey)
+	asPublicKeyBytes2, err := generatePublicKey(&asKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param did.RegisterNode
+	param.NodeName = "AS2"
+	param.NodeID = "AS2"
+	param.PublicKey = string(asPublicKeyBytes)
+	param.MasterPublicKey = string(asPublicKeyBytes2)
+	param.Role = "AS"
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := []byte("NDID")
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterNode"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASRegisterServiceDestinationByNDID(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		"statement",
+		"AS2",
+		2.2,
+		1.1,
+	}
+
+	key := getPrivateKeyFromString(ndidPrivK)
+	nodeID := []byte("NDID")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASUpdateServiceDestinationByNDID(t *testing.T) {
+	var param = did.UpdateServiceDestinationByNDIDParam{
+		"statement",
+		"AS2",
+		2.8,
+		2.9,
+	}
+
+	key := getPrivateKeyFromString(ndidPrivK)
+	nodeID := []byte("NDID")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "UpdateServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAsNodesByServiceId2(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"statement",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAsNodesByServiceIdResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5},{"node_id":"AS2","node_name":"AS2","min_ial":2.8,"min_aal":2.9}]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

@@ -30,19 +30,21 @@ import (
 )
 
 var isNDIDMethod = map[string]bool{
-	"InitNDID":         true,
-	"RegisterNode":     true,
-	"AddNodeToken":     true,
-	"ReduceNodeToken":  true,
-	"SetNodeToken":     true,
-	"SetPriceFunc":     true,
-	"AddNamespace":     true,
-	"DeleteNamespace":  true,
-	"SetValidator":     true,
-	"AddService":       true,
-	"DeleteService":    true,
-	"UpdateNodeByNDID": true,
-	"UpdateService":    true,
+	"InitNDID":                         true,
+	"RegisterNode":                     true,
+	"AddNodeToken":                     true,
+	"ReduceNodeToken":                  true,
+	"SetNodeToken":                     true,
+	"SetPriceFunc":                     true,
+	"AddNamespace":                     true,
+	"DeleteNamespace":                  true,
+	"SetValidator":                     true,
+	"AddService":                       true,
+	"DeleteService":                    true,
+	"UpdateNodeByNDID":                 true,
+	"UpdateService":                    true,
+	"RegisterServiceDestinationByNDID": true,
+	"UpdateServiceDestinationByNDID":   true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -446,5 +448,130 @@ func updateService(param string, app *DIDApplication, nodeID string) types.Respo
 
 	app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
 	app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func registerServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
+	var funcParam RegisterServiceDestinationByNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check Service ID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service ServiceDetail
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Add ServiceDestination
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+
+	if chkExists != nil {
+		var nodes GetAsNodesByServiceIdResult
+		err := json.Unmarshal([]byte(chkExists), &nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		// Check duplicate node ID before add
+		for _, node := range nodes.Node {
+			if node.ID == funcParam.NodeID {
+				return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
+			}
+		}
+
+		var newNode = ASNode{
+			funcParam.NodeID,
+			getNodeNameByNodeID(funcParam.NodeID, app),
+			funcParam.MinIal,
+			funcParam.MinAal,
+			funcParam.ServiceID,
+		}
+		nodes.Node = append(nodes.Node, newNode)
+		value, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
+	} else {
+		var nodes GetAsNodesByServiceIdResult
+		var newNode = ASNode{
+			funcParam.NodeID,
+			getNodeNameByNodeID(funcParam.NodeID, app),
+			funcParam.MinIal,
+			funcParam.MinAal,
+			funcParam.ServiceID,
+		}
+		nodes.Node = append(nodes.Node, newNode)
+		value, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
+	}
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func updateServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateServiceDestinationByNDID, Parameter: %s", param)
+	var funcParam UpdateServiceDestinationByNDIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check Service ID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service ServiceDetail
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Update ServiceDestination
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+
+	if serviceDestinationValue == nil {
+		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+	}
+
+	var nodes GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	for index := range nodes.Node {
+		if nodes.Node[index].ID == funcParam.NodeID {
+			// selective update
+			if funcParam.MinAal > 0 {
+				nodes.Node[index].MinAal = funcParam.MinAal
+			}
+			if funcParam.MinIal > 0 {
+				nodes.Node[index].MinIal = funcParam.MinIal
+			}
+			break
+		}
+	}
+
+	serviceDestinationJSON, err := json.Marshal(nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
