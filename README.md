@@ -646,7 +646,7 @@ log: "success"
 {
   "node": [
     {
-      "id": "AS1",
+      "node_id": "AS1",
       "name": "AS1",
       "min_ial": 1.1,
       "min_aal": 1.2,
