@@ -46,11 +46,11 @@ type GetNodeMasterPublicKeyResult struct {
 type User struct {
 	HashID string  `json:"hash_id"`
 	Ial    float64 `json:"ial"`
+	First  bool    `json:"first"`
 }
 
 type RegisterMsqDestinationParam struct {
-	Users  []User `json:"users"`
-	NodeID string `json:"node_id"`
+	Users []User `json:"users"`
 }
 
 type Node struct {

@@ -201,10 +201,10 @@ log: "success"
   "users": [
     {
       "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba",
-      "ial": 3
+      "ial": 3,
+      "first": true
     }
-  ],
-  "node_id": "IdP1"
+  ]
 }
 ```
 ### Expected Output
@@ -649,8 +649,7 @@ log: "success"
       "id": "AS1",
       "name": "AS1",
       "min_ial": 1.1,
-      "min_aal": 1.2,
-      "service_name": "Bank statement"
+      "min_aal": 1.2
     }
   ]
 }

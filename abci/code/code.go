@@ -68,4 +68,5 @@ const (
 	DuplicateServiceIDInDataRequest uint32 = 41
 	ServiceDestinationNotFound      uint32 = 42
 	DataRequestIsCompleted          uint32 = 43
+	NotFirstIdP                     uint32 = 44
 )

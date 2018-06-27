@@ -214,6 +214,11 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				}
 			}
 
+			// Check frist
+			if user.First {
+				return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
+			}
+
 			if chkDup == false {
 				nodes = append(nodes, newNode)
 				value, err := json.Marshal(nodes)

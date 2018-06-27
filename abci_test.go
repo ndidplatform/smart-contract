@@ -1160,12 +1160,12 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 	var user = did.User{
 		hex.EncodeToString(userHash),
 		3,
+		true,
 	}
 	users = append(users, user)
 
 	var param = did.RegisterMsqDestinationParam{
 		users,
-		"IdP1",
 	}
 
 	idpKey := getPrivateKeyFromString(idpPrivK)
@@ -3284,6 +3284,51 @@ func TestQueryGetNodeInfoIdP5(t *testing.T) {
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 5 from ...","role":"IdP","max_ial":3,"max_aal":3}`)
 	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdP4RegisterMsqDestination(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+
+	var users []did.User
+	var user = did.User{
+		hex.EncodeToString(userHash),
+		3,
+		false,
+	}
+	users = append(users, user)
+
+	var param = did.RegisterMsqDestinationParam{
+		users,
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpNodeID := []byte("IdP4")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterMsqDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
