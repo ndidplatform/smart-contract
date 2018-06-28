@@ -667,6 +667,18 @@ log: "success"
 log: "success"
 ```
 
+## EnableAccessorMethod
+### Parameter
+```sh
+{
+  "accessor_id": "accessor_id"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
