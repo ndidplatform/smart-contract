@@ -704,6 +704,18 @@ log: "success"
 log: "success"
 ```
 
+## EnableNamespace
+### Parameter
+```sh
+{
+  "namespace": "Tel"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

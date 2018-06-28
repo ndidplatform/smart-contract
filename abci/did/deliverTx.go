@@ -86,12 +86,13 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"DisableAccessorMethod":            disableAccessorMethod,
 		"DisableNode":                      disableNode,
 		"DisableServiceDestinationByNDID":  disableServiceDestinationByNDID,
+		"DisableNamespace":                 disableNamespace,
+		"DisableService":                   disableService,
 		"EnableMsqDestination":             enableMsqDestination,
 		"EnableAccessorMethod":             enableAccessorMethod,
 		"EnableNode":                       enableNode,
 		"EnableServiceDestinationByNDID":   enableServiceDestinationByNDID,
-		"DisableNamespace":                 disableNamespace,
-		"DisableService":                   disableService,
+		"EnableNamespace":                  enableNamespace,
 	}
 
 	// ---- check authorization ----

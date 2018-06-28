@@ -4478,6 +4478,50 @@ func TestQueryGetServicesByAsID3(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestEnableNamespace(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	nodeID := "NDID"
+
+	var funcparam did.DisableNamespaceParam
+	funcparam.Namespace = "Tel"
+
+	funcparamJSON, err := json.Marshal(funcparam)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(funcparamJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "EnableNamespace"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), funcparamJSON, []byte(nonce), signature, []byte(nodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNamespaceList2(t *testing.T) {
+	fnName := "GetNamespaceList"
+	paramJSON := []byte("")
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	expected := `[{"namespace":"CID","description":"Citizen ID","active":true},{"namespace":"Tel","description":"Tel number","active":true}]`
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 // func TestQueryGetAsNodesByServiceId6(t *testing.T) {
 // 	fnName := "GetAsNodesByServiceId"
 // 	var param = did.GetAsNodesByServiceIdParam{

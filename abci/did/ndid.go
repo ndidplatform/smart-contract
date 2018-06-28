@@ -49,6 +49,7 @@ var isNDIDMethod = map[string]bool{
 	"DisableServiceDestinationByNDID":  true,
 	"EnableNode":                       true,
 	"EnableServiceDestinationByNDID":   true,
+	"EnableNamespace":                  true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -843,4 +844,41 @@ func enableServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func enableNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EnableNamespace, Parameter: %s", param)
+	var funcParam DisableNamespaceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	key := "AllNamespace"
+	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
+
+	var namespaces []Namespace
+
+	if chkExists != nil {
+		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		for index, namespace := range namespaces {
+			if namespace.Namespace == funcParam.Namespace {
+				namespaces[index].Active = true
+				break
+			}
+		}
+
+		value, err := json.Marshal(namespaces)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(key), []byte(value))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+
+	return ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 }
