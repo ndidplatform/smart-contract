@@ -326,6 +326,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"EnableNode":                       checkIsNDID,
 		"EnableServiceDestinationByNDID":   checkIsNDID,
 		"EnableNamespace":                  checkIsNDID,
+		"EnableService":                    checkIsNDID,
 	}
 
 	var publicKey string

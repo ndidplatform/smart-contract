@@ -50,6 +50,7 @@ var isNDIDMethod = map[string]bool{
 	"EnableNode":                       true,
 	"EnableServiceDestinationByNDID":   true,
 	"EnableNamespace":                  true,
+	"EnableService":                    true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -881,4 +882,61 @@ func enableNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	}
 
 	return ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
+}
+
+func enableService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EnableService, Parameter: %s", param)
+	var funcParam DisableServiceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if chkExists == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+
+	// Delete detail in service directory
+	allServiceKey := "AllService"
+	_, allServiceValue := app.state.db.Get(prefixKey([]byte(allServiceKey)))
+
+	var services []ServiceDetail
+
+	if allServiceValue != nil {
+		err = json.Unmarshal([]byte(allServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		for index, service := range services {
+			if service.ServiceID == funcParam.ServiceID {
+				services[index].Active = true
+				break
+			}
+		}
+
+		var service ServiceDetail
+		err = json.Unmarshal([]byte(chkExists), &service)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		service.Active = true
+
+		allServiceJSON, err := json.Marshal(services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+
+		serviceJSON, err := json.Marshal(service)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+
+		app.SetStateDB([]byte(serviceKey), []byte(serviceJSON))
+		app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
+	}
+
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }

@@ -716,6 +716,18 @@ log: "success"
 log: "success"
 ```
 
+## EnableService
+### Parameter
+```sh
+{
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

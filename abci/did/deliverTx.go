@@ -93,6 +93,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"EnableNode":                       enableNode,
 		"EnableServiceDestinationByNDID":   enableServiceDestinationByNDID,
 		"EnableNamespace":                  enableNamespace,
+		"EnableService":                    enableService,
 	}
 
 	// ---- check authorization ----
