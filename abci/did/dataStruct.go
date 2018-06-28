@@ -180,7 +180,7 @@ type AddServiceParam struct {
 	ServiceName string `json:"service_name"`
 }
 
-type DeleteServiceParam struct {
+type DisableServiceParam struct {
 	ServiceID string `json:"service_id"`
 }
 
@@ -325,7 +325,7 @@ type Namespace struct {
 	Active      bool   `json:"active"`
 }
 
-type DeleteNamespaceParam struct {
+type DisableNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 

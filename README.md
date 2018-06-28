@@ -227,7 +227,7 @@ log: "success"
 log: "success"
 ```
 
-## DeleteService
+## DisableService
 ### Parameter
 ```sh
 {
@@ -430,7 +430,7 @@ log: "success"
 log: "success"
 ```
 
-## DeleteNamespace
+## DisableNamespace
 ### Parameter
 ```sh
 {

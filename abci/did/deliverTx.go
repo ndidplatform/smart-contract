@@ -70,12 +70,10 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"CloseRequest":                     closeRequest,
 		"TimeOutRequest":                   timeOutRequest,
 		"AddNamespace":                     addNamespace,
-		"DeleteNamespace":                  deleteNamespace,
 		"UpdateNode":                       updateNode,
 		"CreateIdentity":                   createIdentity,
 		"SetValidator":                     setValidator,
 		"AddService":                       addService,
-		"DeleteService":                    deleteService,
 		"SetDataReceived":                  setDataReceived,
 		"UpdateNodeByNDID":                 updateNodeByNDID,
 		"UpdateIdentity":                   updateIdentity,
@@ -92,6 +90,8 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"EnableAccessorMethod":             enableAccessorMethod,
 		"EnableNode":                       enableNode,
 		"EnableServiceDestinationByNDID":   enableServiceDestinationByNDID,
+		"DisableNamespace":                 disableNamespace,
+		"DisableService":                   disableService,
 	}
 
 	// ---- check authorization ----

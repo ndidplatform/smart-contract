@@ -37,10 +37,10 @@ var isNDIDMethod = map[string]bool{
 	"SetNodeToken":                     true,
 	"SetPriceFunc":                     true,
 	"AddNamespace":                     true,
-	"DeleteNamespace":                  true,
+	"DisableNamespace":                 true,
 	"SetValidator":                     true,
 	"AddService":                       true,
-	"DeleteService":                    true,
+	"DisableService":                   true,
 	"UpdateNodeByNDID":                 true,
 	"UpdateService":                    true,
 	"RegisterServiceDestinationByNDID": true,
@@ -213,9 +213,9 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func deleteNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DeleteNamespace, Parameter: %s", param)
-	var funcParam DeleteNamespaceParam
+func disableNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableNamespace, Parameter: %s", param)
+	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -310,9 +310,9 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func deleteService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DeleteService, Parameter: %s", param)
-	var funcParam DeleteServiceParam
+func disableService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableService, Parameter: %s", param)
+	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

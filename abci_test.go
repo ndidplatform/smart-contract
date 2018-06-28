@@ -1118,11 +1118,11 @@ func TestNDIDAddServiceAgain(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDDeleteService(t *testing.T) {
+func TestNDIDDisableService(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = did.DeleteServiceParam{
+	var param = did.DisableServiceParam{
 		"statement2",
 	}
 
@@ -1138,7 +1138,7 @@ func TestNDIDDeleteService(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "DeleteService"
+	fnName := "DisableService"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
@@ -2455,11 +2455,11 @@ func TestAddNamespaceTel(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestDeleteNamespace(t *testing.T) {
+func TestDisableNamespace(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	nodeID := "NDID"
 
-	var funcparam did.DeleteNamespaceParam
+	var funcparam did.DisableNamespaceParam
 	funcparam.Namespace = "Tel"
 
 	funcparamJSON, err := json.Marshal(funcparam)
@@ -2474,7 +2474,7 @@ func TestDeleteNamespace(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "DeleteNamespace"
+	fnName := "DisableNamespace"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), funcparamJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(ResponseTx)
@@ -3780,11 +3780,11 @@ func TestQueryGetAsNodesByServiceId3(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDDeleteService2(t *testing.T) {
+func TestNDIDDisableService2(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = did.DeleteServiceParam{
+	var param = did.DisableServiceParam{
 		"statement",
 	}
 
@@ -3800,7 +3800,7 @@ func TestNDIDDeleteService2(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "DeleteService"
+	fnName := "DisableService"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
@@ -4161,11 +4161,11 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDDeleteService3(t *testing.T) {
+func TestNDIDDisableService3(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = did.DeleteServiceParam{
+	var param = did.DisableServiceParam{
 		"BankStatement1",
 	}
 
@@ -4181,7 +4181,7 @@ func TestNDIDDeleteService3(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "DeleteService"
+	fnName := "DisableService"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
