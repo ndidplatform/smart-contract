@@ -2772,16 +2772,11 @@ func TestIdPUpdateNode(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-type SetValidatorParam struct {
-	PublicKey string `json:"public_key"`
-	Power     int64  `json:"power"`
-}
-
 func TestSetValidator(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param SetValidatorParam
+	var param did.SetValidatorParam
 	param.PublicKey = `7/ThXSVOL7YkcpcJ8iatM+EXOlXv8aFtpsVAmWwMdC4=`
 	// param.PublicKey = `5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=`
 	param.Power = 20
