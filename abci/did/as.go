@@ -148,6 +148,34 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	provideServiceKey := "ProvideService" + "|" + nodeID
+	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
+	var services []Service
+	if provideServiceValue != nil {
+		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	// Check duplicate service ID
+	for _, service := range services {
+		if service.ServiceID == funcParam.ServiceID {
+			return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID in provide service list", "")
+		}
+	}
+	// Append to ProvideService list
+	var newService Service
+	newService.ServiceID = funcParam.ServiceID
+	newService.MinAal = funcParam.MinAal
+	newService.MinIal = funcParam.MinIal
+	newService.Active = true
+	services = append(services, newService)
+
+	provideServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
 	// Add ServiceDestination
 	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
 	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
@@ -172,6 +200,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			funcParam.MinIal,
 			funcParam.MinAal,
 			funcParam.ServiceID,
+			true,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)
@@ -187,6 +216,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			funcParam.MinIal,
 			funcParam.MinAal,
 			funcParam.ServiceID,
+			true,
 		}
 		nodes.Node = append(nodes.Node, newNode)
 		value, err := json.Marshal(nodes)
@@ -195,6 +225,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		}
 		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	}
+	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -245,10 +276,36 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 		}
 	}
 
+	// Update PrivideService
+	provideServiceKey := "ProvideService" + "|" + nodeID
+	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
+	var services []Service
+	if provideServiceValue != nil {
+		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	for index, service := range services {
+		if service.ServiceID == funcParam.ServiceID {
+			if funcParam.MinAal > 0 {
+				services[index].MinAal = funcParam.MinAal
+			}
+			if funcParam.MinIal > 0 {
+				services[index].MinIal = funcParam.MinIal
+			}
+			break
+		}
+	}
+	provideServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
 	serviceDestinationJSON, err := json.Marshal(nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }

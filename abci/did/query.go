@@ -63,6 +63,7 @@ func QueryRouter(method string, param string, app *DIDApplication, height int64)
 		"GetIdentityInfo":              getIdentityInfo,
 		"GetDataSignature":             getDataSignature,
 		"GetIdentityProof":             getIdentityProof,
+		"GetServicesByAsID":            getServicesByAsID,
 	}
 	value, _ := callQuery(funcs, method, param, app, height)
 	return value[0].Interface().(types.ResponseQuery)

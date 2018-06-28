@@ -894,3 +894,61 @@ func getIdentityProof(param string, app *DIDApplication, height int64) types.Res
 	}
 	return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
 }
+
+func getServicesByAsID(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
+	var funcParam GetServicesByAsIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+
+	var result GetServicesByAsIDResult
+	result.Services = make([]Service, 0)
+
+	provideServiceKey := "ProvideService" + "|" + funcParam.AsID
+	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
+	var services []Service
+	if provideServiceValue != nil {
+		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+	}
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.AsID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var nodeDetail NodeDetail
+	if nodeDetailValue != nil {
+		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+	}
+
+	for _, provideService := range services {
+		serviceKey := "Service" + "|" + provideService.ServiceID
+		_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+		var service ServiceDetail
+		if serviceValue != nil {
+			err = json.Unmarshal([]byte(serviceValue), &service)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+		}
+		if provideService.Active && nodeDetail.Active && service.Active {
+			result.Services = append(result.Services, provideService)
+		}
+	}
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+
+	if len(result.Services) > 0 {
+		return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
+	} else {
+		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
+	}
+}

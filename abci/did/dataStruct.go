@@ -199,11 +199,12 @@ type GetAsNodesByServiceIdParam struct {
 }
 
 type ASNode struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
+	ID        string  `json:"node_id"`
+	Name      string  `json:"node_name"`
 	MinIal    float64 `json:"min_ial"`
 	MinAal    float64 `json:"min_aal"`
 	ServiceID string  `json:"service_id"`
+	Active    bool    `json:"active"`
 }
 
 type GetAsNodesByServiceIdResult struct {
@@ -518,4 +519,24 @@ type UpdateServiceDestinationByNDIDParam struct {
 
 type UnRegisterNodeParam struct {
 	NodeID string `json:"node_id"`
+}
+
+type Service struct {
+	ServiceID string  `json:"service_id"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
+	Active    bool    `json:"active"`
+}
+
+type GetServicesByAsIDParam struct {
+	AsID string `json:"as_id"`
+}
+
+type GetServicesByAsIDResult struct {
+	Services []Service `json:"services"`
+}
+
+type UnRegisterServiceDestinationByNDIDParam struct {
+	ServiceID string `json:"service_id"`
+	NodeID    string `json:"node_id"`
 }

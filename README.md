@@ -632,10 +632,22 @@ log: "success"
 
 ## UnRegisterNode
 ### Parameter
-Posible role is RP,IdP and AS
 ```sh
 {
   "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## UnRegisterServiceDestinationByNDID
+### Parameter
+```sh
+{
+  "service_id": "BankStatement2",
+  "node_id": "AS1"
 }
 ```
 ### Expected Output
@@ -1036,3 +1048,37 @@ log: "success"
   "identity_proof": "Magic"
 }
 ```
+
+## GetServicesByAsID
+### Parameter
+```sh
+{
+  "as_id": "AS1"
+}
+```
+### Expected Output
+```sh
+{
+  "services": [
+    {
+      "service_id": "BankStatement1",
+      "min_ial": 1.1,
+      "min_aal": 1.1,
+      "active": true
+    },
+    {
+      "service_id": "BankStatement2",
+      "min_ial": 2.2,
+      "min_aal": 2.2,
+      "active": true
+    },
+    {
+      "service_id": "BankStatement3",
+      "min_ial": 3.3,
+      "min_aal": 3.3,
+      "active": true
+    }
+  ]
+}
+```
+
