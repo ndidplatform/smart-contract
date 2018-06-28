@@ -91,6 +91,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"EnableMsqDestination":             enableMsqDestination,
 		"EnableAccessorMethod":             enableAccessorMethod,
 		"EnableNode":                       enableNode,
+		"EnableServiceDestinationByNDID":   enableServiceDestinationByNDID,
 	}
 
 	// ---- check authorization ----

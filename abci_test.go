@@ -4193,7 +4193,7 @@ func TestNDIDDeleteService3(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestNDIDUnRegisterServiceDestination(t *testing.T) {
+func TestNDIDDisableServiceDestinationByNDID(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
@@ -4421,6 +4421,58 @@ func TestQueryGetIdpNodes7(t *testing.T) {
 	}
 	var expected = `{"node":[{"node_id":"IdP1","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"IdP4","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestNDIDEnableServiceDestinationByNDID(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.DisableServiceDestinationByNDIDParam{
+		"BankStatement2",
+		"AS1",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "EnableServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetServicesByAsID3(t *testing.T) {
+	fnName := "GetServicesByAsID"
+	var param = did.GetServicesByAsIDParam{
+		"AS1",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true}]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

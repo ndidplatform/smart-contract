@@ -691,6 +691,19 @@ log: "success"
 log: "success"
 ```
 
+## EnableServiceDestinationByNDID
+### Parameter
+```sh
+{
+  "service_id": "BankStatement2",
+  "node_id": "AS1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
