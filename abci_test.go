@@ -4244,3 +4244,70 @@ func TestQueryGetServicesByAsID2(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func TestIdPEnableMsqDestination(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+
+	var param = did.DisableMsqDestinationParam{
+		hex.EncodeToString(userHash),
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpNodeID := []byte("IdP4")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "EnableMsqDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetIdpNodes6(t *testing.T) {
+	fnName := "GetIdpNodes"
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+	var param = did.GetIdpNodesParam{
+		hex.EncodeToString(userHash),
+		1,
+		1,
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetIdpNodesResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = `{"node":[{"node_id":"IdP4","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

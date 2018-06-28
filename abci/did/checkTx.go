@@ -315,12 +315,13 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"DeclareIdentityProof":             checkIsIDP,
 		"UpdateServiceDestination":         checkIsAS,
 		"UpdateService":                    checkIsNDID,
-		"DisableMsqDestination":            checkIsIDP,
-		"DisableAccessorMethod":            checkIsIDP,
 		"RegisterServiceDestinationByNDID": checkIsNDID,
 		"UpdateServiceDestinationByNDID":   checkIsNDID,
+		"DisableMsqDestination":            checkIsIDP,
+		"DisableAccessorMethod":            checkIsIDP,
 		"DisableNode":                      checkIsNDID,
 		"DisableServiceDestinationByNDID":  checkIsNDID,
+		"EnableMsqDestination":             checkIsIDP,
 	}
 
 	var publicKey string

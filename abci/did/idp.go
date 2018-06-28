@@ -549,3 +549,38 @@ func disableAccessorMethod(param string, app *DIDApplication, nodeID string) typ
 
 	return ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
 }
+
+func enableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EnableMsqDestination, Parameter: %s", param)
+	var funcParam DisableMsqDestinationParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
+	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
+
+	if msqDesValue != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(msqDesValue), &nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		for index := range nodes {
+			if nodes[index].NodeID == nodeID {
+				nodes[index].Active = true
+				break
+			}
+		}
+
+		msqDesJSON, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+}
