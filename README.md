@@ -679,6 +679,18 @@ log: "success"
 log: "success"
 ```
 
+## EnableNode
+### Parameter
+```sh
+{
+  "node_id": "IdP1"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

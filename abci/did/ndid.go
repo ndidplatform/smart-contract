@@ -47,6 +47,7 @@ var isNDIDMethod = map[string]bool{
 	"UpdateServiceDestinationByNDID":   true,
 	"DisableNode":                      true,
 	"DisableServiceDestinationByNDID":  true,
+	"EnableNode":                       true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -739,4 +740,35 @@ func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID s
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func enableNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EnableNode, Parameter: %s", param)
+	var funcParam DisableNodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+
+	if nodeDetailValue != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		nodeDetail.Active = true
+
+		nodeDetailValue, err := json.Marshal(nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+
+	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }
