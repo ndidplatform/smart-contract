@@ -479,9 +479,9 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }
 
-func unRegisterMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UnRegisterMsqDestination, Parameter: %s", param)
-	var funcParam UnRegisterMsqDestinationParam
+func disableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableMsqDestination, Parameter: %s", param)
+	var funcParam DisableMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -514,9 +514,9 @@ func unRegisterMsqDestination(param string, app *DIDApplication, nodeID string) 
 	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
 }
 
-func unAddAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UnAddAccessorMethod, Parameter: %s", param)
-	var funcParam UnAddAccessorMethodParam
+func disableAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableAccessorMethod, Parameter: %s", param)
+	var funcParam DisableAccessorMethodParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

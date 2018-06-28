@@ -30,23 +30,23 @@ import (
 )
 
 var isNDIDMethod = map[string]bool{
-	"InitNDID":                           true,
-	"RegisterNode":                       true,
-	"AddNodeToken":                       true,
-	"ReduceNodeToken":                    true,
-	"SetNodeToken":                       true,
-	"SetPriceFunc":                       true,
-	"AddNamespace":                       true,
-	"DeleteNamespace":                    true,
-	"SetValidator":                       true,
-	"AddService":                         true,
-	"DeleteService":                      true,
-	"UpdateNodeByNDID":                   true,
-	"UpdateService":                      true,
-	"RegisterServiceDestinationByNDID":   true,
-	"UpdateServiceDestinationByNDID":     true,
-	"UnRegisterNode":                     true,
-	"UnRegisterServiceDestinationByNDID": true,
+	"InitNDID":                         true,
+	"RegisterNode":                     true,
+	"AddNodeToken":                     true,
+	"ReduceNodeToken":                  true,
+	"SetNodeToken":                     true,
+	"SetPriceFunc":                     true,
+	"AddNamespace":                     true,
+	"DeleteNamespace":                  true,
+	"SetValidator":                     true,
+	"AddService":                       true,
+	"DeleteService":                    true,
+	"UpdateNodeByNDID":                 true,
+	"UpdateService":                    true,
+	"RegisterServiceDestinationByNDID": true,
+	"UpdateServiceDestinationByNDID":   true,
+	"DisableNode":                      true,
+	"DisableServiceDestinationByNDID":  true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -639,9 +639,9 @@ func updateServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func unRegisterNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UnRegisterNode, Parameter: %s", param)
-	var funcParam UnRegisterNodeParam
+func disableNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableNode, Parameter: %s", param)
+	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -670,9 +670,9 @@ func unRegisterNode(param string, app *DIDApplication, nodeID string) types.Resp
 	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }
 
-func unRegisterServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UnRegisterServiceDestinationByNDID, Parameter: %s", param)
-	var funcParam UnRegisterServiceDestinationByNDIDParam
+func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
+	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

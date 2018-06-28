@@ -576,7 +576,7 @@ log: "success"
 log: "success"
 ```
 
-## UnRegisterMsqDestination
+## DisableMsqDestination
 ### Parameter
 ```sh
 {
@@ -588,7 +588,7 @@ log: "success"
 log: "success"
 ```
 
-## UnAddAccessorMethod
+## DisableAccessorMethod
 ### Parameter
 ```sh
 {
@@ -630,7 +630,7 @@ log: "success"
 log: "success"
 ```
 
-## UnRegisterNode
+## DisableNode
 ### Parameter
 ```sh
 {
@@ -642,7 +642,7 @@ log: "success"
 log: "success"
 ```
 
-## UnRegisterServiceDestinationByNDID
+## DisableServiceDestinationByNDID
 ### Parameter
 ```sh
 {

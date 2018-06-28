@@ -495,11 +495,11 @@ type UpdateServiceParam struct {
 	ServiceName string `json:"service_name"`
 }
 
-type UnRegisterMsqDestinationParam struct {
+type DisableMsqDestinationParam struct {
 	HashID string `json:"hash_id"`
 }
 
-type UnAddAccessorMethodParam struct {
+type DisableAccessorMethodParam struct {
 	AccessorID string `json:"accessor_id"`
 }
 
@@ -517,7 +517,7 @@ type UpdateServiceDestinationByNDIDParam struct {
 	MinAal    float64 `json:"min_aal"`
 }
 
-type UnRegisterNodeParam struct {
+type DisableNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
@@ -536,7 +536,7 @@ type GetServicesByAsIDResult struct {
 	Services []Service `json:"services"`
 }
 
-type UnRegisterServiceDestinationByNDIDParam struct {
+type DisableServiceDestinationByNDIDParam struct {
 	ServiceID string `json:"service_id"`
 	NodeID    string `json:"node_id"`
 }

@@ -3403,13 +3403,13 @@ func TestQueryGetIdpNodes3(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdP4UnRegisterMsqDestination(t *testing.T) {
+func TestIdP4DisableMsqDestination(t *testing.T) {
 
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
 
-	var param = did.UnRegisterMsqDestinationParam{
+	var param = did.DisableMsqDestinationParam{
 		hex.EncodeToString(userHash),
 	}
 
@@ -3428,7 +3428,7 @@ func TestIdP4UnRegisterMsqDestination(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UnRegisterMsqDestination"
+	fnName := "DisableMsqDestination"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -3470,9 +3470,9 @@ func TestQueryGetIdpNodes4(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdPUnAddAccessorMethodParam(t *testing.T) {
+func TestIdPDisableAccessorMethodParam(t *testing.T) {
 
-	var param = did.UnAddAccessorMethodParam{
+	var param = did.DisableAccessorMethodParam{
 		"accessor_id",
 	}
 
@@ -3491,7 +3491,7 @@ func TestIdPUnAddAccessorMethodParam(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UnAddAccessorMethod"
+	fnName := "DisableAccessorMethod"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -3664,8 +3664,8 @@ func TestQueryGetAsNodesByServiceId2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUnRegisterNode(t *testing.T) {
-	var param did.UnRegisterNodeParam
+func TestDisableNode(t *testing.T) {
+	var param did.DisableNodeParam
 	param.NodeID = "IdP1"
 
 	paramJSON, err := json.Marshal(param)
@@ -3683,7 +3683,7 @@ func TestUnRegisterNode(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UnRegisterNode"
+	fnName := "DisableNode"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -3725,8 +3725,8 @@ func TestQueryGetIdpNodes5(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUnRegisterNode2(t *testing.T) {
-	var param did.UnRegisterNodeParam
+func TestDisableNode2(t *testing.T) {
+	var param did.DisableNodeParam
 	param.NodeID = "AS2"
 
 	paramJSON, err := json.Marshal(param)
@@ -3744,7 +3744,7 @@ func TestUnRegisterNode2(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UnRegisterNode"
+	fnName := "DisableNode"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, ndidNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -4197,7 +4197,7 @@ func TestNDIDUnRegisterServiceDestination(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"
 
-	var param = did.UnRegisterServiceDestinationByNDIDParam{
+	var param = did.DisableServiceDestinationByNDIDParam{
 		"BankStatement2",
 		"AS1",
 	}
@@ -4214,7 +4214,7 @@ func TestNDIDUnRegisterServiceDestination(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UnRegisterServiceDestinationByNDID"
+	fnName := "DisableServiceDestinationByNDID"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
