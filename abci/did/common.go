@@ -447,23 +447,24 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
-	// not get status
-	// resultStatus := getRequest(param, app)
-	// var requestResult GetRequestResult
-	// err = json.Unmarshal([]byte(resultStatus.Value), &requestResult)
-	// if err != nil {
-	// 	value = []byte("")
-	// 	return ReturnQuery(value, "not found", app.state.db.Version64())
-	// }
-
 	var result GetRequestDetailResult
+	var request Request
 	err = json.Unmarshal([]byte(value), &result)
 	if err != nil {
 		value = []byte("")
 		return ReturnQuery(value, err.Error(), app.state.db.Version64(), app)
 	}
-	// not set status
-	// result.Status = requestResult.Status
+	err = json.Unmarshal([]byte(value), &request)
+	if err != nil {
+		value = []byte("")
+		return ReturnQuery(value, err.Error(), app.state.db.Version64(), app)
+	}
+
+	// Check Role, If it's IdP then Set set special = true
+	ownerRole := getRoleFromNodeID(request.Owner, app)
+	if string(ownerRole) == "IdP" {
+		result.Special = true
+	}
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
