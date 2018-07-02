@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 (June 30, 2018)
+
+FEATURES:
+- [CircleCI] Add a configuration for automatic test, build, and deploy image to dockerhub.
+
+BUG FIXES:
+- [Query] Set special request if owner is IdP (GetRequestDetail)
+
 ## 0.1.1 (June 26, 2018)
 
 BREAKING CHANGES:
