@@ -129,10 +129,10 @@ docker-compose -f docker/docker-compose.yml up
 ./docker/build.sh
 ```
 
-### Note
+### Note about docker
 
-* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with image from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/).
-* To pull latest image from Dockerhub, run `docker pull ndidplatform/abci`
+* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/). 
+* To pull latest image from Dockerhub, run `docker pull ndidplatform/abci` and ``docker pull ndidplatform/tendermint``
     
 ## IMPORTANT NOTE
 
