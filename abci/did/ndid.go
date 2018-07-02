@@ -100,20 +100,6 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
 
-	// check Duplicate Master Key
-	// key = "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-	// _, chkExists = app.state.db.Get(prefixKey([]byte(key)))
-	// if chkExists != nil {
-	// 	return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
-	// }
-
-	// check Duplicate Key
-	key = "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	_, chkExists = app.state.db.Get(prefixKey([]byte(key)))
-	if chkExists != nil {
-		return ReturnDeliverTxLog(code.DuplicatePublicKey, "Duplicate Public Key", "")
-	}
-
 	if funcParam.Role == "RP" ||
 		funcParam.Role == "IdP" ||
 		funcParam.Role == "AS" {
@@ -130,16 +116,6 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
-
-		// Set master Role
-		// publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.MasterPublicKey
-		// publicKeyRoleValue := "Master" + funcParam.Role
-		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
-
-		// Set Role
-		// publicKeyRoleKey := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-		// publicKeyRoleValue := funcParam.Role
-		// app.SetStateDB([]byte(publicKeyRoleKey), []byte(publicKeyRoleValue))
 
 		createTokenAccount(funcParam.NodeID, app)
 

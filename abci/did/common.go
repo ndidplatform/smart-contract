@@ -379,44 +379,6 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 
-	// Not derive status in ABCI
-	// status := "pending"
-	// acceptCount := 0
-	// rejectCount := 0
-	// for _, response := range request.Responses {
-	// 	if response.Status == "accept" {
-	// 		acceptCount++
-	// 	} else if response.Status == "reject" {
-	// 		rejectCount++
-	// 	}
-	// }
-
-	// if acceptCount > 0 {
-	// 	status = "confirmed"
-	// }
-
-	// if rejectCount > 0 {
-	// 	status = "rejected"
-	// }
-
-	// if acceptCount > 0 && rejectCount > 0 {
-	// 	status = "complicated"
-	// }
-
-	// // check AS's answer
-	// checkAS := true
-	// // Get AS count
-	// for _, dataRequest := range request.DataRequestList {
-	// 	if len(dataRequest.AnsweredAsIdList) < dataRequest.Count {
-	// 		checkAS = false
-	// 		break
-	// 	}
-	// }
-
-	// if acceptCount >= request.MinIdp && checkAS {
-	// 	status = "completed"
-	// }
-
 	var res GetRequestResult
 	res.IsClosed = request.IsClosed
 	res.IsTimedOut = request.IsTimedOut
