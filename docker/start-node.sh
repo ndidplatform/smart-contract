@@ -40,7 +40,7 @@ tendermint_get_id_from_seed() {
 tendermint_wait_for_sync_complete() {
   echo "Waiting for tendermint at ${1}:${2} to be ready..."
   while true; do 
-    [ ! "$(curl -s http://${1}:${2}/status | jq -r .result.sync_info.syncing)" = "false" ] || break  
+    [ ! "$(curl -s http://${1}:${2}/status | jq -r .result.sync_info.catching_up)" = "false" ] || break  
     sleep 1
   done
 }
