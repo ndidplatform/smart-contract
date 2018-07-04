@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 var isNDIDMethod = map[string]bool{

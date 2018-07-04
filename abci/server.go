@@ -29,10 +29,10 @@ import (
 
 	"github.com/ndidplatform/smart-contract/abci/did"
 	"github.com/sirupsen/logrus"
-	server "github.com/tendermint/abci/server"
-	"github.com/tendermint/abci/types"
-	cmn "github.com/tendermint/tmlibs/common"
-	tdmLog "github.com/tendermint/tmlibs/log"
+	server "github.com/tendermint/tendermint/abci/server"
+	"github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	tdmLog "github.com/tendermint/tendermint/libs/log"
 )
 
 type loggerWriter struct{}

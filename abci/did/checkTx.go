@@ -33,7 +33,7 @@ import (
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 var IsMethod = map[string]bool{

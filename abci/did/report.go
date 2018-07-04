@@ -25,7 +25,7 @@ package did
 import (
 	"encoding/json"
 
-	"github.com/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 func writeBurnTokenReport(nodeID string, method string, price float64, data string, app *DIDApplication) error {

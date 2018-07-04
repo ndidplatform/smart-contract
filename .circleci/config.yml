@@ -7,13 +7,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Tendermint 0.21.0
+          name: Install Tendermint 0.22.0
           command: |
             mkdir -p /go/src/github.com/tendermint
             cd /go/src/github.com/tendermint
             git clone https://github.com/tendermint/tendermint.git
             cd tendermint
-            git checkout v0.21.0
+            git checkout v0.22.0
             make get_tools
             make get_vendor_deps
             make install
@@ -21,7 +21,7 @@ jobs:
       - run:
           name: Setup Smartcontract
           command: |
-            go get github.com/tendermint/tmlibs/common
+            go get github.com/tendermint/tendermint/libs/common
             cd abci
             dep ensure
 

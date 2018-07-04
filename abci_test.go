@@ -41,7 +41,7 @@ import (
 	"testing"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/tendermint/tmlibs/common"
+	"github.com/tendermint/tendermint/libs/common"
 )
 
 type ResponseTx struct {

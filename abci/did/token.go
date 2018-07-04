@@ -28,7 +28,7 @@ import (
 	"strconv"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {

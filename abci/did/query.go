@@ -25,7 +25,7 @@ package did
 import (
 	"reflect"
 
-	"github.com/tendermint/abci/types"
+	"github.com/tendermint/tendermint/abci/types"
 )
 
 // ReturnQuery return types.ResponseQuery
