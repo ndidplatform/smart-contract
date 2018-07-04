@@ -160,13 +160,6 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		}
 	}()
 
-	// TODO check permission before can add Validator
-	// After scale test delete this
-	if isValidatorTx(tx) {
-		return ReturnCheckTx(true)
-	}
-	// ---------------------
-
 	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
 	if err != nil {
 		return ReturnCheckTx(false)
@@ -182,11 +175,17 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
-		// If can decode and field != "" always return true
-		return ReturnCheckTx(true)
-	} else {
-		return ReturnCheckTx(false)
+		// Check has function in system
+		if IsMethod[method] {
+			return ReturnCheckTx(true)
+		}
+		res.Code = code.Unauthorized
+		res.Log = "Invalid method name"
+		return res
 	}
+	res.Code = code.Unauthorized
+	res.Log = "Invalid transaction format"
+	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {

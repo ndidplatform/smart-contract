@@ -102,7 +102,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		// return result = false
 		var result types.ResponseDeliverTx
 		result.Code = checkTxResult.Code
-		result.Log = checkTxResult.Log
+		result.Log = "Unauthorized"
 		return result
 	}
 
