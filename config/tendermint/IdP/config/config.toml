@@ -8,7 +8,7 @@
 proxy_app = "tcp://127.0.0.1:46000"
 
 # A custom human readable name for this node
-moniker = "Node_IdP"
+moniker = "IdP"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
@@ -57,8 +57,22 @@ laddr = "tcp://0.0.0.0:45000"
 # NOTE: This server only supports /broadcast_tx_commit
 grpc_laddr = ""
 
+# Maximum number of simultaneous connections.
+# Does not include RPC (HTTP&WebSocket) connections. See max_open_connections
+# If you want to accept more significant number than the default, make sure
+# you increase your OS limits.
+# 0 - unlimited.
+grpc_max_open_connections = 900
+
 # Activate unsafe RPC commands like /dial_seeds and /unsafe_flush_mempool
 unsafe = false
+
+# Maximum number of simultaneous connections (including WebSocket).
+# Does not include gRPC connections. See grpc_max_open_connections
+# If you want to accept more significant number than the default, make sure
+# you increase your OS limits.
+# 0 - unlimited.
+max_open_connections = 900
 
 ##### peer to peer configuration options #####
 [p2p]
@@ -66,12 +80,21 @@ unsafe = false
 # Address to listen for incoming connections
 laddr = "tcp://0.0.0.0:47000"
 
+# Address to advertise to peers for them to dial
+# If empty, will use the same port as the laddr,
+# and will introspect on the listener or use UPnP
+# to figure out the address.
+external_address = ""
+
 # Comma separated list of seed nodes to connect to
-seeds = "77477709c01c3ea40b6870a798b6bb6a07fc4ae6@127.0.0.1:47000,a3cd314da85fef8188536f2dd690368820527e90@127.0.0.1:47001"
+seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
 # Do not add private peers to this list if you don't want them advertised
 persistent_peers = ""
+
+# UPNP port forwarding
+upnp = false
 
 # Path to address book
 addr_book_file = "config/addrbook.json"
@@ -102,9 +125,6 @@ pex = true
 #
 # Does not work if the peer-exchange reactor is disabled.
 seed_mode = false
-
-# Authenticated encryption
-auth_enc = true
 
 # Comma separated list of peer IDs to keep private (will not be gossiped to other peers)
 private_peer_ids = ""
@@ -140,10 +160,6 @@ timeout_commit = 1000
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
 skip_timeout_commit = false
 
-# BlockSize
-max_block_size_txs = 10000
-max_block_size_bytes = 1
-
 # EmptyBlocks mode and possible interval between empty blocks in seconds
 create_empty_blocks = true
 create_empty_blocks_interval = 0
@@ -173,3 +189,14 @@ index_tags = ""
 # desirable (see the comment above). IndexTags has a precedence over
 # IndexAllTags (i.e. when given both, IndexTags will be indexed).
 index_all_tags = false
+
+##### instrumentation configuration options #####
+[instrumentation]
+
+# When true, Prometheus metrics are served under /metrics on
+# PrometheusListenAddr.
+# Check out the documentation for the list of available metrics.
+prometheus = false
+
+# Address to listen for Prometheus collector(s) connections
+prometheus_listen_addr = ":26660"

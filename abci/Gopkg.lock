@@ -131,33 +131,35 @@
 [[projects]]
   name = "github.com/tendermint/go-amino"
   packages = ["."]
-  revision = "3c22a7a539411f89a96738fcfa14c1027e24e5ec"
-  version = "0.9.10"
-
-[[projects]]
-  name = "github.com/tendermint/go-crypto"
-  packages = ["."]
-  revision = "915416979bf70efa4bcbf1c6cd5d64c5fff9fc19"
-  version = "v0.6.2"
+  revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
+  version = "0.10.1"
 
 [[projects]]
   name = "github.com/tendermint/iavl"
+  packages = ["."]
+  revision = "35f66e53d9b01e83b30de68b931f54b2477a94c9"
+  version = "v0.9.2"
+
+[[projects]]
+  name = "github.com/tendermint/tendermint"
   packages = [
-    ".",
-    "sha256truncated"
+    "crypto",
+    "crypto/tmhash",
+    "libs/common",
+    "libs/db",
+    "libs/log"
   ]
-  revision = "c9206995e8f948e99927f5084a88a7e94ca256da"
-  version = "v0.8.0-rc0"
+  revision = "dfa9a9a30a666132425b29454e90a472aa579a48"
+  version = "v0.22.0"
 
 [[projects]]
   name = "github.com/tendermint/tmlibs"
   packages = [
     "common",
-    "db",
     "log"
   ]
-  revision = "d970af87248a4e162590300dbb74e102183a417d"
-  version = "v0.8.3"
+  revision = "692f1d86a6e2c0efa698fd1e4541b68c74ffaf38"
+  version = "v0.8.4"
 
 [[projects]]
   branch = "master"
@@ -250,6 +252,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ae9f2a9deeb9e42c0906de2440161884115d234f0f9bd1cbc224e846825081ba"
+  inputs-digest = "a97f44fbad2b572512e7eba0165739ad15192556e4e349f330bd189dc8fdffa2"
   solver-name = "gps-cdcl"
   solver-version = 1
