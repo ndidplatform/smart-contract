@@ -416,6 +416,13 @@ type GetNodeInfoParam struct {
 }
 
 type GetNodeInfoResult struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+}
+
+type GetNodeInfoIdPResult struct {
 	PublicKey       string  `json:"public_key"`
 	MasterPublicKey string  `json:"master_public_key"`
 	NodeName        string  `json:"node_name"`

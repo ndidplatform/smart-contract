@@ -738,9 +738,11 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	}
 
 	var result GetNodeInfoResult
+	var resultIdP GetNodeInfoIdPResult
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, nodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(nodeDetailKey)), height)
+
 	if nodeDetailValue != nil {
 		var nodeDetail NodeDetail
 		err = json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -751,6 +753,10 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.PublicKey = nodeDetail.PublicKey
 		result.NodeName = nodeDetail.NodeName
 		result.Role = nodeDetail.Role
+		resultIdP.MasterPublicKey = nodeDetail.MasterPublicKey
+		resultIdP.PublicKey = nodeDetail.PublicKey
+		resultIdP.NodeName = nodeDetail.NodeName
+		resultIdP.Role = nodeDetail.Role
 	}
 
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
@@ -761,17 +767,28 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
-		result.MaxIal = maxIalAal.MaxIal
-		result.MaxAal = maxIalAal.MaxAal
+		resultIdP.MaxIal = maxIalAal.MaxIal
+		resultIdP.MaxAal = maxIalAal.MaxAal
 	}
 
 	// publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
 	// _, role := app.state.db.GetVersioned(prefixKey([]byte(publicKeyRoleKey)), height)
 
-	value, err := json.Marshal(result)
+	var value []byte
+	if result.Role == "IdP" {
+		value, err = json.Marshal(resultIdP)
+	} else {
+		value, err = json.Marshal(result)
+	}
+
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
+
+	if nodeDetailValue == nil {
+		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+	}
+
 	return ReturnQuery(value, "success", app.state.db.Version64(), app)
 }
 
