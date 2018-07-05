@@ -99,11 +99,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 	// ---- check authorization ----
 	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
 	if checkTxResult.Code != code.OK {
-		// return result = false
-		var result types.ResponseDeliverTx
-		result.Code = checkTxResult.Code
-		result.Log = "Unauthorized"
-		return result
+		return ReturnDeliverTxLog(checkTxResult.Code, "Unauthorized", "")
 	}
 
 	value, _ := callDeliverTx(funcs, method, param, app, nodeID)
