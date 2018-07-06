@@ -35,6 +35,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -110,25 +111,30 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
 
 func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
-	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
-	var path []byte
-	path = append(path, fnName...)
-	path = append(path, []byte("|")...)
-	path = append(path, param...)
-	path = append(path, []byte("|")...)
-	path = append(path, nonce...)
-	path = append(path, []byte("|")...)
-	path = append(path, []byte(signatureBase64)...)
-	path = append(path, []byte("|")...)
-	path = append(path, nodeID...)
+	var path string
+	path += string(fnName)
+	path += "|"
+	path += base64.StdEncoding.EncodeToString(param)
+	path += "|"
+	path += string(nonce)
+	path += "|"
+	path += base64.StdEncoding.EncodeToString(signature)
+	path += "|"
+	path += base64.StdEncoding.EncodeToString(nodeID)
 
-	// fmt.Println(string(path))
-	pathBase64 := base64.StdEncoding.EncodeToString(path)
-	url := tendermintAddr + "/broadcast_tx_commit?tx=" + `"` + pathBase64 + `"`
-
-	// fmt.Println(url)
-	req, err := http.NewRequest("GET", url, nil)
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
 	if err != nil {
+		panic("boom")
+	}
+	URL.Path += "/broadcast_tx_commit"
+	parameters := url.Values{}
+	parameters.Add("tx", `"`+path+`"`)
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 

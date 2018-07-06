@@ -131,17 +131,25 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 		}
 	}()
 
-	txString, err := base64.StdEncoding.DecodeString(string(tx))
-	if err != nil {
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
-	}
+	txString := string(tx)
 	parts := strings.Split(string(txString), "|")
 
-	method := parts[0]
-	param := parts[1]
-	nonce := parts[2]
-	signature := parts[3]
-	nodeID := parts[4]
+	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
+	if err != nil {
+		app.logger.Error(err.Error())
+		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+	}
+	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
+	if err != nil {
+		app.logger.Error(err.Error())
+		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+	}
+
+	method := string(parts[0])
+	param := string(paramByte)
+	nonce := string(parts[2])
+	signature := string(parts[3])
+	nodeID := string(nodeIDByte)
 
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
@@ -160,17 +168,23 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		}
 	}()
 
-	txString, err := base64.StdEncoding.DecodeString(strings.Replace(string(tx), " ", "+", -1))
+	parts := strings.Split(string(tx), "|")
+	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
+		app.logger.Error(err.Error())
 		return ReturnCheckTx(false)
 	}
-	parts := strings.Split(string(txString), "|")
+	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
+	if err != nil {
+		app.logger.Error(err.Error())
+		return ReturnCheckTx(false)
+	}
 
-	method := parts[0]
-	param := parts[1]
-	nonce := parts[2]
-	signature := parts[3]
-	nodeID := parts[4]
+	method := string(parts[0])
+	param := string(paramByte)
+	nonce := string(parts[2])
+	signature := string(parts[3])
+	nodeID := string(nodeIDByte)
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
