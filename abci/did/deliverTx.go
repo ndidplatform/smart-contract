@@ -81,7 +81,6 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"UpdateServiceDestination":         updateServiceDestination,
 		"UpdateService":                    updateService,
 		"RegisterServiceDestinationByNDID": registerServiceDestinationByNDID,
-		"UpdateServiceDestinationByNDID":   updateServiceDestinationByNDID,
 		"DisableMsqDestination":            disableMsqDestination,
 		"DisableAccessorMethod":            disableAccessorMethod,
 		"DisableNode":                      disableNode,
@@ -94,12 +93,18 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 		"EnableServiceDestinationByNDID":   enableServiceDestinationByNDID,
 		"EnableNamespace":                  enableNamespace,
 		"EnableService":                    enableService,
+		"DisableServiceDestination":        disableServiceDestination,
+		"EnableServiceDestination":         enableServiceDestination,
 	}
 
 	// ---- check authorization ----
 	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
 	if checkTxResult.Code != code.OK {
-		return ReturnDeliverTxLog(checkTxResult.Code, "Unauthorized", "")
+		if checkTxResult.Log != "" {
+			return ReturnDeliverTxLog(checkTxResult.Code, checkTxResult.Log, "")
+		} else {
+			return ReturnDeliverTxLog(checkTxResult.Code, "Unauthorized", "")
+		}
 	}
 
 	value, _ := callDeliverTx(funcs, method, param, app, nodeID)

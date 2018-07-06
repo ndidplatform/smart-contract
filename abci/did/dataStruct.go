@@ -511,17 +511,8 @@ type DisableAccessorMethodParam struct {
 }
 
 type RegisterServiceDestinationByNDIDParam struct {
-	ServiceID string  `json:"service_id"`
-	NodeID    string  `json:"node_id"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
-}
-
-type UpdateServiceDestinationByNDIDParam struct {
-	ServiceID string  `json:"service_id"`
-	NodeID    string  `json:"node_id"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
+	ServiceID string `json:"service_id"`
+	NodeID    string `json:"node_id"`
 }
 
 type DisableNodeParam struct {
@@ -533,6 +524,7 @@ type Service struct {
 	MinIal    float64 `json:"min_ial"`
 	MinAal    float64 `json:"min_aal"`
 	Active    bool    `json:"active"`
+	Suspended bool    `json:"suspended"`
 }
 
 type GetServicesByAsIDParam struct {
@@ -546,4 +538,12 @@ type GetServicesByAsIDResult struct {
 type DisableServiceDestinationByNDIDParam struct {
 	ServiceID string `json:"service_id"`
 	NodeID    string `json:"node_id"`
+}
+
+type ApproveService struct {
+	Active bool `json:"active"`
+}
+
+type DisableServiceDestinationParam struct {
+	ServiceID string `json:"service_id"`
 }

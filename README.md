@@ -605,24 +605,7 @@ log: "success"
 ```sh
 {
   "service_id": "statement",
-  "node_id": "AS2",
-  "min_ial": 2.2,
-  "min_aal": 1.1
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
-## UpdateServiceDestinationByNDID
-### Parameter
-```sh
-{
-  "service_id": "statement",
-  "node_id": "AS2",
-  "min_ial": 2.8,
-  "min_aal": 2.9
+  "node_id": "AS2"
 }
 ```
 ### Expected Output
@@ -717,6 +700,42 @@ log: "success"
 ```
 
 ## EnableService
+### Parameter
+```sh
+{
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## EnableService
+### Parameter
+```sh
+{
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## DisableServiceDestination
+### Parameter
+```sh
+{
+  "service_id": "statement"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
+## EnableServiceDestination
 ### Parameter
 ```sh
 {
@@ -1134,22 +1153,18 @@ log: "success"
 {
   "services": [
     {
-      "service_id": "BankStatement1",
-      "min_ial": 1.1,
-      "min_aal": 1.1,
-      "active": true
-    },
-    {
       "service_id": "BankStatement2",
       "min_ial": 2.2,
       "min_aal": 2.2,
-      "active": true
+      "active": true,
+      "suspended": false
     },
     {
       "service_id": "BankStatement3",
       "min_ial": 3.3,
       "min_aal": 3.3,
-      "active": true
+      "active": true,
+      "suspended": true
     }
   ]
 }

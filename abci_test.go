@@ -1295,6 +1295,39 @@ func TestQueryGetMsqAddress(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestASRegisterServiceDestinationByNDIDForAS1(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		"statement",
+		"AS1",
+	}
+
+	key := getPrivateKeyFromString(ndidPrivK)
+	nodeID := []byte("NDID")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestASRegisterServiceDestination(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
 		"statement",
@@ -3519,7 +3552,7 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 }
 
 func TestRegisterNodeAS2(t *testing.T) {
-	asKey := getPrivateKeyFromString(asPrivK)
+	asKey := getPrivateKeyFromString(asPrivK2)
 	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -3565,12 +3598,43 @@ func TestRegisterNodeAS2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestSetNodeTokenAS2(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.SetNodeTokenParam{
+		"AS2",
+		100.0,
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetNodeToken"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestASRegisterServiceDestinationByNDID(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
 		"statement",
 		"AS2",
-		2.2,
-		1.1,
 	}
 
 	key := getPrivateKeyFromString(ndidPrivK)
@@ -3600,16 +3664,15 @@ func TestASRegisterServiceDestinationByNDID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestASUpdateServiceDestinationByNDID(t *testing.T) {
-	var param = did.UpdateServiceDestinationByNDIDParam{
+func TestAS2RegisterServiceDestination(t *testing.T) {
+	var param = did.RegisterServiceDestinationParam{
 		"statement",
-		"AS2",
 		2.8,
 		2.9,
 	}
 
-	key := getPrivateKeyFromString(ndidPrivK)
-	nodeID := []byte("NDID")
+	asKey := getPrivateKeyFromString(asPrivK2)
+	asNodeID := []byte("AS2")
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -3623,9 +3686,9 @@ func TestASUpdateServiceDestinationByNDID(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "UpdateServiceDestinationByNDID"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
+	fnName := "RegisterServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
@@ -3933,8 +3996,6 @@ func TestASRegisterServiceDestinationByNDID3(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
 		"BankStatement1",
 		"AS1",
-		1,
-		1,
 	}
 
 	key := getPrivateKeyFromString(ndidPrivK)
@@ -3968,8 +4029,6 @@ func TestASRegisterServiceDestinationByNDID4(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
 		"BankStatement2",
 		"AS1",
-		2,
-		2,
 	}
 
 	key := getPrivateKeyFromString(ndidPrivK)
@@ -4003,8 +4062,6 @@ func TestASRegisterServiceDestinationByNDID5(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
 		"BankStatement3",
 		"AS1",
-		3,
-		3,
 	}
 
 	key := getPrivateKeyFromString(ndidPrivK)
@@ -4025,6 +4082,108 @@ func TestASRegisterServiceDestinationByNDID5(t *testing.T) {
 	fnName := "RegisterServiceDestinationByNDID"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAS1RegisterServiceDestinationBankStatement1(t *testing.T) {
+	var param = did.RegisterServiceDestinationParam{
+		"BankStatement1",
+		2.8,
+		2.9,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAS1RegisterServiceDestinationBankStatement2(t *testing.T) {
+	var param = did.RegisterServiceDestinationParam{
+		"BankStatement2",
+		2.2,
+		2.2,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAS1RegisterServiceDestinationBankStatement3(t *testing.T) {
+	var param = did.RegisterServiceDestinationParam{
+		"BankStatement3",
+		3.3,
+		3.3,
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
@@ -4068,75 +4227,6 @@ func TestASUpdateServiceDestination2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestASUpdateServiceDestinationByNDID3(t *testing.T) {
-	var param = did.UpdateServiceDestinationByNDIDParam{
-		"BankStatement2",
-		"AS1",
-		2.2,
-		2.2,
-	}
-
-	key := getPrivateKeyFromString(ndidPrivK)
-	nodeID := []byte("NDID")
-
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
-
-	fnName := "UpdateServiceDestinationByNDID"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
-func TestASUpdateServiceDestinationByNDID4(t *testing.T) {
-	var param = did.UpdateServiceDestinationByNDIDParam{
-		"BankStatement3",
-		"AS1",
-		3.3,
-		3.3,
-	}
-	key := getPrivateKeyFromString(ndidPrivK)
-	nodeID := []byte("NDID")
-
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
-
-	fnName := "UpdateServiceDestinationByNDID"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, key, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, nodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 func TestQueryGetServicesByAsID(t *testing.T) {
 	fnName := "GetServicesByAsID"
 	var param = did.GetServicesByAsIDParam{
@@ -4149,9 +4239,9 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement1","min_ial":1.1,"min_aal":1.1,"active":true},{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement1","min_ial":1.1,"min_aal":1.1,"active":true,"suspended":true},{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
@@ -4221,6 +4311,25 @@ func TestNDIDDisableServiceDestinationByNDID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestQueryGetAsNodesByServiceID(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"BankStatement2",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var expected = `{"node":[]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetServicesByAsID2(t *testing.T) {
 	fnName := "GetServicesByAsID"
 	var param = did.GetServicesByAsIDParam{
@@ -4233,9 +4342,9 @@ func TestQueryGetServicesByAsID2(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
@@ -4454,6 +4563,25 @@ func TestNDIDEnableServiceDestinationByNDID(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestQueryGetAsNodesByServiceIDAfterEnable(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"BankStatement2",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":2.2,"min_aal":2.2}]}`
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetServicesByAsID3(t *testing.T) {
 	fnName := "GetServicesByAsID"
 	var param = did.GetServicesByAsIDParam{
@@ -4466,9 +4594,9 @@ func TestQueryGetServicesByAsID3(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
@@ -4603,6 +4731,118 @@ func TestQueryGetNodeInfoAS1(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwCB4UBzQcnd6GAzPgbt9\nj2idW23qKZrsvldPNifmOPLfLlMusv4EcyJf4L42/aQbTn1rVSu1blGkuCK+oRlK\nWmZEWh3xv9qrwCwov9Jme/KOE98zOMB10/xwnYotPadV0de80wGvKT7OlBlGulQR\nRhhgENNCPSxdUlozrPhrzGstXDr9zTYQoR3UD/7Ntmew3mnXvKj/8+U48hw913Xn\n6btBP3Uqg2OurXDGdrWciWgIMDEGyk65NOc8FOGa4AjYXzyi9TqOIfmysWhzKzU+\nfLysZQo10DfznnQN3w9+pI+20j2zB6ggpL75RjZKYgHU49pbvjF/eOSTOg9o5HwX\n0wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"Node RP 1","role":"RP"}`)
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASDisableServiceDestination(t *testing.T) {
+	var param = did.DisableServiceDestinationParam{
+		"statement",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DisableServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAsNodesByServiceId7(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"statement",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAsNodesByServiceIdResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = `{"node":[]}`
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASEnableServiceDestination(t *testing.T) {
+	var param = did.DisableServiceDestinationParam{
+		"statement",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "EnableServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAsNodesByServiceId8(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"statement",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAsNodesByServiceIdResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}

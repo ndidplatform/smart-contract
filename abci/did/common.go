@@ -297,6 +297,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 	}
 
 	var result GetAsNodesByServiceIdWithNameResult
+	result.Node = make([]ASNodeResult, 0)
 	for index := range storedData.Node {
 		var newRow = ASNodeResult{
 			storedData.Node[index].ID,
@@ -315,7 +316,21 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
 			if nodeDetail.Active {
-				result.Node = append(result.Node, newRow)
+				// Filter service destination is Active
+				if storedData.Node[index].Active {
+					// Filter approve from NDID
+					approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].ID
+					_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
+					if approveServiceJSON != nil {
+						var approveService ApproveService
+						err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+						if err == nil {
+							if approveService.Active {
+								result.Node = append(result.Node, newRow)
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -906,7 +921,7 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 		}
 	}
 
-	for _, provideService := range services {
+	for index, provideService := range services {
 		serviceKey := "Service" + "|" + provideService.ServiceID
 		_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
 		var service ServiceDetail
@@ -916,8 +931,18 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
 		}
-		if provideService.Active && nodeDetail.Active && service.Active {
-			result.Services = append(result.Services, provideService)
+		if nodeDetail.Active && service.Active {
+			// Set suspended from NDID
+			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceID + "|" + funcParam.AsID
+			_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
+			if approveServiceJSON != nil {
+				var approveService ApproveService
+				err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+				if err == nil {
+					services[index].Suspended = approveService.Active
+				}
+			}
+			result.Services = append(result.Services, services[index])
 		}
 	}
 

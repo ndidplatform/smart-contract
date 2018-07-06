@@ -163,6 +163,22 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 			return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID in provide service list", "")
 		}
 	}
+
+	// Check approve register service destination from NDID
+	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + nodeID
+	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
+	if approveServiceJSON == nil {
+		return ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
+	}
+	var approveService ApproveService
+	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if approveService.Active == false {
+		return ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
+	}
+
 	// Append to ProvideService list
 	var newService Service
 	newService.ServiceID = funcParam.ServiceID
@@ -301,6 +317,148 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+	serviceDestinationJSON, err := json.Marshal(nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
+	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func disableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
+	var funcParam DisableServiceDestinationParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check Service ID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service ServiceDetail
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Update ServiceDestination
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+
+	if serviceDestinationValue == nil {
+		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+	}
+
+	var nodes GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	for index := range nodes.Node {
+		if nodes.Node[index].ID == nodeID {
+			nodes.Node[index].Active = false
+			break
+		}
+	}
+
+	// Update PrivideService
+	provideServiceKey := "ProvideService" + "|" + nodeID
+	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
+	var services []Service
+	if provideServiceValue != nil {
+		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	for index, service := range services {
+		if service.ServiceID == funcParam.ServiceID {
+			services[index].Active = false
+			break
+		}
+	}
+	provideServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	serviceDestinationJSON, err := json.Marshal(nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
+	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func enableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
+	var funcParam DisableServiceDestinationParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check Service ID
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service ServiceDetail
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Update ServiceDestination
+	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+
+	if serviceDestinationValue == nil {
+		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+	}
+
+	var nodes GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	for index := range nodes.Node {
+		if nodes.Node[index].ID == nodeID {
+			nodes.Node[index].Active = true
+			break
+		}
+	}
+
+	// Update PrivideService
+	provideServiceKey := "ProvideService" + "|" + nodeID
+	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
+	var services []Service
+	if provideServiceValue != nil {
+		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	for index, service := range services {
+		if service.ServiceID == funcParam.ServiceID {
+			services[index].Active = true
+			break
+		}
+	}
+	provideServiceJSON, err := json.Marshal(services)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
 	serviceDestinationJSON, err := json.Marshal(nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
