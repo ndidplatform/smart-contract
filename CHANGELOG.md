@@ -1,9 +1,29 @@
 # Changelog
 
+## 0.3.0 (July 7, 2018)
+
+FEATURES:
+- [DeliverTx] Add new function (EnableMsqDestination, DisableMsqDestination, EnableAccessorMethod, DisableAccessorMethod, EnableService, DisableService, EnableNode, DisableNode, EnableNamespace, DisableNamespace, RegisterServiceDestinationByNDID, EnableServiceDestinationByNDID, DisableServiceDestinationByNDID, EnableServiceDestination, DisableServiceDestination)
+- [CheckTx] Check method name
+
+
+BREAKING CHANGES:
+- Change version of Tendermint to v0.22.0
+- [DeliverTx] Change transaction format
+- [Query] Change query data format
+- [DeliverTx] Before AS can RegisterServiceDestination need approval from NDID
+- [DeliverTx] Change parameter of RegisterMsqDestination
+- [Key/Value store] Add active flag in struct of MsqDestination, Accessor, Service
+, Node and Namespace
+- [Query] Filter active flag (GetIdpNodes, GetAsNodesByServiceId, GetNamespaceList, GetServicesByAsID)
+
+BUG FIXES:
+- [DeliverTx] When create transaction with ivalid signature, success tag will be missing
+
 ## 0.2.0 (June 30, 2018)
 
 FEATURES:
-- [CircleCI] Add a configuration for automatic test, build, and deploy image to dockerhub.
+- [CircleCI] Add a configuration for automatic test, build, and deploy image to dockerhub
 
 BUG FIXES:
 - [Query] Set special request if owner is IdP (GetRequestDetail)
