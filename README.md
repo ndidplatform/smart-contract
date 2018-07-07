@@ -709,7 +709,7 @@ log: "success"
 log: "success"
 ```
 
-## EnableService
+## DisableService
 ### Parameter
 ```sh
 {
