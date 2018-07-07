@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/btcsuite/btcd"
   packages = ["btcec"]
-  revision = "bc0944904505aab55e089371a892be2f87883161"
+  revision = "fdfc19097e7ac6b57035062056f5b7b4638b8898"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -107,7 +107,7 @@
     "leveldb/table",
     "leveldb/util"
   ]
-  revision = "5d6fca44a948d2be89a9702de7717f0168403d3d"
+  revision = "0d5a0ceb10cf9ab89fdd744cc8c50a83134f6697"
 
 [[projects]]
   branch = "master"
@@ -149,6 +149,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
+    "internal/subtle",
     "nacl/secretbox",
     "openpgp/armor",
     "openpgp/errors",
@@ -157,7 +158,7 @@
     "salsa20/salsa",
     "ssh/terminal"
   ]
-  revision = "ab813273cd59e1333f7ae7bff5d027d4aadf528c"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
@@ -171,7 +172,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
+  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
 
 [[projects]]
   branch = "master"
@@ -180,7 +181,7 @@
     "unix",
     "windows"
   ]
-  revision = "c11f84a56e43e20a78cee75a7c034031ecf57d1f"
+  revision = "3c6ecd8f22c6f40fbeec94c000a069d7d87c7624"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -207,7 +208,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "694d95ba50e67b2e363f3483057db5d4910c18f9"
+  revision = "8b2cc369ab52e0003a878865c9372afdd6ca5c5a"
 
 [[projects]]
   name = "google.golang.org/grpc"
