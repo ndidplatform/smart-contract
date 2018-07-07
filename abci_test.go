@@ -4239,7 +4239,7 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement1","min_ial":1.1,"min_aal":1.1,"active":true,"suspended":true},{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement1","min_ial":1.1,"min_aal":1.1,"active":true,"suspended":false},{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
@@ -4342,7 +4342,7 @@ func TestQueryGetServicesByAsID2(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
@@ -4594,7 +4594,7 @@ func TestQueryGetServicesByAsID3(t *testing.T) {
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":true}]}`
+	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}

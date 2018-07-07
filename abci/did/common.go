@@ -939,7 +939,7 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 				var approveService ApproveService
 				err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
 				if err == nil {
-					services[index].Suspended = approveService.Active
+					services[index].Suspended = !approveService.Active
 				}
 			}
 			result.Services = append(result.Services, services[index])
