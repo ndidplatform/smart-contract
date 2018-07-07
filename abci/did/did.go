@@ -154,7 +154,9 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" {
-		return DeliverTxRouter(method, param, nonce, signature, nodeID, app)
+		result := DeliverTxRouter(method, param, nonce, signature, nodeID, app)
+		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
+		return result
 	}
 	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
