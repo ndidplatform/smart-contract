@@ -150,16 +150,14 @@ docker-compose -f docker/docker-compose.yml up
 
 ## Technical details to connect with `api`
 
-Interact with `api` in BASE64 format data.
-
 # Broadcast tx format
 ```sh
-functionName|parameter|nonce|base64(sign(param+nonce))|nodeID
+functionName|base64(parameterJSON)|nonce|base64(sign(param+nonce))|base64(nodeID)
 ```
 
 # Query format
 ```sh
-functionName|parameter
+functionName|base64(parameterJSON)
 ```
 
 # Create transaction function

@@ -158,18 +158,24 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 }
 
 func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
-	var path []byte
-	path = append(path, fnName...)
-	path = append(path, []byte("|")...)
-	path = append(path, param...)
+	var path string
+	path += string(fnName)
+	path += "|"
+	path += base64.StdEncoding.EncodeToString(param)
 
-	// fmt.Println(string(path))
-	pathBase64 := base64.StdEncoding.EncodeToString(path)
-	url := tendermintAddr + "/abci_query?data=" + `"` + pathBase64 + `"`
-
-	// fmt.Println(url)
-	req, err := http.NewRequest("GET", url, nil)
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
 	if err != nil {
+		panic("boom")
+	}
+	URL.Path += "/abci_query"
+	parameters := url.Values{}
+	parameters.Add("data", `"`+path+`"`)
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
