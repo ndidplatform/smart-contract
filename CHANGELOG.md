@@ -6,6 +6,9 @@ FEATURES:
 - [DeliverTx] Add new function (EnableMsqDestination, DisableMsqDestination, EnableAccessorMethod, DisableAccessorMethod, EnableService, DisableService, EnableNode, DisableNode, EnableNamespace, DisableNamespace, RegisterServiceDestinationByNDID, EnableServiceDestinationByNDID, DisableServiceDestinationByNDID, EnableServiceDestination, DisableServiceDestination)
 - [CheckTx] Check method name
 
+IMPROVEMENTS:
+- [Docker] Use alpine:3.7 when building tendermint image
+
 
 BREAKING CHANGES:
 - Change version of Tendermint to v0.22.0
