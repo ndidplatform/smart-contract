@@ -18,7 +18,7 @@ BREAKING CHANGES:
 - [Query] Filter active flag (GetIdpNodes, GetAsNodesByServiceId, GetNamespaceList, GetServicesByAsID)
 
 BUG FIXES:
-- [DeliverTx] When create transaction with ivalid signature, success tag will be missing
+- [DeliverTx] Fix missing `success` tag when creating a transaction with invalid signature
 
 ## 0.2.0 (June 30, 2018)
 
