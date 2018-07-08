@@ -1,4 +1,4 @@
-FROM alpine:3.6 as build
+FROM alpine:3.7 as build
 
 # This is the release of tendermint to pull in.
 ENV TM_VERSION 0.22.0
