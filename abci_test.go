@@ -518,6 +518,7 @@ func TestInitNDID(t *testing.T) {
 	var initNDIDparam did.InitNDIDParam
 	initNDIDparam.NodeID = "NDID"
 	initNDIDparam.PublicKey = string(ndidpublicKeyBytes)
+	initNDIDparam.MasterPublicKey = string(ndidpublicKeyBytes)
 
 	initNDIDparamJSON, err := json.Marshal(initNDIDparam)
 	if err != nil {

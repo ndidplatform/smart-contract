@@ -192,17 +192,6 @@ func checkIsRPorIdP(param string, nodeID string, app *DIDApplication) types.Resp
 	return ReturnCheckTx(checkIdPorRP(param, nodeID, app))
 }
 
-func checkIsMasterNode(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "MasterIdP" ||
-		string(value) == "MasterRP" ||
-		string(value) == "MasterAS" {
-		return ReturnCheckTx(true)
-	}
-	return ReturnCheckTx(false)
-}
-
 func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -371,7 +360,6 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		"EnableServiceDestination":         checkIsAS,
 		"CreateRequest":                    checkIsRPorIdP,
 		"RegisterMsqAddress":               checkTxRegisterMsqAddress,
-		"UpdateNode":                       checkIsMasterNode,
 	}
 
 	var publicKey string

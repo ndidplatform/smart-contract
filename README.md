@@ -167,7 +167,8 @@ functionName|base64(parameterJSON)
 ```sh
 {
   "node_id": "NDID",
-  "public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zxXUCY\nRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5p\nxK/+olBzfzLMDEOwFRbnYtPtbWozfvceq77fEReTUdBGRLak7twxLrRPNzIu/Gqv\nn5AR8urXyF4r143CgReGkXTTmOvHpHu98kCQSINFuwBB98RLFuWdVwkrHyzaGnym\nQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTk\nLb9t27DpW9G+DXryq+Pnl5c+z7es/7T34QIDAQAB\n-----END RSA PUBLIC KEY-----\n"
+  "public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zxXUCY\nRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5p\nxK/+olBzfzLMDEOwFRbnYtPtbWozfvceq77fEReTUdBGRLak7twxLrRPNzIu/Gqv\nn5AR8urXyF4r143CgReGkXTTmOvHpHu98kCQSINFuwBB98RLFuWdVwkrHyzaGnym\nQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTk\nLb9t27DpW9G+DXryq+Pnl5c+z7es/7T34QIDAQAB\n-----END RSA PUBLIC KEY-----\n",
+  "master_public_key": "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zxXUCY\nRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5p\nxK/+olBzfzLMDEOwFRbnYtPtbWozfvceq77fEReTUdBGRLak7twxLrRPNzIu/Gqv\nn5AR8urXyF4r143CgReGkXTTmOvHpHu98kCQSINFuwBB98RLFuWdVwkrHyzaGnym\nQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTk\nLb9t27DpW9G+DXryq+Pnl5c+z7es/7T34QIDAQAB\n-----END RSA PUBLIC KEY-----\n"
 }
 ```
 ### Expected Output

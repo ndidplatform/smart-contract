@@ -59,15 +59,11 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// key := "NodePublicKeyRole" + "|" + funcParam.PublicKey
-	// value := []byte("MasterNDID")
-	// app.SetStateDB([]byte(key), []byte(value))
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	// TODO: fix param InitNDID
 	var nodeDetail = NodeDetail{
 		funcParam.PublicKey,
-		funcParam.PublicKey,
+		funcParam.MasterPublicKey,
 		"NDID",
 		"NDID",
 		true,
@@ -79,7 +75,7 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
 	key := "MasterNDID"
-	value := []byte(funcParam.PublicKey)
+	value := []byte(funcParam.MasterPublicKey)
 	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
