@@ -1,5 +1,13 @@
 # Changelog
 
+## X.X.X
+
+IMPROVEMENTS:
+- [DeliverTx] Check responseValid in CloseRequest and TimeOutRequest
+
+BREAKING CHANGES:
+- [DeliverTx] Add master_public_key in parameter of InitNDID
+
 ## 0.3.0 (July 7, 2018)
 
 FEATURES:
@@ -8,7 +16,6 @@ FEATURES:
 
 IMPROVEMENTS:
 - [Docker] Use alpine:3.7 when building tendermint image
-
 
 BREAKING CHANGES:
 - Change version of Tendermint to v0.22.0
