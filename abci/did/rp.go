@@ -112,11 +112,16 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
+	// Check valid list
+	if len(funcParam.ResponseValidList) != len(request.Responses) {
+		return ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
+	}
+
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.Responses {
 			if valid.IdpID == request.Responses[index].IdpID {
-				request.Responses[index].ValidProof = &valid.ValidProof
-				request.Responses[index].ValidIal = &valid.ValidIal
+				request.Responses[index].ValidProof = valid.ValidProof
+				request.Responses[index].ValidIal = valid.ValidIal
 			}
 		}
 	}
@@ -155,11 +160,16 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
+	// Check valid list
+	if len(funcParam.ResponseValidList) != len(request.Responses) {
+		return ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
+	}
+
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.Responses {
 			if valid.IdpID == request.Responses[index].IdpID {
-				request.Responses[index].ValidProof = &valid.ValidProof
-				request.Responses[index].ValidIal = &valid.ValidIal
+				request.Responses[index].ValidProof = valid.ValidProof
+				request.Responses[index].ValidIal = valid.ValidIal
 			}
 		}
 	}

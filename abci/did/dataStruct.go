@@ -464,8 +464,8 @@ type TimeOutRequestParam struct {
 
 type ResponseValid struct {
 	IdpID      string `json:"idp_id"`
-	ValidProof bool   `json:"valid_proof"`
-	ValidIal   bool   `json:"valid_ial"`
+	ValidProof *bool  `json:"valid_proof"`
+	ValidIal   *bool  `json:"valid_ial"`
 }
 
 type GetDataSignatureParam struct {

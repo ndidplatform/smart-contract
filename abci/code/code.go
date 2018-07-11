@@ -72,4 +72,5 @@ const (
 	AccessorIDNotFound                        uint32 = 45
 	NotOwnerOfAccessor                        uint32 = 46
 	NoPermissionForRegisterServiceDestination uint32 = 47
+	IncompleteValidList                       uint32 = 48
 )
