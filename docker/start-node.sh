@@ -46,7 +46,7 @@ tendermint_wait_for_sync_complete() {
 }
 
 tendermint_set_addr_book_strict() {
-  sed -iE "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${TMHOME}/config/config.toml
 }
 
 TYPE=${1}
