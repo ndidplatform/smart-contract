@@ -1,6 +1,6 @@
 # Changelog
 
-## X.X.X
+## 0.4.0 (July 14, 2018)
 
 IMPROVEMENTS:
 - [DeliverTx] Check responseValid in CloseRequest and TimeOutRequest
