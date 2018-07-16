@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (July 16, 2018)
+
+BREAKING CHANGES:
+- Change version of Tendermint to v0.22.4
+
 ## 0.4.0 (July 14, 2018)
 
 IMPROVEMENTS:
