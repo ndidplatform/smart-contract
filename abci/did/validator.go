@@ -30,8 +30,8 @@ import (
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
-	crypto "github.com/tendermint/go-crypto"
 	"github.com/tendermint/tendermint/abci/types"
+	crypto "github.com/tendermint/tendermint/crypto"
 )
 
 const (

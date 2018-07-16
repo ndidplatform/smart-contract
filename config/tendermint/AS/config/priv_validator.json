@@ -1,14 +1,14 @@
 {
-  "address": "CE52BD943653A3238F04C94F077EB4ACF74418DF",
+  "address": "9F024244C0E408119DE1EC063AC8620A01AB0528",
   "pub_key": {
-    "type": "AC26791624DE60",
-    "value": "SUnfx8ApiP570Ik5gtfdhik3d79BVXJilMNRp+lQ+Tw="
+    "type": "tendermint/PubKeyEd25519",
+    "value": "ZLCk3PXYUIRhDcfffLnJ1BUGBGoJfWRnXu0Ad+lfmnk="
   },
-  "last_height": 0,
-  "last_round": 0,
+  "last_height": "0",
+  "last_round": "0",
   "last_step": 0,
   "priv_key": {
-    "type": "954568A3288910",
-    "value": "2mIwibnopT/9ZcB5yficO5FFDQsiOKkauB791NxYcZVJSd/HwCmI/nvQiTmC192GKTd3v0FVcmKUw1Gn6VD5PA=="
+    "type": "tendermint/PrivKeyEd25519",
+    "value": "2LuGwiClt8+eHO19dTLuKytjJtt2bPBPo51ebv482LRksKTc9dhQhGENx998ucnUFQYEagl9ZGde7QB36V+aeQ=="
   }
 }

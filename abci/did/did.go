@@ -33,7 +33,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
-	dbm "github.com/tendermint/tmlibs/db"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
