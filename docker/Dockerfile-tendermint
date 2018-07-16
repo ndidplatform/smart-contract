@@ -1,8 +1,8 @@
 FROM alpine:3.7 as build
 
 # This is the release of tendermint to pull in.
-ENV TM_VERSION 0.21.0
-ENV TM_SHA256SUM 86e4622b56ddd130060203abef35051caf1e3102198b9bd4ab4931db7dc45580
+ENV TM_VERSION 0.22.4
+ENV TM_SHA256SUM f0e496dc0abc97a84a0cda516717debaaea8fdfce1ce3556008e8b5466903f8a
 
 RUN apk update && apk add --no-cache --virtual .build-deps \
         openssl \
