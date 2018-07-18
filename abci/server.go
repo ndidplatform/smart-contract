@@ -49,6 +49,7 @@ func init() {
 	} else {
 		logrus.SetOutput(os.Stdout)
 	}
+	logrus.SetNoLock()
 	logrus.SetLevel(logrus.DebugLevel)
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
