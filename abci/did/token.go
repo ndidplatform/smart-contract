@@ -66,7 +66,7 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 }
 
 func setPriceFunc(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
+	// app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -77,7 +77,7 @@ func setPriceFunc(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func getPriceFunc(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
+	// app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -140,7 +140,7 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 }
 
 func setNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetNodeToken, Parameter: %s", param)
+	// app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -154,7 +154,7 @@ func setNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func addNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddNodeToken, Parameter: %s", param)
+	// app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -168,7 +168,7 @@ func addNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
+	// app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -182,7 +182,7 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 }
 
 func getNodeToken(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetNodeToken, Parameter: %s", param)
+	// app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

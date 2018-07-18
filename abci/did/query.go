@@ -30,7 +30,7 @@ import (
 
 // ReturnQuery return types.ResponseQuery
 func ReturnQuery(value []byte, log string, height int64, app *DIDApplication) types.ResponseQuery {
-	app.logger.Infof("Query reult: %s", string(value))
+	// app.logger.Infof("Query reult: %s", string(value))
 	var res types.ResponseQuery
 	res.Value = value
 	res.Log = log

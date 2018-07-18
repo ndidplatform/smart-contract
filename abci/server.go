@@ -28,7 +28,7 @@ import (
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/sirupsen/logrus"
+	// "github.com/sirupsen/logrus"
 	server "github.com/tendermint/tendermint/abci/server"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -37,24 +37,24 @@ import (
 
 type loggerWriter struct{}
 
-var log *logrus.Entry
+// var log *logrus.Entry
 
 func init() {
 	// Set default logrus
 	logFile, _ := os.OpenFile("DID.log", os.O_CREATE|os.O_WRONLY, 0666)
 	// TODO: add evironment for write log
 	// Set write log to file
-	if false {
-		logrus.SetOutput(logFile)
-	} else {
-		logrus.SetOutput(os.Stdout)
-	}
-	logrus.SetLevel(logrus.DebugLevel)
-	customFormatter := new(logrus.TextFormatter)
-	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	customFormatter.FullTimestamp = true
-	logrus.SetFormatter(customFormatter)
-	log = logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	// if false {
+	// 	logrus.SetOutput(logFile)
+	// } else {
+	// 	logrus.SetOutput(os.Stdout)
+	// }
+	// logrus.SetLevel(logrus.DebugLevel)
+	// customFormatter := new(logrus.TextFormatter)
+	// customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	// customFormatter.FullTimestamp = true
+	// logrus.SetFormatter(customFormatter)
+	// log = logrus.WithFields(logrus.Fields{"module": "abci-app"})
 }
 
 func main() {
@@ -75,7 +75,7 @@ func runABCIServer(args []string) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	srv.SetLogger(logger.With("module", "abci-server"))
+	// srv.SetLogger(logger.With("module", "abci-server"))
 	if err := srv.Start(); err != nil {
 		fmt.Println(err.Error())
 	}

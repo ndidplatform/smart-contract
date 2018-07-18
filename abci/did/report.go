@@ -61,7 +61,7 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 }
 
 func getUsedTokenReport(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetUsedTokenReport, Parameter: %s", param)
+	// app.logger.Infof("GetUsedTokenReport, Parameter: %s", param)
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

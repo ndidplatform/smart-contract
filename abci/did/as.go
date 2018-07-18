@@ -30,7 +30,7 @@ import (
 )
 
 func signData(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SignData, Parameter: %s", param)
+	// app.logger.Infof("SignData, Parameter: %s", param)
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
 	if err != nil {
@@ -129,7 +129,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 }
 
 func registerServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
+	// app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -246,7 +246,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 }
 
 func updateServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
+	// app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -327,7 +327,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 }
 
 func disableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
+	// app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -398,7 +398,7 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 }
 
 func enableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
+	// app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

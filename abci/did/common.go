@@ -30,7 +30,7 @@ import (
 )
 
 func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterMsqAddress, Parameter: %s", param)
+	// app.logger.Infof("RegisterMsqAddress, Parameter: %s", param)
 	var funcParam RegisterMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -50,7 +50,7 @@ func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.
 }
 
 func getNodeMasterPublicKey(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
+	// app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
 	var funcParam GetNodeMasterPublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -79,7 +79,7 @@ func getNodeMasterPublicKey(param string, app *DIDApplication, height int64) typ
 }
 
 func getNodePublicKey(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
+	// app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
 	var funcParam GetNodePublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -122,7 +122,7 @@ func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
 }
 
 func getIdpNodes(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetIdpNodes, Parameter: %s", param)
+	// app.logger.Infof("GetIdpNodes, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -243,7 +243,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 }
 
 func getAsNodesByServiceId(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
+	// app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -342,7 +342,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 }
 
 func getMsqAddress(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetMsqAddress, Parameter: %s", param)
+	// app.logger.Infof("GetMsqAddress, Parameter: %s", param)
 	var funcParam GetMsqAddressParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -375,7 +375,7 @@ func getCanAddAccessor(requestID string, app *DIDApplication) bool {
 }
 
 func getRequest(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetRequest, Parameter: %s", param)
+	// app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -409,7 +409,7 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 }
 
 func getRequestDetail(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
+	// app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -453,7 +453,7 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 }
 
 func getNamespaceList(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
+	// app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	key := "AllNamespace"
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
@@ -481,7 +481,7 @@ func getNamespaceList(param string, app *DIDApplication, height int64) types.Res
 }
 
 func getServiceDetail(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
+	// app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -498,7 +498,7 @@ func getServiceDetail(param string, app *DIDApplication, height int64) types.Res
 }
 
 func updateNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateNode, Parameter: %s", param)
+	// app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -536,7 +536,7 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 }
 
 func checkExistingIdentity(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
+	// app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -565,7 +565,7 @@ func checkExistingIdentity(param string, app *DIDApplication, height int64) type
 }
 
 func getAccessorGroupID(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetAccessorGroupID, Parameter: %s", param)
+	// app.logger.Infof("GetAccessorGroupID, Parameter: %s", param)
 	var funcParam GetAccessorGroupIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -600,7 +600,7 @@ func getAccessorGroupID(param string, app *DIDApplication, height int64) types.R
 }
 
 func getAccessorKey(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
+	// app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -636,7 +636,7 @@ func getAccessorKey(param string, app *DIDApplication, height int64) types.Respo
 }
 
 func getServiceList(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetServiceList, Parameter: %s", param)
+	// app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
@@ -682,7 +682,7 @@ func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
 }
 
 // func getNodeInfo(param string, app *DIDApplication, height int64) types.ResponseQuery{
-// 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+// 	// app.logger.Infof("GetNodeInfo, Parameter: %s", param)
 // 	var result GetNodeInfoResult
 // 	result.Version = app.Version
 // 	value, err := json.Marshal(result)
@@ -693,7 +693,7 @@ func getServiceNameByServiceID(serviceID string, app *DIDApplication) string {
 // }
 
 func checkExistingAccessorID(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
+	// app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -721,7 +721,7 @@ func checkExistingAccessorID(param string, app *DIDApplication, height int64) ty
 }
 
 func checkExistingAccessorGroupID(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("CheckExistingAccessorGroupID, Parameter: %s", param)
+	// app.logger.Infof("CheckExistingAccessorGroupID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorGroupIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -745,7 +745,7 @@ func checkExistingAccessorGroupID(param string, app *DIDApplication, height int6
 }
 
 func getNodeInfo(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
+	// app.logger.Infof("GetNodeInfo, Parameter: %s", param)
 	var funcParam GetNodeInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -808,7 +808,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 }
 
 func getIdentityInfo(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
+	// app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
 	var funcParam GetIdentityInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -847,7 +847,7 @@ func getIdentityInfo(param string, app *DIDApplication, height int64) types.Resp
 }
 
 func getDataSignature(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetDataSignature, Parameter: %s", param)
+	// app.logger.Infof("GetDataSignature, Parameter: %s", param)
 	var funcParam GetDataSignatureParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -871,7 +871,7 @@ func getDataSignature(param string, app *DIDApplication, height int64) types.Res
 }
 
 func getIdentityProof(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetIdentityProof, Parameter: %s", param)
+	// app.logger.Infof("GetIdentityProof, Parameter: %s", param)
 	var funcParam GetIdentityProofParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -891,7 +891,7 @@ func getIdentityProof(param string, app *DIDApplication, height int64) types.Res
 }
 
 func getServicesByAsID(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
+	// app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
 	var funcParam GetServicesByAsIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

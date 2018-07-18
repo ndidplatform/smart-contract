@@ -30,7 +30,7 @@ import (
 )
 
 func createRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateRequest, Parameter: %s", param)
+	// app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var request Request
 	err := json.Unmarshal([]byte(param), &request)
 	if err != nil {
@@ -88,7 +88,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 }
 
 func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CloseRequest, Parameter: %s", param)
+	// app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -136,7 +136,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func timeOutRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
+	// app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -185,7 +185,7 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 }
 
 func setDataReceived(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetDataReceived, Parameter: %s", param)
+	// app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -253,10 +253,10 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	// 	}
 	// }
 	// if dataRequestCompletedCount == len(request.DataRequestList) {
-	// 	app.logger.Info("Auto close")
+	// 	// app.logger.Info("Auto close")
 	// 	request.IsClosed = true
 	// } else {
-	// 	app.logger.Info("Auto close")
+	// 	// app.logger.Info("Auto close")
 	// }
 
 	value, err = json.Marshal(request)

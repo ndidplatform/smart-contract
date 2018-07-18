@@ -30,7 +30,7 @@ import (
 )
 
 func createIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateIdentity, Parameter: %s", param)
+	// app.logger.Infof("CreateIdentity, Parameter: %s", param)
 	var funcParam CreateIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -89,7 +89,7 @@ func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
 }
 
 func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
+	// app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
 	var funcParam AccessorMethod
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -173,7 +173,7 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 }
 
 func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterMsqDestination, Parameter: %s", param)
+	// app.logger.Infof("RegisterMsqDestination, Parameter: %s", param)
 	var funcParam RegisterMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -259,7 +259,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 }
 
 func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
+	// app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var funcParam CreateIdpResponseParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -357,7 +357,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 		// NO data request. If accept >= min_idp, then auto close request
 		// if len(request.DataRequestList) == 0 {
-		// 	app.logger.Info("Auto close")
+		// 	// app.logger.Info("Auto close")
 		// 	accept := 0
 		// 	reject := 0
 		// 	for _, response := range request.Responses {
@@ -371,7 +371,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		// 		request.IsClosed = true
 		// 	}
 		// } else {
-		// 	app.logger.Info("No auto close")
+		// 	// app.logger.Info("No auto close")
 		// }
 
 		value, err := json.Marshal(request)
@@ -385,7 +385,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 }
 
 func updateIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
+	// app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -434,7 +434,7 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 }
 
 func declareIdentityProof(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
+	// app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
 	var funcParam DeclareIdentityProofParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -480,7 +480,7 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 }
 
 func disableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableMsqDestination, Parameter: %s", param)
+	// app.logger.Infof("DisableMsqDestination, Parameter: %s", param)
 	var funcParam DisableMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -515,7 +515,7 @@ func disableMsqDestination(param string, app *DIDApplication, nodeID string) typ
 }
 
 func disableAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableAccessorMethod, Parameter: %s", param)
+	// app.logger.Infof("DisableAccessorMethod, Parameter: %s", param)
 	var funcParam DisableAccessorMethodParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -551,7 +551,7 @@ func disableAccessorMethod(param string, app *DIDApplication, nodeID string) typ
 }
 
 func enableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableMsqDestination, Parameter: %s", param)
+	// app.logger.Infof("EnableMsqDestination, Parameter: %s", param)
 	var funcParam DisableMsqDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -586,7 +586,7 @@ func enableMsqDestination(param string, app *DIDApplication, nodeID string) type
 }
 
 func enableAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableAccessorMethod, Parameter: %s", param)
+	// app.logger.Infof("EnableAccessorMethod, Parameter: %s", param)
 	var funcParam DisableAccessorMethodParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

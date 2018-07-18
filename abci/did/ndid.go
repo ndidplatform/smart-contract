@@ -53,7 +53,7 @@ var isNDIDMethod = map[string]bool{
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("InitNDID, Parameter: %s", param)
+	// app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -81,7 +81,7 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 }
 
 func registerNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterNode, Parameter: %s", param)
+	// app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -150,7 +150,7 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func addNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddNamespace, Parameter: %s", param)
+	// app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -187,7 +187,7 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 }
 
 func disableNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableNamespace, Parameter: %s", param)
+	// app.logger.Infof("DisableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -224,7 +224,7 @@ func disableNamespace(param string, app *DIDApplication, nodeID string) types.Re
 }
 
 func addService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddService, Parameter: %s", param)
+	// app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -284,7 +284,7 @@ func addService(param string, app *DIDApplication, nodeID string) types.Response
 }
 
 func disableService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableService, Parameter: %s", param)
+	// app.logger.Infof("DisableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -341,7 +341,7 @@ func disableService(param string, app *DIDApplication, nodeID string) types.Resp
 }
 
 func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
+	// app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -373,7 +373,7 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 }
 
 func updateService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("UpdateService, Parameter: %s", param)
+	// app.logger.Infof("UpdateService, Parameter: %s", param)
 	var funcParam UpdateServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -433,7 +433,7 @@ func updateService(param string, app *DIDApplication, nodeID string) types.Respo
 }
 
 func registerServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
+	// app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -464,7 +464,7 @@ func registerServiceDestinationByNDID(param string, app *DIDApplication, nodeID 
 }
 
 func disableNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableNode, Parameter: %s", param)
+	// app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -495,7 +495,7 @@ func disableNode(param string, app *DIDApplication, nodeID string) types.Respons
 }
 
 func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
+	// app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -534,7 +534,7 @@ func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID s
 }
 
 func enableNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableNode, Parameter: %s", param)
+	// app.logger.Infof("EnableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -565,7 +565,7 @@ func enableNode(param string, app *DIDApplication, nodeID string) types.Response
 }
 
 func enableServiceDestinationByNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
+	// app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -604,7 +604,7 @@ func enableServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 }
 
 func enableNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableNamespace, Parameter: %s", param)
+	// app.logger.Infof("EnableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -641,7 +641,7 @@ func enableNamespace(param string, app *DIDApplication, nodeID string) types.Res
 }
 
 func enableService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("EnableService, Parameter: %s", param)
+	// app.logger.Infof("EnableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

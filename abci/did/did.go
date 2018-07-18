@@ -30,7 +30,7 @@ import (
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/sirupsen/logrus"
+	// "github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -55,19 +55,19 @@ type DIDApplication struct {
 	types.BaseApplication
 	state      State
 	ValUpdates []types.Validator
-	logger     *logrus.Entry
+	// logger     *logrus.Entry
 	Version    string
 }
 
 func NewDIDApplication() *DIDApplication {
-	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	// logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Errorf("%s", identifyPanic())
+			// logger.Errorf("%s", identifyPanic())
 			panic(r)
 		}
 	}()
-	logger.Infoln("NewDIDApplication")
+	// logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
 	db := dbm.NewDB(name, "leveldb", dbDir)
@@ -76,7 +76,7 @@ func NewDIDApplication() *DIDApplication {
 	var state State
 	state.db = tree
 	return &DIDApplication{state: state,
-		logger:  logger,
+		// logger:  logger,
 		Version: "0.5.0", // Hard code set version
 	}
 }
@@ -102,7 +102,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
-			app.logger.Error("Error updating validators", "r", r)
+			// app.logger.Error("Error updating validators", "r", r)
 		}
 	}
 	return types.ResponseInitChain{}
@@ -110,7 +110,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.logger.Infof("BeginBlock: %d", req.Header.Height)
+	// app.logger.Infof("BeginBlock: %d", req.Header.Height)
 	// reset valset changes
 	app.ValUpdates = make([]types.Validator, 0)
 	return types.ResponseBeginBlock{}
@@ -118,7 +118,7 @@ func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.Respons
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
-	app.logger.Infof("EndBlock: %d", req.Height)
+	// app.logger.Infof("EndBlock: %d", req.Height)
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
@@ -126,7 +126,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
+			// app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
 		}
 	}()
@@ -136,12 +136,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 
 	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
-		app.logger.Error(err.Error())
+		// app.logger.Error(err.Error())
 		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
 	if err != nil {
-		app.logger.Error(err.Error())
+		// app.logger.Error(err.Error())
 		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 
@@ -151,11 +151,11 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := string(parts[3])
 	nodeID := string(nodeIDByte)
 
-	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
+	// app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" {
 		result := DeliverTxRouter(method, param, nonce, signature, nodeID, app)
-		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
+		// app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
 		return result
 	}
 	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
@@ -165,7 +165,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
+			// app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnCheckTx(false)
 		}
 	}()
@@ -173,12 +173,12 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	parts := strings.Split(string(tx), "|")
 	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
-		app.logger.Error(err.Error())
+		// app.logger.Error(err.Error())
 		return ReturnCheckTx(false)
 	}
 	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
 	if err != nil {
-		app.logger.Error(err.Error())
+		// app.logger.Error(err.Error())
 		return ReturnCheckTx(false)
 	}
 
@@ -188,7 +188,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := string(parts[3])
 	nodeID := string(nodeIDByte)
 
-	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
+	// app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
 		// Check has function in system
@@ -205,7 +205,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
-	app.logger.Infof("Commit")
+	// app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
@@ -215,7 +215,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
+			// app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
 			res = ReturnQuery(nil, "wrong query format", app.state.db.Version64(), app)
 		}
 	}()
@@ -223,14 +223,14 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	parts := strings.Split(string(reqQuery.Data), "|")
 	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
-		app.logger.Error(err.Error())
+		// app.logger.Error(err.Error())
 		return ReturnQuery(nil, "Decoding error", app.state.db.Version64(), app)
 	}
 
 	method := string(parts[0])
 	param := string(paramByte)
 
-	app.logger.Infof("Query: %s", method)
+	// app.logger.Infof("Query: %s", method)
 
 	height := reqQuery.Height
 	if height == 0 {
