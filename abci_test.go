@@ -508,6 +508,7 @@ VTVj/BlsFEVvTc0wuiA3mwlgNirRI1UH0GYWlk22hUF3MpMF46SAVQ==
 
 var userNamespace = "cid"
 var userID = "1234567890123"
+var userID2 = "1234567890124"
 
 func TestInitNDID(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
@@ -3326,10 +3327,55 @@ func TestQueryGetNodeInfoIdP5(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestIdP4RegisterMsqDestination0(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+
+	var users []did.User
+	var user = did.User{
+		hex.EncodeToString(userHash),
+		3,
+		true,
+	}
+	users = append(users, user)
+
+	var param = did.RegisterMsqDestinationParam{
+		users,
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpNodeID := []byte("IdP4")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterMsqDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestIdP4RegisterMsqDestination1(t *testing.T) {
 
 	h := sha256.New()
-	h.Write([]byte(userNamespace + userID))
+	h.Write([]byte(userNamespace + userID2))
 	userHash := h.Sum(nil)
 
 	var users []did.User

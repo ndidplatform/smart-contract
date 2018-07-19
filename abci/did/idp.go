@@ -208,13 +208,17 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
+			timeoutBlock := app.CurrentBlock + 10
 			newNode := Node{
 				user.Ial,
 				nodeID,
 				true,
 				user.First,
+				&timeoutBlock,
 			}
-
+			if !user.First {
+				newNode.TimeoutBlock = nil
+			}
 			// Check duplicate before add
 			chkDup := false
 			for _, node := range nodes {
@@ -224,9 +228,15 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				}
 			}
 
-			// Check frist
+			// Check first
 			if user.First {
-				return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
+				for _, node := range nodes {
+					if node.TimeoutBlock != nil {
+						if *node.TimeoutBlock > app.CurrentBlock {
+							return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
+						}
+					}
+				}
 			}
 
 			if chkDup == false {
@@ -240,11 +250,16 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 		} else {
 			var nodes []Node
+			timeoutBlock := app.CurrentBlock + 10
 			newNode := Node{
 				user.Ial,
 				nodeID,
 				true,
 				user.First,
+				&timeoutBlock,
+			}
+			if !user.First {
+				newNode.TimeoutBlock = nil
 			}
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)

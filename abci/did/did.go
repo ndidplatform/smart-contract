@@ -53,10 +53,11 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state      State
-	ValUpdates []types.Validator
-	logger     *logrus.Entry
-	Version    string
+	state        State
+	ValUpdates   []types.Validator
+	logger       *logrus.Entry
+	Version      string
+	CurrentBlock int64
 }
 
 func NewDIDApplication() *DIDApplication {
@@ -111,6 +112,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d", req.Header.Height)
+	app.CurrentBlock = req.Header.Height
 	// reset valset changes
 	app.ValUpdates = make([]types.Validator, 0)
 	return types.ResponseBeginBlock{}
