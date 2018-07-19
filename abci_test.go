@@ -3372,7 +3372,7 @@ func TestIdP4RegisterMsqDestination0(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdP4RegisterMsqDestination1(t *testing.T) {
+func TestIdP4RegisterMsqDestination11(t *testing.T) {
 
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID2))
@@ -3410,6 +3410,88 @@ func TestIdP4RegisterMsqDestination1(t *testing.T) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "This node is not first IdP"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdP4ClearRegisterMsqDestinationTimeout(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+
+	var param = did.ClearRegisterMsqDestinationTimeoutParam{
+		hex.EncodeToString(userHash),
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpNodeID := []byte("IdP4")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "ClearRegisterMsqDestinationTimeout"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestIdP4RegisterMsqDestination12(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+
+	var users []did.User
+	var user = did.User{
+		hex.EncodeToString(userHash),
+		3,
+		true,
+	}
+	users = append(users, user)
+
+	var param = did.RegisterMsqDestinationParam{
+		users,
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK5)
+	idpNodeID := []byte("IdP4")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "RegisterMsqDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)

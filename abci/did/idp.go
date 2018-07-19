@@ -635,3 +635,40 @@ func enableAccessorMethod(param string, app *DIDApplication, nodeID string) type
 
 	return ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
 }
+
+func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("ClearRegisterMsqDestinationTimeout, Parameter: %s", param)
+	var funcParam ClearRegisterMsqDestinationTimeoutParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
+	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
+
+	if msqDesValue != nil {
+		var nodes []Node
+		err = json.Unmarshal([]byte(msqDesValue), &nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+
+		for index := range nodes {
+			app.logger.Errorln(nodes[index])
+			if nodes[index].NodeID == nodeID {
+				app.logger.Error("asdasdasdasdasd")
+				nodes[index].TimeoutBlock = nil
+				break
+			}
+		}
+
+		msqDesJSON, err := json.Marshal(nodes)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+}

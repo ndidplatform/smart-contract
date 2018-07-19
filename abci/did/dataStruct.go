@@ -549,3 +549,7 @@ type ApproveService struct {
 type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
+
+type ClearRegisterMsqDestinationTimeoutParam struct {
+	HashID string `json:"hash_id"`
+}

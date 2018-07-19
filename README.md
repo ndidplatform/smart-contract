@@ -746,6 +746,18 @@ log: "success"
 log: "success"
 ```
 
+## ClearRegisterMsqDestinationTimeout
+### Parameter
+```sh
+{
+  "hash_id": "495b75d2c05e7b75c038d428cb9c581e9b8f81b59f40459a3f3567ac1cf33602"
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey
