@@ -165,50 +165,8 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
-	app.logger.Info("CheckTx [IN]")
-	// Recover when panic
-	defer func() {
-		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(false)
-		}
-	}()
-
-	parts := strings.Split(string(tx), "|")
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
-	}
-	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
-	}
-
-	method := string(parts[0])
-	param := string(paramByte)
-	nonce := string(parts[2])
-	signature := string(parts[3])
-	nodeID := string(nodeIDByte)
-
-	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
-
-	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
-		// Check has function in system
-		if IsMethod[method] {
-			app.logger.Info("CheckTx [OUT] OK")
-			return ReturnCheckTx(true)
-		}
-		res.Code = code.Unauthorized
-		res.Log = "Invalid method name"
-		app.logger.Infof("CheckTx [OUT], Code:%s, Log:%s", res.Code, res.Log)
-		return res
-	}
-	res.Code = code.Unauthorized
-	res.Log = "Invalid transaction format"
-	app.logger.Infof("CheckTx [OUT], Code:%s, Log:%s", res.Code, res.Log)
-	return res
+	app.logger.Info("CheckTx")
+	return ReturnCheckTx(true)
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
