@@ -92,6 +92,6 @@ func callQuery(name string, param string, app *DIDApplication, height int64) typ
 	case "GetServicesByAsID":
 		return getServicesByAsID(param, app, height)
 	default:
-		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method"}
+		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }

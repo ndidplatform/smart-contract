@@ -420,6 +420,6 @@ func callCheckTx(name string, param string, nodeID string, app *DIDApplication) 
 	case "RegisterMsqAddress":
 		return checkTxRegisterMsqAddress(param, nodeID, app)
 	default:
-		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method"}
+		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }

@@ -127,7 +127,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
+			res = ReturnDeliverTxLog(code.InvalidTransactionFormat, "Invalid transaction format", "")
 		}
 	}()
 
@@ -195,11 +195,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		if IsMethod[method] {
 			return ReturnCheckTx(true)
 		}
-		res.Code = code.Unauthorized
-		res.Log = "Invalid method name"
+		res.Code = code.UnknownMethod
+		res.Log = "Unknown method name"
 		return res
 	}
-	res.Code = code.Unauthorized
+	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
 	return res
 }

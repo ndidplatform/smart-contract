@@ -38,7 +38,7 @@ const (
 	DuplicateServiceID                        uint32 = 11
 	TokenAccountNotFound                      uint32 = 12
 	TokenNotEnough                            uint32 = 13
-	WrongTransactionFormat                    uint32 = 14
+	InvalidTransactionFormat                  uint32 = 14
 	MethodCanNotBeEmpty                       uint32 = 15
 	DuplicateResponse                         uint32 = 16
 	AALError                                  uint32 = 17
