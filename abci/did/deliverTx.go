@@ -82,89 +82,89 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 
 func callDeliverTx(name string, param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	switch name {
-		case "InitNDID":                         
-			return initNDID(param, app, nodeID)
-		case "RegisterNode":                     
-			return registerNode(param, app, nodeID)
-		case "RegisterMsqDestination":           
-			return registerMsqDestination(param, app, nodeID)
-		case "AddAccessorMethod":                
-			return addAccessorMethod(param, app, nodeID)
-		case "CreateRequest":                    
-			return createRequest(param, app, nodeID)
-		case "CreateIdpResponse":                
-			return createIdpResponse(param, app, nodeID)
-		case "SignData":                         
-			return signData(param, app, nodeID)
-		case "RegisterServiceDestination":       
-			return registerServiceDestination(param, app, nodeID)
-		case "RegisterMsqAddress":               
-			return registerMsqAddress(param, app, nodeID)
-		case "AddNodeToken":                     
-			return addNodeToken(param, app, nodeID)
-		case "ReduceNodeToken":                  
-			return reduceNodeToken(param, app, nodeID)
-		case "SetNodeToken":                     
-			return setNodeToken(param, app, nodeID)
-		case "SetPriceFunc":                     
-			return setPriceFunc(param, app, nodeID)
-		case "CloseRequest":                     
-			return closeRequest(param, app, nodeID)
-		case "TimeOutRequest":                   
-			return timeOutRequest(param, app, nodeID)
-		case "AddNamespace":                     
-			return addNamespace(param, app, nodeID)
-		case "UpdateNode":                       
-			return updateNode(param, app, nodeID)
-		case "CreateIdentity":                   
-			return createIdentity(param, app, nodeID)
-		case "SetValidator":                     
-			return setValidator(param, app, nodeID)
-		case "AddService":                       
-			return addService(param, app, nodeID)
-		case "SetDataReceived":                  
-			return setDataReceived(param, app, nodeID)
-		case "UpdateNodeByNDID":                 
-			return updateNodeByNDID(param, app, nodeID)
-		case "UpdateIdentity":                   
-			return updateIdentity(param, app, nodeID)
-		case "DeclareIdentityProof":             
-			return declareIdentityProof(param, app, nodeID)
-		case "UpdateServiceDestination":         
-			return updateServiceDestination(param, app, nodeID)
-		case "UpdateService":                    
-			return updateService(param, app, nodeID)
-		case "RegisterServiceDestinationByNDID": 
-			return registerServiceDestinationByNDID(param, app, nodeID)
-		case "DisableMsqDestination":            
-			return disableMsqDestination(param, app, nodeID)
-		case "DisableAccessorMethod":            
-			return disableAccessorMethod(param, app, nodeID)
-		case "DisableNode":                      
-			return disableNode(param, app, nodeID)
-		case "DisableServiceDestinationByNDID":  
-			return disableServiceDestinationByNDID(param, app, nodeID)
-		case "DisableNamespace":                 
-			return disableNamespace(param, app, nodeID)
-		case "DisableService":                   
-			return disableService(param, app, nodeID)
-		case "EnableMsqDestination":             
-			return enableMsqDestination(param, app, nodeID)
-		case "EnableAccessorMethod":             
-			return enableAccessorMethod(param, app, nodeID)
-		case "EnableNode":                       
-			return enableNode(param, app, nodeID)
-		case "EnableServiceDestinationByNDID":   
-			return enableServiceDestinationByNDID(param, app, nodeID)
-		case "EnableNamespace":                  
-			return enableNamespace(param, app, nodeID)
-		case "EnableService":                    
-			return enableService(param, app, nodeID)
-		case "DisableServiceDestination":        
-			return disableServiceDestination(param, app, nodeID)
-		case "EnableServiceDestination":         
-			return enableServiceDestination(param, app, nodeID)
-		default:
-			return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unkown Method"}
+	case "InitNDID":
+		return initNDID(param, app, nodeID)
+	case "RegisterNode":
+		return registerNode(param, app, nodeID)
+	case "RegisterMsqDestination":
+		return registerMsqDestination(param, app, nodeID)
+	case "AddAccessorMethod":
+		return addAccessorMethod(param, app, nodeID)
+	case "CreateRequest":
+		return createRequest(param, app, nodeID)
+	case "CreateIdpResponse":
+		return createIdpResponse(param, app, nodeID)
+	case "SignData":
+		return signData(param, app, nodeID)
+	case "RegisterServiceDestination":
+		return registerServiceDestination(param, app, nodeID)
+	case "RegisterMsqAddress":
+		return registerMsqAddress(param, app, nodeID)
+	case "AddNodeToken":
+		return addNodeToken(param, app, nodeID)
+	case "ReduceNodeToken":
+		return reduceNodeToken(param, app, nodeID)
+	case "SetNodeToken":
+		return setNodeToken(param, app, nodeID)
+	case "SetPriceFunc":
+		return setPriceFunc(param, app, nodeID)
+	case "CloseRequest":
+		return closeRequest(param, app, nodeID)
+	case "TimeOutRequest":
+		return timeOutRequest(param, app, nodeID)
+	case "AddNamespace":
+		return addNamespace(param, app, nodeID)
+	case "UpdateNode":
+		return updateNode(param, app, nodeID)
+	case "CreateIdentity":
+		return createIdentity(param, app, nodeID)
+	case "SetValidator":
+		return setValidator(param, app, nodeID)
+	case "AddService":
+		return addService(param, app, nodeID)
+	case "SetDataReceived":
+		return setDataReceived(param, app, nodeID)
+	case "UpdateNodeByNDID":
+		return updateNodeByNDID(param, app, nodeID)
+	case "UpdateIdentity":
+		return updateIdentity(param, app, nodeID)
+	case "DeclareIdentityProof":
+		return declareIdentityProof(param, app, nodeID)
+	case "UpdateServiceDestination":
+		return updateServiceDestination(param, app, nodeID)
+	case "UpdateService":
+		return updateService(param, app, nodeID)
+	case "RegisterServiceDestinationByNDID":
+		return registerServiceDestinationByNDID(param, app, nodeID)
+	case "DisableMsqDestination":
+		return disableMsqDestination(param, app, nodeID)
+	case "DisableAccessorMethod":
+		return disableAccessorMethod(param, app, nodeID)
+	case "DisableNode":
+		return disableNode(param, app, nodeID)
+	case "DisableServiceDestinationByNDID":
+		return disableServiceDestinationByNDID(param, app, nodeID)
+	case "DisableNamespace":
+		return disableNamespace(param, app, nodeID)
+	case "DisableService":
+		return disableService(param, app, nodeID)
+	case "EnableMsqDestination":
+		return enableMsqDestination(param, app, nodeID)
+	case "EnableAccessorMethod":
+		return enableAccessorMethod(param, app, nodeID)
+	case "EnableNode":
+		return enableNode(param, app, nodeID)
+	case "EnableServiceDestinationByNDID":
+		return enableServiceDestinationByNDID(param, app, nodeID)
+	case "EnableNamespace":
+		return enableNamespace(param, app, nodeID)
+	case "EnableService":
+		return enableService(param, app, nodeID)
+	case "DisableServiceDestination":
+		return disableServiceDestination(param, app, nodeID)
+	case "EnableServiceDestination":
+		return enableServiceDestination(param, app, nodeID)
+	default:
+		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unkown Method"}
 	}
 }

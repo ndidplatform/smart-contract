@@ -29,7 +29,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"reflect"
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -322,45 +321,6 @@ var IsMasterKeyMethod = map[string]bool{
 
 // CheckTxRouter is Pointer to function
 func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	funcs := map[string]interface{}{
-		"InitNDID":                         checkTxInitNDID,
-		"RegisterNode":                     checkIsNDID,
-		"AddNodeToken":                     checkIsNDID,
-		"ReduceNodeToken":                  checkIsNDID,
-		"SetNodeToken":                     checkIsNDID,
-		"SetPriceFunc":                     checkIsNDID,
-		"AddNamespace":                     checkIsNDID,
-		"SetValidator":                     checkIsNDID,
-		"AddService":                       checkIsNDID,
-		"UpdateNodeByNDID":                 checkIsNDID,
-		"UpdateService":                    checkIsNDID,
-		"RegisterServiceDestinationByNDID": checkIsNDID,
-		"DisableNode":                      checkIsNDID,
-		"DisableNamespace":                 checkIsNDID,
-		"DisableService":                   checkIsNDID,
-		"DisableServiceDestinationByNDID":  checkIsNDID,
-		"EnableNode":                       checkIsNDID,
-		"EnableServiceDestinationByNDID":   checkIsNDID,
-		"EnableNamespace":                  checkIsNDID,
-		"EnableService":                    checkIsNDID,
-		"RegisterMsqDestination":           checkIsIDP,
-		"AddAccessorMethod":                checkIsIDP,
-		"CreateIdpResponse":                checkIsIDP,
-		"CreateIdentity":                   checkIsIDP,
-		"UpdateIdentity":                   checkIsIDP,
-		"DeclareIdentityProof":             checkIsIDP,
-		"DisableMsqDestination":            checkIsIDP,
-		"DisableAccessorMethod":            checkIsIDP,
-		"EnableMsqDestination":             checkIsIDP,
-		"EnableAccessorMethod":             checkIsIDP,
-		"SignData":                         checkIsAS,
-		"RegisterServiceDestination":       checkIsAS,
-		"UpdateServiceDestination":         checkIsAS,
-		"DisableServiceDestination":        checkIsAS,
-		"EnableServiceDestination":         checkIsAS,
-		"CreateRequest":                    checkIsRPorIdP,
-		"RegisterMsqAddress":               checkTxRegisterMsqAddress,
-	}
 
 	var publicKey string
 	if method == "InitNDID" {
@@ -394,8 +354,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		// If verifyResult is true, return true
 		return ReturnCheckTx(true)
 	} else {
-		value, _ := callCheckTx(funcs, method, param, nodeID, app)
-		result = value[0].Interface().(types.ResponseCheckTx)
+		result = callCheckTx(method, param, nodeID, app)
 	}
 	// check token for create Tx
 	if result.Code == code.OK {
@@ -415,12 +374,52 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	return result
 }
 
-func callCheckTx(m map[string]interface{}, name string, param string, nodeID string, app *DIDApplication) (result []reflect.Value, err error) {
-	f := reflect.ValueOf(m[name])
-	in := make([]reflect.Value, 3)
-	in[0] = reflect.ValueOf(param)
-	in[1] = reflect.ValueOf(nodeID)
-	in[2] = reflect.ValueOf(app)
-	result = f.Call(in)
-	return
+func callCheckTx(name string, param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	switch name {
+	case "InitNDID":
+		return checkTxInitNDID(param, nodeID, app)
+	case "RegisterNode",
+		"AddNodeToken",
+		"ReduceNodeToken",
+		"SetNodeToken",
+		"SetPriceFunc",
+		"AddNamespace",
+		"SetValidator",
+		"AddService",
+		"UpdateNodeByNDID",
+		"UpdateService",
+		"RegisterServiceDestinationByNDID",
+		"DisableNode",
+		"DisableNamespace",
+		"DisableService",
+		"DisableServiceDestinationByNDID",
+		"EnableNode",
+		"EnableServiceDestinationByNDID",
+		"EnableNamespace",
+		"EnableService":
+		return checkIsNDID(param, nodeID, app)
+	case "RegisterMsqDestination",
+		"AddAccessorMethod",
+		"CreateIdpResponse",
+		"CreateIdentity",
+		"UpdateIdentity",
+		"DeclareIdentityProof",
+		"DisableMsqDestination",
+		"DisableAccessorMethod",
+		"EnableMsqDestination",
+		"EnableAccessorMethod":
+		return checkIsIDP(param, nodeID, app)
+	case "SignData",
+		"RegisterServiceDestination",
+		"UpdateServiceDestination",
+		"DisableServiceDestination",
+		"EnableServiceDestination":
+		return checkIsAS(param, nodeID, app)
+	case "CreateRequest":
+		return checkIsRPorIdP(param, nodeID, app)
+	case "RegisterMsqAddress":
+		return checkTxRegisterMsqAddress(param, nodeID, app)
+	default:
+		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method"}
+	}
 }
