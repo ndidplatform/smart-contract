@@ -165,6 +165,6 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 	case "EnableServiceDestination":
 		return enableServiceDestination(param, app, nodeID)
 	default:
-		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unkown Method"}
+		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown Method"}
 	}
 }
