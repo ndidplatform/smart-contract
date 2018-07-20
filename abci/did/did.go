@@ -197,10 +197,12 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
+			app.logger.Info("CheckTx [OUT] OK")
 			return ReturnCheckTx(true)
 		}
 		res.Code = code.Unauthorized
 		res.Log = "Invalid method name"
+		app.logger.Infof("CheckTx [OUT], Code:%s, Log:%s", res.Code, res.Log)
 		return res
 	}
 	res.Code = code.Unauthorized
