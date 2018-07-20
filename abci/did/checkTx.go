@@ -392,7 +392,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	// check token for create Tx
 	if result.Code == code.OK {
 		if !checkNDID(nodeID, nodeID, app) && method != "InitNDID" {
-			needToken := getTokenPriceByFunc(method, app)
+			needToken := getTokenPriceByFunc(method, app, app.state.db.Version64())
 			nodeToken, err := getToken(nodeID, app)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound

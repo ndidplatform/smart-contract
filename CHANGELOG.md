@@ -11,6 +11,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 - [CheckTx] Return a correct code when receiving invalid transaction format
+- [Query] Return a correct price when query "GetPriceFunc" with height
 
 ## 0.5.0 (July 16, 2018)
 
