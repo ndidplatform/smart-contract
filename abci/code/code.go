@@ -74,4 +74,5 @@ const (
 	NoPermissionForRegisterServiceDestination uint32 = 47
 	IncompleteValidList                       uint32 = 48
 	UnknownMethod															uint32 = 49
+	UnknownError															uint32 = 999
 )

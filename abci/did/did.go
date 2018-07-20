@@ -166,7 +166,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(false)
+			res = ReturnCheckTx(code.UnknownError, "")
 		}
 	}()
 
@@ -174,12 +174,12 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
+		return ReturnCheckTx(code.DecodingError, err.Error())
 	}
 	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
+		return ReturnCheckTx(code.DecodingError, err.Error())
 	}
 
 	method := string(parts[0])
@@ -193,7 +193,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
-			return ReturnCheckTx(true)
+			return ReturnCheckTx(code.OK, "")
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
