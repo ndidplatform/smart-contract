@@ -113,16 +113,19 @@ func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.Respons
 	app.logger.Infof("BeginBlock: %d", req.Header.Height)
 	// reset valset changes
 	app.ValUpdates = make([]types.Validator, 0)
+	app.logger.Info("BeginBlock [OUT]")
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	app.logger.Infof("EndBlock: %d", req.Height)
+	app.logger.Info("EndBlock [OUT]")
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
 func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
+	app.logger.Info("DeliverTx [IN]")
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -155,13 +158,14 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 
 	if method != "" {
 		result := DeliverTxRouter(method, param, nonce, signature, nodeID, app)
-		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
+		app.logger.Infof(`DeliverTx [OUT] response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
 		return result
 	}
 	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
+	app.logger.Info("CheckTx [IN]")
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -201,17 +205,19 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	}
 	res.Code = code.Unauthorized
 	res.Log = "Invalid transaction format"
+	app.logger.Infof("CheckTx [OUT], Code:%s, Log:%s", res.Code, res.Log)
 	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
-	app.logger.Infof("Commit")
+	app.logger.Info("Commit [IN]")
 	app.state.db.SaveVersion()
+	app.logger.Info("Commit [OUT]")
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
-
+	app.logger.Info("Query [IN]")
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -240,6 +246,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	if method != "" {
 		return QueryRouter(method, param, app, height)
 	}
+	app.logger.Info("Query [OUT]")
 	return ReturnQuery(nil, "method can't empty", app.state.db.Version64(), app)
 }
 
