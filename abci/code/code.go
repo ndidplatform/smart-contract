@@ -73,4 +73,5 @@ const (
 	NotOwnerOfAccessor                        uint32 = 46
 	NoPermissionForRegisterServiceDestination uint32 = 47
 	IncompleteValidList                       uint32 = 48
+	UnknownMethod															uint32 = 49
 )
