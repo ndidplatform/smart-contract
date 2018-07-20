@@ -73,7 +73,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node
     ```
 
 ### Run RP node
@@ -91,7 +91,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node
     ```
     
 ### Run AS node
@@ -109,7 +109,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node
     ```
 
 ## Run in Docker
