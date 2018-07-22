@@ -442,9 +442,10 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID string  `json:"node_id"`
-	MaxIal float64 `json:"max_ial"`
-	MaxAal float64 `json:"max_aal"`
+	NodeID   string  `json:"node_id"`
+	MaxIal   float64 `json:"max_ial"`
+	MaxAal   float64 `json:"max_aal"`
+	NodeName string  `json:"node_name"`
 }
 
 type UpdateIdentityParam struct {

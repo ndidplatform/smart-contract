@@ -7,6 +7,7 @@ IMPROVEMENTS:
 - Refactor code - Use switch-case instead of reflect pkg
 - [DeliverTx] Remove check responseValid in CloseRequest and TimeOutRequest
 - [Docker] Change Tendermint config to create empty block with interval of 30 seconds
+- [DeliverTx] Add node_name to UpdateNodeByNDID parameter
 
 BUG FIXES:
 

@@ -514,7 +514,8 @@ log: "success"
 {
   "node_id": "IdP1",
   "max_ial": 2.3,
-  "max_aal": 2.4
+  "max_aal": 2.4,
+  "node_name": "IdP1_edited",
 }
 ```
 ### Expected Output

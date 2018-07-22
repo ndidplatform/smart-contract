@@ -347,6 +347,29 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	// Update node name
+	if funcParam.NodeName != "" {
+		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+
+		if nodeDetailValue != nil {
+			var node NodeDetail
+			err = json.Unmarshal([]byte(nodeDetailValue), &node)
+			if err != nil {
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			node.NodeName = funcParam.NodeName
+			nodeDetailJSON, err := json.Marshal(node)
+			if err != nil {
+				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			}
+			app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailJSON))
+		} else {
+			return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		}
+	}
+
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
 	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
 	if maxIalAalValue != nil {
