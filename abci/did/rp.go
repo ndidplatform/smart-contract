@@ -108,6 +108,10 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	if request.IsClosed {
+		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
+	}
+
 	if request.IsTimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
@@ -154,6 +158,10 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	err = json.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	if request.IsTimedOut {
+		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
 	if request.IsClosed {
