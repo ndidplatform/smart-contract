@@ -1,5 +1,16 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Change version of Tendermint to v0.22.5
+
+IMPROVEMENTS:
+
+- [DeliverTx] Check request is not closed (CloseRequest)
+- [DeliverTx] Check request is not timed out (TimeOutRequest)
+
 ## 0.5.1 (July 22, 2018)
 
 IMPROVEMENTS:

@@ -31,7 +31,6 @@ import (
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
-	crypto "github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -114,12 +113,7 @@ func setValidator(param string, app *DIDApplication, nodeID string) types.Respon
 	if err != nil {
 		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
-	var pubKeyEd crypto.PubKeyEd25519
-	copy(pubKeyEd[:], pubKey)
 
-	var pubKeyObj types.PubKey
-	pubKeyObj.Type = "ed25519"
-	pubKeyObj.Data = pubKey
-
-	return app.updateValidator(types.Validator{pubKeyEd.Address(), pubKeyObj, funcParam.Power})
+	var pubKeyObj = types.Ed25519Validator(pubKey, funcParam.Power)
+	return app.updateValidator(types.Validator{pubKeyObj.Address, pubKeyObj.PubKey, pubKeyObj.Power})
 }
