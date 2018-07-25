@@ -65,8 +65,8 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
     genesis) 
       tendermint_init
       tendermint_set_addr_book_strict false
-      tendermint_set_create_empty_block true
-      tendermint_set_create_empty_block_interval 30
+      tendermint_set_create_empty_block false
+      tendermint_set_create_empty_block_interval 0
       tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary) 
@@ -74,8 +74,8 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
 
       tendermint_init
       tendermint_set_addr_book_strict false
-      tendermint_set_create_empty_block true
-      tendermint_set_create_empty_block_interval 30
+      tendermint_set_create_empty_block false
+      tendermint_set_create_empty_block_interval 0
       until tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${SEED_RPC_PORT}; do sleep 1; done
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
