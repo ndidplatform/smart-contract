@@ -510,6 +510,26 @@ var userNamespace = "cid"
 var userID = "1234567890123"
 var userID2 = "1234567890124"
 
+var accessorPubKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2
+fID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8
+W0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju
+EFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM
+jNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD
+9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0
+YQIDAQAB
+-----END PUBLIC KEY-----`
+
+var accessorPubKey2 = `-----BEGIN PUBLIC KEY-----
+MIIBITANBgkqhkiG9w0BAQEFAAOCAQ4AMIIBCQKCAQBlJb6oCAr1Yc7W3qM8Vka2
+Mc2tohWzXgzTmGeKKxE++ujiMS/QfjpUJuHo28pzPugGjG0btl++2Ozcfo2+L4j0
+2c8XINucNP8mhyIM+jOPc2Oy74VLk9nt3NmNpFRcGgxyLIRPeCm6qNKZgtTIx4lt
+9fESzZDzhd+XgSWPy74dIEyM4irL8iupwK48qrIzJWnS1Hg7ap4OpkHHMUt9v2o9
+66Rybc1GWNvRvZqW6QSjur2YnwVTwVQhWeSJ9mU5P0+ynCXzR3wOfDEWRnw7BHUh
+RGeuosKtCgGZ0I/QfySGQDZGXS1/Euwtld/3l6r8rMt8P/5BkRWg1e7iARGaPN4/
+AgMBAAE=
+-----END PUBLIC KEY-----`
+
 func TestInitNDID(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidpublicKeyBytes, err := generatePublicKey(&ndidKey.PublicKey)
@@ -2592,7 +2612,7 @@ func TestIdPCreateIdentity(t *testing.T) {
 	var param = did.CreateIdentityParam{
 		"accessor_id",
 		"accessor_type",
-		"accessor_public_key",
+		accessorPubKey,
 		"accessor_group_id",
 	}
 
@@ -2628,7 +2648,7 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	var param = did.AccessorMethod{
 		"accessor_id_2",
 		"accessor_type_2",
-		"accessor_public_key_2",
+		accessorPubKey2,
 		"accessor_group_id",
 		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
 	}
@@ -2757,7 +2777,7 @@ func TestQueryGetAccessorKey(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var expected = `{"accessor_public_key":"accessor_public_key","active":true}`
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":true}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -3752,7 +3772,7 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var expected = `{"accessor_public_key":"accessor_public_key","active":false}`
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":false}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -4670,7 +4690,7 @@ func TestQueryGetAccessorKey3(t *testing.T) {
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var expected = `{"accessor_public_key":"accessor_public_key","active":true}`
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":true}`
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}

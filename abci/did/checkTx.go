@@ -24,6 +24,8 @@ package did
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/dsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -340,6 +342,68 @@ func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 	return ""
 }
 
+func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
+	block, _ := pem.Decode([]byte(key))
+	if block == nil {
+		return code.InvalidKeyFormat, ""
+	}
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return code.InvalidKeyFormat, err.Error()
+	}
+	// Currently support only RSA
+	switch pub.(type) {
+	case *rsa.PublicKey:
+	case *dsa.PublicKey, *ecdsa.PublicKey:
+		return code.UnsupportedKeyType, ""
+	default:
+		return code.UnknownKeyType, ""
+	}
+	return code.OK, ""
+}
+
+func checkPubKeysFormat(param string) (returnCode uint32, log string) {
+	var keys struct {
+		MasterPublicKey string `json:"master_public_key"`
+		PublicKey       string `json:"public_key"`
+	}
+	err := json.Unmarshal([]byte(param), &keys)
+	if err != nil {
+		return code.UnmarshalError, err.Error()
+	}
+	// Validate master public key format
+	if keys.MasterPublicKey != "" {
+		returnCode, log = checkPubKeyPemFormat(keys.MasterPublicKey)
+		if (returnCode != code.OK) {
+			return returnCode, log
+		}
+	}
+
+	// Validate public key format
+	if keys.PublicKey != "" {
+		returnCode, log = checkPubKeyPemFormat(keys.PublicKey)
+		if (returnCode != code.OK) {
+			return returnCode, log
+		}
+	}
+	return code.OK, ""
+}
+
+func checkAccessorPubKeyFormat(param string) (returnCode uint32, log string) {
+	var key struct {
+		AccessorPublicKey string `json:"accessor_public_key"`
+	}
+	err := json.Unmarshal([]byte(param), &key)
+	if err != nil {
+		return code.UnmarshalError, err.Error()
+	}
+	returnCode, log = checkPubKeyPemFormat(key.AccessorPublicKey)
+	if (returnCode != code.OK) {
+		return returnCode, log
+	}
+	return code.OK, ""
+}
+
 var IsCheckOwnerRequestMethod = map[string]bool{
 	"CloseRequest":    true,
 	"TimeOutRequest":  true,
@@ -371,6 +435,34 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		if publicKey == "" {
 			// TODO: Change error code
 			return ReturnCheckTx(code.UnknownError, "")
+		}
+	}
+
+	// Check pub key format
+	if method == "InitNDID" {
+		checkCode, log := checkPubKeysFormat(param)
+		if checkCode != code.OK {
+			return ReturnCheckTx(checkCode, log)
+		}
+	} else if method == "RegisterNode" {
+		checkCode, log := checkPubKeysFormat(param)
+		if checkCode != code.OK {
+			return ReturnCheckTx(checkCode, log)
+		}
+	} else if method == "UpdateNode" {
+		checkCode, log := checkPubKeysFormat(param)
+		if checkCode != code.OK {
+			return ReturnCheckTx(checkCode, log)
+		}
+	} else if method == "CreateIdentity" {
+		checkCode, log := checkAccessorPubKeyFormat(param)
+		if checkCode != code.OK {
+			return ReturnCheckTx(checkCode, log)
+		}
+	} else if method == "AddAccessorMethod" {
+		checkCode, log := checkAccessorPubKeyFormat(param)
+		if checkCode != code.OK {
+			return ReturnCheckTx(checkCode, log)
 		}
 	}
 
