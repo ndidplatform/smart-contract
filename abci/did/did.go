@@ -130,7 +130,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnDeliverTxLog(code.InvalidTransactionFormat, "Invalid transaction format", "")
+			res = ReturnDeliverTxLog(code.UnknownError, "Unknown error", "")
 		}
 	}()
 
@@ -169,7 +169,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(code.UnknownError, "")
+			res = ReturnCheckTx(code.UnknownError, "Unknown error")
 		}
 	}()
 
@@ -219,7 +219,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnQuery(nil, "wrong query format", app.state.db.Version64(), app)
+			res = ReturnQuery(nil, "Unknown error", app.state.db.Version64(), app)
 		}
 	}()
 
