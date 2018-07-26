@@ -196,6 +196,19 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		}
 	}
 
+	timeOutKey := "TimeOutBlockRegisterMsqDestination"
+	var timeOut TimeOutBlockRegisterMsqDestination
+	_, timeOutValue := app.state.db.Get(prefixKey([]byte(timeOutKey)))
+	if timeOutValue != nil {
+		err := json.Unmarshal([]byte(timeOutValue), &timeOut)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	} else {
+		timeOut.TimeOutBlock = 500
+	}
+	timeOutBlockInStateDB := timeOut.TimeOutBlock
+
 	// If validate passed then add Msq Destination
 	for _, user := range funcParam.Users {
 		key := "MsqDestination" + "|" + user.HashID
@@ -208,7 +221,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
-			timeoutBlock := app.CurrentBlock + 10
+			timeoutBlock := app.CurrentBlock + timeOutBlockInStateDB
 			newNode := Node{
 				user.Ial,
 				nodeID,
@@ -250,7 +263,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 		} else {
 			var nodes []Node
-			timeoutBlock := app.CurrentBlock + 10
+			timeoutBlock := app.CurrentBlock + timeOutBlockInStateDB
 			newNode := Node{
 				user.Ial,
 				nodeID,

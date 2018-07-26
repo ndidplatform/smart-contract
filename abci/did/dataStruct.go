@@ -554,3 +554,7 @@ type DisableServiceDestinationParam struct {
 type ClearRegisterMsqDestinationTimeoutParam struct {
 	HashID string `json:"hash_id"`
 }
+
+type TimeOutBlockRegisterMsqDestination struct {
+	TimeOutBlock int64 `json:"time_out_block"`
+}

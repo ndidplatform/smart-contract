@@ -692,6 +692,33 @@ func TestRegisterNodeAS(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestNDIDSetTimeOutBlockRegisterMsqDestination(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	var param did.TimeOutBlockRegisterMsqDestination
+	param.TimeOutBlock = 100
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SetTimeOutBlockRegisterMsqDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte("NDID"))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryGetNodePublicKeyRP(t *testing.T) {
 	fnName := "GetNodePublicKey"
 	var param = did.GetNodePublicKeyParam{

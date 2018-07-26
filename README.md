@@ -759,6 +759,18 @@ log: "success"
 log: "success"
 ```
 
+## SetTimeOutBlockRegisterMsqDestination
+### Parameter
+```sh
+{
+  "time_out_block": 100
+}
+```
+### Expected Output
+```sh
+log: "success"
+```
+
 # Query function
 
 ## GetNodeMasterPublicKey

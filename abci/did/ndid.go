@@ -30,26 +30,27 @@ import (
 )
 
 var isNDIDMethod = map[string]bool{
-	"InitNDID":                         true,
-	"RegisterNode":                     true,
-	"AddNodeToken":                     true,
-	"ReduceNodeToken":                  true,
-	"SetNodeToken":                     true,
-	"SetPriceFunc":                     true,
-	"AddNamespace":                     true,
-	"DisableNamespace":                 true,
-	"SetValidator":                     true,
-	"AddService":                       true,
-	"DisableService":                   true,
-	"UpdateNodeByNDID":                 true,
-	"UpdateService":                    true,
-	"RegisterServiceDestinationByNDID": true,
-	"DisableNode":                      true,
-	"DisableServiceDestinationByNDID":  true,
-	"EnableNode":                       true,
-	"EnableServiceDestinationByNDID":   true,
-	"EnableNamespace":                  true,
-	"EnableService":                    true,
+	"InitNDID":                              true,
+	"RegisterNode":                          true,
+	"AddNodeToken":                          true,
+	"ReduceNodeToken":                       true,
+	"SetNodeToken":                          true,
+	"SetPriceFunc":                          true,
+	"AddNamespace":                          true,
+	"DisableNamespace":                      true,
+	"SetValidator":                          true,
+	"AddService":                            true,
+	"DisableService":                        true,
+	"UpdateNodeByNDID":                      true,
+	"UpdateService":                         true,
+	"RegisterServiceDestinationByNDID":      true,
+	"DisableNode":                           true,
+	"DisableServiceDestinationByNDID":       true,
+	"EnableNode":                            true,
+	"EnableServiceDestinationByNDID":        true,
+	"EnableNamespace":                       true,
+	"EnableService":                         true,
+	"SetTimeOutBlockRegisterMsqDestination": true,
 }
 
 func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -717,5 +718,24 @@ func enableService(param string, app *DIDApplication, nodeID string) types.Respo
 		app.SetStateDB([]byte(allServiceKey), []byte(allServiceJSON))
 	}
 
+	return ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func setTimeOutBlockRegisterMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetTimeOutBlockRegisterMsqDestination, Parameter: %s", param)
+	var funcParam TimeOutBlockRegisterMsqDestination
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	key := "TimeOutBlockRegisterMsqDestination"
+	var timeOut TimeOutBlockRegisterMsqDestination
+	timeOut.TimeOutBlock = funcParam.TimeOutBlock
+	value, err := json.Marshal(timeOut)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(key), []byte(value))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
