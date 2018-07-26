@@ -196,7 +196,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
-			return ReturnCheckTx(code.OK, "")
+			result := CheckTxRouter(method, param, nonce, signature, nodeID, app)
+			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
