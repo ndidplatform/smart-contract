@@ -58,6 +58,12 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     dep ensure
     ```
 
+**Environment variable options**
+
+- `DB_NAME`: Directory path for persistence data files [Default: `__dirname/DID` (`DID` directory in repository's directory)]
+- `LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
+- `LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` and `file` [Default: `console`]
+
 ### Run IdP node
 
 1.  Run ABCI server
@@ -73,7 +79,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node
     ```
 
 ### Run RP node
@@ -91,7 +97,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node
     ```
     
 ### Run AS node
@@ -109,7 +115,7 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node --consensus.create_empty_blocks=false
+    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node
     ```
 
 ## Run in Docker
@@ -514,7 +520,8 @@ log: "success"
 {
   "node_id": "IdP1",
   "max_ial": 2.3,
-  "max_aal": 2.4
+  "max_aal": 2.4,
+  "node_name": "IdP1_edited",
 }
 ```
 ### Expected Output

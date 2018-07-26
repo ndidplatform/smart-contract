@@ -2637,6 +2637,43 @@ type CheckExistingIdentityParam struct {
 	HashID string `json:"hash_id"`
 }
 
+func TestIdP1ClearRegisterMsqDestinationTimeout(t *testing.T) {
+
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+
+	var param = did.ClearRegisterMsqDestinationTimeoutParam{
+		hex.EncodeToString(userHash),
+	}
+
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpNodeID := []byte("IdP1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "ClearRegisterMsqDestinationTimeout"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func TestQueryCheckExistingIdentity(t *testing.T) {
 	fnName := "CheckExistingIdentity"
 	h := sha256.New()
@@ -2884,6 +2921,7 @@ func TestUpdateNodeByNDID(t *testing.T) {
 	param.NodeID = "IdP1"
 	param.MaxIal = 2.3
 	param.MaxAal = 2.4
+	// param.NodeName = "IdP1"
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -2925,7 +2963,7 @@ func TestQueryGetNodeInfo(t *testing.T) {
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
 	if actual := string(resultString); actual != expected {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

@@ -78,7 +78,7 @@ func NewDIDApplication() *DIDApplication {
 	state.db = tree
 	return &DIDApplication{state: state,
 		logger:  logger,
-		Version: "0.5.0", // Hard code set version
+		Version: "0.5.1", // Hard code set version
 	}
 }
 
@@ -95,6 +95,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.db.Version64()
 	res.LastBlockAppHash = app.state.db.Hash()
+	app.CurrentBlock = app.state.db.Version64()
 	return res
 }
 
@@ -112,7 +113,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d", req.Header.Height)
-	app.CurrentBlock = req.Header.Height
+	app.CurrentBlock = app.state.db.Version64()
 	// reset valset changes
 	app.ValUpdates = make([]types.Validator, 0)
 	return types.ResponseBeginBlock{}
@@ -129,7 +130,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnDeliverTxLog(code.WrongTransactionFormat, "wrong transaction format", "")
+			res = ReturnDeliverTxLog(code.InvalidTransactionFormat, "Invalid transaction format", "")
 		}
 	}()
 
@@ -168,7 +169,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(false)
+			res = ReturnCheckTx(code.UnknownError, "")
 		}
 	}()
 
@@ -176,12 +177,12 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
+		return ReturnCheckTx(code.DecodingError, err.Error())
 	}
 	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnCheckTx(false)
+		return ReturnCheckTx(code.DecodingError, err.Error())
 	}
 
 	method := string(parts[0])
@@ -195,13 +196,13 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
-			return ReturnCheckTx(true)
+			return ReturnCheckTx(code.OK, "")
 		}
-		res.Code = code.Unauthorized
-		res.Log = "Invalid method name"
+		res.Code = code.UnknownMethod
+		res.Log = "Unknown method name"
 		return res
 	}
-	res.Code = code.Unauthorized
+	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
 	return res
 }

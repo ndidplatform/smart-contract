@@ -31,9 +31,9 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func getTokenPriceByFunc(fnName string, app *DIDApplication) float64 {
+func getTokenPriceByFunc(fnName string, app *DIDApplication, height int64) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value != nil {
 		s, _ := strconv.ParseFloat(string(value), 64)
 		return s
@@ -83,7 +83,7 @@ func getPriceFunc(param string, app *DIDApplication, height int64) types.Respons
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	price := getTokenPriceByFunc(funcParam.Func, app)
+	price := getTokenPriceByFunc(funcParam.Func, app, height)
 	var res = GetPriceFuncResult{
 		price,
 	}

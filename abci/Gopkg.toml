@@ -12,7 +12,7 @@
   
 [[override]]
   name = "github.com/tendermint/tendermint"
-  version = "0.22.0"
+  version = "0.22.5"
   
 [prune]
   go-tests = true

@@ -214,10 +214,10 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				nodeID,
 				true,
 				user.First,
-				&timeoutBlock,
+				timeoutBlock,
 			}
 			if !user.First {
-				newNode.TimeoutBlock = nil
+				newNode.TimeoutBlock = 0
 			}
 			// Check duplicate before add
 			chkDup := false
@@ -231,8 +231,8 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 			// Check first
 			if user.First {
 				for _, node := range nodes {
-					if node.TimeoutBlock != nil {
-						if *node.TimeoutBlock > app.CurrentBlock {
+					if node.TimeoutBlock != 0 {
+						if node.TimeoutBlock > app.CurrentBlock {
 							return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
 						}
 					}
@@ -256,10 +256,10 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 				nodeID,
 				true,
 				user.First,
-				&timeoutBlock,
+				timeoutBlock,
 			}
 			if !user.First {
-				newNode.TimeoutBlock = nil
+				newNode.TimeoutBlock = 0
 			}
 			nodes = append(nodes, newNode)
 			value, err := json.Marshal(nodes)
@@ -655,10 +655,8 @@ func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeI
 		}
 
 		for index := range nodes {
-			app.logger.Errorln(nodes[index])
 			if nodes[index].NodeID == nodeID {
-				app.logger.Error("asdasdasdasdasd")
-				nodes[index].TimeoutBlock = nil
+				nodes[index].TimeoutBlock = 0
 				break
 			}
 		}

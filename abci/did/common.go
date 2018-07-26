@@ -190,38 +190,40 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 			}
 
 			for _, node := range nodes {
-				if node.Ial >= funcParam.MinIal {
-					// check Max IAL && AAL
-					maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
-					_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
+				if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
+					if node.Ial >= funcParam.MinIal {
+						// check Max IAL && AAL
+						maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
+						_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
 
-					if maxIalAalValue != nil {
-						var maxIalAal MaxIalAal
-						err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-						if err != nil {
-							return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
-						}
-						if maxIalAal.MaxIal >= funcParam.MinIal &&
-							maxIalAal.MaxAal >= funcParam.MinAal &&
-							node.Active {
-							nodeName := getNodeNameByNodeID(node.NodeID, app)
-							var msqDesNode = MsqDestinationNode{
-								node.NodeID,
-								nodeName,
-								maxIalAal.MaxIal,
-								maxIalAal.MaxAal,
+						if maxIalAalValue != nil {
+							var maxIalAal MaxIalAal
+							err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+							if err != nil {
+								return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 							}
-							// filter node is active
-							nodeDetailKey := "NodeID" + "|" + node.NodeID
-							_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-							if nodeDetailValue != nil {
-								var nodeDetail NodeDetail
-								err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-								if err != nil {
-									return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+							if maxIalAal.MaxIal >= funcParam.MinIal &&
+								maxIalAal.MaxAal >= funcParam.MinAal &&
+								node.Active {
+								nodeName := getNodeNameByNodeID(node.NodeID, app)
+								var msqDesNode = MsqDestinationNode{
+									node.NodeID,
+									nodeName,
+									maxIalAal.MaxIal,
+									maxIalAal.MaxAal,
 								}
-								if nodeDetail.Active {
-									returnNodes.Node = append(returnNodes.Node, msqDesNode)
+								// filter node is active
+								nodeDetailKey := "NodeID" + "|" + node.NodeID
+								_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+								if nodeDetailValue != nil {
+									var nodeDetail NodeDetail
+									err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+									if err != nil {
+										return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+									}
+									if nodeDetail.Active {
+										returnNodes.Node = append(returnNodes.Node, msqDesNode)
+									}
 								}
 							}
 						}
@@ -552,7 +554,18 @@ func checkExistingIdentity(param string, app *DIDApplication, height int64) type
 	if value != nil {
 		var nodes []Node
 		err = json.Unmarshal([]byte(value), &nodes)
-		if err == nil {
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+
+		msqCount := 0
+		for _, node := range nodes {
+			if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
+				msqCount++
+			}
+		}
+
+		if msqCount > 0 {
 			result.Exist = true
 		}
 	}

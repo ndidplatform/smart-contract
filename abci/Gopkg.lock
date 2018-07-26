@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/btcsuite/btcd"
-  packages = ["btcec"]
-  revision = "fdfc19097e7ac6b57035062056f5b7b4638b8898"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -20,8 +14,8 @@
     "log/level",
     "log/term"
   ]
-  revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
-  version = "v0.6.0"
+  revision = "ca4112baa34cb55091301bdc13b1420a122b1b9e"
+  version = "v0.7.0"
 
 [[projects]]
   name = "github.com/go-logfmt/logfmt"
@@ -45,8 +39,8 @@
     "sortkeys",
     "types"
   ]
-  revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
-  version = "v1.0.0"
+  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/golang/protobuf"
@@ -110,16 +104,6 @@
   revision = "0d5a0ceb10cf9ab89fdd744cc8c50a83134f6697"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/tendermint/ed25519"
-  packages = [
-    ".",
-    "edwards25519",
-    "extra25519"
-  ]
-  revision = "d8387025d2b9d158cf4efb07e7ebf814bcce2057"
-
-[[projects]]
   name = "github.com/tendermint/go-amino"
   packages = ["."]
   revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
@@ -142,26 +126,19 @@
     "libs/db",
     "libs/log"
   ]
-  revision = "dfa9a9a30a666132425b29454e90a472aa579a48"
-  version = "v0.22.0"
+  revision = "05a76fb517f50da27b4bfcdc7b4cf185fc61eff6"
+  version = "v0.22.5"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
-    "internal/subtle",
-    "nacl/secretbox",
-    "openpgp/armor",
-    "openpgp/errors",
-    "poly1305",
     "ripemd160",
-    "salsa20/salsa",
     "ssh/terminal"
   ]
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -172,7 +149,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "32a936f46389aa10549d60bd7833e54b01685d09"
+  revision = "292b43bbf7cb8d35ddf40f8d5100ef3837cced3f"
 
 [[projects]]
   branch = "master"
@@ -222,9 +199,11 @@
     "credentials",
     "encoding",
     "encoding/proto",
-    "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "internal",
+    "internal/backoff",
+    "internal/channelz",
+    "internal/grpcrand",
     "keepalive",
     "metadata",
     "naming",
@@ -237,12 +216,12 @@
     "tap",
     "transport"
   ]
-  revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
-  version = "v1.11.3"
+  revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
+  version = "v1.13.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f0d9d3d6acc72a33af8d38cd06ffe104e9df8cae24a7bb97b6a99400a1a6f2c0"
+  inputs-digest = "b50280cbec18bb6333a50aeee49818423f3ec3495683a518867c70714b3c280a"
   solver-name = "gps-cdcl"
   solver-version = 1

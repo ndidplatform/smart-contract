@@ -29,7 +29,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"reflect"
+	"fmt"
 	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -85,9 +85,11 @@ func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.Res
 	key := "MasterNDID"
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
-		return ReturnCheckTx(true)
+		return ReturnCheckTx(code.OK, "")
 	}
-	return ReturnCheckTx(false)
+	// TODO: Change error code
+	// NDID node (first node of the network) is already existed
+	return ReturnCheckTx(code.UnknownError, "")
 }
 
 func checkIsMember(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
@@ -99,9 +101,10 @@ func checkIsMember(param string, nodeID string, app *DIDApplication) types.Respo
 		string(value) == "MasterRP" ||
 		string(value) == "MasterIdP" ||
 		string(value) == "MasterAS" {
-		return ReturnCheckTx(true)
+		return ReturnCheckTx(code.OK, "")
 	}
-	return ReturnCheckTx(false)
+	// TODO: Change error code
+	return ReturnCheckTx(code.UnknownError, "")
 }
 
 func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
@@ -110,15 +113,17 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 	var node NodeDetail
 	err := json.Unmarshal([]byte(value), &node)
 	if err != nil {
-		return ReturnCheckTx(false)
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
 	}
 
 	if string(node.Role) == "RP" ||
 		string(node.Role) == "IdP" ||
 		string(node.Role) == "AS" {
-		return ReturnCheckTx(true)
+		return ReturnCheckTx(code.OK, "")
 	}
-	return ReturnCheckTx(false)
+	// TODO: Change error code
+	return ReturnCheckTx(code.UnknownError, "")
 }
 
 func checkNDID(param string, nodeID string, app *DIDApplication) bool {
@@ -178,26 +183,47 @@ func checkIdPorRP(param string, nodeID string, app *DIDApplication) bool {
 }
 
 func checkIsNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(checkNDID(param, nodeID, app))
+	ok := checkNDID(param, nodeID, app)
+	if ok == false {
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
+	}
+	return ReturnCheckTx(code.OK, "")
 }
 
 func checkIsIDP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(checkIdP(param, nodeID, app))
+	ok := checkIdP(param, nodeID, app)
+	if ok == false {
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
+	}
+	return ReturnCheckTx(code.OK, "")
 }
 
 func checkIsAS(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(checkAS(param, nodeID, app))
+	ok := checkAS(param, nodeID, app)
+	if ok == false {
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
+	}
+	return ReturnCheckTx(code.OK, "")
 }
 
 func checkIsRPorIdP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	return ReturnCheckTx(checkIdPorRP(param, nodeID, app))
+	ok := checkIdPorRP(param, nodeID, app)
+	if ok == false {
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
+	}
+	return ReturnCheckTx(code.OK, "")
 }
 
 func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnCheckTx(false)
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
 	}
 
 	// Check request is exist
@@ -214,17 +240,19 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 	var reports []Report
 	err = json.Unmarshal([]byte(value), &reports)
 	if err != nil {
-		return ReturnCheckTx(false)
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
 	}
 
 	for _, node := range reports {
 		if node.Method == "CreateRequest" &&
 			node.Data == funcParam.RequestID {
-			return ReturnCheckTx(true)
+			return ReturnCheckTx(code.OK, "")
 		}
 	}
 
-	return ReturnCheckTx(false)
+	// TODO: Change error code
+	return ReturnCheckTx(code.UnknownError, "")
 }
 
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
@@ -253,11 +281,11 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 }
 
 // ReturnCheckTx return types.ResponseDeliverTx
-func ReturnCheckTx(ok bool) types.ResponseCheckTx {
-	if ok {
-		return types.ResponseCheckTx{Code: code.OK}
+func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
+	return types.ResponseCheckTx{
+		Code: code,
+		Log:  fmt.Sprintf(log),
 	}
-	return types.ResponseCheckTx{Code: code.Unauthorized}
 }
 
 func getPublicKeyInitNDID(param string) string {
@@ -323,68 +351,32 @@ var IsMasterKeyMethod = map[string]bool{
 
 // CheckTxRouter is Pointer to function
 func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	funcs := map[string]interface{}{
-		"InitNDID":                           checkTxInitNDID,
-		"RegisterNode":                       checkIsNDID,
-		"AddNodeToken":                       checkIsNDID,
-		"ReduceNodeToken":                    checkIsNDID,
-		"SetNodeToken":                       checkIsNDID,
-		"SetPriceFunc":                       checkIsNDID,
-		"AddNamespace":                       checkIsNDID,
-		"SetValidator":                       checkIsNDID,
-		"AddService":                         checkIsNDID,
-		"UpdateNodeByNDID":                   checkIsNDID,
-		"UpdateService":                      checkIsNDID,
-		"RegisterServiceDestinationByNDID":   checkIsNDID,
-		"DisableNode":                        checkIsNDID,
-		"DisableNamespace":                   checkIsNDID,
-		"DisableService":                     checkIsNDID,
-		"DisableServiceDestinationByNDID":    checkIsNDID,
-		"EnableNode":                         checkIsNDID,
-		"EnableServiceDestinationByNDID":     checkIsNDID,
-		"EnableNamespace":                    checkIsNDID,
-		"EnableService":                      checkIsNDID,
-		"RegisterMsqDestination":             checkIsIDP,
-		"AddAccessorMethod":                  checkIsIDP,
-		"CreateIdpResponse":                  checkIsIDP,
-		"CreateIdentity":                     checkIsIDP,
-		"UpdateIdentity":                     checkIsIDP,
-		"DeclareIdentityProof":               checkIsIDP,
-		"DisableMsqDestination":              checkIsIDP,
-		"DisableAccessorMethod":              checkIsIDP,
-		"EnableMsqDestination":               checkIsIDP,
-		"EnableAccessorMethod":               checkIsIDP,
-		"ClearRegisterMsqDestinationTimeout": checkIsIDP,
-		"SignData":                           checkIsAS,
-		"RegisterServiceDestination":         checkIsAS,
-		"UpdateServiceDestination":           checkIsAS,
-		"DisableServiceDestination":          checkIsAS,
-		"EnableServiceDestination":           checkIsAS,
-		"CreateRequest":                      checkIsRPorIdP,
-		"RegisterMsqAddress":                 checkTxRegisterMsqAddress,
-	}
 
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
 		if publicKey == "" {
-			return ReturnCheckTx(false)
+			// TODO: Change error code
+			return ReturnCheckTx(code.UnknownError, "")
 		}
 	} else if method == "UpdateNode" {
 		publicKey = getMasterPublicKeyFromNodeID(nodeID, app)
 		if publicKey == "" {
-			return ReturnCheckTx(false)
+			// TODO: Change error code
+			return ReturnCheckTx(code.UnknownError, "")
 		}
 	} else {
 		publicKey = getPublicKeyFromNodeID(nodeID, app)
 		if publicKey == "" {
-			return ReturnCheckTx(false)
+			// TODO: Change error code
+			return ReturnCheckTx(code.UnknownError, "")
 		}
 	}
 
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {
-		return ReturnCheckTx(false)
+		// TODO: Change error code
+		return ReturnCheckTx(code.UnknownError, "")
 	}
 
 	var result types.ResponseCheckTx
@@ -394,15 +386,14 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		result = checkIsOwnerRequest(param, nodeID, app)
 	} else if IsMasterKeyMethod[method] {
 		// If verifyResult is true, return true
-		return ReturnCheckTx(true)
+		return ReturnCheckTx(code.OK, "")
 	} else {
-		value, _ := callCheckTx(funcs, method, param, nodeID, app)
-		result = value[0].Interface().(types.ResponseCheckTx)
+		result = callCheckTx(method, param, nodeID, app)
 	}
 	// check token for create Tx
 	if result.Code == code.OK {
 		if !checkNDID(nodeID, nodeID, app) && method != "InitNDID" {
-			needToken := getTokenPriceByFunc(method, app)
+			needToken := getTokenPriceByFunc(method, app, app.state.db.Version64())
 			nodeToken, err := getToken(nodeID, app)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
@@ -417,12 +408,53 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	return result
 }
 
-func callCheckTx(m map[string]interface{}, name string, param string, nodeID string, app *DIDApplication) (result []reflect.Value, err error) {
-	f := reflect.ValueOf(m[name])
-	in := make([]reflect.Value, 3)
-	in[0] = reflect.ValueOf(param)
-	in[1] = reflect.ValueOf(nodeID)
-	in[2] = reflect.ValueOf(app)
-	result = f.Call(in)
-	return
+func callCheckTx(name string, param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+	switch name {
+	case "InitNDID":
+		return checkTxInitNDID(param, nodeID, app)
+	case "RegisterNode",
+		"AddNodeToken",
+		"ReduceNodeToken",
+		"SetNodeToken",
+		"SetPriceFunc",
+		"AddNamespace",
+		"SetValidator",
+		"AddService",
+		"UpdateNodeByNDID",
+		"UpdateService",
+		"RegisterServiceDestinationByNDID",
+		"DisableNode",
+		"DisableNamespace",
+		"DisableService",
+		"DisableServiceDestinationByNDID",
+		"EnableNode",
+		"EnableServiceDestinationByNDID",
+		"EnableNamespace",
+		"EnableService":
+		return checkIsNDID(param, nodeID, app)
+	case "RegisterMsqDestination",
+		"AddAccessorMethod",
+		"CreateIdpResponse",
+		"CreateIdentity",
+		"UpdateIdentity",
+		"DeclareIdentityProof",
+		"DisableMsqDestination",
+		"DisableAccessorMethod",
+		"EnableMsqDestination",
+		"EnableAccessorMethod",
+		"ClearRegisterMsqDestinationTimeout":
+		return checkIsIDP(param, nodeID, app)
+	case "SignData",
+		"RegisterServiceDestination",
+		"UpdateServiceDestination",
+		"DisableServiceDestination",
+		"EnableServiceDestination":
+		return checkIsAS(param, nodeID, app)
+	case "CreateRequest":
+		return checkIsRPorIdP(param, nodeID, app)
+	case "RegisterMsqAddress":
+		return checkTxRegisterMsqAddress(param, nodeID, app)
+	default:
+		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
+	}
 }
