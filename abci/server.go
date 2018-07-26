@@ -41,15 +41,28 @@ var log *logrus.Entry
 
 func init() {
 	// Set default logrus
-	logFile, _ := os.OpenFile("DID.log", os.O_CREATE|os.O_WRONLY, 0666)
-	// TODO: add evironment for write log
-	// Set write log to file
-	if false {
+
+	var logLevel = getEnv("LOG_LEVEL", "debug")
+	var logTarget = getEnv("LOG_TARGET", "console")
+
+	if logTarget != "console" {
+		logFile, _ := os.OpenFile(logTarget, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		logrus.SetOutput(logFile)
 	} else {
 		logrus.SetOutput(os.Stdout)
 	}
-	logrus.SetLevel(logrus.DebugLevel)
+
+	switch logLevel {
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+	case "warn":
+		logrus.SetLevel(logrus.WarnLevel)
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+	default:
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
 	customFormatter := new(logrus.TextFormatter)
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.FullTimestamp = true
@@ -117,4 +130,12 @@ func (w *loggerWriter) Write(p []byte) (int, error) {
 		log.WithFields(keyValues).Info(newMsg)
 	}
 	return 0, nil
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
 }

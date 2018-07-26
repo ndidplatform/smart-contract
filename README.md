@@ -58,6 +58,12 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
     dep ensure
     ```
 
+**Environment variable options**
+
+- `DB_NAME`: Directory path for persistence data files [Default: `__dirname/DID` (`DID` directory in repository's directory)]
+- `LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
+- `LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` and `file` [Default: `console`]
+
 ### Run IdP node
 
 1.  Run ABCI server
