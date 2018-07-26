@@ -4,13 +4,13 @@
 
 BREAKING CHANGES:
 
-- Change version of Tendermint to v0.22.5
+- Change version of Tendermint to v0.22.6
 
 IMPROVEMENTS:
 
 - [DeliverTx] Check request is not closed (CloseRequest)
 - [DeliverTx] Check request is not timed out (TimeOutRequest)
-- [Docker] Update Tendermint version to v0.22.5
+- [Docker] Update Tendermint version to v0.22.6
 - [Docker] Change Tendermint config to not create empty block (`create_empty_blocks = false`)
 
 ## 0.5.1 (July 22, 2018)
