@@ -23,6 +23,8 @@
 package did
 
 import (
+	"crypto/ecdsa"
+	"crypto/dsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/json"
@@ -531,8 +533,12 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 				return ReturnDeliverTxLog(code.InvalidKeyFormat, err.Error(), "")
 			}
 			// Currently support only RSA
-			if pub.(type) != *rsa.PublicKey {
+			switch pub.(type) {
+			case *rsa.PublicKey:
+			case *dsa.PublicKey, *ecdsa.PublicKey:
 				return ReturnDeliverTxLog(code.UnsupportedKeyType, "", "")
+			default:
+				return ReturnDeliverTxLog(code.UnknownKeyType, "", "")
 			}
 			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
 		}
@@ -548,8 +554,12 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 				return ReturnDeliverTxLog(code.InvalidKeyFormat, err.Error(), "")
 			}
 			// Currently support only RSA
-			if pub.(type) != *rsa.PublicKey {
+			switch pub.(type) {
+			case *rsa.PublicKey:
+			case *dsa.PublicKey, *ecdsa.PublicKey:
 				return ReturnDeliverTxLog(code.UnsupportedKeyType, "", "")
+			default:
+				return ReturnDeliverTxLog(code.UnknownKeyType, "", "")
 			}
 			nodeDetail.PublicKey = funcParam.PublicKey
 		}

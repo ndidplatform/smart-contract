@@ -76,5 +76,6 @@ const (
 	UnknownMethod                             uint32 = 49
 	InvalidKeyFormat                          uint32 = 50
 	UnsupportedKeyType                        uint32 = 51
+	UnknownKeyType														uint32 = 52
 	UnknownError                              uint32 = 999
 )
