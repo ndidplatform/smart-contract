@@ -12,12 +12,6 @@ Test this app with command below
 TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 ```
 
-## Add new validator (For testing)
-get PubKey from pub_key.data in priv_validator.json 
-```sh
-curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
-```
-
 ## Prerequisites
 
 * Go version >= 1.9.2
@@ -25,14 +19,14 @@ curl -s 'localhost:45000/broadcast_tx_commit?tx="val:PubKey"'
   * [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   * Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-* Tendermint 0.22.4
+* Tendermint 0.22.6
 
     ```sh
     mkdir -p $GOPATH/src/github.com/tendermint
     cd $GOPATH/src/github.com/tendermint
     git clone https://github.com/tendermint/tendermint.git
     cd tendermint
-    git checkout v0.22.4
+    git checkout v0.22.6
     make get_tools
     make get_vendor_deps
     make install

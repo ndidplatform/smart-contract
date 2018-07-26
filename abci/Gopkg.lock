@@ -14,8 +14,8 @@
     "log/level",
     "log/term"
   ]
-  revision = "ca4112baa34cb55091301bdc13b1420a122b1b9e"
-  version = "v0.7.0"
+  revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
+  version = "v0.6.0"
 
 [[projects]]
   name = "github.com/go-logfmt/logfmt"
@@ -120,22 +120,18 @@
   packages = [
     "abci/server",
     "abci/types",
-    "crypto",
     "crypto/tmhash",
     "libs/common",
     "libs/db",
     "libs/log"
   ]
-  revision = "05a76fb517f50da27b4bfcdc7b4cf185fc61eff6"
-  version = "v0.22.5"
+  revision = "5fdbcd70df57b71ffba71e1ff5f00d617852a9c0"
+  version = "v0.22.6"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = [
-    "ripemd160",
-    "ssh/terminal"
-  ]
+  packages = ["ssh/terminal"]
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
@@ -222,6 +218,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b50280cbec18bb6333a50aeee49818423f3ec3495683a518867c70714b3c280a"
+  inputs-digest = "bff0dd45b895125650ada08019b546512c1b901c8421257fcf1932fbd2386200"
   solver-name = "gps-cdcl"
   solver-version = 1
