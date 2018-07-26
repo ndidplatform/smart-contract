@@ -73,6 +73,8 @@ const (
 	NotOwnerOfAccessor                        uint32 = 46
 	NoPermissionForRegisterServiceDestination uint32 = 47
 	IncompleteValidList                       uint32 = 48
-	UnknownMethod															uint32 = 49
-	UnknownError															uint32 = 999
+	UnknownMethod                             uint32 = 49
+	InvalidKeyFormat                          uint32 = 50
+	UnsupportedKeyType                        uint32 = 51
+	UnknownError                              uint32 = 999
 )

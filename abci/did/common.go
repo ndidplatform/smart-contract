@@ -23,7 +23,10 @@
 package did
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
@@ -519,11 +522,35 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 
 		// update MasterPublicKey
 		if funcParam.MasterPublicKey != "" {
+			block, _ := pem.Decode([]byte(funcParam.MasterPublicKey))
+			if block == nil {
+				return ReturnDeliverTxLog(code.InvalidKeyFormat, "", "")
+			}
+			pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+			if err != nil {
+				return ReturnDeliverTxLog(code.InvalidKeyFormat, err.Error(), "")
+			}
+			// Currently support only RSA
+			if pub.(type) != *rsa.PublicKey {
+				return ReturnDeliverTxLog(code.UnsupportedKeyType, "", "")
+			}
 			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
 		}
 
 		// update PublicKey
 		if funcParam.PublicKey != "" {
+			block, _ := pem.Decode([]byte(funcParam.PublicKey))
+			if block == nil {
+				return ReturnDeliverTxLog(code.InvalidKeyFormat, "", "")
+			}
+			pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+			if err != nil {
+				return ReturnDeliverTxLog(code.InvalidKeyFormat, err.Error(), "")
+			}
+			// Currently support only RSA
+			if pub.(type) != *rsa.PublicKey {
+				return ReturnDeliverTxLog(code.UnsupportedKeyType, "", "")
+			}
 			nodeDetail.PublicKey = funcParam.PublicKey
 		}
 
