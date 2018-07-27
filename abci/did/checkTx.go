@@ -351,10 +351,10 @@ func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
 	if err != nil {
 		return code.InvalidKeyFormat, err.Error()
 	}
-	// Currently support only RSA
+
 	switch pub.(type) {
-	case *rsa.PublicKey:
-	case *dsa.PublicKey, *ecdsa.PublicKey:
+	case *rsa.PublicKey, *ecdsa.PublicKey:
+	case *dsa.PublicKey:
 		return code.UnsupportedKeyType, ""
 	default:
 		return code.UnknownKeyType, ""
@@ -362,7 +362,7 @@ func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
 	return code.OK, ""
 }
 
-func checkPubKeysFormat(param string) (returnCode uint32, log string) {
+func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 	var keys struct {
 		MasterPublicKey string `json:"master_public_key"`
 		PublicKey       string `json:"public_key"`
@@ -439,27 +439,12 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	}
 
 	// Check pub key format
-	if method == "InitNDID" {
-		checkCode, log := checkPubKeysFormat(param)
+	if method == "InitNDID" || method == "RegisterNode" || method == "UpdateNode" {
+		checkCode, log := checkNodePubKeysFormat(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
-	} else if method == "RegisterNode" {
-		checkCode, log := checkPubKeysFormat(param)
-		if checkCode != code.OK {
-			return ReturnCheckTx(checkCode, log)
-		}
-	} else if method == "UpdateNode" {
-		checkCode, log := checkPubKeysFormat(param)
-		if checkCode != code.OK {
-			return ReturnCheckTx(checkCode, log)
-		}
-	} else if method == "CreateIdentity" {
-		checkCode, log := checkAccessorPubKeyFormat(param)
-		if checkCode != code.OK {
-			return ReturnCheckTx(checkCode, log)
-		}
-	} else if method == "AddAccessorMethod" {
+	} else if method == "CreateIdentity" || method == "AddAccessorMethod" {
 		checkCode, log := checkAccessorPubKeyFormat(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
