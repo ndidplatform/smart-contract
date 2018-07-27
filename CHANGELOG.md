@@ -4,7 +4,7 @@
 
 BREAKING CHANGES:
 
-- Change version of Tendermint to v0.22.6
+- Change version of Tendermint to v0.22.8
 
 IMPROVEMENTS:
 
