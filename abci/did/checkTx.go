@@ -345,7 +345,7 @@ func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
 	block, _ := pem.Decode([]byte(key))
 	if block == nil {
-		return code.InvalidKeyFormat, ""
+		return code.InvalidKeyFormat, "Invalid key format. Cannot decode PEM."
 	}
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
@@ -355,9 +355,9 @@ func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
 	switch pub.(type) {
 	case *rsa.PublicKey, *ecdsa.PublicKey:
 	case *dsa.PublicKey:
-		return code.UnsupportedKeyType, ""
+		return code.UnsupportedKeyType, "Unsupported key type. Only RSA and ECDSA are allowed."
 	default:
-		return code.UnknownKeyType, ""
+		return code.UnknownKeyType, "Unknown key type. Only RSA and ECDSA are allowed."
 	}
 	return code.OK, ""
 }
