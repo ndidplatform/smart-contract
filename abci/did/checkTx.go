@@ -194,7 +194,7 @@ func checkIsAS(param string, nodeID string, app *DIDApplication) types.ResponseC
 func checkIsRPorIdP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	ok := checkIdPorRP(param, nodeID, app)
 	if ok == false {
-		return ReturnCheckTx(code.NoPermissionForCallRPorASMethod, "This node does not have permission for call RP or IdP method")
+		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission for call RP and IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }

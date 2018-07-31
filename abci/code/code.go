@@ -82,7 +82,7 @@ const (
 	NoPermissionForCallNDIDMethod             uint32 = 55
 	NoPermissionForCallIdPMethod              uint32 = 56
 	NoPermissionForCallASMethod               uint32 = 57
-	NoPermissionForCallRPorASMethod           uint32 = 58
+	NoPermissionForCallRPandIdPMethod         uint32 = 58
 	VerifySignatureError                      uint32 = 59
 	NotOwnerOfRequest                         uint32 = 60
 	CannotGetPublicKeyFromParam               uint32 = 61
