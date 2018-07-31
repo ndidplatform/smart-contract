@@ -76,6 +76,17 @@ const (
 	UnknownMethod                             uint32 = 49
 	InvalidKeyFormat                          uint32 = 50
 	UnsupportedKeyType                        uint32 = 51
-	UnknownKeyType														uint32 = 52
+	UnknownKeyType                            uint32 = 52
+	NDIDisAlreadyExisted                      uint32 = 53
+	NoPermissionForRegisterMsqAddress         uint32 = 54
+	NoPermissionForCallNDIDMethod             uint32 = 55
+	NoPermissionForCallIdPMethod              uint32 = 56
+	NoPermissionForCallASMethod               uint32 = 57
+	NoPermissionForCallRPorASMethod           uint32 = 58
+	VerifySignatureError                      uint32 = 59
+	NotOwnerOfRequest                         uint32 = 60
+	CannotGetPublicKeyFromParam               uint32 = 61
+	CannotGetMasterPublicKeyFromNodeID        uint32 = 62
+	CannotGetPublicKeyFromNodeID              uint32 = 63
 	UnknownError                              uint32 = 999
 )

@@ -24,8 +24,8 @@ package did
 
 import (
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/dsa"
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -90,24 +90,8 @@ func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.Res
 	if value == nil {
 		return ReturnCheckTx(code.OK, "")
 	}
-	// TODO: Change error code
 	// NDID node (first node of the network) is already existed
-	return ReturnCheckTx(code.UnknownError, "")
-}
-
-func checkIsMember(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
-	key := "NodePublicKeyRole" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if string(value) == "RP" ||
-		string(value) == "IdP" ||
-		string(value) == "AS" ||
-		string(value) == "MasterRP" ||
-		string(value) == "MasterIdP" ||
-		string(value) == "MasterAS" {
-		return ReturnCheckTx(code.OK, "")
-	}
-	// TODO: Change error code
-	return ReturnCheckTx(code.UnknownError, "")
+	return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
 }
 
 func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
@@ -116,8 +100,7 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 	var node NodeDetail
 	err := json.Unmarshal([]byte(value), &node)
 	if err != nil {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	if string(node.Role) == "RP" ||
@@ -125,8 +108,7 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 		string(node.Role) == "AS" {
 		return ReturnCheckTx(code.OK, "")
 	}
-	// TODO: Change error code
-	return ReturnCheckTx(code.UnknownError, "")
+	return ReturnCheckTx(code.NoPermissionForRegisterMsqAddress, "This node does not have permission for register msq address")
 }
 
 func checkNDID(param string, nodeID string, app *DIDApplication) bool {
@@ -188,8 +170,7 @@ func checkIdPorRP(param string, nodeID string, app *DIDApplication) bool {
 func checkIsNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	ok := checkNDID(param, nodeID, app)
 	if ok == false {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission for call NDID method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -197,8 +178,7 @@ func checkIsNDID(param string, nodeID string, app *DIDApplication) types.Respons
 func checkIsIDP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	ok := checkIdP(param, nodeID, app)
 	if ok == false {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission for call IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -206,8 +186,7 @@ func checkIsIDP(param string, nodeID string, app *DIDApplication) types.Response
 func checkIsAS(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	ok := checkAS(param, nodeID, app)
 	if ok == false {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission for call AS method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -215,8 +194,7 @@ func checkIsAS(param string, nodeID string, app *DIDApplication) types.ResponseC
 func checkIsRPorIdP(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	ok := checkIdPorRP(param, nodeID, app)
 	if ok == false {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.NoPermissionForCallRPorASMethod, "This node does not have permission for call RP or IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -225,8 +203,7 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	// Check request is exist
@@ -243,8 +220,7 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 	var reports []Report
 	err = json.Unmarshal([]byte(value), &reports)
 	if err != nil {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	for _, node := range reports {
@@ -254,8 +230,7 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 		}
 	}
 
-	// TODO: Change error code
-	return ReturnCheckTx(code.UnknownError, "")
+	return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
 }
 
 func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
@@ -374,7 +349,7 @@ func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 	// Validate master public key format
 	if keys.MasterPublicKey != "" {
 		returnCode, log = checkPubKeyPemFormat(keys.MasterPublicKey)
-		if (returnCode != code.OK) {
+		if returnCode != code.OK {
 			return returnCode, log
 		}
 	}
@@ -382,7 +357,7 @@ func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 	// Validate public key format
 	if keys.PublicKey != "" {
 		returnCode, log = checkPubKeyPemFormat(keys.PublicKey)
-		if (returnCode != code.OK) {
+		if returnCode != code.OK {
 			return returnCode, log
 		}
 	}
@@ -398,7 +373,7 @@ func checkAccessorPubKeyFormat(param string) (returnCode uint32, log string) {
 		return code.UnmarshalError, err.Error()
 	}
 	returnCode, log = checkPubKeyPemFormat(key.AccessorPublicKey)
-	if (returnCode != code.OK) {
+	if returnCode != code.OK {
 		return returnCode, log
 	}
 	return code.OK, ""
@@ -421,20 +396,17 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
 		if publicKey == "" {
-			// TODO: Change error code
-			return ReturnCheckTx(code.UnknownError, "")
+			return ReturnCheckTx(code.CannotGetPublicKeyFromParam, "Can not get public key from parameter")
 		}
 	} else if method == "UpdateNode" {
 		publicKey = getMasterPublicKeyFromNodeID(nodeID, app)
 		if publicKey == "" {
-			// TODO: Change error code
-			return ReturnCheckTx(code.UnknownError, "")
+			return ReturnCheckTx(code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID")
 		}
 	} else {
 		publicKey = getPublicKeyFromNodeID(nodeID, app)
 		if publicKey == "" {
-			// TODO: Change error code
-			return ReturnCheckTx(code.UnknownError, "")
+			return ReturnCheckTx(code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID")
 		}
 	}
 
@@ -453,8 +425,7 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {
-		// TODO: Change error code
-		return ReturnCheckTx(code.UnknownError, "")
+		return ReturnCheckTx(code.VerifySignatureError, err.Error())
 	}
 
 	var result types.ResponseCheckTx
