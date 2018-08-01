@@ -27,7 +27,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ndidplatform/smart-contract/abci/did"
+	"github.com/ndidplatform/smart-contract/abci/did2"
 	"github.com/sirupsen/logrus"
 	server "github.com/tendermint/tendermint/abci/server"
 	"github.com/tendermint/tendermint/abci/types"
@@ -78,7 +78,7 @@ func runABCIServer(args []string) {
 	address := args[1]
 
 	var app types.Application
-	app = did.NewDIDApplication()
+	app = did.NewDIDApplicationInterface()
 
 	writer := newLoggerWriter()
 	logger := tdmLog.NewTMLogger(tdmLog.NewSyncWriter(writer))
