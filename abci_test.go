@@ -41,7 +41,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/abci/did"
+	"github.com/ndidplatform/smart-contract/abci/did/v1"
 	"github.com/tendermint/tendermint/libs/common"
 )
 

@@ -23,228 +23,82 @@
 package did
 
 import (
-	"encoding/base64"
-	"fmt"
 	"os"
-	"runtime"
-	"strings"
 
-	"github.com/ndidplatform/smart-contract/abci/code"
+	didV1 "github.com/ndidplatform/smart-contract/abci/did/v1"
+	// didV2 "github.com/ndidplatform/smart-contract/abci/did2/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
-var (
-	stateKey        = []byte("stateKey")
-	kvPairPrefixKey = []byte("kvPairKey:")
-)
+var _ types.Application = (*DIDApplicationInterface)(nil)
 
-type State struct {
-	db *iavl.VersionedTree
-}
-
-func prefixKey(key []byte) []byte {
-	return append(kvPairPrefixKey, key...)
-}
-
-var _ types.Application = (*DIDApplication)(nil)
-
-type DIDApplication struct {
-	types.BaseApplication
-	state        State
-	ValUpdates   []types.Validator
-	logger       *logrus.Entry
-	Version      string
+type DIDApplicationInterface struct {
+	appV1 *didV1.DIDApplication
+	// appV2        *didV2.DIDApplication
 	CurrentBlock int64
 }
 
-func NewDIDApplication() *DIDApplication {
+func NewDIDApplicationInterface() *DIDApplicationInterface {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Errorf("%s", identifyPanic())
-			panic(r)
-		}
-	}()
-	logger.Infoln("NewDIDApplication")
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
 	db := dbm.NewDB(name, "leveldb", dbDir)
 	tree := iavl.NewVersionedTree(db, 0)
 	tree.Load()
-	var state State
-	state.db = tree
-	return &DIDApplication{state: state,
-		logger:  logger,
-		Version: "0.5.1", // Hard code set version
+	return &DIDApplicationInterface{
+		appV1: didV1.NewDIDApplication(logger, tree),
+		// appV2: didV2.NewDIDApplication(logger, tree),
 	}
 }
 
-func (app *DIDApplication) SetStateDB(key, value []byte) {
-	app.state.db.Set(prefixKey(key), value)
+func (app *DIDApplicationInterface) Info(req types.RequestInfo) types.ResponseInfo {
+	return app.appV1.Info(req)
 }
 
-func (app *DIDApplication) DeleteStateDB(key []byte) {
-	app.state.db.Remove(prefixKey(key))
+func (app *DIDApplicationInterface) SetOption(req types.RequestSetOption) types.ResponseSetOption {
+	return app.appV1.SetOption(req)
 }
 
-func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
-	var res types.ResponseInfo
-	res.Version = app.Version
-	res.LastBlockHeight = app.state.db.Version64()
-	res.LastBlockAppHash = app.state.db.Hash()
-	app.CurrentBlock = app.state.db.Version64()
-	return res
+func (app *DIDApplicationInterface) CheckTx(tx []byte) types.ResponseCheckTx {
+	switch {
+	case app.CurrentBlock >= 0:
+		return app.appV1.CheckTx(tx)
+	default:
+		return app.appV1.CheckTx(tx)
+	}
 }
 
-// Save the validators in the merkle tree
-func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
-	for _, v := range req.Validators {
-		r := app.updateValidator(v)
-		if r.IsErr() {
-			app.logger.Error("Error updating validators", "r", r)
-		}
+func (app *DIDApplicationInterface) DeliverTx(tx []byte) types.ResponseDeliverTx {
+	switch {
+	case app.CurrentBlock >= 0:
+		return app.appV1.DeliverTx(tx)
+	default:
+		return app.appV1.DeliverTx(tx)
 	}
-	return types.ResponseInitChain{}
 }
 
-// Track the block hash and header information
-func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.logger.Infof("BeginBlock: %d", req.Header.Height)
-	app.CurrentBlock = app.state.db.Version64()
-	// reset valset changes
-	app.ValUpdates = make([]types.Validator, 0)
-	return types.ResponseBeginBlock{}
+func (app *DIDApplicationInterface) Commit() types.ResponseCommit {
+	return app.appV1.Commit()
 }
 
-// Update the validator set
-func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
-	app.logger.Infof("EndBlock: %d", req.Height)
-	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
+func (app *DIDApplicationInterface) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+	return app.appV1.Query(reqQuery)
 }
 
-func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
-	// Recover when panic
-	defer func() {
-		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnDeliverTxLog(code.UnknownError, "Unknown error", "")
-		}
-	}()
-
-	txString := string(tx)
-	parts := strings.Split(string(txString), "|")
-
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
-	}
-	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
-	}
-
-	method := string(parts[0])
-	param := string(paramByte)
-	nonce := string(parts[2])
-	signature := string(parts[3])
-	nodeID := string(nodeIDByte)
-
-	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
-
-	if method != "" {
-		result := DeliverTxRouter(method, param, nonce, signature, nodeID, app)
-		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
-		return result
-	}
-	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
+func (app *DIDApplicationInterface) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+	return app.appV1.InitChain(req)
 }
 
-func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
-	// Recover when panic
-	defer func() {
-		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(code.UnknownError, "Unknown error")
-		}
-	}()
-
-	parts := strings.Split(string(tx), "|")
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnCheckTx(code.DecodingError, err.Error())
-	}
-	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnCheckTx(code.DecodingError, err.Error())
-	}
-
-	method := string(parts[0])
-	param := string(paramByte)
-	nonce := string(parts[2])
-	signature := string(parts[3])
-	nodeID := string(nodeIDByte)
-
-	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
-
-	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
-		// Check has function in system
-		if IsMethod[method] {
-			result := CheckTxRouter(method, param, nonce, signature, nodeID, app)
-			return result
-		}
-		res.Code = code.UnknownMethod
-		res.Log = "Unknown method name"
-		return res
-	}
-	res.Code = code.InvalidTransactionFormat
-	res.Log = "Invalid transaction format"
-	return res
+func (app *DIDApplicationInterface) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+	app.CurrentBlock = req.Header.Height
+	return app.appV1.BeginBlock(req)
 }
 
-func (app *DIDApplication) Commit() types.ResponseCommit {
-	app.logger.Infof("Commit")
-	app.state.db.SaveVersion()
-	return types.ResponseCommit{Data: app.state.db.Hash()}
-}
-
-func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
-
-	// Recover when panic
-	defer func() {
-		if r := recover(); r != nil {
-			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnQuery(nil, "Unknown error", app.state.db.Version64(), app)
-		}
-	}()
-
-	parts := strings.Split(string(reqQuery.Data), "|")
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnQuery(nil, "Decoding error", app.state.db.Version64(), app)
-	}
-
-	method := string(parts[0])
-	param := string(paramByte)
-
-	app.logger.Infof("Query: %s", method)
-
-	height := reqQuery.Height
-	if height == 0 {
-		height = app.state.db.Version64()
-	}
-
-	if method != "" {
-		return QueryRouter(method, param, app, height)
-	}
-	return ReturnQuery(nil, "method can't empty", app.state.db.Version64(), app)
+func (app *DIDApplicationInterface) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+	return app.appV1.EndBlock(req)
 }
 
 func getEnv(key, defaultValue string) string {
@@ -253,32 +107,4 @@ func getEnv(key, defaultValue string) string {
 		value = defaultValue
 	}
 	return value
-}
-
-func identifyPanic() string {
-	var name, file string
-	var line int
-	var pc [16]uintptr
-
-	n := runtime.Callers(3, pc[:])
-	for _, pc := range pc[:n] {
-		fn := runtime.FuncForPC(pc)
-		if fn == nil {
-			continue
-		}
-		file, line = fn.FileLine(pc)
-		name = fn.Name()
-		if !strings.HasPrefix(name, "runtime.") {
-			break
-		}
-	}
-
-	switch {
-	case name != "":
-		return fmt.Sprintf("%v:%v", name, line)
-	case file != "":
-		return fmt.Sprintf("%v:%v", file, line)
-	}
-
-	return fmt.Sprintf("pc:%x", pc)
 }

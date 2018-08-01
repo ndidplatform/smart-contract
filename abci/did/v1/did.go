@@ -33,7 +33,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
-	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -60,7 +59,7 @@ type DIDApplication struct {
 	CurrentBlock int64
 }
 
-func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
+func NewDIDApplication(logger *logrus.Entry, tree *iavl.VersionedTree) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -68,8 +67,6 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		}
 	}()
 	logger.Infoln("NewDIDApplication")
-	tree := iavl.NewVersionedTree(db, 0)
-	tree.Load()
 	var state State
 	state.db = tree
 	return &DIDApplication{

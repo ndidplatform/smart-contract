@@ -27,7 +27,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ndidplatform/smart-contract/abci/did2"
+	"github.com/ndidplatform/smart-contract/abci/did"
 	"github.com/sirupsen/logrus"
 	server "github.com/tendermint/tendermint/abci/server"
 	"github.com/tendermint/tendermint/abci/types"
