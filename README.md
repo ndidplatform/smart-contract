@@ -387,7 +387,8 @@ log: "success"
     {
       "idp_id": "IdP1",
       "valid_proof": true,
-      "valid_ial": true
+      "valid_ial": true,
+      "valid_signature": true
     }
   ]
 }
@@ -406,7 +407,8 @@ log: "success"
     {
       "idp_id": "IdP1",
       "valid_proof": false,
-      "valid_ial": false
+      "valid_ial": false,
+      "valid_signature": false
     }
   ]
 }
@@ -893,7 +895,7 @@ log: "success"
 ### Expected Output
 ```sh
 {
-  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c11111",
   "min_idp": 1,
   "min_aal": 3,
   "min_ial": 3,
@@ -901,15 +903,25 @@ log: "success"
   "data_request_list": [
     {
       "service_id": "statement",
-      "as_id_list": [],
-      "min_as": 1,
-      "request_params_hash": "hash",
-      "answered_as_id_list": [
-        "AS1"
+      "as_id_list": [
+        "AS1",
+        "AS2"
       ],
-      "received_data_from_list": [
-        "AS1"
-      ]
+      "min_as": 2,
+      "request_params_hash": "hash",
+      "answered_as_id_list": [],
+      "received_data_from_list": []
+    },
+    {
+      "service_id": "credit",
+      "as_id_list": [
+        "AS1",
+        "AS2"
+      ],
+      "min_as": 2,
+      "request_params_hash": "hash",
+      "answered_as_id_list": [],
+      "received_data_from_list": []
     }
   ],
   "request_message_hash": "hash('Please allow...')",
@@ -922,12 +934,13 @@ log: "success"
       "identity_proof": "Magic",
       "private_proof_hash": "Magic",
       "idp_id": "IdP1",
-      "valid_proof": true,
-      "valid_ial": true
+      "valid_proof": false,
+      "valid_ial": false,
+      "valid_signature": false
     }
   ],
-  "closed": true,
-  "timed_out": false,
+  "closed": false,
+  "timed_out": true,
   "special": false,
   "mode": 3
 }

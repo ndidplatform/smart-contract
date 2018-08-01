@@ -13,6 +13,7 @@ IMPROVEMENTS:
 - [CheckTx] Validate public key format (PEM format, RSA and ECDSA types are allowed)
 - [Docker] Update Tendermint version to v0.22.8
 - [Docker] Change Tendermint config to not create empty block (`create_empty_blocks = false`)
+- [DeliverTx] Add valid_signature in response_valid_list to CloseRequest and TimeOutRequest parameter
 
 ## 0.5.1 (July 22, 2018)
 

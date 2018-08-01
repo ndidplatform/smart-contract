@@ -126,6 +126,7 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 			if valid.IdpID == request.Responses[index].IdpID {
 				request.Responses[index].ValidProof = valid.ValidProof
 				request.Responses[index].ValidIal = valid.ValidIal
+				request.Responses[index].ValidSignature = valid.ValidSignature
 			}
 		}
 	}
@@ -178,6 +179,7 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 			if valid.IdpID == request.Responses[index].IdpID {
 				request.Responses[index].ValidProof = valid.ValidProof
 				request.Responses[index].ValidIal = valid.ValidIal
+				request.Responses[index].ValidSignature = valid.ValidSignature
 			}
 		}
 	}
