@@ -88,5 +88,6 @@ const (
 	CannotGetPublicKeyFromParam               uint32 = 61
 	CannotGetMasterPublicKeyFromNodeID        uint32 = 62
 	CannotGetPublicKeyFromNodeID              uint32 = 63
+	TimeOutBlockIsMustGreaterThanZero         uint32 = 64
 	UnknownError                              uint32 = 999
 )
