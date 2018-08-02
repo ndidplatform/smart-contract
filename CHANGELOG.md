@@ -10,7 +10,7 @@ IMPROVEMENTS:
 
 - [DeliverTx] Check request is not closed (CloseRequest)
 - [DeliverTx] Check request is not timed out (TimeOutRequest)
-- [CheckTx] Validate public key format (PEM format, RSA and ECDSA types are allowed)
+- [CheckTx] Validate public key (PEM format, RSA type with at least 2048-bit length is allowed)
 - [Docker] Update Tendermint version to v0.22.8
 - [Docker] Change Tendermint config to not create empty block (`create_empty_blocks = false`)
 - [DeliverTx] Add valid_signature in response_valid_list to CloseRequest and TimeOutRequest parameter

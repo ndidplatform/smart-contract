@@ -317,7 +317,7 @@ func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 	return ""
 }
 
-func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
+func checkPubKey(key string) (returnCode uint32, log string) {
 	block, _ := pem.Decode([]byte(key))
 	if block == nil {
 		return code.InvalidKeyFormat, "Invalid key format. Cannot decode PEM."
@@ -327,17 +327,20 @@ func checkPubKeyPemFormat(key string) (returnCode uint32, log string) {
 		return code.InvalidKeyFormat, err.Error()
 	}
 
-	switch pub.(type) {
-	case *rsa.PublicKey, *ecdsa.PublicKey:
-	case *dsa.PublicKey:
-		return code.UnsupportedKeyType, "Unsupported key type. Only RSA and ECDSA are allowed."
+	switch pubKey := pub.(type) {
+	case *rsa.PublicKey:
+		if pubKey.N.BitLen() < 2048 {
+			return code.RSAKeyLengthTooShort, "RSA key length is too short. Must be at least 2048-bit."
+		}
+	case *dsa.PublicKey, *ecdsa.PublicKey:
+		return code.UnsupportedKeyType, "Unsupported key type. Only RSA is allowed."
 	default:
-		return code.UnknownKeyType, "Unknown key type. Only RSA and ECDSA are allowed."
+		return code.UnknownKeyType, "Unknown key type. Only RSA is allowed."
 	}
 	return code.OK, ""
 }
 
-func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
+func checkNodePubKeys(param string) (returnCode uint32, log string) {
 	var keys struct {
 		MasterPublicKey string `json:"master_public_key"`
 		PublicKey       string `json:"public_key"`
@@ -348,7 +351,7 @@ func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 	}
 	// Validate master public key format
 	if keys.MasterPublicKey != "" {
-		returnCode, log = checkPubKeyPemFormat(keys.MasterPublicKey)
+		returnCode, log = checkPubKey(keys.MasterPublicKey)
 		if returnCode != code.OK {
 			return returnCode, log
 		}
@@ -356,7 +359,7 @@ func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 
 	// Validate public key format
 	if keys.PublicKey != "" {
-		returnCode, log = checkPubKeyPemFormat(keys.PublicKey)
+		returnCode, log = checkPubKey(keys.PublicKey)
 		if returnCode != code.OK {
 			return returnCode, log
 		}
@@ -364,7 +367,7 @@ func checkNodePubKeysFormat(param string) (returnCode uint32, log string) {
 	return code.OK, ""
 }
 
-func checkAccessorPubKeyFormat(param string) (returnCode uint32, log string) {
+func checkAccessorPubKey(param string) (returnCode uint32, log string) {
 	var key struct {
 		AccessorPublicKey string `json:"accessor_public_key"`
 	}
@@ -372,7 +375,7 @@ func checkAccessorPubKeyFormat(param string) (returnCode uint32, log string) {
 	if err != nil {
 		return code.UnmarshalError, err.Error()
 	}
-	returnCode, log = checkPubKeyPemFormat(key.AccessorPublicKey)
+	returnCode, log = checkPubKey(key.AccessorPublicKey)
 	if returnCode != code.OK {
 		return returnCode, log
 	}
@@ -410,14 +413,14 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		}
 	}
 
-	// Check pub key format
+	// Check pub key
 	if method == "InitNDID" || method == "RegisterNode" || method == "UpdateNode" {
-		checkCode, log := checkNodePubKeysFormat(param)
+		checkCode, log := checkNodePubKeys(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
 	} else if method == "CreateIdentity" || method == "AddAccessorMethod" {
-		checkCode, log := checkAccessorPubKeyFormat(param)
+		checkCode, log := checkAccessorPubKey(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
