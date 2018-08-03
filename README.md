@@ -19,14 +19,14 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   * [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   * Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-* Tendermint 0.22.6
+* Tendermint 0.22.8
 
     ```sh
     mkdir -p $GOPATH/src/github.com/tendermint
     cd $GOPATH/src/github.com/tendermint
     git clone https://github.com/tendermint/tendermint.git
     cd tendermint
-    git checkout v0.22.6
+    git checkout v0.22.8
     make get_tools
     make get_vendor_deps
     make install
