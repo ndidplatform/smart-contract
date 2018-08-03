@@ -40,6 +40,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ndidplatform/smart-contract/abci/did/v1"
 	"github.com/tendermint/tendermint/libs/common"
@@ -73,6 +74,37 @@ type ResponseQuery struct {
 			Value  string `json:"value"`
 			Height string `json:"height"`
 		} `json:"response"`
+	} `json:"result"`
+}
+
+type ResponseStatus struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      string `json:"id"`
+	Result  struct {
+		NodeInfo struct {
+			ID         string   `json:"id"`
+			ListenAddr string   `json:"listen_addr"`
+			Network    string   `json:"network"`
+			Version    string   `json:"version"`
+			Channels   string   `json:"channels"`
+			Moniker    string   `json:"moniker"`
+			Other      []string `json:"other"`
+		} `json:"node_info"`
+		SyncInfo struct {
+			LatestBlockHash   string    `json:"latest_block_hash"`
+			LatestAppHash     string    `json:"latest_app_hash"`
+			LatestBlockHeight string    `json:"latest_block_height"`
+			LatestBlockTime   time.Time `json:"latest_block_time"`
+			CatchingUp        bool      `json:"catching_up"`
+		} `json:"sync_info"`
+		ValidatorInfo struct {
+			Address string `json:"address"`
+			PubKey  struct {
+				Type  string `json:"type"`
+				Value string `json:"value"`
+			} `json:"pub_key"`
+			VotingPower string `json:"voting_power"`
+		} `json:"validator_info"`
 	} `json:"result"`
 }
 
@@ -196,6 +228,42 @@ func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
 	var body ResponseQuery
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body, nil
+}
+
+func getValidatorPubkey() string {
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
+	if err != nil {
+		panic("boom")
+	}
+	URL.Path += "/status"
+	parameters := url.Values{}
+	// parameters.Add("data", `"`+path+`"`)
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		fmt.Println(err.Error())
+		return ""
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	var body ResponseStatus
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body.Result.ValidatorInfo.PubKey.Value
 }
 
 var ndidPrivK = `-----BEGIN RSA PRIVATE KEY-----
@@ -2912,8 +2980,7 @@ func TestSetValidator(t *testing.T) {
 	ndidNodeID := "NDID"
 
 	var param did.SetValidatorParam
-	param.PublicKey = `qJ0HsJvzHz/CAEBMCpvqfIpMIktfOsN0kh5O3+d0bks=`
-	// param.PublicKey = `5/6rEo7aQYq31J32higcxi3i8xp9MG/r5Ho5NemwZ+g=`
+	param.PublicKey = getValidatorPubkey()
 	param.Power = 100
 
 	paramJSON, err := json.Marshal(param)
