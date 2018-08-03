@@ -141,7 +141,7 @@ type CreateIdpResponseParam struct {
 }
 
 type GetRequestParam struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"request_id"`
 }
 
 type GetRequestResult struct {
@@ -164,11 +164,6 @@ type GetRequestDetailResult struct {
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
 	Mode            int           `json:"mode"`
-}
-
-type Callback struct {
-	RequestID string `json:"requestId"`
-	Height    int64  `json:"height"`
 }
 
 type SignDataParam struct {
@@ -319,7 +314,7 @@ type GetUsedTokenReportParam struct {
 }
 
 type RequestIDParam struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"request_id"`
 }
 
 type Namespace struct {
@@ -391,7 +386,7 @@ type SetValidatorParam struct {
 }
 
 type SetDataReceivedParam struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"request_id"`
 	ServiceID string `json:"service_id"`
 	AsID      string `json:"as_id"`
 }
@@ -456,12 +451,12 @@ type UpdateIdentityParam struct {
 }
 
 type CloseRequestParam struct {
-	RequestID         string          `json:"requestId"`
+	RequestID         string          `json:"request_id"`
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
 type TimeOutRequestParam struct {
-	RequestID         string          `json:"requestId"`
+	RequestID         string          `json:"request_id"`
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
