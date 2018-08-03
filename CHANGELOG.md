@@ -5,6 +5,7 @@
 BREAKING CHANGES:
 
 - Change version of Tendermint to v0.22.8
+- Change JSON property name `requestId` to `request_id` in parameter of all methods
 
 IMPROVEMENTS:
 
