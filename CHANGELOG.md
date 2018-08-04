@@ -15,6 +15,8 @@ IMPROVEMENTS:
 - [Docker] Update Tendermint version to v0.22.8
 - [Docker] Change Tendermint config to not create empty block (`create_empty_blocks = false`)
 - [DeliverTx] Add valid_signature in response_valid_list to CloseRequest and TimeOutRequest parameter
+- [DeliverTx] Add time out block of first MsqDestination (RegisterMsqDestination)
+- [DeliverTx] Add function for set time out block (SetTimeOutBlockRegisterMsqDestination)
 
 ## 0.5.1 (July 22, 2018)
 
