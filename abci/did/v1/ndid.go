@@ -349,51 +349,54 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Update node name
-	if funcParam.NodeName != "" {
-		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	// Get node detail by NodeID
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 
-		if nodeDetailValue != nil {
-			var node NodeDetail
-			err = json.Unmarshal([]byte(nodeDetailValue), &node)
-			if err != nil {
-				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-			}
-			node.NodeName = funcParam.NodeName
-			nodeDetailJSON, err := json.Marshal(node)
-			if err != nil {
-				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-			}
-			app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailJSON))
-		} else {
-			return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-		}
+	// If node not found then return code.NodeIDNotFound
+	if nodeDetailValue == nil {
+		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var node NodeDetail
+	err = json.Unmarshal([]byte(nodeDetailValue), &node)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
-	if maxIalAalValue != nil {
-		var maxIalAal MaxIalAal
-		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		// Selective update
-		if funcParam.MaxIal > 0 {
-			maxIalAal.MaxIal = funcParam.MaxIal
-		}
-		if funcParam.MaxAal > 0 {
-			maxIalAal.MaxAal = funcParam.MaxAal
-		}
-		maxIalAalJSON, err := json.Marshal(maxIalAal)
+	// Selective update
+	if funcParam.NodeName != "" {
+		node.NodeName = funcParam.NodeName
+		nodeDetailJSON, err := json.Marshal(node)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalJSON))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailJSON))
 	}
-	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	// If node is IdP then update max_ial, max_aal
+	if node.Role == "IdP" {
+		maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
+		_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
+		if maxIalAalValue != nil {
+			var maxIalAal MaxIalAal
+			err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+			if err != nil {
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			// Selective update
+			if funcParam.MaxIal > 0 {
+				maxIalAal.MaxIal = funcParam.MaxIal
+			}
+			if funcParam.MaxAal > 0 {
+				maxIalAal.MaxAal = funcParam.MaxAal
+			}
+			maxIalAalJSON, err := json.Marshal(maxIalAal)
+			if err != nil {
+				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			}
+			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalJSON))
+		}
+	}
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func updateService(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
