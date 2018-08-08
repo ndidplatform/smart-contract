@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (August 8, 2018)
+
+BUG FIXES:
+
+- [Docker] Update path for download tendermint
+
 ## 0.6.0 (August 3, 2018)
 
 BREAKING CHANGES:
