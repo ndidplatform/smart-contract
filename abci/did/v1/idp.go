@@ -667,6 +667,16 @@ func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeI
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
+		// Check is not timeout
+		for index := range nodes {
+			if nodes[index].NodeID == nodeID {
+				if nodes[index].TimeoutBlock <= app.CurrentBlock {
+					return ReturnDeliverTxLog(code.MsqDestinationIsTimedOut, "Can not clear msq destination that is timed out", "")
+				}
+				break
+			}
+		}
+
 		for index := range nodes {
 			if nodes[index].NodeID == nodeID {
 				nodes[index].TimeoutBlock = 0

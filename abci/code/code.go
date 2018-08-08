@@ -89,6 +89,7 @@ const (
 	CannotGetMasterPublicKeyFromNodeID        uint32 = 62
 	CannotGetPublicKeyFromNodeID              uint32 = 63
 	TimeOutBlockIsMustGreaterThanZero         uint32 = 64
-	RSAKeyLengthTooShort											uint32 = 65
+	RSAKeyLengthTooShort                      uint32 = 65
+	MsqDestinationIsTimedOut                  uint32 = 66
 	UnknownError                              uint32 = 999
 )

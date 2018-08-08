@@ -9,6 +9,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 - [DeliverTx] Can not update RP and AS node (UpdateNodeByNDID)
+- [DeliverTx] Check msq desination is not timed out (ClearRegisterMsqDestinationTimeout)
 
 ## 0.6.1 (August 8, 2018)
 
