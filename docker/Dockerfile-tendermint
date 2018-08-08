@@ -1,7 +1,7 @@
 FROM alpine:3.7 as build
 
 # This is the release of tendermint to pull in.
-ENV TM_DOWNLOAD_PATH 0.22.8-autodraft
+ENV TM_DOWNLOAD_PATH 0.22.8
 ENV TM_VERSION 0.22.8
 ENV TM_SHA256SUM 31558b0dd7558d4660f09d90d3ef0739fc9d83fe2541e53b72ac3732599a8b49
 
