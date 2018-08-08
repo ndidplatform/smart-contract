@@ -72,7 +72,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.VersionedTree) *DIDAppli
 	return &DIDApplication{
 		state:   state,
 		logger:  logger,
-		Version: "0.6.1", // Hard code set version
+		Version: "0.6.2", // Hard code set version
 	}
 }
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.2 (August 8, 2018)
+
+IMPROVEMENTS:
+
+- [CircleCI] Update configuration for tendermint 0.22.8
+
+BUG FIXES:
+
+- [DeliverTx] Can not update RP and AS node (UpdateNodeByNDID)
+
 ## 0.6.1 (August 8, 2018)
 
 BUG FIXES:
