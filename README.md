@@ -22,11 +22,13 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 * Tendermint 0.22.8
 
     ```sh
+    go get -u github.com/golang/dep/cmd/dep
     mkdir -p $GOPATH/src/github.com/tendermint
     cd $GOPATH/src/github.com/tendermint
     git clone https://github.com/tendermint/tendermint.git
     cd tendermint
     git checkout v0.22.8
+    dep ensure
     make get_tools
     make get_vendor_deps
     make install
