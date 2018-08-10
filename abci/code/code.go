@@ -91,5 +91,6 @@ const (
 	TimeOutBlockIsMustGreaterThanZero         uint32 = 64
 	RSAKeyLengthTooShort                      uint32 = 65
 	MsqDestinationIsTimedOut                  uint32 = 66
+	AmountIsMustGreaterOrEqualZero            uint32 = 67
 	UnknownError                              uint32 = 999
 )

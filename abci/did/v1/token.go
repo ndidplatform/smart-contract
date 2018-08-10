@@ -110,6 +110,19 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 	return errors.New("token account not found")
 }
 
+func checkTokenAccount(nodeID string, app *DIDApplication) bool {
+	key := "Token" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	if value == nil {
+		return false
+	}
+	_, err := strconv.ParseFloat(string(value), 64)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
@@ -146,6 +159,14 @@ func setNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return ReturnDeliverTxLog(code.AmountIsMustGreaterOrEqualZero, "Amount is must greater or equal zero", "")
+	}
+	// Check token account
+	if !checkTokenAccount(funcParam.NodeID, app) {
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+	}
 	err = setToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
 		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
@@ -159,6 +180,14 @@ func addNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return ReturnDeliverTxLog(code.AmountIsMustGreaterOrEqualZero, "Amount is must greater or equal zero", "")
+	}
+	// Check token account
+	if !checkTokenAccount(funcParam.NodeID, app) {
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
 	err = addToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
@@ -174,9 +203,17 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return ReturnDeliverTxLog(code.AmountIsMustGreaterOrEqualZero, "Amount is must greater or equal zero", "")
+	}
+	// Check token account
+	if !checkTokenAccount(funcParam.NodeID, app) {
+		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+	}
 	err = reduceToken(funcParam.NodeID, funcParam.Amount, app)
 	if err != nil {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
+		return ReturnDeliverTxLog(code.TokenNotEnough, err.Error(), "")
 	}
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
