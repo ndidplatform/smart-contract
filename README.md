@@ -228,18 +228,6 @@ log: "success"
 log: "success"
 ```
 
-## DisableService
-### Parameter
-```sh
-{
-  "service_id": "statement"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
 ## RegisterServiceDestination
 ### Parameter
 ```sh
