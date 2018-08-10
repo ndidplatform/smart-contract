@@ -568,30 +568,6 @@ log: "success"
 log: "success"
 ```
 
-## DisableMsqDestination
-### Parameter
-```sh
-{
-  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
-## DisableAccessorMethod
-### Parameter
-```sh
-{
-  "accessor_id": "accessor_id"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
 ## RegisterServiceDestinationByNDID
 ### Parameter
 ```sh
@@ -623,30 +599,6 @@ log: "success"
 {
   "service_id": "BankStatement2",
   "node_id": "AS1"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
-## EnableMsqDestination
-### Parameter
-```sh
-{
-  "hash_id": "ece8921066562be07ba4ec44449646fc3b48d6b8a660a2e1e6a4bc7117edebba"
-}
-```
-### Expected Output
-```sh
-log: "success"
-```
-
-## EnableAccessorMethod
-### Parameter
-```sh
-{
-  "accessor_id": "accessor_id"
 }
 ```
 ### Expected Output

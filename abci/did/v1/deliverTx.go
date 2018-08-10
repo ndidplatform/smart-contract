@@ -136,10 +136,10 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return updateService(param, app, nodeID)
 	case "RegisterServiceDestinationByNDID":
 		return registerServiceDestinationByNDID(param, app, nodeID)
-	case "DisableMsqDestination":
-		return disableMsqDestination(param, app, nodeID)
-	case "DisableAccessorMethod":
-		return disableAccessorMethod(param, app, nodeID)
+	// case "DisableMsqDestination":
+	// 	return disableMsqDestination(param, app, nodeID)
+	// case "DisableAccessorMethod":
+	// 	return disableAccessorMethod(param, app, nodeID)
 	case "DisableNode":
 		return disableNode(param, app, nodeID)
 	case "DisableServiceDestinationByNDID":
@@ -148,10 +148,10 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return disableNamespace(param, app, nodeID)
 	case "DisableService":
 		return disableService(param, app, nodeID)
-	case "EnableMsqDestination":
-		return enableMsqDestination(param, app, nodeID)
-	case "EnableAccessorMethod":
-		return enableAccessorMethod(param, app, nodeID)
+	// case "EnableMsqDestination":
+	// 	return enableMsqDestination(param, app, nodeID)
+	// case "EnableAccessorMethod":
+	// 	return enableAccessorMethod(param, app, nodeID)
 	case "EnableNode":
 		return enableNode(param, app, nodeID)
 	case "EnableServiceDestinationByNDID":

@@ -3760,125 +3760,125 @@ func TestQueryGetIdpNodes3(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdP4DisableMsqDestination(t *testing.T) {
+// func TestIdP4DisableMsqDestination(t *testing.T) {
 
-	h := sha256.New()
-	h.Write([]byte(userNamespace + userID))
-	userHash := h.Sum(nil)
+// 	h := sha256.New()
+// 	h.Write([]byte(userNamespace + userID))
+// 	userHash := h.Sum(nil)
 
-	var param = did.DisableMsqDestinationParam{
-		hex.EncodeToString(userHash),
-	}
+// 	var param = did.DisableMsqDestinationParam{
+// 		hex.EncodeToString(userHash),
+// 	}
 
-	idpKey := getPrivateKeyFromString(idpPrivK5)
-	idpNodeID := []byte("IdP4")
+// 	idpKey := getPrivateKeyFromString(idpPrivK5)
+// 	idpNodeID := []byte("IdP4")
 
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
 
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
+// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+// 	PSSmessage := append(paramJSON, []byte(nonce)...)
+// 	newhash := crypto.SHA256
+// 	pssh := newhash.New()
+// 	pssh.Write(PSSmessage)
+// 	hashed := pssh.Sum(nil)
 
-	fnName := "DisableMsqDestination"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	fnName := "DisableMsqDestination"
+// 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+// 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+// 	resultObj, _ := result.(ResponseTx)
+// 	expected := "success"
+// 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+// 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
-func TestQueryGetIdpNodes4(t *testing.T) {
-	fnName := "GetIdpNodes"
-	h := sha256.New()
-	h.Write([]byte(userNamespace + userID))
-	userHash := h.Sum(nil)
-	var param = did.GetIdpNodesParam{
-		hex.EncodeToString(userHash),
-		1,
-		1,
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// func TestQueryGetIdpNodes4(t *testing.T) {
+// 	fnName := "GetIdpNodes"
+// 	h := sha256.New()
+// 	h.Write([]byte(userNamespace + userID))
+// 	userHash := h.Sum(nil)
+// 	var param = did.GetIdpNodesParam{
+// 		hex.EncodeToString(userHash),
+// 		1,
+// 		1,
+// 	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res did.GetIdpNodesResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = `{"node":[{"node_id":"IdP1","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4}]}`
-	if actual := string(resultString); actual != expected {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	var res did.GetIdpNodesResult
+// 	err = json.Unmarshal(resultString, &res)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+// 	var expected = `{"node":[{"node_id":"IdP1","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4}]}`
+// 	if actual := string(resultString); actual != expected {
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
-func TestIdPDisableAccessorMethod(t *testing.T) {
+// func TestIdPDisableAccessorMethod(t *testing.T) {
 
-	var param = did.DisableAccessorMethodParam{
-		"accessor_id",
-	}
+// 	var param = did.DisableAccessorMethodParam{
+// 		"accessor_id",
+// 	}
 
-	idpKey := getPrivateKeyFromString(idpPrivK2)
-	idpNodeID := []byte("IdP1")
+// 	idpKey := getPrivateKeyFromString(idpPrivK2)
+// 	idpNodeID := []byte("IdP1")
 
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
 
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
+// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+// 	PSSmessage := append(paramJSON, []byte(nonce)...)
+// 	newhash := crypto.SHA256
+// 	pssh := newhash.New()
+// 	pssh.Write(PSSmessage)
+// 	hashed := pssh.Sum(nil)
 
-	fnName := "DisableAccessorMethod"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	fnName := "DisableAccessorMethod"
+// 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+// 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+// 	resultObj, _ := result.(ResponseTx)
+// 	expected := "success"
+// 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+// 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
-func TestQueryGetAccessorKey2(t *testing.T) {
-	fnName := "GetAccessorKey"
-	var param = did.GetAccessorGroupIDParam{
-		"accessor_id",
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// func TestQueryGetAccessorKey2(t *testing.T) {
+// 	fnName := "GetAccessorKey"
+// 	var param = did.GetAccessorGroupIDParam{
+// 		"accessor_id",
+// 	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":false}`
-	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":false}`
+// 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func TestRegisterNodeAS2(t *testing.T) {
 	asKey := getPrivateKeyFromString(asPrivK2)
@@ -4082,35 +4082,35 @@ func TestDisableNode(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestQueryGetIdpNodes5(t *testing.T) {
-	fnName := "GetIdpNodes"
-	h := sha256.New()
-	h.Write([]byte(userNamespace + userID))
-	userHash := h.Sum(nil)
-	var param = did.GetIdpNodesParam{
-		hex.EncodeToString(userHash),
-		1,
-		1,
-	}
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// func TestQueryGetIdpNodes5(t *testing.T) {
+// 	fnName := "GetIdpNodes"
+// 	h := sha256.New()
+// 	h.Write([]byte(userNamespace + userID))
+// 	userHash := h.Sum(nil)
+// 	var param = did.GetIdpNodesParam{
+// 		hex.EncodeToString(userHash),
+// 		1,
+// 		1,
+// 	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 
-	var res did.GetIdpNodesResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected = `{"node":[]}`
-	if actual := string(resultString); actual != expected {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	var res did.GetIdpNodesResult
+// 	err = json.Unmarshal(resultString, &res)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+// 	var expected = `{"node":[]}`
+// 	if actual := string(resultString); actual != expected {
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func TestDisableNode2(t *testing.T) {
 	var param did.DisableNodeParam
@@ -4678,42 +4678,42 @@ func TestQueryGetServicesByAsID2(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdPEnableMsqDestination(t *testing.T) {
+// func TestIdPEnableMsqDestination(t *testing.T) {
 
-	h := sha256.New()
-	h.Write([]byte(userNamespace + userID))
-	userHash := h.Sum(nil)
+// 	h := sha256.New()
+// 	h.Write([]byte(userNamespace + userID))
+// 	userHash := h.Sum(nil)
 
-	var param = did.DisableMsqDestinationParam{
-		hex.EncodeToString(userHash),
-	}
+// 	var param = did.DisableMsqDestinationParam{
+// 		hex.EncodeToString(userHash),
+// 	}
 
-	idpKey := getPrivateKeyFromString(idpPrivK5)
-	idpNodeID := []byte("IdP4")
+// 	idpKey := getPrivateKeyFromString(idpPrivK5)
+// 	idpNodeID := []byte("IdP4")
 
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
 
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
+// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+// 	PSSmessage := append(paramJSON, []byte(nonce)...)
+// 	newhash := crypto.SHA256
+// 	pssh := newhash.New()
+// 	pssh.Write(PSSmessage)
+// 	hashed := pssh.Sum(nil)
 
-	fnName := "EnableMsqDestination"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	fnName := "EnableMsqDestination"
+// 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+// 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+// 	resultObj, _ := result.(ResponseTx)
+// 	expected := "success"
+// 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+// 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func TestQueryGetIdpNodes6(t *testing.T) {
 	fnName := "GetIdpNodes"
@@ -4745,38 +4745,38 @@ func TestQueryGetIdpNodes6(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestIdPEnableAccessorMethod(t *testing.T) {
+// func TestIdPEnableAccessorMethod(t *testing.T) {
 
-	var param = did.DisableAccessorMethodParam{
-		"accessor_id",
-	}
+// 	var param = did.DisableAccessorMethodParam{
+// 		"accessor_id",
+// 	}
 
-	idpKey := getPrivateKeyFromString(idpPrivK2)
-	idpNodeID := []byte("IdP1")
+// 	idpKey := getPrivateKeyFromString(idpPrivK2)
+// 	idpNodeID := []byte("IdP1")
 
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
 
-	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
+// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+// 	PSSmessage := append(paramJSON, []byte(nonce)...)
+// 	newhash := crypto.SHA256
+// 	pssh := newhash.New()
+// 	pssh.Write(PSSmessage)
+// 	hashed := pssh.Sum(nil)
 
-	fnName := "EnableAccessorMethod"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
-	resultObj, _ := result.(ResponseTx)
-	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// 	fnName := "EnableAccessorMethod"
+// 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+// 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+// 	resultObj, _ := result.(ResponseTx)
+// 	expected := "success"
+// 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+// 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func TestQueryGetAccessorKey3(t *testing.T) {
 	fnName := "GetAccessorKey"
