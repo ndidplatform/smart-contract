@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- [DeliverTx] Delete DisableMsqDestination, DisableAccessorMethod, EnableMsqDestination and EnableAccessorMethod function
+
 ## 0.6.2 (August 8, 2018)
 
 IMPROVEMENTS:
