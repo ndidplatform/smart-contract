@@ -93,5 +93,7 @@ const (
 	MsqDestinationIsTimedOut                  uint32 = 66
 	AmountIsMustGreaterOrEqualZero            uint32 = 67
 	NodeIsNotActive                           uint32 = 68
+	ServiceIsNotActive                        uint32 = 69
+	ServiceDestinationIsNotActive             uint32 = 70
 	UnknownError                              uint32 = 999
 )

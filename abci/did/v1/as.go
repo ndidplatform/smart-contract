@@ -58,6 +58,46 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
+	// Check Service ID
+	serviceKey := "Service" + "|" + signData.ServiceID
+	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var service ServiceDetail
+	err = json.Unmarshal([]byte(serviceJSON), &service)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// Check service is active
+	if !service.Active {
+		return ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
+	}
+
+	// Check service destination is active
+	serviceDestinationKey := "ServiceDestination" + "|" + signData.ServiceID
+	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
+
+	if serviceDestinationValue == nil {
+		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+	}
+
+	var nodes GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	for index := range nodes.Node {
+		if nodes.Node[index].ID == nodeID {
+			if !nodes.Node[index].Active {
+				return ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not active", "")
+			}
+			break
+		}
+	}
+
 	// if AS != [], Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
@@ -367,7 +407,7 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 		}
 	}
 
-	// Update PrivideService
+	// Update ProvideService
 	provideServiceKey := "ProvideService" + "|" + nodeID
 	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
 	var services []Service
@@ -438,7 +478,7 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 		}
 	}
 
-	// Update PrivideService
+	// Update ProvideService
 	provideServiceKey := "ProvideService" + "|" + nodeID
 	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
 	var services []Service
