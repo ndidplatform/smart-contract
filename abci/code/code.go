@@ -92,5 +92,6 @@ const (
 	RSAKeyLengthTooShort                      uint32 = 65
 	MsqDestinationIsTimedOut                  uint32 = 66
 	AmountIsMustGreaterOrEqualZero            uint32 = 67
+	NodeIsNotActive                           uint32 = 68
 	UnknownError                              uint32 = 999
 )

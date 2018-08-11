@@ -426,6 +426,13 @@ func CheckTxRouter(method string, param string, nonce string, signature string, 
 		}
 	}
 
+	// If method is not 'InitNDID' then check node is active
+	if method != "InitNDID" {
+		if !getActiveStatusByNodeID(nodeID, app) {
+			return ReturnCheckTx(code.NodeIsNotActive, "Node is not active")
+		}
+	}
+
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey)
 	if err != nil || verifyResult == false {
 		return ReturnCheckTx(code.VerifySignatureError, err.Error())
@@ -510,4 +517,18 @@ func callCheckTx(name string, param string, nodeID string, app *DIDApplication) 
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
+}
+
+func getActiveStatusByNodeID(nodeID string, app *DIDApplication) bool {
+	key := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	if value != nil {
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(value), &nodeDetail)
+		if err != nil {
+			return false
+		}
+		return nodeDetail.Active
+	}
+	return false
 }
