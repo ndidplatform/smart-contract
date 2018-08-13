@@ -161,7 +161,7 @@ func setNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal zero", "")
+		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
 	if !checkTokenAccount(funcParam.NodeID, app) {
@@ -183,7 +183,7 @@ func addNodeToken(param string, app *DIDApplication, nodeID string) types.Respon
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal zero", "")
+		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
 	if !checkTokenAccount(funcParam.NodeID, app) {
@@ -205,7 +205,7 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal zero", "")
+		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
 	if !checkTokenAccount(funcParam.NodeID, app) {
