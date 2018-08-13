@@ -91,7 +91,7 @@ const (
 	TimeOutBlockIsMustGreaterThanZero         uint32 = 64
 	RSAKeyLengthTooShort                      uint32 = 65
 	MsqDestinationIsTimedOut                  uint32 = 66
-	AmountIsMustGreaterOrEqualZero            uint32 = 67
+	AmountMustBeGreaterOrEqualZero            uint32 = 67
 	NodeIsNotActive                           uint32 = 68
 	ServiceIsNotActive                        uint32 = 69
 	ServiceDestinationIsNotActive             uint32 = 70
