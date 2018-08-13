@@ -75,6 +75,21 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
 	}
 
+	// Check service destination is approved by NDID
+	approveServiceKey := "ApproveKey" + "|" + signData.ServiceID + "|" + nodeID
+	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
+	if approveServiceJSON == nil {
+		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	var approveService ApproveService
+	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if !approveService.Active {
+		return ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not approved by NDID", "")
+	}
+
 	// Check service destination is active
 	serviceDestinationKey := "ServiceDestination" + "|" + signData.ServiceID
 	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))

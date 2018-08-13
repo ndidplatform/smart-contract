@@ -5402,17 +5402,18 @@ func TestIdPCreateIdpResponseNewRequest(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestASDisableServiceDestination2(t *testing.T) {
-	var param = did.DisableServiceDestinationParam{
-		"statement",
-	}
+func TestNDIDDisableServiceDestinationByNDIDForTest(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
 
-	asKey := getPrivateKeyFromString(asPrivK)
-	asNodeID := []byte("AS1")
+	var param = did.DisableServiceDestinationByNDIDParam{
+		"statement",
+		"AS1",
+	}
 
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Println("error:", err)
 	}
 
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
@@ -5422,9 +5423,9 @@ func TestASDisableServiceDestination2(t *testing.T) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	fnName := "DisableServiceDestination"
-	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
-	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	fnName := "DisableServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
@@ -5460,7 +5461,7 @@ func TestASSignDataForNewRequest(t *testing.T) {
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
-	expected := "Service destination is not active"
+	expected := "Service destination is not approved by NDID"
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -5468,6 +5469,104 @@ func TestASSignDataForNewRequest(t *testing.T) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func TestNDIDEnableServiceDestinationByNDIDForTest(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidNodeID := "NDID"
+
+	var param = did.DisableServiceDestinationByNDIDParam{
+		"statement",
+		"AS1",
+	}
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "EnableServiceDestinationByNDID"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASDisableServiceDestination2(t *testing.T) {
+	var param = did.DisableServiceDestinationParam{
+		"statement",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "DisableServiceDestination"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "success"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestASSignDataForNewRequest1(t *testing.T) {
+	var param = did.SignDataParam{
+		"statement",
+		"ABCf4c9c-818b-42b8-8904-3d97c4c520f6",
+		"sign(data,asKey)",
+	}
+
+	asKey := getPrivateKeyFromString(asPrivK)
+	asNodeID := []byte("AS1")
+
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	PSSmessage := append(paramJSON, []byte(nonce)...)
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	fnName := "SignData"
+	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
+	resultObj, _ := result.(ResponseTx)
+	expected := "Service destination is not active"
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
 func TestNDIDDisableServiceForTest(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := "NDID"

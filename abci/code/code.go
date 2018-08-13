@@ -95,5 +95,6 @@ const (
 	NodeIsNotActive                           uint32 = 68
 	ServiceIsNotActive                        uint32 = 69
 	ServiceDestinationIsNotActive             uint32 = 70
+	ServiceDestinationIsNotApprovedByNDID     uint32 = 71
 	UnknownError                              uint32 = 999
 )

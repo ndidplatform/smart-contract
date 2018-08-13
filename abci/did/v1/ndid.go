@@ -542,7 +542,7 @@ func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID s
 	}
 
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
-	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -612,7 +612,7 @@ func enableServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 	}
 
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
-	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
