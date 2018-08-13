@@ -12,6 +12,7 @@ IMPROVEMENTS:
 - [CheckTx] Check node is active when creating a transaction
 - [DeliverTx] Check service is active (SignData)
 - [DeliverTx] Check service destination is active (SignData)
+- [DeliverTx] Check service destination is approved by NDID (SignData)
 
 ## 0.6.2 (August 8, 2018)
 
