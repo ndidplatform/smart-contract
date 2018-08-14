@@ -4,11 +4,11 @@
 
 BREAKING CHANGES:
 
-- [DeliverTx] Delete DisableMsqDestination, DisableAccessorMethod, EnableMsqDestination and EnableAccessorMethod function
+- [DeliverTx] Remove DisableMsqDestination, DisableAccessorMethod, EnableMsqDestination and EnableAccessorMethod functions
 
 IMPROVEMENTS:
 
-- [CheckTx] Check amount value is greater or equal zero (token function)
+- [CheckTx] Check amount value to be greater than or equal to zero (token function)
 - [CheckTx] Check node is active when creating a transaction
 - [DeliverTx] Check service is active (SignData)
 - [DeliverTx] Check service destination is active (SignData)
