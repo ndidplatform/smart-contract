@@ -66,13 +66,14 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.VersionedTree) *DIDAppli
 			panic(r)
 		}
 	}()
-	logger.Infoln("NewDIDApplication")
 	var state State
 	state.db = tree
+	ABCIversion := "0.6.2" // Hard code set version
+	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
 		state:   state,
 		logger:  logger,
-		Version: "0.6.2", // Hard code set version
+		Version: ABCIversion,
 	}
 }
 
