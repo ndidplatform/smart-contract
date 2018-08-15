@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 0.7.0 (August 15, 2018)
 
 BREAKING CHANGES:
 
