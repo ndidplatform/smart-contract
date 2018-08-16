@@ -223,11 +223,11 @@ func getNodeToken(param string, app *DIDApplication, height int64) types.Respons
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version64(), app)
 	}
 	tokenAmount, err := getToken(funcParam.NodeID, app)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,

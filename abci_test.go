@@ -5632,3 +5632,430 @@ func TestASSignDataForNewRequest2(t *testing.T) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+// Test invalid value
+func TestQueryGetNodePublicKeyInvalid(t *testing.T) {
+	fnName := "GetNodePublicKey"
+	var param = did.GetNodePublicKeyParam{
+		"RP10000",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetNodePublicKeyResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeMasterPublicKeyInvalid(t *testing.T) {
+	fnName := "GetNodeMasterPublicKey"
+	var param = did.GetNodePublicKeyParam{
+		"RP10000",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetNodePublicKeyResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetIdpNodesInvalid(t *testing.T) {
+	fnName := "GetIdpNodes"
+	h := sha256.New()
+	h.Write([]byte(userNamespace + "invalid user"))
+	userHash := h.Sum(nil)
+	var param = did.GetIdpNodesParam{
+		hex.EncodeToString(userHash),
+		3,
+		3,
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetIdpNodesResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetRequestInvalid(t *testing.T) {
+	fnName := "GetRequest"
+	var param = did.GetRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c-invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetRequestResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetRequestDetailInvalid(t *testing.T) {
+	fnName := "GetRequestDetail"
+	var param = did.GetRequestParam{
+		"ef6f4c9c-818b-42b8-8904-3d97c-invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetRequestDetailResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAsNodesByServiceIdInvalid(t *testing.T) {
+	fnName := "GetAsNodesByServiceId"
+	var param = did.GetAsNodesByServiceIdParam{
+		"statement-invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAsNodesByServiceIdResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetMsqAddressInvalid(t *testing.T) {
+	fnName := "GetMsqAddress"
+	var param = did.GetMsqAddressParam{
+		"IdP1-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.MsqAddress
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeTokenInvalid(t *testing.T) {
+	fnName := "GetNodeToken"
+	var param = did.GetNodeTokenParam{
+		"RP1-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetNodeTokenResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestReportGetUsedTokenInvalid(t *testing.T) {
+	fnName := "GetUsedTokenReport"
+	var param = GetUsedTokenReportParam{
+		"RP1-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res []Report
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetServiceDetailInvalid(t *testing.T) {
+	fnName := "GetServiceDetail"
+	var param = did.GetServiceDetailParam{
+		"statement-invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.ServiceDetail
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAccessorGroupIDInvalid(t *testing.T) {
+	fnName := "GetAccessorGroupID"
+	var param = did.GetAccessorGroupIDParam{
+		"accessor_id_2-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAccessorGroupIDResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetAccessorKeyInvalid(t *testing.T) {
+	fnName := "GetAccessorKey"
+	var param = did.GetAccessorGroupIDParam{
+		"accessor_id-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAccessorKeyResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetNodeInfoInvalid(t *testing.T) {
+	fnName := "GetNodeInfo"
+	var param did.GetNodeInfoParam
+	param.NodeID = "IdP1-Invalid"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetNodeInfoResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetIdentityInfoInvalid(t *testing.T) {
+	fnName := "GetIdentityInfo"
+	var param did.GetIdentityInfoParam
+	h := sha256.New()
+	h.Write([]byte(userNamespace + "Invalid user"))
+	userHash := h.Sum(nil)
+	param.NodeID = "IdP1"
+	param.HashID = hex.EncodeToString(userHash)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetIdentityInfoResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetDataSignatureInvalid(t *testing.T) {
+	fnName := "GetDataSignature"
+	var param did.GetDataSignatureParam
+	param.NodeID = "AS1-Invalid"
+	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.ServiceID = "statement"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetDataSignatureResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetIdentityProofInvaid(t *testing.T) {
+	fnName := "GetIdentityProof"
+	var param = did.GetIdentityProofParam{
+		"IdP1-Invalid",
+		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+
+	var res did.GetIdentityProofResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestQueryGetServicesByAsIDInvalid(t *testing.T) {
+	fnName := "GetServicesByAsID"
+	var param = did.GetServicesByAsIDParam{
+		"AS1-Invalid",
+	}
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetServicesByAsIDResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	expected := "not found"
+	if actual := resultObj.Result.Response.Log; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

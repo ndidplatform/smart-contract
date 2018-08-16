@@ -70,7 +70,7 @@ func getUsedTokenReport(param string, app *DIDApplication, height int64) types.R
 	key := "SpendGas" + "|" + funcParam.NodeID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
-		value = []byte("")
+		value = []byte("[]")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 	return ReturnQuery(value, "success", app.state.db.Version64(), app)

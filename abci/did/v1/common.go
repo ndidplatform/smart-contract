@@ -71,11 +71,14 @@ func getNodeMasterPublicKey(param string, app *DIDApplication, height int64) typ
 		res.MasterPublicKey = nodeDetail.MasterPublicKey
 	}
 
-	value, err = json.Marshal(res)
+	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	if value == nil {
+		return ReturnQuery(valueJSON, "not found", app.state.db.Version64(), app)
+	}
+	return ReturnQuery(valueJSON, "success", app.state.db.Version64(), app)
 }
 
 func getNodePublicKey(param string, app *DIDApplication, height int64) types.ResponseQuery {
@@ -100,11 +103,14 @@ func getNodePublicKey(param string, app *DIDApplication, height int64) types.Res
 		res.PublicKey = nodeDetail.PublicKey
 	}
 
-	value, err = json.Marshal(res)
+	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	if value == nil {
+		return ReturnQuery(valueJSON, "not found", app.state.db.Version64(), app)
+	}
+	return ReturnQuery(valueJSON, "success", app.state.db.Version64(), app)
 }
 
 func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
@@ -354,7 +360,7 @@ func getMsqAddress(param string, app *DIDApplication, height int64) types.Respon
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
-		value = []byte("")
+		value = []byte("{}")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 	return ReturnQuery(value, "success", app.state.db.Version64(), app)
@@ -387,8 +393,8 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
-		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+		valueJSON := []byte("{}")
+		return ReturnQuery(valueJSON, "not found", app.state.db.Version64(), app)
 	}
 	var request Request
 	err = json.Unmarshal([]byte(value), &request)
@@ -402,12 +408,11 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 	res.MessageHash = request.MessageHash
 	res.Mode = request.Mode
 
-	value, err = json.Marshal(res)
+	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	return ReturnQuery(valueJSON, "success", app.state.db.Version64(), app)
 }
 
 func getRequestDetail(param string, app *DIDApplication, height int64) types.ResponseQuery {
@@ -422,8 +427,8 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
-		value = []byte("")
-		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+		valueJSON := []byte("{}")
+		return ReturnQuery(valueJSON, "not found", app.state.db.Version64(), app)
 	}
 
 	var result GetRequestDetailResult
@@ -444,13 +449,11 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 	if string(ownerRole) == "IdP" {
 		result.Special = true
 	}
-
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
 		return ReturnQuery(value, err.Error(), app.state.db.Version64(), app)
 	}
-
 	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }
 
@@ -493,7 +496,7 @@ func getServiceDetail(param string, app *DIDApplication, height int64) types.Res
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value == nil {
-		value = []byte("")
+		value = []byte("{}")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 	return ReturnQuery(value, "success", app.state.db.Version64(), app)
@@ -603,7 +606,7 @@ func getAccessorGroupID(param string, app *DIDApplication, height int64) types.R
 
 	// If value == nil set log = "not found"
 	if value == nil {
-		return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
+		return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 	}
 
 	if err != nil {
@@ -639,7 +642,7 @@ func getAccessorKey(param string, app *DIDApplication, height int64) types.Respo
 
 	// If value == nil set log = "not found"
 	if value == nil {
-		return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
+		return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 	}
 
 	if err != nil {
@@ -814,7 +817,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	}
 
 	if nodeDetailValue == nil {
-		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+		return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 	}
 
 	return ReturnQuery(value, "success", app.state.db.Version64(), app)
@@ -856,7 +859,7 @@ func getIdentityInfo(param string, app *DIDApplication, height int64) types.Resp
 	if result.Ial > 0.0 {
 		return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
+	return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 }
 
 func getDataSignature(param string, app *DIDApplication, height int64) types.ResponseQuery {
@@ -880,7 +883,7 @@ func getDataSignature(param string, app *DIDApplication, height int64) types.Res
 	if signDataValue != nil {
 		return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
+	return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 }
 
 func getIdentityProof(param string, app *DIDApplication, height int64) types.ResponseQuery {
@@ -900,7 +903,7 @@ func getIdentityProof(param string, app *DIDApplication, height int64) types.Res
 	if identityProofValue != nil {
 		return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(returnValue, "not found", app.state.db.Version64(), app)
+	return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
 }
 
 func getServicesByAsID(param string, app *DIDApplication, height int64) types.ResponseQuery {
