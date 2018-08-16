@@ -203,6 +203,11 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	// Check service is active
+	if !service.Active {
+		return ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
+	}
+
 	provideServiceKey := "ProvideService" + "|" + nodeID
 	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
 	var services []Service

@@ -5,6 +5,7 @@
 IMPROVEMENTS:
 
 - [Query] Return log "not found" and value in JSON format when query not found
+- [DeliverTx] Check service is active (RegisterServiceDestination)
 
 ## 0.7.0 (August 15, 2018)
 
