@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 (August 16, 2018)
+
+IMPROVEMENTS:
+- [Docker] Set umask to 027 and use user nobody to run service
+- [Docker] Add security_opt: no-new-priviledges in docker-compose file
+
 ## 0.7.0 (August 15, 2018)
 
 BREAKING CHANGES:
