@@ -372,7 +372,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "response_valid_list": [
     {
       "idp_id": "IdP1",
@@ -392,7 +392,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c11111",
   "response_valid_list": [
     {
       "idp_id": "IdP1",
@@ -490,7 +490,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
   "service_id": "statement",
   "as_id": "AS1"
 }
@@ -814,7 +814,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
 ### Expected Output
@@ -831,7 +831,7 @@ log: "success"
 ### Parameter
 ```sh
 {
-  "requestId": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+  "request_id": "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
 }
 ```
 ### Expected Output
