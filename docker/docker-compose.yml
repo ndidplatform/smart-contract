@@ -11,6 +11,8 @@ services:
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
       - --proxy_app=tcp://abci-ndid:${ABCI_PORT:-46000}
+    security_opt:
+      - no-new-privileges
     ports:
       - 45000:${TM_RPC_PORT:-45000}
       - 47000:${TM_P2P_PORT:-47000}
@@ -30,6 +32,8 @@ services:
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
       - --proxy_app=tcp://abci-idp:${ABCI_PORT:-46000}
+    security_opt:
+      - no-new-privileges
     ports:
       - 45001:${TM_RPC_PORT:-45000}
       - 47001:${TM_P2P_PORT:-47000}
@@ -48,6 +52,8 @@ services:
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
       - --proxy_app=tcp://abci-rp:${ABCI_PORT:-46000}
+    security_opt:
+      - no-new-privileges
     ports:
       - 45002:${TM_RPC_PORT:-45000}
       - 47002:${TM_P2P_PORT:-47000}
@@ -66,6 +72,8 @@ services:
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
       - --proxy_app=tcp://abci-as:${ABCI_PORT:-46000}
+    security_opt:
+      - no-new-privileges
     ports:
       - 45003:${TM_RPC_PORT:-45000}
       - 47003:${TM_P2P_PORT:-47000}
@@ -79,21 +87,29 @@ services:
   abci-ndid:
     image: ndidplatform/abci:latest
     command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
+    security_opt:
+      - no-new-privileges
     networks:
       - ndidplatform  
   abci-idp:
     image: ndidplatform/abci:latest
     command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
+    security_opt:
+      - no-new-privileges
     networks:
       - ndidplatform
   abci-rp:
     image: ndidplatform/abci:latest
     command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
+    security_opt:
+      - no-new-privileges
     networks:
       - ndidplatform
   abci-as:
     image: ndidplatform/abci:latest
     command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
+    security_opt:
+      - no-new-privileges
     networks:
       - ndidplatform
 

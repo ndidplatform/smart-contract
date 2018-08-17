@@ -1,9 +1,12 @@
 FROM golang:1.10 as builder
-LABEL maintainer="Narate Ketram <rate@dome.cloud>"
+
+# This is the release of tendermint to pull in.
+ENV DEP_VERSION v0.4.1
+ENV DEP_SHA256SUM 31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
 
 ENV CGO_ENABLED=0
-RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64 && \
-    echo "31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315 /usr/local/bin/dep" | sha256sum -c && \
+RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64 && \
+    echo "${DEP_SHA256SUM} /usr/local/bin/dep" | sha256sum -c && \
     chmod +x /usr/local/bin/dep
 
 COPY abci/Gopkg.toml abci/Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/abci/
@@ -15,7 +18,19 @@ RUN go install
 
 
 FROM alpine:3.7
-
+LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
+ENV DB_NAME=/DID
+
+# Set umask to 027
+RUN umask 027 && echo "umask 0027" >> /etc/profile
+
 COPY --from=builder /go/bin/abci /usr/bin/abci-server
+RUN mkdir -p ${DB_NAME}
+
+# Change owner to nobodoy:nogroup and permission to 640
+RUN chown -R nobody:nogroup /usr/bin/abci-server ${DB_NAME}
+RUN chmod -R 740 /usr/bin/abci-server ${DB_NAME}
+
+USER nobody
 ENTRYPOINT [ "abci-server" ]
