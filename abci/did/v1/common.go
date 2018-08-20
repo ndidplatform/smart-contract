@@ -462,7 +462,7 @@ func getNamespaceList(param string, app *DIDApplication, height int64) types.Res
 	key := "AllNamespace"
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
-		value = []byte("")
+		value = []byte("[]")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
