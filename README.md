@@ -9,6 +9,8 @@ tendermint ABCI app
 Test this app with command below
 
 ```sh
+cd test
+dep ensure
 TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 ```
 
