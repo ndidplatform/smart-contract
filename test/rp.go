@@ -35,13 +35,13 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
-func SetDataReceived(t *testing.T, param did.SetDataReceivedParam, expected string) {
+func SetDataReceived(t *testing.T, param did.SetDataReceivedParam, expected string, nodeID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	rpKey := getPrivateKeyFromString(rpPrivK)
-	rpNodeID := []byte("RP1")
+	rpNodeID := []byte(nodeID)
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	PSSmessage := append(paramJSON, []byte(nonce)...)
 	newhash := crypto.SHA256
@@ -59,13 +59,13 @@ func SetDataReceived(t *testing.T, param did.SetDataReceivedParam, expected stri
 	t.Logf("PASS: %s", fnName)
 }
 
-func CloseRequest(t *testing.T, param did.CloseRequestParam) {
+func CloseRequest(t *testing.T, param did.CloseRequestParam, nodeID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	rpKey := getPrivateKeyFromString(rpPrivK)
-	rpNodeID := []byte("RP1")
+	rpNodeID := []byte(nodeID)
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	PSSmessage := append(paramJSON, []byte(nonce)...)
 	newhash := crypto.SHA256
@@ -84,13 +84,13 @@ func CloseRequest(t *testing.T, param did.CloseRequestParam) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func TimeOutRequest(t *testing.T, param did.TimeOutRequestParam) {
+func TimeOutRequest(t *testing.T, param did.TimeOutRequestParam, nodeID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	rpKey := getPrivateKeyFromString(rpPrivK)
-	rpNodeID := []byte("RP1")
+	rpNodeID := []byte(nodeID)
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	PSSmessage := append(paramJSON, []byte(nonce)...)
 	newhash := crypto.SHA256

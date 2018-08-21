@@ -109,9 +109,9 @@ func CreateIdpResponse(t *testing.T, param did.CreateIdpResponseParam, privKeyFi
 	t.Logf("PASS: %s", fnName)
 }
 
-func CreateIdentity(t *testing.T, param did.CreateIdentityParam) {
+func CreateIdentity(t *testing.T, param did.CreateIdentityParam, nodeID string) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
-	idpNodeID := []byte("IdP1")
+	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -134,9 +134,9 @@ func CreateIdentity(t *testing.T, param did.CreateIdentityParam) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddAccessorMethod(t *testing.T, param did.AccessorMethod) {
+func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
-	idpNodeID := []byte("IdP1")
+	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -184,9 +184,9 @@ func ClearRegisterMsqDestinationTimeout(t *testing.T, param did.ClearRegisterMsq
 	t.Logf("PASS: %s", fnName)
 }
 
-func UpdateIdentity(t *testing.T, param did.UpdateIdentityParam) {
+func UpdateIdentity(t *testing.T, param did.UpdateIdentityParam, nodeID string) {
 	idpKey := getPrivateKeyFromString(idpPrivK2)
-	idpNodeID := []byte("IdP1")
+	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)

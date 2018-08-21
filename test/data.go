@@ -23,8 +23,6 @@
 package test
 
 var userNamespace = "cid"
-var userID = "1234567890123"
-var userID2 = "1234567890124"
 
 var ndidPrivK = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zx

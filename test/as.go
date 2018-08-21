@@ -60,9 +60,9 @@ func RegisterServiceDestination(t *testing.T, param did.RegisterServiceDestinati
 	t.Logf("PASS: %s", fnName)
 }
 
-func UpdateServiceDestination(t *testing.T, param did.UpdateServiceDestinationParam) {
+func UpdateServiceDestination(t *testing.T, param did.UpdateServiceDestinationParam, nodeID string) {
 	asKey := getPrivateKeyFromString(asPrivK)
-	asNodeID := []byte("AS1")
+	asNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -85,9 +85,9 @@ func UpdateServiceDestination(t *testing.T, param did.UpdateServiceDestinationPa
 	t.Logf("PASS: %s", fnName)
 }
 
-func SignData(t *testing.T, param did.SignDataParam, expected string) {
+func SignData(t *testing.T, param did.SignDataParam, expected string, nodeID string) {
 	asKey := getPrivateKeyFromString(asPrivK)
-	asNodeID := []byte("AS1")
+	asNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -109,9 +109,9 @@ func SignData(t *testing.T, param did.SignDataParam, expected string) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func DisableServiceDestination(t *testing.T, param did.DisableServiceDestinationParam) {
+func DisableServiceDestination(t *testing.T, param did.DisableServiceDestinationParam, nodeID string) {
 	asKey := getPrivateKeyFromString(asPrivK)
-	asNodeID := []byte("AS1")
+	asNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -134,9 +134,9 @@ func DisableServiceDestination(t *testing.T, param did.DisableServiceDestination
 	t.Logf("PASS: %s", fnName)
 }
 
-func EnableServiceDestination(t *testing.T, param did.DisableServiceDestinationParam) {
+func EnableServiceDestination(t *testing.T, param did.DisableServiceDestinationParam, nodeID string) {
 	asKey := getPrivateKeyFromString(asPrivK)
-	asNodeID := []byte("AS1")
+	asNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		log.Fatal(err.Error())

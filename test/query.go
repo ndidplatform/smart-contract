@@ -145,6 +145,23 @@ func GetIdpNodes(t *testing.T, param did.GetIdpNodesParam, expected []did.MsqDes
 	t.Logf("PASS: %s", fnName)
 }
 
+func GetIdpNodesForDisable(t *testing.T, param did.GetIdpNodesParam) (expected []did.MsqDestinationNode) {
+	fnName := "GetIdpNodes"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetIdpNodesResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return res.Node
+}
+
 func GetIdpNodesExpectString(t *testing.T, param did.GetIdpNodesParam, expected string) {
 	fnName := "GetIdpNodes"
 	paramJSON, err := json.Marshal(param)
@@ -447,6 +464,20 @@ func GetNamespaceList(t *testing.T, expected []did.Namespace) {
 	t.Logf("PASS: %s", fnName)
 }
 
+func GetNamespaceListForDisable(t *testing.T) (expected []did.Namespace) {
+	fnName := "GetNamespaceList"
+	paramJSON := []byte("")
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res []did.Namespace
+	err := json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return res
+}
+
 func GetNamespaceListExpectString(t *testing.T, expected string) {
 	fnName := "GetNamespaceList"
 	paramJSON := []byte("")
@@ -527,6 +558,20 @@ func GetServiceList(t *testing.T, expected []did.ServiceDetail) {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
+}
+
+func GetServiceListForDisable(t *testing.T) (expected []did.ServiceDetail) {
+	fnName := "GetServiceList"
+	paramJSON := []byte("")
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res []did.ServiceDetail
+	err := json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return res
 }
 
 func GetNodeInfo(t *testing.T, param did.GetNodeInfoParam, expected string) {

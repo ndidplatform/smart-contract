@@ -29,10 +29,12 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
@@ -190,4 +192,15 @@ func getValidatorPubkey() string {
 	var body ResponseStatus
 	json.NewDecoder(resp.Body).Decode(&body)
 	return body.Result.ValidatorInfo.PubKey.Value
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func RandStringRunes(n int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }

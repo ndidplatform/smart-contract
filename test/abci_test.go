@@ -29,11 +29,47 @@ import (
 	"strings"
 	"testing"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/ndidplatform/smart-contract/abci/did/v1"
 )
 
+var RP1 = RandStringRunes(20)
+var IdP1 = RandStringRunes(20)
+var IdP2 = RandStringRunes(20)
+var IdP4 = RandStringRunes(20)
+var IdP5 = RandStringRunes(20)
+var AS1 = RandStringRunes(20)
+var AS2 = RandStringRunes(20)
+var serviceID1 = RandStringRunes(20)
+var serviceID2 = RandStringRunes(20)
+var requestID1 = uuid.NewV4()
+var requestID2 = uuid.NewV4()
+var requestID3 = uuid.NewV4()
+var requestID4 = uuid.NewV4()
+var namespaceID1 = RandStringRunes(20)
+var namespaceID2 = RandStringRunes(20)
+var accessorID1 = uuid.NewV4()
+var accessorID2 = uuid.NewV4()
+var accessorGroupID1 = uuid.NewV4()
+
+var serviceID3 = RandStringRunes(20)
+var serviceID4 = RandStringRunes(20)
+var serviceID5 = RandStringRunes(20)
+
+var userID = RandStringRunes(20)
+var userID2 = RandStringRunes(20)
+
 func TestInitNDID(t *testing.T) {
 	InitNDID(t)
+}
+
+func TestInitData(t *testing.T) {
+	var param = did.SetPriceFuncParam{
+		"CreateRequest",
+		1,
+	}
+	SetPriceFunc(t, param)
 }
 
 func TestRegisterNodeRP(t *testing.T) {
@@ -50,7 +86,7 @@ func TestRegisterNodeRP(t *testing.T) {
 	}
 
 	var param did.RegisterNode
-	param.NodeID = "RP1"
+	param.NodeID = RP1
 	param.PublicKey = string(rpPublicKeyBytes)
 	param.MasterPublicKey = string(rpPublicKeyBytes2)
 	param.Role = "RP"
@@ -73,7 +109,7 @@ func TestRegisterNodeIDP(t *testing.T) {
 	}
 
 	var param did.RegisterNode
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 1 from ..."
@@ -99,7 +135,7 @@ func TestRegisterNodeAS(t *testing.T) {
 
 	var param did.RegisterNode
 	param.NodeName = "AS1"
-	param.NodeID = "AS1"
+	param.NodeID = AS1
 	param.PublicKey = string(asPublicKeyBytes)
 	param.MasterPublicKey = string(asPublicKeyBytes2)
 	param.Role = "AS"
@@ -113,7 +149,7 @@ func TestNDIDSetTimeOutBlockRegisterMsqDestination(t *testing.T) {
 
 func TestQueryGetNodePublicKeyRP(t *testing.T) {
 	var param = did.GetNodePublicKeyParam{
-		"RP1",
+		RP1,
 	}
 	rpKey := getPrivateKeyFromString(rpPrivK)
 	rpPublicKeyBytes, err := generatePublicKey(&rpKey.PublicKey)
@@ -125,7 +161,7 @@ func TestQueryGetNodePublicKeyRP(t *testing.T) {
 
 func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 	var param = did.GetNodePublicKeyParam{
-		"RP1",
+		RP1,
 	}
 	rpKey := getPrivateKeyFromString(allMasterKey)
 	rpPublicKeyBytes, err := generatePublicKey(&rpKey.PublicKey)
@@ -137,7 +173,7 @@ func TestQueryGetNodeMasterPublicKeyRP(t *testing.T) {
 
 func TestQueryGetNodePublicKeyIdP(t *testing.T) {
 	var param = did.GetNodePublicKeyParam{
-		"IdP1",
+		IdP1,
 	}
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
@@ -149,7 +185,7 @@ func TestQueryGetNodePublicKeyIdP(t *testing.T) {
 
 func TestQueryGetNodePublicKeyAS(t *testing.T) {
 	var param = did.GetNodePublicKeyParam{
-		"AS1",
+		AS1,
 	}
 	asKey := getPrivateKeyFromString(asPrivK)
 	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
@@ -161,7 +197,7 @@ func TestQueryGetNodePublicKeyAS(t *testing.T) {
 
 func TestAddNodeTokenRP(t *testing.T) {
 	var param = did.AddNodeTokenParam{
-		"RP1",
+		RP1,
 		111.11,
 	}
 	AddNodeToken(t, param)
@@ -169,7 +205,7 @@ func TestAddNodeTokenRP(t *testing.T) {
 
 func TestAddNodeTokenIdP(t *testing.T) {
 	var param = did.AddNodeTokenParam{
-		"IdP1",
+		IdP1,
 		222.22,
 	}
 	AddNodeToken(t, param)
@@ -177,7 +213,7 @@ func TestAddNodeTokenIdP(t *testing.T) {
 
 func TestAddNodeTokenAS(t *testing.T) {
 	var param = did.AddNodeTokenParam{
-		"AS1",
+		AS1,
 		333.33,
 	}
 	AddNodeToken(t, param)
@@ -185,7 +221,7 @@ func TestAddNodeTokenAS(t *testing.T) {
 
 func TestQueryGetNodeTokenRP(t *testing.T) {
 	var param = did.GetNodeTokenParam{
-		"RP1",
+		RP1,
 	}
 	var expected = did.GetNodeTokenResult{
 		111.11,
@@ -195,7 +231,7 @@ func TestQueryGetNodeTokenRP(t *testing.T) {
 
 func TestReduceNodeTokenRP(t *testing.T) {
 	var param = did.ReduceNodeTokenParam{
-		"RP1",
+		RP1,
 		61.11,
 	}
 	ReduceNodeToken(t, param)
@@ -203,7 +239,7 @@ func TestReduceNodeTokenRP(t *testing.T) {
 
 func TestQueryGetNodeTokenRPAfterReduce(t *testing.T) {
 	var param = did.GetNodeTokenParam{
-		"RP1",
+		RP1,
 	}
 	var expected = did.GetNodeTokenResult{
 		50.0,
@@ -213,7 +249,7 @@ func TestQueryGetNodeTokenRPAfterReduce(t *testing.T) {
 
 func TestSetNodeTokenRP(t *testing.T) {
 	var param = did.SetNodeTokenParam{
-		"RP1",
+		RP1,
 		100.0,
 	}
 	SetNodeToken(t, param)
@@ -221,7 +257,7 @@ func TestSetNodeTokenRP(t *testing.T) {
 
 func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 	var param = did.GetNodeTokenParam{
-		"RP1",
+		RP1,
 	}
 	var expected = did.GetNodeTokenResult{
 		100.0,
@@ -231,7 +267,7 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 
 func TestNDIDAddService(t *testing.T) {
 	var param = did.AddServiceParam{
-		"statement",
+		serviceID1,
 		"Bank statement",
 	}
 	AddService(t, param)
@@ -239,7 +275,7 @@ func TestNDIDAddService(t *testing.T) {
 
 func TestNDIDAddServiceAgain(t *testing.T) {
 	var param = did.AddServiceParam{
-		"statement2",
+		serviceID2,
 		"Bank statement",
 	}
 	AddService(t, param)
@@ -247,7 +283,7 @@ func TestNDIDAddServiceAgain(t *testing.T) {
 
 func TestNDIDDisableService(t *testing.T) {
 	var param = did.DisableServiceParam{
-		"statement2",
+		serviceID2,
 	}
 	DisableService(t, param)
 }
@@ -266,7 +302,26 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 	var param = did.RegisterMsqDestinationParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK, "IdP1", "success")
+	RegisterMsqDestination(t, param, idpPrivK, IdP1, "success")
+}
+
+func TestDisableOldIdPNode1(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID))
+	userHash := h.Sum(nil)
+	var param = did.GetIdpNodesParam{
+		hex.EncodeToString(userHash),
+		3,
+		3,
+	}
+	idps := GetIdpNodesForDisable(t, param)
+	for _, idp := range idps {
+		if idp.ID != IdP1 {
+			var param did.DisableNodeParam
+			param.NodeID = idp.ID
+			DisableNode(t, param)
+		}
+	}
 }
 
 func TestQueryGetIdpNodes(t *testing.T) {
@@ -280,7 +335,7 @@ func TestQueryGetIdpNodes(t *testing.T) {
 	}
 	var expected = []did.MsqDestinationNode{
 		{
-			"IdP1",
+			IdP1,
 			"IdP Number 1 from ...",
 			3.0,
 			3.0,
@@ -291,16 +346,16 @@ func TestQueryGetIdpNodes(t *testing.T) {
 
 func TestIdPRegisterMsqAddress(t *testing.T) {
 	var param = did.RegisterMsqAddressParam{
-		"IdP1",
+		IdP1,
 		"192.168.3.99",
 		8000,
 	}
-	RegisterMsqAddress(t, param, idpPrivK, "IdP1")
+	RegisterMsqAddress(t, param, idpPrivK, IdP1)
 }
 
 func TestQueryGetMsqAddress(t *testing.T) {
 	var param = did.GetMsqAddressParam{
-		"IdP1",
+		IdP1,
 	}
 	var expected = did.MsqAddress{
 		"192.168.3.99",
@@ -311,33 +366,33 @@ func TestQueryGetMsqAddress(t *testing.T) {
 
 func TestASRegisterServiceDestinationByNDIDForAS1(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
-		"statement",
-		"AS1",
+		serviceID1,
+		AS1,
 	}
 	RegisterServiceDestinationByNDID(t, param)
 }
 
 func TestASRegisterServiceDestination(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"statement",
+		serviceID1,
 		1.1,
 		1.2,
 	}
-	RegisterServiceDestination(t, param, asPrivK, "AS1", "success")
+	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
 }
 
 func TestASRegisterServiceDestination2(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"statement",
+		serviceID1,
 		1.1,
 		1.2,
 	}
-	RegisterServiceDestination(t, param, asPrivK, "AS1", "Duplicate service ID in provide service list")
+	RegisterServiceDestination(t, param, asPrivK, AS1, "Duplicate service ID in provide service list")
 }
 
 func TestNDIDUpdateService(t *testing.T) {
 	var param = did.UpdateServiceParam{
-		"statement",
+		serviceID1,
 		"Bank statement (ย้อนหลัง 3 เดือน)",
 	}
 	UpdateService(t, param)
@@ -345,10 +400,10 @@ func TestNDIDUpdateService(t *testing.T) {
 
 func TestQueryGetServiceDetail(t *testing.T) {
 	var param = did.GetServiceDetailParam{
-		"statement",
+		serviceID1,
 	}
 	var expected = did.ServiceDetail{
-		"statement",
+		serviceID1,
 		"Bank statement (ย้อนหลัง 3 เดือน)",
 		true,
 	}
@@ -357,30 +412,30 @@ func TestQueryGetServiceDetail(t *testing.T) {
 
 func TestASUpdateServiceDestination(t *testing.T) {
 	var param = did.UpdateServiceDestinationParam{
-		"statement",
+		serviceID1,
 		1.4,
 		1.5,
 	}
-	UpdateServiceDestination(t, param)
+	UpdateServiceDestination(t, param, AS1)
 }
 
 func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestRPCreateRequest(t *testing.T) {
 	var datas []did.DataRequest
 	var data1 did.DataRequest
-	data1.ServiceID = "statement"
+	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
 	datas = append(datas, data1)
 	var param did.Request
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.RequestID = requestID1.String()
 	param.MinIdp = 1
 	param.MinIal = 3
 	param.MinAal = 3
@@ -388,12 +443,12 @@ func TestRPCreateRequest(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, rpPrivK, "RP1")
+	CreateRequest(t, param, rpPrivK, RP1)
 }
 
 func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	var param = did.GetNodeTokenParam{
-		"RP1",
+		RP1,
 	}
 	var expected = did.GetNodeTokenResult{
 		99.0,
@@ -403,15 +458,15 @@ func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 
 func TestIdPDeclareIdentityProof(t *testing.T) {
 	var param did.DeclareIdentityProofParam
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.RequestID = requestID1.String()
 	param.IdentityProof = "Magic"
-	DeclareIdentityProof(t, param, idpPrivK, "IdP1")
+	DeclareIdentityProof(t, param, idpPrivK, IdP1)
 }
 
 func TestQueryGetIdentityProof(t *testing.T) {
 	var param = did.GetIdentityProofParam{
-		"IdP1",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		IdP1,
+		requestID1.String(),
 	}
 	var expected = did.GetIdentityProofResult{
 		"Magic",
@@ -421,7 +476,7 @@ func TestQueryGetIdentityProof(t *testing.T) {
 
 func TestIdPCreateIdpResponse(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 		3,
 		3,
 		"accept",
@@ -429,49 +484,49 @@ func TestIdPCreateIdpResponse(t *testing.T) {
 		"Magic",
 		"Magic",
 	}
-	CreateIdpResponse(t, param, idpPrivK, "IdP1")
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
 }
 
 func TestASSignData(t *testing.T) {
 	var param = did.SignDataParam{
-		"statement",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		serviceID1,
+		requestID1.String(),
 		"sign(data,asKey)",
 	}
-	SignData(t, param, "success")
+	SignData(t, param, "success", AS1)
 }
 
 func TestASSignData2(t *testing.T) {
 	var param = did.SignDataParam{
-		"statement",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		serviceID1,
+		requestID1.String(),
 		"sign(data,asKey)",
 	}
-	SignData(t, param, "Duplicate AS ID in answered AS list")
+	SignData(t, param, "Duplicate AS ID in answered AS list", AS1)
 }
 
 func TestRPSetDataReceived(t *testing.T) {
 	var param = did.SetDataReceivedParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-		"statement",
-		"AS1",
+		requestID1.String(),
+		serviceID1,
+		AS1,
 	}
-	SetDataReceived(t, param, "success")
+	SetDataReceived(t, param, "success", RP1)
 }
 
 func TestRPSetDataReceived2(t *testing.T) {
 	var param = did.SetDataReceivedParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
-		"statement",
-		"AS1",
+		requestID1.String(),
+		serviceID1,
+		AS1,
 	}
-	SetDataReceived(t, param, "Duplicate AS ID in data request")
+	SetDataReceived(t, param, "Duplicate AS ID in data request", RP1)
 }
 
 func TestIdPCreateRequestSpecial(t *testing.T) {
 	var datas []did.DataRequest
 	var param did.Request
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c55555"
+	param.RequestID = requestID2.String()
 	param.MinIdp = 1
 	param.MinIal = 3
 	param.MinAal = 3
@@ -479,18 +534,18 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, idpPrivK, "IdP1")
+	CreateRequest(t, param, idpPrivK, IdP1)
 }
 
 func TestIdPDeclareIdentityProof2(t *testing.T) {
 	var param did.DeclareIdentityProofParam
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c55555"
+	param.RequestID = requestID2.String()
 	param.IdentityProof = "Magic"
-	DeclareIdentityProof(t, param, idpPrivK, "IdP1")
+	DeclareIdentityProof(t, param, idpPrivK, IdP1)
 }
 func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
+		requestID2.String(),
 		3,
 		3,
 		"accept",
@@ -498,7 +553,7 @@ func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
 		"Magic",
 		"Magic",
 	}
-	CreateIdpResponse(t, param, idpPrivK, "IdP1")
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
 }
 
 func TestNDIDSetPrice(t *testing.T) {
@@ -520,56 +575,56 @@ func TestNDIDGetPrice(t *testing.T) {
 }
 
 func TestReportGetUsedTokenRP(t *testing.T) {
-	expectedString := `[{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"SetDataReceived","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"CreateRequest","price":1,"data":"` + requestID1.String() + `"},{"method":"SetDataReceived","price":1,"data":"` + requestID1.String() + `"}]`
 	var param = did.GetUsedTokenReportParam{
-		"RP1",
+		RP1,
 	}
 	GetUsedTokenReport(t, param, expectedString)
 }
 
 func TestReportGetUsedTokenIdP(t *testing.T) {
-	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"},{"method":"CreateRequest","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c55555"}]`
+	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"CreateRequest","price":1,"data":"` + requestID2.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
 	var param = did.GetUsedTokenReportParam{
-		"IdP1",
+		IdP1,
 	}
 	GetUsedTokenReport(t, param, expectedString)
 }
 
 func TestReportGetUsedTokenAS(t *testing.T) {
 	var param = did.GetUsedTokenReportParam{
-		"AS1",
+		AS1,
 	}
-	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6"}]`
+	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
 	GetUsedTokenReport(t, param, expectedString)
 }
 
 func TestQueryGetRequestDetail1(t *testing.T) {
 	var param = did.GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 	}
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"IdP1","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3}`
 	GetRequestDetail(t, param, expected)
 }
 
 func TestRPCloseRequest(t *testing.T) {
 	var res []did.ResponseValid
 	var res1 did.ResponseValid
-	res1.IdpID = "IdP1"
+	res1.IdpID = IdP1
 	tValue := true
 	res1.ValidIal = &tValue
 	res1.ValidProof = &tValue
 	res1.ValidSignature = &tValue
 	res = append(res, res1)
 	var param = did.CloseRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 		res,
 	}
-	CloseRequest(t, param)
+	CloseRequest(t, param, RP1)
 }
 
 func TestQueryGetRequestClosed(t *testing.T) {
 	var param = did.GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 	}
 	var expected = did.GetRequestResult{
 		true,
@@ -582,19 +637,19 @@ func TestQueryGetRequestClosed(t *testing.T) {
 
 func TestQueryGetRequestDetail2(t *testing.T) {
 	var param = did.GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 	}
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c520f6","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["AS1"],"received_data_from_list":["AS1"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"IdP1","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3}`
 	GetRequestDetail(t, param, expected)
 }
 
 func TestCreateRequest(t *testing.T) {
 	var datas []did.DataRequest
 	var data1 did.DataRequest
-	data1.ServiceID = "statement"
+	data1.ServiceID = serviceID1
 	data1.As = []string{
-		"AS1",
-		"AS2",
+		AS1,
+		AS2,
 	}
 	data1.Count = 2
 	data1.RequestParamsHash = "hash"
@@ -602,15 +657,15 @@ func TestCreateRequest(t *testing.T) {
 	var data2 did.DataRequest
 	data2.ServiceID = "credit"
 	data2.As = []string{
-		"AS1",
-		"AS2",
+		AS1,
+		AS2,
 	}
 	data2.Count = 2
 	data2.RequestParamsHash = "hash"
 	datas = append(datas, data1)
 	datas = append(datas, data2)
 	var param did.Request
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+	param.RequestID = requestID3.String()
 	param.MinIdp = 1
 	param.MinIal = 3
 	param.MinAal = 3
@@ -618,19 +673,19 @@ func TestCreateRequest(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, rpPrivK, "RP1")
+	CreateRequest(t, param, rpPrivK, RP1)
 }
 
 func TestIdPDeclareIdentityProof3(t *testing.T) {
 	var param did.DeclareIdentityProofParam
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c11111"
+	param.RequestID = requestID3.String()
 	param.IdentityProof = "Magic"
-	DeclareIdentityProof(t, param, idpPrivK, "IdP1")
+	DeclareIdentityProof(t, param, idpPrivK, IdP1)
 }
 
 func TestIdPCreateIdpResponse2(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+		requestID3.String(),
 		3,
 		3,
 		"accept",
@@ -638,36 +693,36 @@ func TestIdPCreateIdpResponse2(t *testing.T) {
 		"Magic",
 		"Magic",
 	}
-	CreateIdpResponse(t, param, idpPrivK, "IdP1")
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
 }
 
 func TestRPTimeOutRequest(t *testing.T) {
 	var res []did.ResponseValid
 	var res1 did.ResponseValid
-	res1.IdpID = "IdP1"
+	res1.IdpID = IdP1
 	f := false
 	res1.ValidIal = &f
 	res1.ValidProof = &f
 	res1.ValidSignature = &f
 	res = append(res, res1)
 	var param = did.TimeOutRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+		requestID3.String(),
 		res,
 	}
-	TimeOutRequest(t, param)
+	TimeOutRequest(t, param, RP1)
 }
 
 func TestQueryGetRequestDetail3(t *testing.T) {
 	var param = did.GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+		requestID3.String(),
 	}
-	var expected = `{"request_id":"ef6f4c9c-818b-42b8-8904-3d97c4c11111","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"statement","as_id_list":["AS1","AS2"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["AS1","AS2"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"IdP1","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"special":false,"mode":3}`
 	GetRequestDetail(t, param, expected)
 }
 
 func TestQueryGetRequestTimedOut(t *testing.T) {
 	var param = did.GetRequestParam{
-		"ef6f4c9c-818b-42b8-8904-3d97c4c11111",
+		requestID3.String(),
 	}
 	var expected = did.GetRequestResult{
 		false,
@@ -678,30 +733,40 @@ func TestQueryGetRequestTimedOut(t *testing.T) {
 	GetRequest(t, param, expected)
 }
 
+func TestDisableOldNamespace(t *testing.T) {
+	namespaces := GetNamespaceListForDisable(t)
+	for _, namespace := range namespaces {
+		var param did.DisableNamespaceParam
+		param.Namespace = namespace.Namespace
+		DisableNamespace(t, param)
+	}
+
+}
+
 func TestAddNamespaceCID(t *testing.T) {
 	var param did.Namespace
-	param.Namespace = "CID"
+	param.Namespace = namespaceID1
 	param.Description = "Citizen ID"
 	AddNamespace(t, param)
 }
 
 func TestAddNamespaceTel(t *testing.T) {
 	var param did.Namespace
-	param.Namespace = "Tel"
+	param.Namespace = namespaceID2
 	param.Description = "Tel number"
 	AddNamespace(t, param)
 }
 
 func TestDisableNamespace(t *testing.T) {
 	var param did.DisableNamespaceParam
-	param.Namespace = "Tel"
+	param.Namespace = namespaceID2
 	DisableNamespace(t, param)
 }
 
 func TestQueryGetNamespaceList(t *testing.T) {
 	var expected = []did.Namespace{
 		did.Namespace{
-			"CID",
+			namespaceID1,
 			"Citizen ID",
 			true,
 		},
@@ -711,23 +776,23 @@ func TestQueryGetNamespaceList(t *testing.T) {
 
 func TestIdPCreateIdentity(t *testing.T) {
 	var param = did.CreateIdentityParam{
-		"accessor_id",
+		accessorID1.String(),
 		"accessor_type",
 		accessorPubKey,
-		"accessor_group_id",
+		accessorGroupID1.String(),
 	}
-	CreateIdentity(t, param)
+	CreateIdentity(t, param, IdP1)
 }
 
 func TestIdPAddAccessorMethod(t *testing.T) {
 	var param = did.AccessorMethod{
-		"accessor_id_2",
+		accessorID2.String(),
 		"accessor_type_2",
 		accessorPubKey2,
-		"accessor_group_id",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c55555",
+		accessorGroupID1.String(),
+		requestID2.String(),
 	}
-	AddAccessorMethod(t, param)
+	AddAccessorMethod(t, param, IdP1)
 }
 
 func TestIdP1ClearRegisterMsqDestinationTimeout(t *testing.T) {
@@ -738,7 +803,7 @@ func TestIdP1ClearRegisterMsqDestinationTimeout(t *testing.T) {
 	var param = did.ClearRegisterMsqDestinationTimeoutParam{
 		hex.EncodeToString(userHash),
 	}
-	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK, "IdP1")
+	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK, IdP1)
 }
 
 func TestQueryCheckExistingIdentity(t *testing.T) {
@@ -754,18 +819,32 @@ func TestQueryCheckExistingIdentity(t *testing.T) {
 
 func TestQueryGetAccessorGroupID(t *testing.T) {
 	var param = did.GetAccessorGroupIDParam{
-		"accessor_id_2",
+		accessorID2.String(),
 	}
-	var expected = `{"accessor_group_id":"accessor_group_id"}`
+	var expected = `{"accessor_group_id":"` + accessorGroupID1.String() + `"}`
 	GetAccessorGroupID(t, param, expected)
 }
 
 func TestQueryGetAccessorKey(t *testing.T) {
 	var param = did.GetAccessorGroupIDParam{
-		"accessor_id",
+		accessorID1.String(),
 	}
 	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":true}`
 	GetAccessorKey(t, param, expected)
+}
+
+func TestDisableOldIdPNode2(t *testing.T) {
+	var param did.GetIdpNodesParam
+	param.MinIal = 3
+	param.MinAal = 3
+	idps := GetIdpNodesForDisable(t, param)
+	for _, idp := range idps {
+		if idp.ID != IdP1 {
+			var param did.DisableNodeParam
+			param.NodeID = idp.ID
+			DisableNode(t, param)
+		}
+	}
 }
 
 func TestRegisterNodeIDP2(t *testing.T) {
@@ -775,7 +854,7 @@ func TestRegisterNodeIDP2(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var param did.RegisterNode
-	param.NodeID = "IdP2"
+	param.NodeID = IdP2
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.Role = "IdP"
 	param.MaxIal = 3.0
@@ -789,13 +868,13 @@ func TestQueryGetIdpNodes2(t *testing.T) {
 	param.MinAal = 3
 	var expected = []did.MsqDestinationNode{
 		{
-			"IdP1",
+			IdP1,
 			"IdP Number 1 from ...",
 			3.0,
 			3.0,
 		},
 		{
-			"IdP2",
+			IdP2,
 			"",
 			3.0,
 			3.0,
@@ -814,7 +893,7 @@ func TestIdPUpdateNode(t *testing.T) {
 		string(idpPublicKeyBytes2),
 		"",
 	}
-	UpdateNode(t, param, allMasterKey, "IdP1")
+	UpdateNode(t, param, allMasterKey, IdP1)
 }
 
 func TestSetValidator(t *testing.T) {
@@ -824,10 +903,22 @@ func TestSetValidator(t *testing.T) {
 	SetValidator(t, param)
 }
 
+func TestDisableOldService(t *testing.T) {
+	services := GetServiceListForDisable(t)
+	for _, service := range services {
+		if service.ServiceID != serviceID1 {
+			var param = did.DisableServiceParam{
+				service.ServiceID,
+			}
+			DisableService(t, param)
+		}
+	}
+}
+
 func TestQueryGetServiceList(t *testing.T) {
 	var expected = []did.ServiceDetail{
 		did.ServiceDetail{
-			"statement",
+			serviceID1,
 			"Bank statement (ย้อนหลัง 3 เดือน)",
 			true,
 		},
@@ -837,7 +928,7 @@ func TestQueryGetServiceList(t *testing.T) {
 
 func TestUpdateNodeByNDID(t *testing.T) {
 	var param did.UpdateNodeByNDIDParam
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	param.MaxIal = 2.3
 	param.MaxAal = 2.4
 	UpdateNodeByNDID(t, param)
@@ -845,28 +936,28 @@ func TestUpdateNodeByNDID(t *testing.T) {
 
 func TestUpdateNodeRPByNDID(t *testing.T) {
 	var param did.UpdateNodeByNDIDParam
-	param.NodeID = "RP1"
+	param.NodeID = RP1
 	param.NodeName = "Node RP 1 edited"
 	UpdateNodeByNDID(t, param)
 }
 
 func TestQueryGetNodeInfo(t *testing.T) {
 	var param did.GetNodeInfoParam
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 1 from ...","role":"IdP","max_ial":2.3,"max_aal":2.4}`)
 	GetNodeInfo(t, param, expected)
 }
 
 func TestQueryCheckExistingAccessorID(t *testing.T) {
 	var param did.CheckExistingAccessorIDParam
-	param.AccessorID = "accessor_id"
+	param.AccessorID = accessorID1.String()
 	expected := `{"exist":true}`
 	CheckExistingAccessorID(t, param, expected)
 }
 
 func TestQueryCheckExistingAccessorGroupID(t *testing.T) {
 	var param did.CheckExistingAccessorGroupIDParam
-	param.AccessorGroupID = "accessor_group_id"
+	param.AccessorGroupID = accessorGroupID1.String()
 	expected := `{"exist":true}`
 	CheckExistingAccessorGroupID(t, param, expected)
 }
@@ -878,7 +969,7 @@ func TestIdPUpdateIdentity(t *testing.T) {
 	var param did.UpdateIdentityParam
 	param.HashID = hex.EncodeToString(userHash)
 	param.Ial = 2.2
-	UpdateIdentity(t, param)
+	UpdateIdentity(t, param, IdP1)
 }
 
 func TestQueryGetIdentityInfo(t *testing.T) {
@@ -886,7 +977,7 @@ func TestQueryGetIdentityInfo(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	param.HashID = hex.EncodeToString(userHash)
 	expected := `{"ial":2.2}`
 	GetIdentityInfo(t, param, expected)
@@ -894,11 +985,27 @@ func TestQueryGetIdentityInfo(t *testing.T) {
 
 func TestQueryGetDataSignature(t *testing.T) {
 	var param did.GetDataSignatureParam
-	param.NodeID = "AS1"
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
-	param.ServiceID = "statement"
+	param.NodeID = AS1
+	param.RequestID = requestID1.String()
+	param.ServiceID = serviceID1
 	expected := `{"signature":"sign(data,asKey)"}`
 	GetDataSignature(t, param, expected)
+}
+
+func TestDisableOldIdPNode3(t *testing.T) {
+	var param = did.GetIdpNodesParam{
+		"",
+		1,
+		1,
+	}
+	idps := GetIdpNodesForDisable(t, param)
+	for _, idp := range idps {
+		if idp.ID != IdP1 && idp.ID != IdP4 {
+			var param did.DisableNodeParam
+			param.NodeID = idp.ID
+			DisableNode(t, param)
+		}
+	}
 }
 
 func TestRegisterNodeIDP4(t *testing.T) {
@@ -913,7 +1020,7 @@ func TestRegisterNodeIDP4(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var param did.RegisterNode
-	param.NodeID = "IdP4"
+	param.NodeID = IdP4
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 4 from ..."
@@ -935,7 +1042,7 @@ func TestRegisterNodeIDP5(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var param did.RegisterNode
-	param.NodeID = "IdP5"
+	param.NodeID = IdP5
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 5 from ..."
@@ -947,7 +1054,7 @@ func TestRegisterNodeIDP5(t *testing.T) {
 
 func TestSetNodeTokenIDP4(t *testing.T) {
 	var param = did.SetNodeTokenParam{
-		"IdP4",
+		IdP4,
 		100.0,
 	}
 	SetNodeToken(t, param)
@@ -955,7 +1062,7 @@ func TestSetNodeTokenIDP4(t *testing.T) {
 
 func TestSetNodeTokenIDP5(t *testing.T) {
 	var param = did.SetNodeTokenParam{
-		"IdP5",
+		IdP5,
 		100.0,
 	}
 	SetNodeToken(t, param)
@@ -971,7 +1078,7 @@ func TestIdPUpdateNode4(t *testing.T) {
 		string(idpPublicKeyBytes2),
 		"",
 	}
-	UpdateNode(t, param, allMasterKey, "IdP4")
+	UpdateNode(t, param, allMasterKey, IdP4)
 }
 
 func TestIdPUpdateNode5(t *testing.T) {
@@ -984,19 +1091,19 @@ func TestIdPUpdateNode5(t *testing.T) {
 		string(idpPublicKeyBytes2),
 		string(idpPublicKeyBytes2),
 	}
-	UpdateNode(t, param, allMasterKey, "IdP5")
+	UpdateNode(t, param, allMasterKey, IdP5)
 }
 
 func TestQueryGetNodeInfoIdP4(t *testing.T) {
 	var param did.GetNodeInfoParam
-	param.NodeID = "IdP4"
+	param.NodeID = IdP4
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9+CK/vznpXtAUC0QhuJ\ngYKCfMMBiIgVcp2A+e+SsKvv6ESQ72R8K6nQAhH2MGtnj3ScLI0tMwCtgotWCEGi\nyUXKXLVTiqAqtwflCUVuxCDVuvOm3GQCxvwzE34jEgbGZ33G3tV7uKTtifhoJzVY\nD+WkZVslBhaBgQCUewCX4zkCCTYC5VEhkr7K8HGEr6n1eBOO5VORCkrHKYoZK7eu\nNjyWvWYyVN07F8K0RhgIF9Xsa6Tiu1Yf8zuyJ/awR6U4Nw+oTkvRpx64+caBNYgR\n4n8peg9ZJeTAwV49o1ymx34pPjHUgSdpyhZX4i3z9ji+o7KbNkA/O0l+3doMuH1e\nxwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 4 from ...","role":"IdP","max_ial":3,"max_aal":3}`)
 	GetNodeInfo(t, param, expected)
 }
 
 func TestQueryGetNodeInfoIdP5(t *testing.T) {
 	var param did.GetNodeInfoParam
-	param.NodeID = "IdP5"
+	param.NodeID = IdP5
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Number 5 from ...","role":"IdP","max_ial":3,"max_aal":3}`)
 	GetNodeInfo(t, param, expected)
 }
@@ -1015,7 +1122,7 @@ func TestIdP4RegisterMsqDestination0(t *testing.T) {
 	var param = did.RegisterMsqDestinationParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, "IdP4", "success")
+	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
 }
 
 func TestIdP4RegisterMsqDestination11(t *testing.T) {
@@ -1032,7 +1139,7 @@ func TestIdP4RegisterMsqDestination11(t *testing.T) {
 	var param = did.RegisterMsqDestinationParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, "IdP4", "This node is not first IdP")
+	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "This node is not first IdP")
 }
 
 func TestIdP4ClearRegisterMsqDestinationTimeout(t *testing.T) {
@@ -1042,7 +1149,7 @@ func TestIdP4ClearRegisterMsqDestinationTimeout(t *testing.T) {
 	var param = did.ClearRegisterMsqDestinationTimeoutParam{
 		hex.EncodeToString(userHash),
 	}
-	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK5, "IdP4")
+	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK5, IdP4)
 }
 
 func TestIdP4RegisterMsqDestination12(t *testing.T) {
@@ -1059,7 +1166,7 @@ func TestIdP4RegisterMsqDestination12(t *testing.T) {
 	var param = did.RegisterMsqDestinationParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, "IdP4", "success")
+	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
 }
 
 func TestIdP4RegisterMsqDestination2(t *testing.T) {
@@ -1076,7 +1183,7 @@ func TestIdP4RegisterMsqDestination2(t *testing.T) {
 	var param = did.RegisterMsqDestinationParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, "IdP4", "success")
+	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
 }
 
 func TestQueryGetIdpNodes3(t *testing.T) {
@@ -1088,7 +1195,7 @@ func TestQueryGetIdpNodes3(t *testing.T) {
 		1,
 		1,
 	}
-	var expected = `{"node":[{"node_id":"IdP1","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"IdP4","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"` + IdP4 + `","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
 
@@ -1104,8 +1211,8 @@ func TestRegisterNodeAS2(t *testing.T) {
 		log.Fatal(err.Error())
 	}
 	var param did.RegisterNode
-	param.NodeName = "AS2"
-	param.NodeID = "AS2"
+	param.NodeName = AS2
+	param.NodeID = AS2
 	param.PublicKey = string(asPublicKeyBytes)
 	param.MasterPublicKey = string(asPublicKeyBytes2)
 	param.Role = "AS"
@@ -1114,7 +1221,7 @@ func TestRegisterNodeAS2(t *testing.T) {
 
 func TestSetNodeTokenAS2(t *testing.T) {
 	var param = did.SetNodeTokenParam{
-		"AS2",
+		AS2,
 		100.0,
 	}
 	SetNodeToken(t, param)
@@ -1122,58 +1229,58 @@ func TestSetNodeTokenAS2(t *testing.T) {
 
 func TestASRegisterServiceDestinationByNDID(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
-		"statement",
-		"AS2",
+		serviceID1,
+		AS2,
 	}
 	RegisterServiceDestinationByNDID(t, param)
 }
 
 func TestAS2RegisterServiceDestination(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"statement",
+		serviceID1,
 		2.8,
 		2.9,
 	}
-	RegisterServiceDestination(t, param, asPrivK2, "AS2", "success")
+	RegisterServiceDestination(t, param, asPrivK2, AS2, "success")
 }
 
 func TestQueryGetAsNodesByServiceId2(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5},{"node_id":"AS2","node_name":"AS2","min_ial":2.8,"min_aal":2.9}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.4,"min_aal":1.5},{"node_id":"` + AS2 + `","node_name":"` + AS2 + `","min_ial":2.8,"min_aal":2.9}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestDisableNode(t *testing.T) {
 	var param did.DisableNodeParam
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	DisableNode(t, param)
 }
 
 func TestDisableNode2(t *testing.T) {
 	var param did.DisableNodeParam
-	param.NodeID = "AS2"
+	param.NodeID = AS2
 	DisableNode(t, param)
 }
 
 func TestQueryGetAsNodesByServiceId3(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestNDIDDisableService2(t *testing.T) {
 	var param = did.DisableServiceParam{
-		"statement",
+		serviceID1,
 	}
 	DisableService(t, param)
 }
 func TestQueryGetAsNodesByServiceId4(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
 	var expected = `{"node":[]}`
 	GetAsNodesByServiceId(t, param, expected)
@@ -1181,7 +1288,7 @@ func TestQueryGetAsNodesByServiceId4(t *testing.T) {
 
 func TestNDIDAddService3(t *testing.T) {
 	var param = did.AddServiceParam{
-		"BankStatement1",
+		serviceID3,
 		"Bank statement",
 	}
 	AddService(t, param)
@@ -1189,7 +1296,7 @@ func TestNDIDAddService3(t *testing.T) {
 
 func TestNDIDAddService4(t *testing.T) {
 	var param = did.AddServiceParam{
-		"BankStatement2",
+		serviceID4,
 		"Bank statement",
 	}
 	AddService(t, param)
@@ -1197,7 +1304,7 @@ func TestNDIDAddService4(t *testing.T) {
 
 func TestNDIDAddService5(t *testing.T) {
 	var param = did.AddServiceParam{
-		"BankStatement3",
+		serviceID5,
 		"Bank statement",
 	}
 	AddService(t, param)
@@ -1205,90 +1312,90 @@ func TestNDIDAddService5(t *testing.T) {
 
 func TestASRegisterServiceDestinationByNDID3(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
-		"BankStatement1",
-		"AS1",
+		serviceID3,
+		AS1,
 	}
 	RegisterServiceDestinationByNDID(t, param)
 }
 
 func TestASRegisterServiceDestinationByNDID4(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
-		"BankStatement2",
-		"AS1",
+		serviceID4,
+		AS1,
 	}
 	RegisterServiceDestinationByNDID(t, param)
 }
 
 func TestASRegisterServiceDestinationByNDID5(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
-		"BankStatement3",
-		"AS1",
+		serviceID5,
+		AS1,
 	}
 	RegisterServiceDestinationByNDID(t, param)
 }
 
 func TestAS1RegisterServiceDestinationBankStatement1(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"BankStatement1",
+		serviceID3,
 		2.8,
 		2.9,
 	}
-	RegisterServiceDestination(t, param, asPrivK, "AS1", "success")
+	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
 }
 
 func TestAS1RegisterServiceDestinationBankStatement2(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"BankStatement2",
+		serviceID4,
 		2.2,
 		2.2,
 	}
-	RegisterServiceDestination(t, param, asPrivK, "AS1", "success")
+	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
 }
 
 func TestAS1RegisterServiceDestinationBankStatement3(t *testing.T) {
 	var param = did.RegisterServiceDestinationParam{
-		"BankStatement3",
+		serviceID5,
 		3.3,
 		3.3,
 	}
-	RegisterServiceDestination(t, param, asPrivK, "AS1", "success")
+	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
 }
 
 func TestASUpdateServiceDestination2(t *testing.T) {
 	var param = did.UpdateServiceDestinationParam{
-		"BankStatement1",
+		serviceID3,
 		1.1,
 		1.1,
 	}
-	UpdateServiceDestination(t, param)
+	UpdateServiceDestination(t, param, AS1)
 }
 
 func TestQueryGetServicesByAsID(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
-		"AS1",
+		AS1,
 	}
-	var expected = `{"services":[{"service_id":"BankStatement1","min_ial":1.1,"min_aal":1.1,"active":true,"suspended":false},{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID3 + `","min_ial":1.1,"min_aal":1.1,"active":true,"suspended":false},{"service_id":"` + serviceID4 + `","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"` + serviceID5 + `","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	GetServicesByAsID(t, param, expected)
 }
 
 func TestNDIDDisableService3(t *testing.T) {
 	var param = did.DisableServiceParam{
-		"BankStatement1",
+		serviceID3,
 	}
 	DisableService(t, param)
 }
 
 func TestNDIDDisableServiceDestinationByNDID(t *testing.T) {
 	var param = did.DisableServiceDestinationByNDIDParam{
-		"BankStatement2",
-		"AS1",
+		serviceID4,
+		AS1,
 	}
 	DisableServiceDestinationByNDID(t, param)
 }
 
 func TestQueryGetAsNodesByServiceID(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"BankStatement2",
+		serviceID4,
 	}
 	var expected = `{"node":[]}`
 	GetAsNodesByServiceId(t, param, expected)
@@ -1296,9 +1403,9 @@ func TestQueryGetAsNodesByServiceID(t *testing.T) {
 
 func TestQueryGetServicesByAsID2(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
-		"AS1",
+		AS1,
 	}
-	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID4 + `","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":true},{"service_id":"` + serviceID5 + `","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	GetServicesByAsID(t, param, expected)
 }
 
@@ -1311,13 +1418,13 @@ func TestQueryGetIdpNodes6(t *testing.T) {
 		1,
 		1,
 	}
-	var expected = `{"node":[{"node_id":"IdP4","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
+	var expected = `{"node":[{"node_id":"` + IdP4 + `","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
 
 func TestQueryGetAccessorKey3(t *testing.T) {
 	var param = did.GetAccessorGroupIDParam{
-		"accessor_id",
+		accessorID1.String(),
 	}
 	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey, "\n", "\\n", -1) + `","active":true}`
 	GetAccessorKey(t, param, expected)
@@ -1325,7 +1432,7 @@ func TestQueryGetAccessorKey3(t *testing.T) {
 
 func TestEnableNode(t *testing.T) {
 	var param did.DisableNodeParam
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	EnableNode(t, param)
 }
 
@@ -1338,57 +1445,57 @@ func TestQueryGetIdpNodes7(t *testing.T) {
 		1,
 		1,
 	}
-	var expected = `{"node":[{"node_id":"IdP1","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"IdP4","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"` + IdP4 + `","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
 
 func TestNDIDEnableServiceDestinationByNDID(t *testing.T) {
 	var param = did.DisableServiceDestinationByNDIDParam{
-		"BankStatement2",
-		"AS1",
+		serviceID4,
+		AS1,
 	}
 	EnableServiceDestinationByNDID(t, param)
 }
 
 func TestQueryGetAsNodesByServiceIDAfterEnable(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"BankStatement2",
+		serviceID4,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":2.2,"min_aal":2.2}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":2.2,"min_aal":2.2}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestQueryGetServicesByAsID3(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
-		"AS1",
+		AS1,
 	}
-	var expected = `{"services":[{"service_id":"BankStatement2","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"BankStatement3","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID4 + `","min_ial":2.2,"min_aal":2.2,"active":true,"suspended":false},{"service_id":"` + serviceID5 + `","min_ial":3.3,"min_aal":3.3,"active":true,"suspended":false}]}`
 	GetServicesByAsID(t, param, expected)
 }
 
 func TestEnableNamespace(t *testing.T) {
 	var param did.DisableNamespaceParam
-	param.Namespace = "Tel"
+	param.Namespace = namespaceID2
 	EnableNamespace(t, param)
 }
 
 func TestQueryGetNamespaceList2(t *testing.T) {
-	expected := `[{"namespace":"CID","description":"Citizen ID","active":true},{"namespace":"Tel","description":"Tel number","active":true}]`
+	expected := `[{"namespace":"` + namespaceID1 + `","description":"Citizen ID","active":true},{"namespace":"` + namespaceID2 + `","description":"Tel number","active":true}]`
 	GetNamespaceListExpectString(t, expected)
 }
 
 func TestNDIDEnableService(t *testing.T) {
 	var param = did.DisableServiceParam{
-		"statement",
+		serviceID1,
 	}
 	EnableService(t, param)
 }
 
 func TestQueryGetAsNodesByServiceId6(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
@@ -1401,21 +1508,21 @@ func TestQueryGetNodeNotFound(t *testing.T) {
 
 func TestQueryGetNodeInfoRP1(t *testing.T) {
 	var param did.GetNodeInfoParam
-	param.NodeID = "RP1"
+	param.NodeID = RP1
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwCB4UBzQcnd6GAzPgbt9\nj2idW23qKZrsvldPNifmOPLfLlMusv4EcyJf4L42/aQbTn1rVSu1blGkuCK+oRlK\nWmZEWh3xv9qrwCwov9Jme/KOE98zOMB10/xwnYotPadV0de80wGvKT7OlBlGulQR\nRhhgENNCPSxdUlozrPhrzGstXDr9zTYQoR3UD/7Ntmew3mnXvKj/8+U48hw913Xn\n6btBP3Uqg2OurXDGdrWciWgIMDEGyk65NOc8FOGa4AjYXzyi9TqOIfmysWhzKzU+\nfLysZQo10DfznnQN3w9+pI+20j2zB6ggpL75RjZKYgHU49pbvjF/eOSTOg9o5HwX\n0wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"Node RP 1 edited","role":"RP"}`)
 	GetNodeInfo(t, param, expected)
 }
 
 func TestASDisableServiceDestination(t *testing.T) {
 	var param = did.DisableServiceDestinationParam{
-		"statement",
+		serviceID1,
 	}
-	DisableServiceDestination(t, param)
+	DisableServiceDestination(t, param, AS1)
 }
 
 func TestQueryGetAsNodesByServiceId7(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
 	var expected = `{"node":[]}`
 	GetAsNodesByServiceId(t, param, expected)
@@ -1423,34 +1530,34 @@ func TestQueryGetAsNodesByServiceId7(t *testing.T) {
 
 func TestASEnableServiceDestination(t *testing.T) {
 	var param = did.DisableServiceDestinationParam{
-		"statement",
+		serviceID1,
 	}
-	EnableServiceDestination(t, param)
+	EnableServiceDestination(t, param, AS1)
 }
 
 func TestQueryGetAsNodesByServiceId8(t *testing.T) {
 	var param = did.GetAsNodesByServiceIdParam{
-		"statement",
+		serviceID1,
 	}
-	var expected = `{"node":[{"node_id":"AS1","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.4,"min_aal":1.5}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestDisableNodeRP(t *testing.T) {
 	var param did.DisableNodeParam
-	param.NodeID = "RP1"
+	param.NodeID = RP1
 	DisableNode(t, param)
 }
 
 func TestRPCreateRequestAferDisableNode(t *testing.T) {
 	var datas []did.DataRequest
 	var data1 did.DataRequest
-	data1.ServiceID = "statement"
+	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
 	datas = append(datas, data1)
 	var param did.Request
-	param.RequestID = "ABCf4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.RequestID = requestID4.String()
 	param.MinIdp = 1
 	param.MinIal = 3
 	param.MinAal = 3
@@ -1458,24 +1565,24 @@ func TestRPCreateRequestAferDisableNode(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequestExpectLog(t, param, rpPrivK, "RP1", "Node is not active")
+	CreateRequestExpectLog(t, param, rpPrivK, RP1, "Node is not active")
 }
 
 func TestEnableNodeRP1(t *testing.T) {
 	var param did.DisableNodeParam
-	param.NodeID = "RP1"
+	param.NodeID = RP1
 	EnableNode(t, param)
 }
 
 func TestRPCreateRequestAferEnableNode(t *testing.T) {
 	var datas []did.DataRequest
 	var data1 did.DataRequest
-	data1.ServiceID = "statement"
+	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
 	datas = append(datas, data1)
 	var param did.Request
-	param.RequestID = "ABCf4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.RequestID = requestID4.String()
 	param.MinIdp = 1
 	param.MinIal = 1
 	param.MinAal = 1
@@ -1483,19 +1590,19 @@ func TestRPCreateRequestAferEnableNode(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, rpPrivK, "RP1")
+	CreateRequest(t, param, rpPrivK, RP1)
 }
 
 func TestIdPDeclareIdentityProofForNewRequest(t *testing.T) {
 	var param did.DeclareIdentityProofParam
-	param.RequestID = "ABCf4c9c-818b-42b8-8904-3d97c4c520f6"
+	param.RequestID = requestID4.String()
 	param.IdentityProof = "Magic"
-	DeclareIdentityProof(t, param, idpPrivK2, "IdP1")
+	DeclareIdentityProof(t, param, idpPrivK2, IdP1)
 }
 
 func TestIdPCreateIdpResponseNewRequest(t *testing.T) {
 	var param = did.CreateIdpResponseParam{
-		"ABCf4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID4.String(),
 		2,
 		2,
 		"accept",
@@ -1503,63 +1610,63 @@ func TestIdPCreateIdpResponseNewRequest(t *testing.T) {
 		"Magic",
 		"Magic",
 	}
-	CreateIdpResponse(t, param, idpPrivK2, "IdP1")
+	CreateIdpResponse(t, param, idpPrivK2, IdP1)
 }
 
 func TestNDIDDisableServiceDestinationByNDIDForTest(t *testing.T) {
 	var param = did.DisableServiceDestinationByNDIDParam{
-		"statement",
-		"AS1",
+		serviceID1,
+		AS1,
 	}
 	DisableServiceDestinationByNDID(t, param)
 }
 
 func TestASSignDataForNewRequest(t *testing.T) {
 	var param = did.SignDataParam{
-		"statement",
-		"ABCf4c9c-818b-42b8-8904-3d97c4c520f6",
+		serviceID1,
+		requestID4.String(),
 		"sign(data,asKey)",
 	}
-	SignData(t, param, "Service destination is not approved by NDID")
+	SignData(t, param, "Service destination is not approved by NDID", AS1)
 }
 
 func TestNDIDEnableServiceDestinationByNDIDForTest(t *testing.T) {
 	var param = did.DisableServiceDestinationByNDIDParam{
-		"statement",
-		"AS1",
+		serviceID1,
+		AS1,
 	}
 	EnableServiceDestinationByNDID(t, param)
 }
 
 func TestASDisableServiceDestination2(t *testing.T) {
 	var param = did.DisableServiceDestinationParam{
-		"statement",
+		serviceID1,
 	}
-	DisableServiceDestination(t, param)
+	DisableServiceDestination(t, param, AS1)
 }
 
 func TestASSignDataForNewRequest1(t *testing.T) {
 	var param = did.SignDataParam{
-		"statement",
-		"ABCf4c9c-818b-42b8-8904-3d97c4c520f6",
+		serviceID1,
+		requestID4.String(),
 		"sign(data,asKey)",
 	}
-	SignData(t, param, "Service destination is not active")
+	SignData(t, param, "Service destination is not active", AS1)
 }
 func TestNDIDDisableServiceForTest(t *testing.T) {
 	var param = did.DisableServiceParam{
-		"statement",
+		serviceID1,
 	}
 	DisableService(t, param)
 }
 
 func TestASSignDataForNewRequest2(t *testing.T) {
 	var param = did.SignDataParam{
-		"statement",
-		"ABCf4c9c-818b-42b8-8904-3d97c4c520f6",
+		serviceID1,
+		requestID4.String(),
 		"sign(data,asKey)",
 	}
-	SignData(t, param, "Service is not active")
+	SignData(t, param, "Service is not active", AS1)
 }
 
 // Test invalid value
@@ -1676,7 +1783,7 @@ func TestQueryGetIdentityInfoInvalid(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + "Invalid user"))
 	userHash := h.Sum(nil)
-	param.NodeID = "IdP1"
+	param.NodeID = IdP1
 	param.HashID = hex.EncodeToString(userHash)
 	expected := "not found"
 	GetIdentityInfo(t, param, expected)
@@ -1685,8 +1792,8 @@ func TestQueryGetIdentityInfoInvalid(t *testing.T) {
 func TestQueryGetDataSignatureInvalid(t *testing.T) {
 	var param did.GetDataSignatureParam
 	param.NodeID = "AS1-Invalid"
-	param.RequestID = "ef6f4c9c-818b-42b8-8904-3d97c4c520f6"
-	param.ServiceID = "statement"
+	param.RequestID = requestID1.String()
+	param.ServiceID = serviceID1
 	expected := "not found"
 	GetDataSignature(t, param, expected)
 }
@@ -1694,7 +1801,7 @@ func TestQueryGetDataSignatureInvalid(t *testing.T) {
 func TestQueryGetIdentityProofInvaid(t *testing.T) {
 	var param = did.GetIdentityProofParam{
 		"IdP1-Invalid",
-		"ef6f4c9c-818b-42b8-8904-3d97c4c520f6",
+		requestID1.String(),
 	}
 	expected := "not found"
 	GetIdentityProofExpectString(t, param, expected)
