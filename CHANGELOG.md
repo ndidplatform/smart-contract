@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BUG FIXES:
+
+- [Query] Node name is invalid after update node (GetAsNodesByServiceId)
+
 ## 0.7.2 (August 22, 2018)
 
 IMPROVEMENTS:
