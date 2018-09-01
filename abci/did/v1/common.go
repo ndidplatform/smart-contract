@@ -334,6 +334,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 						err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
 						if err == nil {
 							if approveService.Active {
+								newRow.Name = nodeDetail.NodeName
 								result.Node = append(result.Node, newRow)
 							}
 						}

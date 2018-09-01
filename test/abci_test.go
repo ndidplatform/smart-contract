@@ -1814,3 +1814,26 @@ func TestQueryGetServicesByAsIDInvalid(t *testing.T) {
 	expected := "not found"
 	GetServicesByAsID(t, param, expected)
 }
+
+func TestQueryGetAsNodesByServiceIdBeforeUpdateNodeName(t *testing.T) {
+	var param = did.GetAsNodesByServiceIdParam{
+		serviceID4,
+	}
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":2.2,"min_aal":2.2}]}`
+	GetAsNodesByServiceId(t, param, expected)
+}
+
+func TestUpdateNodeAS1ByNDID(t *testing.T) {
+	var param did.UpdateNodeByNDIDParam
+	param.NodeID = AS1
+	param.NodeName = "UpdatedName_AS1"
+	UpdateNodeByNDID(t, param)
+}
+
+func TestQueryGetAsNodesByServiceIdAfterUpdateNodeName(t *testing.T) {
+	var param = did.GetAsNodesByServiceIdParam{
+		serviceID4,
+	}
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"UpdatedName_AS1","min_ial":2.2,"min_aal":2.2}]}`
+	GetAsNodesByServiceId(t, param, expected)
+}
