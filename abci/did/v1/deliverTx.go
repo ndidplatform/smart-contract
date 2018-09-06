@@ -64,7 +64,7 @@ func DeliverTxRouter(method string, param string, nonce string, signature string
 	result := callDeliverTx(method, param, app, nodeID)
 	// ---- Burn token ----
 	if result.Code == code.OK {
-		if !isNDIDMethod[method] {
+		if !checkNDID(nodeID, nodeID, app) && !isNDIDMethod[method] {
 			needToken := getTokenPriceByFunc(method, app, app.state.db.Version64())
 			err := reduceToken(nodeID, needToken, app)
 			if err != nil {

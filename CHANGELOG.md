@@ -5,6 +5,7 @@
 BUG FIXES:
 
 - [Query] Node name is invalid after update node (GetAsNodesByServiceId)
+- [DeliverTx] Return invalid code and log when call `UpdateNode` by NDID
 
 ## 0.7.2 (August 22, 2018)
 

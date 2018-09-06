@@ -1837,3 +1837,16 @@ func TestQueryGetAsNodesByServiceIdAfterUpdateNodeName(t *testing.T) {
 	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"UpdatedName_AS1","min_ial":2.2,"min_aal":2.2}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
+
+func TestUpdateNodeNDID(t *testing.T) {
+	ndidKey := getPrivateKeyFromString(ndidPrivK)
+	ndidpublicKeyBytes, err := generatePublicKey(&ndidKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param = did.UpdateNodeParam{
+		string(ndidpublicKeyBytes),
+		"",
+	}
+	UpdateNode(t, param, ndidPrivK, "NDID")
+}
