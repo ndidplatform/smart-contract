@@ -414,19 +414,21 @@ type GetNodeInfoParam struct {
 }
 
 type GetNodeInfoResult struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
+	PublicKey       string     `json:"public_key"`
+	MasterPublicKey string     `json:"master_public_key"`
+	NodeName        string     `json:"node_name"`
+	Role            string     `json:"role"`
+	Mq              MsqAddress `json:"mq"`
 }
 
 type GetNodeInfoIdPResult struct {
-	PublicKey       string  `json:"public_key"`
-	MasterPublicKey string  `json:"master_public_key"`
-	NodeName        string  `json:"node_name"`
-	Role            string  `json:"role"`
-	MaxIal          float64 `json:"max_ial"`
-	MaxAal          float64 `json:"max_aal"`
+	PublicKey       string     `json:"public_key"`
+	MasterPublicKey string     `json:"master_public_key"`
+	NodeName        string     `json:"node_name"`
+	Role            string     `json:"role"`
+	MaxIal          float64    `json:"max_ial"`
+	MaxAal          float64    `json:"max_aal"`
+	Mq              MsqAddress `json:"mq"`
 }
 
 type GetIdentityInfoParam struct {
@@ -580,4 +582,11 @@ type ASWithMqNode struct {
 
 type GetAsNodesInfoByServiceIdResult struct {
 	Node []ASWithMqNode `json:"node"`
+}
+
+type GetNodeInfoResultRP struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
 }
