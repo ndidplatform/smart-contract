@@ -974,3 +974,136 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
 	}
 }
+
+func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetIdpNodesInfo, Parameter: %s", param)
+	var funcParam GetIdpNodesParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	var result GetIdpNodesInfoResult
+	result.Node = make([]IdpNode, 0)
+
+	if funcParam.HashID == "" {
+		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
+		idpsKey := "IdPList"
+		_, idpsValue := app.state.db.GetVersioned(prefixKey([]byte(idpsKey)), height)
+		var idpsList []string
+		if idpsValue != nil {
+			err := json.Unmarshal([]byte(idpsValue), &idpsList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, idp := range idpsList {
+				// check Max IAL
+				maxIalAalKey := "MaxIalAalNode" + "|" + idp
+				_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
+				if maxIalAalValue != nil {
+					var maxIalAal MaxIalAal
+					err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+					if err != nil {
+						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+					}
+					if maxIalAal.MaxIal >= funcParam.MinIal &&
+						maxIalAal.MaxAal >= funcParam.MinAal {
+						nodeDetailKey := "NodeID" + "|" + idp
+						_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+						if nodeDetailValue != nil {
+							var nodeDetail NodeDetail
+							err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+							if err != nil {
+								return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+							}
+							if nodeDetail.Active {
+								key := "MsqAddress" + "|" + idp
+								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+								var msqAddress MsqAddress
+								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+								if err != nil {
+									return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+								}
+								var msqDesNode = IdpNode{
+									idp,
+									nodeDetail.NodeName,
+									maxIalAal.MaxIal,
+									maxIalAal.MaxAal,
+									nodeDetail.PublicKey,
+									msqAddress,
+								}
+								result.Node = append(result.Node, msqDesNode)
+							}
+						}
+					}
+				}
+			}
+		}
+	} else {
+		key := "MsqDestination" + "|" + funcParam.HashID
+		_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+		if value != nil {
+			var nodes []Node
+			err = json.Unmarshal([]byte(value), &nodes)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, node := range nodes {
+				if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
+					if node.Ial >= funcParam.MinIal {
+						// check Max IAL && AAL
+						maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
+						_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
+
+						if maxIalAalValue != nil {
+							var maxIalAal MaxIalAal
+							err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
+							if err != nil {
+								return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+							}
+							if maxIalAal.MaxIal >= funcParam.MinIal &&
+								maxIalAal.MaxAal >= funcParam.MinAal &&
+								node.Active {
+								nodeDetailKey := "NodeID" + "|" + node.NodeID
+								_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+								if nodeDetailValue != nil {
+									var nodeDetail NodeDetail
+									err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+									if err != nil {
+										return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+									}
+									if nodeDetail.Active {
+										key := "MsqAddress" + "|" + node.NodeID
+										_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+										var msqAddress MsqAddress
+										err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+										if err != nil {
+											return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+										}
+										var msqDesNode = IdpNode{
+											node.NodeID,
+											nodeDetail.NodeName,
+											maxIalAal.MaxIal,
+											maxIalAal.MaxAal,
+											nodeDetail.PublicKey,
+											msqAddress,
+										}
+										result.Node = append(result.Node, msqDesNode)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	value, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	if len(result.Node) > 0 {
+		return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	}
+	return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+}

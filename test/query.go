@@ -679,3 +679,18 @@ func GetDataSignature(t *testing.T, param did.GetDataSignatureParam, expected st
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func GetIdpNodesInfo(t *testing.T, param did.GetIdpNodesParam, expected string) {
+	fnName := "GetIdpNodesInfo"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

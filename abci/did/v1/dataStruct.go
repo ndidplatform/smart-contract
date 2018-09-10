@@ -555,3 +555,16 @@ type ClearRegisterMsqDestinationTimeoutParam struct {
 type TimeOutBlockRegisterMsqDestination struct {
 	TimeOutBlock int64 `json:"time_out_block"`
 }
+
+type GetIdpNodesInfoResult struct {
+	Node []IdpNode `json:"node"`
+}
+
+type IdpNode struct {
+	NodeID    string     `json:"node_id"`
+	Name      string     `json:"name"`
+	MaxIal    float64    `json:"max_ial"`
+	MaxAal    float64    `json:"max_aal"`
+	PublicKey string     `json:"public_key"`
+	Mq        MsqAddress `json:"mq"`
+}
