@@ -1018,6 +1018,9 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 							if nodeDetail.Active {
 								key := "MsqAddress" + "|" + idp
 								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+								if msqAddressValue == nil {
+									break
+								}
 								var msqAddress MsqAddress
 								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
 								if err != nil {
@@ -1074,6 +1077,9 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 									if nodeDetail.Active {
 										key := "MsqAddress" + "|" + node.NodeID
 										_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+										if msqAddressValue == nil {
+											break
+										}
 										var msqAddress MsqAddress
 										err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
 										if err != nil {
@@ -1106,4 +1112,111 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 		return ReturnQuery(value, "success", app.state.db.Version64(), app)
 	}
 	return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+}
+
+func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetAsNodesInfoByServiceId, Parameter: %s", param)
+	var funcParam GetAsNodesByServiceIdParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	key := "ServiceDestination" + "|" + funcParam.ServiceID
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+
+	if value == nil {
+		var result GetAsNodesInfoByServiceIdResult
+		result.Node = make([]ASWithMqNode, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+	}
+
+	// filter serive is active
+	serviceKey := "Service" + "|" + funcParam.ServiceID
+	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+	if serviceValue != nil {
+		var service ServiceDetail
+		err = json.Unmarshal([]byte(serviceValue), &service)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		if service.Active == false {
+			var result GetAsNodesByServiceIdResult
+			result.Node = make([]ASNode, 0)
+			value, err := json.Marshal(result)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			return ReturnQuery(value, "service is not active", app.state.db.Version64(), app)
+		}
+	} else {
+		var result GetAsNodesByServiceIdResult
+		result.Node = make([]ASNode, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+	}
+
+	var storedData GetAsNodesByServiceIdResult
+	err = json.Unmarshal([]byte(value), &storedData)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+
+	var result GetAsNodesInfoByServiceIdResult
+	result.Node = make([]ASWithMqNode, 0)
+	for index := range storedData.Node {
+		// filter node is active
+		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].ID
+		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+		if nodeDetailValue != nil {
+			var nodeDetail NodeDetail
+			err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			if nodeDetail.Active {
+				// Filter service destination is Active
+				if storedData.Node[index].Active {
+					// Filter approve from NDID
+					approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].ID
+					_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
+					if approveServiceJSON != nil {
+						var approveService ApproveService
+						err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+						if err == nil {
+							if approveService.Active {
+								key := "MsqAddress" + "|" + storedData.Node[index].ID
+								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+								var msqAddress MsqAddress
+								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+								if err != nil {
+									return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+								}
+								var newRow = ASWithMqNode{
+									storedData.Node[index].ID,
+									storedData.Node[index].Name,
+									storedData.Node[index].MinIal,
+									storedData.Node[index].MinAal,
+									nodeDetail.PublicKey,
+									msqAddress,
+								}
+								result.Node = append(result.Node, newRow)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }

@@ -367,6 +367,7 @@ func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expecte
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	// fmt.Println(string(resultString))
 	var res []did.Report
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
@@ -690,7 +691,31 @@ func GetIdpNodesInfo(t *testing.T, param did.GetIdpNodesParam, expected string) 
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func GetAsNodesInfoByServiceId(t *testing.T, param did.GetAsNodesByServiceIdParam, expected string) {
+	fnName := "GetAsNodesInfoByServiceId"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.GetAsNodesByServiceIdResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

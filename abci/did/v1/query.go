@@ -93,6 +93,8 @@ func callQuery(name string, param string, app *DIDApplication, height int64) typ
 		return getServicesByAsID(param, app, height)
 	case "GetIdpNodesInfo":
 		return getIdpNodesInfo(param, app, height)
+	case "GetAsNodesInfoByServiceId":
+		return getAsNodesInfoByServiceId(param, app, height)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

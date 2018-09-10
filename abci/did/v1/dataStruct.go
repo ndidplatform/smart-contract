@@ -568,3 +568,16 @@ type IdpNode struct {
 	PublicKey string     `json:"public_key"`
 	Mq        MsqAddress `json:"mq"`
 }
+
+type ASWithMqNode struct {
+	ID        string     `json:"node_id"`
+	Name      string     `json:"name"`
+	MinIal    float64    `json:"min_ial"`
+	MinAal    float64    `json:"min_aal"`
+	PublicKey string     `json:"public_key"`
+	Mq        MsqAddress `json:"mq"`
+}
+
+type GetAsNodesInfoByServiceIdResult struct {
+	Node []ASWithMqNode `json:"node"`
+}
