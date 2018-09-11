@@ -583,10 +583,3 @@ type ASWithMqNode struct {
 type GetAsNodesInfoByServiceIdResult struct {
 	Node []ASWithMqNode `json:"node"`
 }
-
-type GetNodeInfoResultRP struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
-}

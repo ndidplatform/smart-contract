@@ -771,7 +771,6 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 
 	var result GetNodeInfoResult
 	var resultIdP GetNodeInfoIdPResult
-	var resultRP GetNodeInfoResultRP
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, nodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(nodeDetailKey)), height)
@@ -790,11 +789,6 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		resultIdP.PublicKey = nodeDetail.PublicKey
 		resultIdP.NodeName = nodeDetail.NodeName
 		resultIdP.Role = nodeDetail.Role
-
-		resultRP.MasterPublicKey = nodeDetail.MasterPublicKey
-		resultRP.PublicKey = nodeDetail.PublicKey
-		resultRP.NodeName = nodeDetail.NodeName
-		resultRP.Role = nodeDetail.Role
 	}
 
 	maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
@@ -809,13 +803,10 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		resultIdP.MaxAal = maxIalAal.MaxAal
 	}
 
-	// publicKeyRoleKey := "NodePublicKeyRole" + "|" + result.PublicKey
-	// _, role := app.state.db.GetVersioned(prefixKey([]byte(publicKeyRoleKey)), height)
-
 	// Get Msq address
-	if result.Role == "IdP" || result.Role == "AS" {
-		key := "MsqAddress" + "|" + funcParam.NodeID
-		_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+	key := "MsqAddress" + "|" + funcParam.NodeID
+	_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+	if msqAddressValue != nil {
 		var msqAddress MsqAddress
 		err = json.Unmarshal([]byte(msqAddressValue), &msqAddress)
 		if err != nil {
@@ -828,8 +819,6 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	var value []byte
 	if result.Role == "IdP" {
 		value, err = json.Marshal(resultIdP)
-	} else if result.Role == "RP" {
-		value, err = json.Marshal(resultRP)
 	} else {
 		value, err = json.Marshal(result)
 	}
