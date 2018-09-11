@@ -66,9 +66,10 @@ type MsqDestination struct {
 }
 
 type GetIdpNodesParam struct {
-	HashID string  `json:"hash_id"`
-	MinIal float64 `json:"min_ial"`
-	MinAal float64 `json:"min_aal"`
+	HashID     string   `json:"hash_id"`
+	MinIal     float64  `json:"min_ial"`
+	MinAal     float64  `json:"min_aal"`
+	NodeIDList []string `json:"node_id_list"`
 }
 
 type MsqDestinationNode struct {
@@ -192,7 +193,8 @@ type GetServiceDetailParam struct {
 }
 
 type GetAsNodesByServiceIdParam struct {
-	ServiceID string `json:"service_id"`
+	ServiceID  string   `json:"service_id"`
+	NodeIDList []string `json:"node_id_list"`
 }
 
 type ASNode struct {

@@ -25,6 +25,7 @@ package test
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"log"
 	"strings"
 	"testing"
@@ -1922,4 +1923,19 @@ func TestQueryGetNodeInfoInvalidNodeID(t *testing.T) {
 	param.NodeID = "InvalidNodeID"
 	expected := string(`{}`)
 	GetNodeInfo(t, param, expected)
+}
+
+func TestQueryGetIdpNodesInfo3(t *testing.T) {
+	param := make(map[string]interface{})
+	param["min_ial"] = 3
+	param["min_aal"] = 3
+	nodeIDList := make([]string, 0)
+	nodeIDList = append(nodeIDList, IdP5)
+	param["node_id_list"] = nodeIDList
+	jsonStr, err := json.Marshal(param)
+	if err != nil {
+		panic(err)
+	}
+	var expected = `{"node":[{"node_id":"` + IdP5 + `","name":"IdP Number 5 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":8000}}]}`
+	GetIdpNodesInfoParamJSON(t, string(jsonStr), expected)
 }

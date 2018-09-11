@@ -719,3 +719,14 @@ func GetAsNodesInfoByServiceId(t *testing.T, param did.GetAsNodesByServiceIdPara
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func GetIdpNodesInfoParamJSON(t *testing.T, paramJSON string, expected string) {
+	fnName := "GetIdpNodesInfo"
+	result, _ := queryTendermint([]byte(fnName), []byte(paramJSON))
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

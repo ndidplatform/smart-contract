@@ -995,6 +995,12 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 	var result GetIdpNodesInfoResult
 	result.Node = make([]IdpNode, 0)
 
+	// Make mapping
+	mapNodeIDList := map[string]bool{}
+	for _, nodeID := range funcParam.NodeIDList {
+		mapNodeIDList[nodeID] = true
+	}
+
 	if funcParam.HashID == "" {
 		// Get all IdP that's max_ial >= min_ial && max_aal >= min_aal
 		idpsKey := "IdPList"
@@ -1006,6 +1012,13 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
 			for _, idp := range idpsList {
+				// filter from node_id_list
+				if len(mapNodeIDList) > 0 {
+					if mapNodeIDList[idp] == false {
+						continue
+					}
+				}
+
 				// check Max IAL
 				maxIalAalKey := "MaxIalAalNode" + "|" + idp
 				_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
@@ -1029,7 +1042,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 								key := "MsqAddress" + "|" + idp
 								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 								if msqAddressValue == nil {
-									break
+									continue
 								}
 								var msqAddress MsqAddress
 								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
@@ -1063,6 +1076,14 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 			for _, node := range nodes {
 				if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
 					if node.Ial >= funcParam.MinIal {
+
+						// filter from node_id_list
+						if len(mapNodeIDList) > 0 {
+							if mapNodeIDList[node.NodeID] == false {
+								continue
+							}
+						}
+
 						// check Max IAL && AAL
 						maxIalAalKey := "MaxIalAalNode" + "|" + node.NodeID
 						_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
@@ -1088,7 +1109,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 										key := "MsqAddress" + "|" + node.NodeID
 										_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 										if msqAddressValue == nil {
-											break
+											continue
 										}
 										var msqAddress MsqAddress
 										err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
@@ -1178,9 +1199,23 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 
+	// Make mapping
+	mapNodeIDList := map[string]bool{}
+	for _, nodeID := range funcParam.NodeIDList {
+		mapNodeIDList[nodeID] = true
+	}
+
 	var result GetAsNodesInfoByServiceIdResult
 	result.Node = make([]ASWithMqNode, 0)
 	for index := range storedData.Node {
+
+		// filter from node_id_list
+		if len(mapNodeIDList) > 0 {
+			if mapNodeIDList[storedData.Node[index].ID] == false {
+				continue
+			}
+		}
+
 		// filter node is active
 		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].ID
 		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
@@ -1204,7 +1239,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 								key := "MsqAddress" + "|" + storedData.Node[index].ID
 								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 								if msqAddressValue == nil {
-									break
+									continue
 								}
 								var msqAddress MsqAddress
 								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
