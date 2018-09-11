@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/ndidplatform/smart-contract/abci/did/v1"
 	"github.com/tendermint/tendermint/libs/common"
@@ -61,6 +62,7 @@ func InitNDID(t *testing.T) {
 
 	fnName := "InitNDID"
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	startTime := time.Now()
 	result, _ := callTendermint([]byte(fnName), initNDIDparamJSON, []byte(nonce), signature, []byte(initNDIDparam.NodeID))
 	resultObj, _ := result.(ResponseTx)
 	if resultObj.Result.CheckTx.Log == "NDID node is already existed" {
@@ -71,6 +73,8 @@ func InitNDID(t *testing.T) {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
+	stopTime := time.Now()
+	writeLog(fnName, (stopTime.UnixNano()-startTime.UnixNano())/int64(time.Millisecond))
 	t.Logf("PASS: %s", fnName)
 }
 
