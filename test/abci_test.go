@@ -2010,6 +2010,18 @@ func TestQueryGetNodeInfoIdP6BehindProxy1(t *testing.T) {
 	GetNodeInfo(t, param, expected)
 }
 
+func TestQueryGetIdpNodesInfo4(t *testing.T) {
+	param := make(map[string]interface{})
+	param["min_ial"] = 3
+	param["min_aal"] = 3
+	jsonStr, err := json.Marshal(param)
+	if err != nil {
+		panic(err)
+	}
+	var expected = `{"node":[{"node_id":"` + IdP4 + `","name":"IdP Number 4 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9+CK/vznpXtAUC0QhuJ\ngYKCfMMBiIgVcp2A+e+SsKvv6ESQ72R8K6nQAhH2MGtnj3ScLI0tMwCtgotWCEGi\nyUXKXLVTiqAqtwflCUVuxCDVuvOm3GQCxvwzE34jEgbGZ33G3tV7uKTtifhoJzVY\nD+WkZVslBhaBgQCUewCX4zkCCTYC5VEhkr7K8HGEr6n1eBOO5VORCkrHKYoZK7eu\nNjyWvWYyVN07F8K0RhgIF9Xsa6Tiu1Yf8zuyJ/awR6U4Nw+oTkvRpx64+caBNYgR\n4n8peg9ZJeTAwV49o1ymx34pPjHUgSdpyhZX4i3z9ji+o7KbNkA/O0l+3doMuH1e\nxwIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":8000}},{"node_id":"` + IdP5 + `","name":"IdP Number 5 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":8000}},{"node_id":"` + IdP6BehindProxy1 + `","name":"IdP6BehindProxy1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","proxy":{"node_id":"` + Proxy1 + `","public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":9000}}}]}`
+	GetIdpNodesInfoParamJSON(t, string(jsonStr), expected)
+}
+
 func TestRegisterAS3BehindProxy1(t *testing.T) {
 	asKey := getPrivateKeyFromString(asPrivK)
 	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)

@@ -561,7 +561,7 @@ type TimeOutBlockRegisterMsqDestination struct {
 }
 
 type GetIdpNodesInfoResult struct {
-	Node []IdpNode `json:"node"`
+	Node []interface{} `json:"node"`
 }
 
 type IdpNode struct {
@@ -634,4 +634,20 @@ type UpdateNodeProxyNodeParam struct {
 
 type RemoveNodeFromProxyNode struct {
 	NodeID string `json:"node_id"`
+}
+
+type IdpNodeBehindProxy struct {
+	NodeID    string  `json:"node_id"`
+	Name      string  `json:"name"`
+	MaxIal    float64 `json:"max_ial"`
+	MaxAal    float64 `json:"max_aal"`
+	PublicKey string  `json:"public_key"`
+	Proxy     struct {
+		NodeID    string `json:"node_id"`
+		PublicKey string `json:"public_key"`
+		Mq        struct {
+			IP   string `json:"ip"`
+			Port int64  `json:"port"`
+		} `json:"mq"`
+	} `json:"proxy"`
 }
