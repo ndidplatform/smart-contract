@@ -172,6 +172,8 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return addNodeToProxyNode(param, app, nodeID)
 	case "UpdateNodeProxyNode":
 		return updateNodeProxyNode(param, app, nodeID)
+	case "RemoveNodeFromProxyNode":
+		return removeNodeFromProxyNode(param, app, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

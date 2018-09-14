@@ -631,3 +631,7 @@ type UpdateNodeProxyNodeParam struct {
 	NodeID      string `json:"node_id"`
 	ProxyNodeID string `json:"proxy_node_id"`
 }
+
+type RemoveNodeFromProxyNode struct {
+	NodeID string `json:"node_id"`
+}
