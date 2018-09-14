@@ -105,7 +105,8 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 
 	if string(node.Role) == "RP" ||
 		string(node.Role) == "IdP" ||
-		string(node.Role) == "AS" {
+		string(node.Role) == "AS" ||
+		string(node.Role) == "Proxy" {
 		return ReturnCheckTx(code.OK, "")
 	}
 	return ReturnCheckTx(code.NoPermissionForRegisterMsqAddress, "This node does not have permission for register msq address")

@@ -42,6 +42,7 @@ var IdP4 = RandStringRunes(20)
 var IdP5 = RandStringRunes(20)
 var AS1 = RandStringRunes(20)
 var AS2 = RandStringRunes(20)
+var Proxy1 = RandStringRunes(20)
 var serviceID1 = RandStringRunes(20)
 var serviceID2 = RandStringRunes(20)
 var requestID1 = uuid.NewV4()
@@ -1938,4 +1939,42 @@ func TestQueryGetIdpNodesInfo3(t *testing.T) {
 	}
 	var expected = `{"node":[{"node_id":"` + IdP5 + `","name":"IdP Number 5 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":8000}}]}`
 	GetIdpNodesInfoParamJSON(t, string(jsonStr), expected)
+}
+
+func TestRegisterProxyNode(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param did.RegisterNode
+	param.NodeID = Proxy1
+	param.NodeName = "Proxy1"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes)
+	param.Role = "Proxy"
+	RegisterNode(t, param)
+}
+func TestSetNodeTokenProxy1(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		Proxy1,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestRegisterMsqAddressProxy1(t *testing.T) {
+	var param = did.RegisterMsqAddressParam{
+		Proxy1,
+		"192.168.3.99",
+		9000,
+	}
+	RegisterMsqAddress(t, param, idpPrivK, Proxy1)
+}
+
+func TestQueryGetNodeInfoProxy1(t *testing.T) {
+	var param did.GetNodeInfoParam
+	param.NodeID = Proxy1
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"Proxy1","role":"Proxy","mq":{"ip":"192.168.3.99","port":9000}}`)
+	GetNodeInfo(t, param, expected)
 }

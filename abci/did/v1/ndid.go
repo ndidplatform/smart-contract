@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
@@ -147,6 +148,26 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 
 		return ReturnDeliverTxLog(code.OK, "success", "")
 	}
+
+	// Register proxy
+	if strings.ToLower(funcParam.Role) == "proxy" {
+		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+		var nodeDetail = NodeDetail{
+			funcParam.PublicKey,
+			funcParam.MasterPublicKey,
+			funcParam.NodeName,
+			"Proxy",
+			true,
+		}
+		nodeDetailValue, err := json.Marshal(nodeDetail)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		createTokenAccount(funcParam.NodeID, app)
+		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
+		return ReturnDeliverTxLog(code.OK, "success", "")
+	}
+
 	return ReturnDeliverTxLog(code.WrongRole, "Wrong Role", "")
 }
 
