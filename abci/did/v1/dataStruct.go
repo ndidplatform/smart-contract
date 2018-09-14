@@ -585,3 +585,44 @@ type ASWithMqNode struct {
 type GetAsNodesInfoByServiceIdResult struct {
 	Node []ASWithMqNode `json:"node"`
 }
+
+type AddNodeToProxyNodeParam struct {
+	NodeID      string `json:"node_id"`
+	ProxyNodeID string `json:"proxy_node_id"`
+}
+
+type GetNodeInfoResultRPandASBehindProxy struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	Proxy           struct {
+		NodeID          string `json:"node_id"`
+		NodeName        string `json:"node_name"`
+		PublicKey       string `json:"public_key"`
+		MasterPublicKey string `json:"master_public_key"`
+		Mq              struct {
+			IP   string `json:"ip"`
+			Port int64  `json:"port"`
+		} `json:"mq"`
+	} `json:"proxy"`
+}
+
+type GetNodeInfoResultIdPandASBehindProxy struct {
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+	Proxy           struct {
+		NodeID          string `json:"node_id"`
+		NodeName        string `json:"node_name"`
+		PublicKey       string `json:"public_key"`
+		MasterPublicKey string `json:"master_public_key"`
+		Mq              struct {
+			IP   string `json:"ip"`
+			Port int64  `json:"port"`
+		} `json:"mq"`
+	} `json:"proxy"`
+}

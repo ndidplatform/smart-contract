@@ -82,6 +82,7 @@ var IsMethod = map[string]bool{
 	"EnableServiceDestination":              true,
 	"ClearRegisterMsqDestinationTimeout":    true,
 	"SetTimeOutBlockRegisterMsqDestination": true,
+	"AddNodeToProxyNode":                    true,
 }
 
 func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
@@ -491,7 +492,8 @@ func callCheckTx(name string, param string, nodeID string, app *DIDApplication) 
 		"EnableServiceDestinationByNDID",
 		"EnableNamespace",
 		"EnableService",
-		"SetTimeOutBlockRegisterMsqDestination":
+		"SetTimeOutBlockRegisterMsqDestination",
+		"AddNodeToProxyNode":
 		return checkIsNDID(param, nodeID, app)
 	case "RegisterMsqDestination",
 		"AddAccessorMethod",
@@ -530,6 +532,20 @@ func getActiveStatusByNodeID(nodeID string, app *DIDApplication) bool {
 			return false
 		}
 		return nodeDetail.Active
+	}
+	return false
+}
+
+func checkIsProxyNode(nodeID string, app *DIDApplication) bool {
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	var node NodeDetail
+	err := json.Unmarshal([]byte(value), &node)
+	if err != nil {
+		return false
+	}
+	if node.Role == "Proxy" {
+		return true
 	}
 	return false
 }

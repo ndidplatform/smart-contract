@@ -168,6 +168,8 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return clearRegisterMsqDestinationTimeout(param, app, nodeID)
 	case "SetTimeOutBlockRegisterMsqDestination":
 		return setTimeOutBlockRegisterMsqDestination(param, app, nodeID)
+	case "AddNodeToProxyNode":
+		return addNodeToProxyNode(param, app, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

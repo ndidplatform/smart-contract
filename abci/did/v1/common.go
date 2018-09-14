@@ -803,6 +803,76 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		resultIdP.MaxAal = maxIalAal.MaxAal
 	}
 
+	// If node behind proxy
+	proxyKey := "Proxy" + "|" + funcParam.NodeID
+	_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
+	if proxyNodeID != nil {
+
+		// Get proxy msq address
+		key := "MsqAddress" + "|" + string(proxyNodeID)
+		_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+		if msqAddressValue == nil {
+			return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
+		}
+		var msqAddress MsqAddress
+		err = json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+
+		// Get proxy node detail
+		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+		_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
+		if proxyNodeDetailValue == nil {
+			return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
+		}
+		var proxyNode NodeDetail
+		err = json.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+
+		if result.Role == "IdP" {
+			var resultIdPBehindProxy GetNodeInfoResultIdPandASBehindProxy
+			resultIdPBehindProxy.PublicKey = result.PublicKey
+			resultIdPBehindProxy.MasterPublicKey = result.MasterPublicKey
+			resultIdPBehindProxy.NodeName = result.NodeName
+			resultIdPBehindProxy.Role = result.Role
+			resultIdPBehindProxy.MaxIal = resultIdP.MaxIal
+			resultIdPBehindProxy.MaxAal = resultIdP.MaxIal
+			resultIdPBehindProxy.NodeName = result.NodeName
+			resultIdPBehindProxy.Proxy.NodeID = string(proxyNodeID)
+			resultIdPBehindProxy.Proxy.NodeName = proxyNode.NodeName
+			resultIdPBehindProxy.Proxy.PublicKey = proxyNode.PublicKey
+			resultIdPBehindProxy.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
+			resultIdPBehindProxy.Proxy.Mq.IP = msqAddress.IP
+			resultIdPBehindProxy.Proxy.Mq.Port = msqAddress.Port
+			value, err := json.Marshal(resultIdPBehindProxy)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			return ReturnQuery(value, "success", app.state.db.Version64(), app)
+		}
+
+		var resultRPandAS GetNodeInfoResultRPandASBehindProxy
+		resultRPandAS.PublicKey = result.PublicKey
+		resultRPandAS.MasterPublicKey = result.MasterPublicKey
+		resultRPandAS.NodeName = result.NodeName
+		resultRPandAS.Role = result.Role
+		resultRPandAS.NodeName = result.NodeName
+		resultRPandAS.Proxy.NodeID = string(proxyNodeID)
+		resultRPandAS.Proxy.NodeName = proxyNode.NodeName
+		resultRPandAS.Proxy.PublicKey = proxyNode.PublicKey
+		resultRPandAS.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
+		resultRPandAS.Proxy.Mq.IP = msqAddress.IP
+		resultRPandAS.Proxy.Mq.Port = msqAddress.Port
+		value, err := json.Marshal(resultRPandAS)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	}
+
 	// Get Msq address
 	key := "MsqAddress" + "|" + funcParam.NodeID
 	_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)

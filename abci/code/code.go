@@ -96,5 +96,7 @@ const (
 	ServiceIsNotActive                        uint32 = 69
 	ServiceDestinationIsNotActive             uint32 = 70
 	ServiceDestinationIsNotApprovedByNDID     uint32 = 71
+	NodeIDIsAlreadyAssociatedWithProxyNode    uint32 = 72
+	NodeIDisProxyNode                         uint32 = 73
 	UnknownError                              uint32 = 999
 )
