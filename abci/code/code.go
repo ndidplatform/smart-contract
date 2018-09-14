@@ -98,5 +98,6 @@ const (
 	ServiceDestinationIsNotApprovedByNDID     uint32 = 71
 	NodeIDIsAlreadyAssociatedWithProxyNode    uint32 = 72
 	NodeIDisProxyNode                         uint32 = 73
+	NodeIDHasNotBeenAssociatedWithProxyNode   uint32 = 74
 	UnknownError                              uint32 = 999
 )

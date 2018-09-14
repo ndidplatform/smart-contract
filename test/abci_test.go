@@ -43,6 +43,7 @@ var IdP5 = RandStringRunes(20)
 var AS1 = RandStringRunes(20)
 var AS2 = RandStringRunes(20)
 var Proxy1 = RandStringRunes(20)
+var Proxy2 = RandStringRunes(20)
 
 var IdP6BehindProxy1 = RandStringRunes(20)
 var AS3BehindProxy1 = RandStringRunes(20)
@@ -2037,4 +2038,34 @@ func TestQueryGetNodeInfoAS3BehindProxy1(t *testing.T) {
 	param.NodeID = AS3BehindProxy1
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"AS3BehindProxy1","role":"AS","proxy":{"node_id":"` + Proxy1 + `","node_name":"Proxy1","public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":9000}}}`)
 	GetNodeInfo(t, param, expected)
+}
+
+func TestRegisterProxyNodeProxy2(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param did.RegisterNode
+	param.NodeID = Proxy2
+	param.NodeName = "Proxy2"
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes)
+	param.Role = "Proxy"
+	RegisterNode(t, param)
+}
+func TestSetNodeTokenProxy2(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		Proxy2,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestUpdateNodeProxyNodeProxy2(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		Proxy2,
+	}
+	UpdateNodeProxyNode(t, param, "success")
 }

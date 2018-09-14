@@ -626,3 +626,8 @@ type GetNodeInfoResultIdPandASBehindProxy struct {
 		} `json:"mq"`
 	} `json:"proxy"`
 }
+
+type UpdateNodeProxyNodeParam struct {
+	NodeID      string `json:"node_id"`
+	ProxyNodeID string `json:"proxy_node_id"`
+}
