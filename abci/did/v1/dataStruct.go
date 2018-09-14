@@ -667,3 +667,29 @@ type ASWithMqNodeBehindProxy struct {
 		} `json:"mq"`
 	} `json:"proxy"`
 }
+
+type GetNodesBehindProxyNodeParam struct {
+	ProxyNodeID string `json:"proxy_node_id"`
+}
+
+type GetNodesBehindProxyNodeResult struct {
+	Nodes []interface{} `json:"nodes"`
+}
+
+type IdPBehindProxy struct {
+	NodeID          string  `json:"node_id"`
+	NodeName        string  `json:"node_name"`
+	Role            string  `json:"role"`
+	PublicKey       string  `json:"public_key"`
+	MasterPublicKey string  `json:"master_public_key"`
+	MaxIal          float64 `json:"max_ial"`
+	MaxAal          float64 `json:"max_aal"`
+}
+
+type ASorRPBehindProxy struct {
+	NodeID          string `json:"node_id"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+}

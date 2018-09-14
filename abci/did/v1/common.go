@@ -1414,3 +1414,77 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 	}
 	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }
+
+func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetNodesBehindProxyNode, Parameter: %s", param)
+	var funcParam GetNodesBehindProxyNodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	var result GetNodesBehindProxyNodeResult
+	result.Nodes = make([]interface{}, 0)
+	behindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
+	if behindProxyNodeValue == nil {
+		resultJSON, err := json.Marshal(result)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
+	}
+	nodes := make([]string, 0)
+	err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	for _, node := range nodes {
+		nodeDetailKey := "NodeID" + "|" + node
+		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+		if nodeDetailValue == nil {
+			continue
+		}
+		var nodeDetail NodeDetail
+		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			continue
+		}
+		if nodeDetail.Role == "IdP" {
+			maxIalAalKey := "MaxIalAalNode" + "|" + node
+			_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
+			if maxIalAalValue == nil {
+				continue
+			}
+			var maxAalIal MaxIalAal
+			err := json.Unmarshal([]byte(maxIalAalValue), &maxAalIal)
+			if err != nil {
+				continue
+			}
+			var row IdPBehindProxy
+			row.NodeID = node
+			row.NodeName = nodeDetail.NodeName
+			row.Role = nodeDetail.NodeName
+			row.PublicKey = nodeDetail.NodeName
+			row.MasterPublicKey = nodeDetail.NodeName
+			row.MaxIal = maxAalIal.MaxIal
+			row.MaxAal = maxAalIal.MaxAal
+			result.Nodes = append(result.Nodes, row)
+		} else {
+			var row ASorRPBehindProxy
+			row.NodeID = node
+			row.NodeName = nodeDetail.NodeName
+			row.Role = nodeDetail.NodeName
+			row.PublicKey = nodeDetail.NodeName
+			row.MasterPublicKey = nodeDetail.NodeName
+			result.Nodes = append(result.Nodes, row)
+		}
+	}
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	if len(result.Nodes) == 0 {
+		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
+	}
+	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
+}
