@@ -583,7 +583,7 @@ type ASWithMqNode struct {
 }
 
 type GetAsNodesInfoByServiceIdResult struct {
-	Node []ASWithMqNode `json:"node"`
+	Node []interface{} `json:"node"`
 }
 
 type AddNodeToProxyNodeParam struct {
@@ -641,6 +641,22 @@ type IdpNodeBehindProxy struct {
 	Name      string  `json:"name"`
 	MaxIal    float64 `json:"max_ial"`
 	MaxAal    float64 `json:"max_aal"`
+	PublicKey string  `json:"public_key"`
+	Proxy     struct {
+		NodeID    string `json:"node_id"`
+		PublicKey string `json:"public_key"`
+		Mq        struct {
+			IP   string `json:"ip"`
+			Port int64  `json:"port"`
+		} `json:"mq"`
+	} `json:"proxy"`
+}
+
+type ASWithMqNodeBehindProxy struct {
+	NodeID    string  `json:"node_id"`
+	Name      string  `json:"name"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
 	PublicKey string  `json:"public_key"`
 	Proxy     struct {
 		NodeID    string `json:"node_id"`

@@ -1265,7 +1265,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 
 	if value == nil {
 		var result GetAsNodesInfoByServiceIdResult
-		result.Node = make([]ASWithMqNode, 0)
+		result.Node = make([]interface{}, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -1314,7 +1314,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 	}
 
 	var result GetAsNodesInfoByServiceIdResult
-	result.Node = make([]ASWithMqNode, 0)
+	result.Node = make([]interface{}, 0)
 	for index := range storedData.Node {
 
 		// filter from node_id_list
@@ -1344,25 +1344,63 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 						err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
 						if err == nil {
 							if approveService.Active {
-								key := "MsqAddress" + "|" + storedData.Node[index].ID
-								_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-								if msqAddressValue == nil {
-									continue
+								// If node is behind proxy
+								proxyKey := "Proxy" + "|" + storedData.Node[index].ID
+								_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
+								if proxyNodeID != nil {
+									// Get proxy node detail
+									proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+									_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
+									if proxyNodeDetailValue == nil {
+										return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
+									}
+									var proxyNode NodeDetail
+									err = json.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+									if err != nil {
+										return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+									}
+									key := "MsqAddress" + "|" + string(proxyNodeID)
+									_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+									if msqAddressValue == nil {
+										continue
+									}
+									var msqAddress MsqAddress
+									err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+									if err != nil {
+										return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+									}
+									var as ASWithMqNodeBehindProxy
+									as.NodeID = storedData.Node[index].ID
+									as.Name = nodeDetail.NodeName
+									as.MinIal = storedData.Node[index].MinIal
+									as.MinAal = storedData.Node[index].MinAal
+									as.PublicKey = nodeDetail.PublicKey
+									as.Proxy.NodeID = string(proxyNodeID)
+									as.Proxy.PublicKey = proxyNode.PublicKey
+									as.Proxy.Mq.IP = msqAddress.IP
+									as.Proxy.Mq.Port = msqAddress.Port
+									result.Node = append(result.Node, as)
+								} else {
+									key := "MsqAddress" + "|" + storedData.Node[index].ID
+									_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+									if msqAddressValue == nil {
+										continue
+									}
+									var msqAddress MsqAddress
+									err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+									if err != nil {
+										return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+									}
+									var newRow = ASWithMqNode{
+										storedData.Node[index].ID,
+										storedData.Node[index].Name,
+										storedData.Node[index].MinIal,
+										storedData.Node[index].MinAal,
+										nodeDetail.PublicKey,
+										msqAddress,
+									}
+									result.Node = append(result.Node, newRow)
 								}
-								var msqAddress MsqAddress
-								err := json.Unmarshal([]byte(msqAddressValue), &msqAddress)
-								if err != nil {
-									return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
-								}
-								var newRow = ASWithMqNode{
-									storedData.Node[index].ID,
-									storedData.Node[index].Name,
-									storedData.Node[index].MinIal,
-									storedData.Node[index].MinAal,
-									nodeDetail.PublicKey,
-									msqAddress,
-								}
-								result.Node = append(result.Node, newRow)
 							}
 						}
 					}
