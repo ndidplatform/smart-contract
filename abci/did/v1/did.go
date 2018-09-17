@@ -29,10 +29,13 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
+
+	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
 )
 
 var (
@@ -130,24 +133,18 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	}()
 
 	txString := string(tx)
-	parts := strings.Split(string(txString), "|")
-
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
+	decodedTx, err := base64.StdEncoding.DecodeString(txString)
+	var txObj protoTm.Tx
+	err = proto.Unmarshal(decodedTx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
-	}
-	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 
-	method := string(parts[0])
-	param := string(paramByte)
-	nonce := string(parts[2])
-	signature := string(parts[3])
-	nodeID := string(nodeIDByte)
+	method := txObj.Method
+	param := txObj.Param
+	nonce := txObj.Nonce
+	signature := txObj.Signature
+	nodeID := txObj.NodeID
 
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
@@ -168,27 +165,23 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		}
 	}()
 
-	parts := strings.Split(string(tx), "|")
-	paramByte, err := base64.StdEncoding.DecodeString(parts[1])
+	txString := string(tx)
+	decodedTx, err := base64.StdEncoding.DecodeString(txString)
+	var txObj protoTm.Tx
+	err = proto.Unmarshal(decodedTx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
-		return ReturnCheckTx(code.DecodingError, err.Error())
-	}
-	nodeIDByte, err := base64.StdEncoding.DecodeString(parts[4])
-	if err != nil {
-		app.logger.Error(err.Error())
-		return ReturnCheckTx(code.DecodingError, err.Error())
 	}
 
-	method := string(parts[0])
-	param := string(paramByte)
-	nonce := string(parts[2])
-	signature := string(parts[3])
-	nodeID := string(nodeIDByte)
+	method := txObj.Method
+	param := txObj.Param
+	nonce := txObj.Nonce
+	signature := txObj.Signature
+	nodeID := txObj.NodeID
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" && param != "" && nonce != "" && signature != "" && nodeID != "" {
+	if method != "" && param != "" && nonce != "" && signature != nil && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
 			result := CheckTxRouter(method, param, nonce, signature, nodeID, app)

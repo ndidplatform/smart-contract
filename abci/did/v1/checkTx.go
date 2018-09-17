@@ -28,7 +28,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -237,7 +236,7 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 	return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
 }
 
-func verifySignature(param string, nonce string, signature string, publicKey string) (result bool, err error) {
+func verifySignature(param string, nonce string, signature []byte, publicKey string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
 	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -245,10 +244,11 @@ func verifySignature(param string, nonce string, signature string, publicKey str
 	if err != nil {
 		return false, err
 	}
-	decodedSignature, err := base64.StdEncoding.DecodeString(signature)
-	if err != nil {
-		return false, err
-	}
+	// decodedSignature, err := base64.StdEncoding.DecodeString(signature)
+	// if err != nil {
+	// 	return false, err
+	// }
+	decodedSignature := signature
 	PSSmessage := []byte(param + nonce)
 	newhash := crypto.SHA256
 	pssh := newhash.New()
@@ -397,7 +397,7 @@ var IsMasterKeyMethod = map[string]bool{
 }
 
 // CheckTxRouter is Pointer to function
-func CheckTxRouter(method string, param string, nonce string, signature string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+func CheckTxRouter(method string, param string, nonce string, signature []byte, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 
 	var publicKey string
 	if method == "InitNDID" {

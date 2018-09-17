@@ -29,6 +29,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -36,6 +37,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gogo/protobuf/proto"
+	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
 )
 
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
@@ -73,25 +77,29 @@ func generatePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 }
 
 func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
-	var path string
-	path += string(fnName)
-	path += "|"
-	path += base64.StdEncoding.EncodeToString(param)
-	path += "|"
-	path += string(nonce)
-	path += "|"
-	path += base64.StdEncoding.EncodeToString(signature)
-	path += "|"
-	path += base64.StdEncoding.EncodeToString(nodeID)
+
+	var tx protoTm.Tx
+	tx.Method = string(fnName)
+	tx.Param = string(param)
+	tx.Nonce = string(nonce)
+	tx.Signature = signature
+	tx.NodeID = string(nodeID)
+
+	txByte, err := proto.Marshal(&tx)
+	if err != nil {
+		log.Printf("err: %s", err.Error())
+	}
+
+	txEncoded := base64.StdEncoding.EncodeToString(txByte)
 
 	var URL *url.URL
-	URL, err := url.Parse(tendermintAddr)
+	URL, err = url.Parse(tendermintAddr)
 	if err != nil {
 		panic("boom")
 	}
 	URL.Path += "/broadcast_tx_commit"
 	parameters := url.Values{}
-	parameters.Add("tx", `"`+path+`"`)
+	parameters.Add("tx", `"`+txEncoded+`"`)
 	URL.RawQuery = parameters.Encode()
 	encodedURL := URL.String()
 	req, err := http.NewRequest("GET", encodedURL, nil)
