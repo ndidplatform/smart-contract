@@ -321,8 +321,8 @@ func TestDisableOldIdPNode1(t *testing.T) {
 	userHash := h.Sum(nil)
 	var param did.GetIdpNodesParam
 	param.HashID = hex.EncodeToString(userHash)
-	param.MinAal = 3
 	param.MinIal = 3
+	param.MinAal = 3
 	idps := GetIdpNodesForDisable(t, param)
 	for _, idp := range idps {
 		if idp.ID != IdP1 {
@@ -347,8 +347,8 @@ func TestQueryGetIdpNodesInfo1(t *testing.T) {
 	userHash := h.Sum(nil)
 	var param did.GetIdpNodesParam
 	param.HashID = hex.EncodeToString(userHash)
-	param.MinAal = 3
 	param.MinIal = 3
+	param.MinAal = 3
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":{"ip":"192.168.3.99","port":8000}}]}`
 	GetIdpNodesInfo(t, param, expected)
 }
@@ -359,8 +359,8 @@ func TestQueryGetIdpNodes(t *testing.T) {
 	userHash := h.Sum(nil)
 	var param did.GetIdpNodesParam
 	param.HashID = hex.EncodeToString(userHash)
-	param.MinAal = 3
 	param.MinIal = 3
+	param.MinAal = 3
 	var expected = []did.MsqDestinationNode{
 		{
 			IdP1,
@@ -636,7 +636,7 @@ func TestQueryGetRequestDetail1(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -673,7 +673,7 @@ func TestQueryGetRequestDetail2(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -750,7 +750,7 @@ func TestQueryGetRequestDetail3(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID3.String(),
 	}
-	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"special":false,"mode":3}`
+	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -1029,8 +1029,8 @@ func TestQueryGetDataSignature(t *testing.T) {
 func TestDisableOldIdPNode3(t *testing.T) {
 	var param did.GetIdpNodesParam
 	param.HashID = ""
-	param.MinAal = 1
-	param.MinIal = 1
+	param.MinIal = 3
+	param.MinAal = 3
 	idps := GetIdpNodesForDisable(t, param)
 	for _, idp := range idps {
 		if idp.ID != IdP1 && idp.ID != IdP4 {
@@ -1243,8 +1243,8 @@ func TestQueryGetIdpNodes3(t *testing.T) {
 	userHash := h.Sum(nil)
 	var param did.GetIdpNodesParam
 	param.HashID = hex.EncodeToString(userHash)
-	param.MinAal = 1
 	param.MinIal = 1
+	param.MinAal = 1
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"` + IdP4 + `","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
