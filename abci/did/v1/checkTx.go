@@ -33,7 +33,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
@@ -99,8 +101,8 @@ func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.Res
 func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
@@ -117,8 +119,8 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 func checkNDID(param string, nodeID string, app *DIDApplication) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -131,8 +133,8 @@ func checkNDID(param string, nodeID string, app *DIDApplication) bool {
 func checkIdP(param string, nodeID string, app *DIDApplication) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -145,8 +147,8 @@ func checkIdP(param string, nodeID string, app *DIDApplication) bool {
 func checkAS(param string, nodeID string, app *DIDApplication) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -159,8 +161,8 @@ func checkAS(param string, nodeID string, app *DIDApplication) bool {
 func checkIdPorRP(param string, nodeID string, app *DIDApplication) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -244,18 +246,13 @@ func verifySignature(param string, nonce string, signature []byte, publicKey str
 	if err != nil {
 		return false, err
 	}
-	// decodedSignature, err := base64.StdEncoding.DecodeString(signature)
-	// if err != nil {
-	// 	return false, err
-	// }
-	decodedSignature := signature
 	PSSmessage := []byte(param + nonce)
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 
-	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, decodedSignature)
+	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, signature)
 	if err != nil {
 		return false, err
 	}
@@ -283,8 +280,8 @@ func getMasterPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(value), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(value, &nodeDetail)
 		if err != nil {
 			return ""
 		}
@@ -297,8 +294,8 @@ func getPublicKeyFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(value), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(value, &nodeDetail)
 		if err != nil {
 			return ""
 		}
@@ -311,8 +308,8 @@ func getRoleFromNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(value), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(value, &nodeDetail)
 		if err != nil {
 			return ""
 		}
@@ -530,8 +527,8 @@ func getActiveStatusByNodeID(nodeID string, app *DIDApplication) bool {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(value), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(value, &nodeDetail)
 		if err != nil {
 			return false
 		}
@@ -543,8 +540,8 @@ func getActiveStatusByNodeID(nodeID string, app *DIDApplication) bool {
 func checkIsProxyNode(nodeID string, app *DIDApplication) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var node NodeDetail
-	err := json.Unmarshal([]byte(value), &node)
+	var node data.NodeDetail
+	err := proto.Unmarshal([]byte(value), &node)
 	if err != nil {
 		return false
 	}

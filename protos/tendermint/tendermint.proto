@@ -10,5 +10,5 @@ message Tx {
 
 message Query {
   string fnName = 1;
-  bytes param = 2;
+  string param = 2;
 }

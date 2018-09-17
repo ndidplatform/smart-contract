@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+message NodeDetail {
+  string public_key = 1;
+  string master_public_key = 2;
+  string node_name = 3;
+  string role = 4;
+  double max_ial = 5;
+  double max_aal = 6;
+  MQ mq = 7;
+  bool active = 8;
+}
+  
+message MQ {
+  string ip = 1;
+  int64 port = 2;
+}
+
+message IdPList {
+  repeated string node_id = 1;
+}

@@ -26,7 +26,9 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
@@ -64,24 +66,20 @@ func initNDID(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	var nodeDetail = NodeDetail{
-		funcParam.PublicKey,
-		funcParam.MasterPublicKey,
-		"NDID",
-		"NDID",
-		true,
-	}
-	nodeDetailValue, err := json.Marshal(nodeDetail)
+	var nodeDetail data.NodeDetail
+	nodeDetail.PublicKey = funcParam.PublicKey
+	nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	nodeDetail.NodeName = "NDID"
+	nodeDetail.Role = "NDID"
+	nodeDetail.Active = true
+	nodeDetailByte, err := proto.Marshal(&nodeDetail)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
-
-	key := "MasterNDID"
-	value := []byte(funcParam.MasterPublicKey)
-	app.SetStateDB([]byte(key), []byte(value))
+	masterNDIDKey := "MasterNDID"
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	app.SetStateDB([]byte(masterNDIDKey), []byte(nodeID))
+	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -100,78 +98,58 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
 
-	if funcParam.Role == "RP" ||
+	// check role is valid
+	if !(funcParam.Role == "RP" ||
 		funcParam.Role == "IdP" ||
-		funcParam.Role == "AS" {
-		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-		var nodeDetail = NodeDetail{
-			funcParam.PublicKey,
-			funcParam.MasterPublicKey,
-			funcParam.NodeName,
-			funcParam.Role,
-			true,
-		}
-		nodeDetailValue, err := json.Marshal(nodeDetail)
-		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-		}
-		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
-
-		createTokenAccount(funcParam.NodeID, app)
-
-		// Add max_aal, min_ial when node is IdP
-		if funcParam.Role == "IdP" {
-			maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-			var maxIalAal MaxIalAal
-			maxIalAal.MaxAal = funcParam.MaxAal
-			maxIalAal.MaxIal = funcParam.MaxIal
-			maxIalAalValue, err := json.Marshal(maxIalAal)
-			if err != nil {
-				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-			}
-			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalValue))
-
-			// Save all IdP's nodeID for GetIdpNodes
-			idpsKey := "IdPList"
-			_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
-			var idpsList []string
-			if idpsValue != nil {
-				err := json.Unmarshal([]byte(idpsValue), &idpsList)
-				if err != nil {
-					return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-			}
-			idpsList = append(idpsList, funcParam.NodeID)
-			idpsValue, err = json.Marshal(idpsList)
-			if err != nil {
-				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-			}
-			app.SetStateDB([]byte(idpsKey), []byte(idpsValue))
-		}
-
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		funcParam.Role == "AS" ||
+		strings.ToLower(funcParam.Role) == "proxy") {
+		return ReturnDeliverTxLog(code.WrongRole, "Wrong Role", "")
 	}
 
-	// Register proxy
 	if strings.ToLower(funcParam.Role) == "proxy" {
-		nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-		var nodeDetail = NodeDetail{
-			funcParam.PublicKey,
-			funcParam.MasterPublicKey,
-			funcParam.NodeName,
-			"Proxy",
-			true,
+		funcParam.Role = "Proxy"
+	}
+
+	// create node detail
+	var nodeDetail data.NodeDetail
+	nodeDetail.PublicKey = funcParam.PublicKey
+	nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	nodeDetail.NodeName = funcParam.NodeName
+	nodeDetail.Role = funcParam.Role
+	nodeDetail.Active = true
+
+	// if node is IdP, set max_aal, min_ial
+	if funcParam.Role == "IdP" {
+		nodeDetail.MaxAal = funcParam.MaxAal
+		nodeDetail.MaxIal = funcParam.MaxIal
+	}
+
+	// if node is IdP, add node id to IdPList
+	var idpsList data.IdPList
+	idpsKey := "IdPList"
+	if funcParam.Role == "IdP" {
+		_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+		if idpsValue != nil {
+			err := proto.Unmarshal(idpsValue, &idpsList)
+			if err != nil {
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
 		}
-		nodeDetailValue, err := json.Marshal(nodeDetail)
+		idpsList.NodeId = append(idpsList.NodeId, funcParam.NodeID)
+		idpsListByte, err := proto.Marshal(&idpsList)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		createTokenAccount(funcParam.NodeID, app)
-		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailValue))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		app.SetStateDB([]byte(idpsKey), []byte(idpsListByte))
 	}
-
-	return ReturnDeliverTxLog(code.WrongRole, "Wrong Role", "")
+	nodeDetailByte, err := proto.Marshal(&nodeDetail)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
+	createTokenAccount(funcParam.NodeID, app)
+	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func addNamespace(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -381,8 +359,8 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 	if nodeDetailValue == nil {
 		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
-	var node NodeDetail
-	err = json.Unmarshal([]byte(nodeDetailValue), &node)
+	var node data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &node)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -390,36 +368,21 @@ func updateNodeByNDID(param string, app *DIDApplication, nodeID string) types.Re
 	// Selective update
 	if funcParam.NodeName != "" {
 		node.NodeName = funcParam.NodeName
-		nodeDetailJSON, err := json.Marshal(node)
-		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-		}
-		app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailJSON))
 	}
 	// If node is IdP then update max_ial, max_aal
 	if node.Role == "IdP" {
-		maxIalAalKey := "MaxIalAalNode" + "|" + funcParam.NodeID
-		_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
-		if maxIalAalValue != nil {
-			var maxIalAal MaxIalAal
-			err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-			if err != nil {
-				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-			}
-			// Selective update
-			if funcParam.MaxIal > 0 {
-				maxIalAal.MaxIal = funcParam.MaxIal
-			}
-			if funcParam.MaxAal > 0 {
-				maxIalAal.MaxAal = funcParam.MaxAal
-			}
-			maxIalAalJSON, err := json.Marshal(maxIalAal)
-			if err != nil {
-				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-			}
-			app.SetStateDB([]byte(maxIalAalKey), []byte(maxIalAalJSON))
+		if funcParam.MaxIal > 0 {
+			node.MaxIal = funcParam.MaxIal
+		}
+		if funcParam.MaxAal > 0 {
+			node.MaxAal = funcParam.MaxAal
 		}
 	}
+	nodeDetailJSON, err := proto.Marshal(&node)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -526,15 +489,15 @@ func disableNode(param string, app *DIDApplication, nodeID string) types.Respons
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 
 	if nodeDetailValue != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		nodeDetail.Active = false
 
-		nodeDetailValue, err := json.Marshal(nodeDetail)
+		nodeDetailValue, err := proto.Marshal(&nodeDetail)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -596,15 +559,15 @@ func enableNode(param string, app *DIDApplication, nodeID string) types.Response
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 
 	if nodeDetailValue != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		nodeDetail.Active = true
 
-		nodeDetailValue, err := json.Marshal(nodeDetail)
+		nodeDetailValue, err := proto.Marshal(&nodeDetail)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
