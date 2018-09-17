@@ -450,6 +450,10 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 	if string(ownerRole) == "IdP" {
 		result.Special = true
 	}
+
+	// Set requester_node_id
+	result.RequesterNodeID = request.Owner
+
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")

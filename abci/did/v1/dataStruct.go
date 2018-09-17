@@ -165,6 +165,7 @@ type GetRequestDetailResult struct {
 	IsTimedOut      bool          `json:"timed_out"`
 	Special         bool          `json:"special"`
 	Mode            int           `json:"mode"`
+	RequesterNodeID string        `json:"requester_node_id"`
 }
 
 type SignDataParam struct {

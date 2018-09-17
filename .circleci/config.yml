@@ -44,8 +44,8 @@ jobs:
       - run:
           name: Test ABCI
           command: |
-            cd test
             dep ensure
+            cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
   push_to_docker_hub:
