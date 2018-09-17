@@ -19,3 +19,13 @@ message MQ {
 message IdPList {
   repeated string node_id = 1;
 }
+
+message NamespaceList {
+  repeated Namespace namespaces = 1;
+}
+
+message Namespace {
+  string namespace = 1;
+  string description = 2;
+  bool active = 3;
+}

@@ -163,25 +163,29 @@ func addNamespace(param string, app *DIDApplication, nodeID string) types.Respon
 	key := "AllNamespace"
 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
-	var namespaces []Namespace
+	var namespaces data.NamespaceList
 
 	if chkExists != nil {
-		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		err = proto.Unmarshal([]byte(chkExists), &namespaces)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check duplicate namespace
-		for _, namespace := range namespaces {
+		for _, namespace := range namespaces.Namespaces {
 			if namespace.Namespace == funcParam.Namespace {
 				return ReturnDeliverTxLog(code.DuplicateNamespace, "Duplicate namespace", "")
 			}
 		}
 	}
+
+	var newNamespace data.Namespace
+	newNamespace.Namespace = funcParam.Namespace
+	newNamespace.Description = funcParam.Description
 	// set active flag
-	funcParam.Active = true
-	namespaces = append(namespaces, funcParam)
-	value, err := json.Marshal(namespaces)
+	newNamespace.Active = true
+	namespaces.Namespaces = append(namespaces.Namespaces, &newNamespace)
+	value, err := proto.Marshal(&namespaces)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -200,22 +204,22 @@ func disableNamespace(param string, app *DIDApplication, nodeID string) types.Re
 	key := "AllNamespace"
 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
-	var namespaces []Namespace
+	var namespaces data.NamespaceList
 
 	if chkExists != nil {
-		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		err = proto.Unmarshal([]byte(chkExists), &namespaces)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
-		for index, namespace := range namespaces {
+		for index, namespace := range namespaces.Namespaces {
 			if namespace.Namespace == funcParam.Namespace {
-				namespaces[index].Active = false
+				namespaces.Namespaces[index].Active = false
 				break
 			}
 		}
 
-		value, err := json.Marshal(namespaces)
+		value, err := proto.Marshal(&namespaces)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -628,22 +632,22 @@ func enableNamespace(param string, app *DIDApplication, nodeID string) types.Res
 	key := "AllNamespace"
 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
-	var namespaces []Namespace
+	var namespaces data.NamespaceList
 
 	if chkExists != nil {
-		err = json.Unmarshal([]byte(chkExists), &namespaces)
+		err = proto.Unmarshal([]byte(chkExists), &namespaces)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
-		for index, namespace := range namespaces {
+		for index, namespace := range namespaces.Namespaces {
 			if namespace.Namespace == funcParam.Namespace {
-				namespaces[index].Active = true
+				namespaces.Namespaces[index].Active = true
 				break
 			}
 		}
 
-		value, err := json.Marshal(namespaces)
+		value, err := proto.Marshal(&namespaces)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}

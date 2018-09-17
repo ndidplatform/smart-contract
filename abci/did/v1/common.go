@@ -486,14 +486,14 @@ func getNamespaceList(param string, app *DIDApplication, height int64) types.Res
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
-	result := make([]Namespace, 0)
+	result := make([]*data.Namespace, 0)
 	// filter flag==true
-	var namespaces []Namespace
-	err := json.Unmarshal([]byte(value), &namespaces)
+	var namespaces data.NamespaceList
+	err := proto.Unmarshal([]byte(value), &namespaces)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	for _, namespace := range namespaces {
+	for _, namespace := range namespaces.Namespaces {
 		if namespace.Active {
 			result = append(result, namespace)
 		}
