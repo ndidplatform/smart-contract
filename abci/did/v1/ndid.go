@@ -468,9 +468,9 @@ func registerServiceDestinationByNDID(param string, app *DIDApplication, nodeID 
 	}
 
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
-	var approveService ApproveService
+	var approveService data.ApproveService
 	approveService.Active = true
-	approveServiceJSON, err := json.Marshal(approveService)
+	approveServiceJSON, err := proto.Marshal(&approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -534,13 +534,13 @@ func disableServiceDestinationByNDID(param string, app *DIDApplication, nodeID s
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var approveService ApproveService
-	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = false
-	approveServiceJSON, err = json.Marshal(approveService)
+	approveServiceJSON, err = proto.Marshal(&approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -604,13 +604,13 @@ func enableServiceDestinationByNDID(param string, app *DIDApplication, nodeID st
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var approveService ApproveService
-	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = true
-	approveServiceJSON, err = json.Marshal(approveService)
+	approveServiceJSON, err = proto.Marshal(&approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

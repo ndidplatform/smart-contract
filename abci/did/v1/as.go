@@ -83,8 +83,8 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var approveService ApproveService
-	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -232,8 +232,8 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	if approveServiceJSON == nil {
 		return ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
 	}
-	var approveService ApproveService
-	err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

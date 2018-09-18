@@ -39,3 +39,7 @@ message ServiceDetail {
   string service_name = 2;
   bool active = 3;
 }
+
+message ApproveService {
+  bool active = 1;
+}

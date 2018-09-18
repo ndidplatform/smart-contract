@@ -315,8 +315,8 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 		if approveServiceJSON == nil {
 			continue
 		}
-		var approveService ApproveService
-		err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+		var approveService data.ApproveService
+		err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 		if err != nil {
 			continue
 		}
@@ -1023,8 +1023,8 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceID + "|" + funcParam.AsID
 			_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 			if approveServiceJSON != nil {
-				var approveService ApproveService
-				err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+				var approveService data.ApproveService
+				err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 				if err == nil {
 					services[index].Suspended = !approveService.Active
 				}
@@ -1326,8 +1326,8 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		if approveServiceJSON == nil {
 			continue
 		}
-		var approveService ApproveService
-		err = json.Unmarshal([]byte(approveServiceJSON), &approveService)
+		var approveService data.ApproveService
+		err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 		if err != nil {
 			continue
 		}
