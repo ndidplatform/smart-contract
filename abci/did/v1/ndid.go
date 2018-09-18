@@ -810,7 +810,13 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 		}
 	}
 
-	proxyValue = []byte(funcParam.ProxyNodeID)
+	var proxy Proxy
+	proxy.ProxyNodeID = funcParam.ProxyNodeID
+	proxy.Config = funcParam.Config
+	proxyJSON, err := json.Marshal(proxy)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
 	nodes = append(nodes, funcParam.NodeID)
 	behindProxyNodeJSON, err := json.Marshal(nodes)
 	if err != nil {
@@ -821,7 +827,7 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 	msqAddressKey := "MsqAddress" + "|" + funcParam.NodeID
 	app.DeleteStateDB([]byte(msqAddressKey))
 
-	app.SetStateDB([]byte(proxyKey), []byte(proxyValue))
+	app.SetStateDB([]byte(proxyKey), []byte(proxyJSON))
 	app.SetStateDB([]byte(behindProxyNodeKey), []byte(behindProxyNodeJSON))
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -852,7 +858,13 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 		return ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
 
-	behindProxyNodeKey := "BehindProxyNode" + "|" + string(proxyValue)
+	var proxy Proxy
+	err = json.Unmarshal([]byte(proxyValue), &proxy)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeID
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
 		err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
@@ -879,9 +891,18 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 		}
 	}
 
+	proxy.ProxyNodeID = funcParam.ProxyNodeID
+	if funcParam.Config != "" {
+		proxy.Config = funcParam.Config
+	}
+	proxyJSON, err := json.Marshal(proxy)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
 	// Add to new proxy list
 	newProxyNodes = append(newProxyNodes, funcParam.NodeID)
-	proxyValue = []byte(funcParam.ProxyNodeID)
+	proxyValue = proxyJSON
 	behindProxyNodeJSON, err := json.Marshal(nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
@@ -928,7 +949,13 @@ func removeNodeFromProxyNode(param string, app *DIDApplication, nodeID string) t
 		return ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
 
-	behindProxyNodeKey := "BehindProxyNode" + "|" + string(proxyValue)
+	var proxy Proxy
+	err = json.Unmarshal([]byte(proxyValue), &proxy)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeID
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
 		err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)

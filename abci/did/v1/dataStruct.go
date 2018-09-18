@@ -590,6 +590,7 @@ type GetAsNodesInfoByServiceIdResult struct {
 type AddNodeToProxyNodeParam struct {
 	NodeID      string `json:"node_id"`
 	ProxyNodeID string `json:"proxy_node_id"`
+	Config      string `json:"config"`
 }
 
 type GetNodeInfoResultRPandASBehindProxy struct {
@@ -606,6 +607,7 @@ type GetNodeInfoResultRPandASBehindProxy struct {
 			IP   string `json:"ip"`
 			Port int64  `json:"port"`
 		} `json:"mq"`
+		Config string `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -625,12 +627,14 @@ type GetNodeInfoResultIdPandASBehindProxy struct {
 			IP   string `json:"ip"`
 			Port int64  `json:"port"`
 		} `json:"mq"`
+		Config string `json:"config"`
 	} `json:"proxy"`
 }
 
 type UpdateNodeProxyNodeParam struct {
 	NodeID      string `json:"node_id"`
 	ProxyNodeID string `json:"proxy_node_id"`
+	Config      string `json:"config"`
 }
 
 type RemoveNodeFromProxyNode struct {
@@ -650,6 +654,7 @@ type IdpNodeBehindProxy struct {
 			IP   string `json:"ip"`
 			Port int64  `json:"port"`
 		} `json:"mq"`
+		Config string `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -666,6 +671,7 @@ type ASWithMqNodeBehindProxy struct {
 			IP   string `json:"ip"`
 			Port int64  `json:"port"`
 		} `json:"mq"`
+		Config string `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -693,4 +699,9 @@ type ASorRPBehindProxy struct {
 	Role            string `json:"role"`
 	PublicKey       string `json:"public_key"`
 	MasterPublicKey string `json:"master_public_key"`
+}
+
+type Proxy struct {
+	ProxyNodeID string `json:"proxy_node_id"`
+	Config      string `json:"config"`
 }
