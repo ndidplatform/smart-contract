@@ -817,12 +817,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 	if proxyValue != nil {
 
 		// Get proxy node ID
-		var proxy Proxy
-		err = json.Unmarshal([]byte(proxyValue), &proxy)
+		var proxy data.Proxy
+		err = proto.Unmarshal([]byte(proxyValue), &proxy)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
-		proxyNodeID := proxy.ProxyNodeID
+		proxyNodeID := proxy.ProxyNodeId
 
 		// Get proxy node detail
 		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
@@ -1116,12 +1116,12 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 				if proxyValue != nil {
 
 					// Get proxy node ID
-					var proxy Proxy
-					err = json.Unmarshal([]byte(proxyValue), &proxy)
+					var proxy data.Proxy
+					err = proto.Unmarshal([]byte(proxyValue), &proxy)
 					if err != nil {
 						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 					}
-					proxyNodeID := proxy.ProxyNodeID
+					proxyNodeID := proxy.ProxyNodeId
 
 					// Get proxy node detail
 					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
@@ -1217,12 +1217,12 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 				if proxyValue != nil {
 
 					// Get proxy node ID
-					var proxy Proxy
-					err = json.Unmarshal([]byte(proxyValue), &proxy)
+					var proxy data.Proxy
+					err = proto.Unmarshal([]byte(proxyValue), &proxy)
 					if err != nil {
 						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 					}
-					proxyNodeID := proxy.ProxyNodeID
+					proxyNodeID := proxy.ProxyNodeId
 
 					// Get proxy node detail
 					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
@@ -1387,12 +1387,12 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		if proxyValue != nil {
 
 			// Get proxy node ID
-			var proxy Proxy
-			err = json.Unmarshal([]byte(proxyValue), &proxy)
+			var proxy data.Proxy
+			err = proto.Unmarshal([]byte(proxyValue), &proxy)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
-			proxyNodeID := proxy.ProxyNodeID
+			proxyNodeID := proxy.ProxyNodeId
 
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)

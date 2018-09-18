@@ -47,3 +47,8 @@ message ApproveService {
 message TimeOutBlockRegisterMsqDestination {
   int64 time_out_block = 1;
 }
+
+message Proxy {
+  string proxy_node_id = 1;
+  string config = 2;
+}
