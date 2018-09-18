@@ -25,7 +25,9 @@ package did
 import (
 	"encoding/json"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
@@ -197,10 +199,10 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 	}
 
 	timeOutKey := "TimeOutBlockRegisterMsqDestination"
-	var timeOut TimeOutBlockRegisterMsqDestination
+	var timeOut data.TimeOutBlockRegisterMsqDestination
 	_, timeOutValue := app.state.db.Get(prefixKey([]byte(timeOutKey)))
 	if timeOutValue != nil {
-		err := json.Unmarshal([]byte(timeOutValue), &timeOut)
+		err := proto.Unmarshal([]byte(timeOutValue), &timeOut)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}

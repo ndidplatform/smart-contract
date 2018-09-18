@@ -721,13 +721,13 @@ func setTimeOutBlockRegisterMsqDestination(param string, app *DIDApplication, no
 	}
 
 	key := "TimeOutBlockRegisterMsqDestination"
-	var timeOut TimeOutBlockRegisterMsqDestination
+	var timeOut data.TimeOutBlockRegisterMsqDestination
 	timeOut.TimeOutBlock = funcParam.TimeOutBlock
 	// Check time out block > 0
 	if timeOut.TimeOutBlock <= 0 {
 		return ReturnDeliverTxLog(code.TimeOutBlockIsMustGreaterThanZero, "Time out block is must greater than 0", "")
 	}
-	value, err := json.Marshal(timeOut)
+	value, err := proto.Marshal(&timeOut)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
