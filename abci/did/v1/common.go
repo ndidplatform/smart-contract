@@ -813,9 +813,18 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 
 	// If node behind proxy
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
-	_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
-	if proxyNodeID != nil {
-		// 	// Get proxy node detail
+	_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+	if proxyValue != nil {
+
+		// Get proxy node ID
+		var proxy Proxy
+		err = json.Unmarshal([]byte(proxyValue), &proxy)
+		if err != nil {
+			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		}
+		proxyNodeID := proxy.ProxyNodeID
+
+		// Get proxy node detail
 		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 		_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
 		if proxyNodeDetailValue == nil {
@@ -840,6 +849,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
 			result.Proxy.Mq.IP = proxyNode.Mq.Ip
 			result.Proxy.Mq.Port = proxyNode.Mq.Port
+			result.Proxy.Config = proxy.Config
 			value, err := json.Marshal(result)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -857,6 +867,7 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
 		result.Proxy.Mq.IP = proxyNode.Mq.Ip
 		result.Proxy.Mq.Port = proxyNode.Mq.Port
+		result.Proxy.Config = proxy.Config
 		value, err := json.Marshal(result)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -1101,8 +1112,17 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 
 				// If node is behind proxy
 				proxyKey := "Proxy" + "|" + idp
-				_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
-				if proxyNodeID != nil {
+				_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+				if proxyValue != nil {
+
+					// Get proxy node ID
+					var proxy Proxy
+					err = json.Unmarshal([]byte(proxyValue), &proxy)
+					if err != nil {
+						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+					}
+					proxyNodeID := proxy.ProxyNodeID
+
 					// Get proxy node detail
 					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 					_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
@@ -1124,6 +1144,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 					msqDesNode.Proxy.Mq.IP = proxyNode.Mq.Ip
 					msqDesNode.Proxy.Mq.Port = proxyNode.Mq.Port
+					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
 					var msq MsqAddress
@@ -1192,8 +1213,17 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 
 				// If node is behind proxy
 				proxyKey := "Proxy" + "|" + node.NodeID
-				_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
-				if proxyNodeID != nil {
+				_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+				if proxyValue != nil {
+
+					// Get proxy node ID
+					var proxy Proxy
+					err = json.Unmarshal([]byte(proxyValue), &proxy)
+					if err != nil {
+						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+					}
+					proxyNodeID := proxy.ProxyNodeID
+
 					// Get proxy node detail
 					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 					_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
@@ -1215,6 +1245,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 					msqDesNode.Proxy.Mq.IP = proxyNode.Mq.Ip
 					msqDesNode.Proxy.Mq.Port = proxyNode.Mq.Port
+					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
 					var msq MsqAddress
@@ -1352,8 +1383,17 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 
 		// If node is behind proxy
 		proxyKey := "Proxy" + "|" + storedData.Node[index].ID
-		_, proxyNodeID := app.state.db.Get(prefixKey([]byte(proxyKey)))
-		if proxyNodeID != nil {
+		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+		if proxyValue != nil {
+
+			// Get proxy node ID
+			var proxy Proxy
+			err = json.Unmarshal([]byte(proxyValue), &proxy)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			proxyNodeID := proxy.ProxyNodeID
+
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
@@ -1375,6 +1415,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 			as.Proxy.PublicKey = proxyNode.PublicKey
 			as.Proxy.Mq.IP = proxyNode.Mq.Ip
 			as.Proxy.Mq.Port = proxyNode.Mq.Port
+			as.Proxy.Config = proxy.Config
 			result.Node = append(result.Node, as)
 		} else {
 			var msqAddress MsqAddress
