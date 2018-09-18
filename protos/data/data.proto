@@ -29,3 +29,13 @@ message Namespace {
   string description = 2;
   bool active = 3;
 }
+
+message ServiceDetailList {
+  repeated ServiceDetail services = 1;
+}
+
+message ServiceDetail {
+  string service_id = 1;
+  string service_name = 2;
+  bool active = 3;
+}

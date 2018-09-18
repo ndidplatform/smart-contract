@@ -25,7 +25,9 @@ package did
 import (
 	"encoding/json"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
@@ -64,8 +66,8 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service ServiceDetail
-	err = json.Unmarshal([]byte(serviceJSON), &service)
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -197,8 +199,8 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service ServiceDetail
-	err = json.Unmarshal([]byte(serviceJSON), &service)
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -319,8 +321,8 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service ServiceDetail
-	err = json.Unmarshal([]byte(serviceJSON), &service)
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -400,8 +402,8 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service ServiceDetail
-	err = json.Unmarshal([]byte(serviceJSON), &service)
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -471,8 +473,8 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if serviceJSON == nil {
 		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
-	var service ServiceDetail
-	err = json.Unmarshal([]byte(serviceJSON), &service)
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

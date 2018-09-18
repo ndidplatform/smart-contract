@@ -270,8 +270,8 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceValue != nil {
-		var service ServiceDetail
-		err = json.Unmarshal([]byte(serviceValue), &service)
+		var service data.ServiceDetail
+		err = proto.Unmarshal([]byte(serviceValue), &service)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
@@ -514,12 +514,24 @@ func getServiceDetail(param string, app *DIDApplication, height int64) types.Res
 	}
 	key := "Service" + "|" + funcParam.ServiceID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
 	if value == nil {
 		value = []byte("{}")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	var service data.ServiceDetail
+	err = proto.Unmarshal(value, &service)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	res := make(map[string]interface{})
+	res["service_id"] = service.ServiceId
+	res["service_name"] = service.ServiceName
+	res["active"] = service.Active
+	returnValue, err := json.Marshal(res)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	return ReturnQuery(returnValue, "success", app.state.db.Version64(), app)
 }
 
 func updateNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -684,14 +696,14 @@ func getServiceList(param string, app *DIDApplication, height int64) types.Respo
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
-	result := make([]ServiceDetail, 0)
+	result := make([]*data.ServiceDetail, 0)
 	// filter flag==true
-	var services []ServiceDetail
-	err := json.Unmarshal([]byte(value), &services)
+	var services data.ServiceDetailList
+	err := proto.Unmarshal([]byte(value), &services)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	for _, service := range services {
+	for _, service := range services.Services {
 		if service.Active {
 			result = append(result, service)
 		}
@@ -999,9 +1011,9 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 	for index, provideService := range services {
 		serviceKey := "Service" + "|" + provideService.ServiceID
 		_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
-		var service ServiceDetail
+		var service data.ServiceDetail
 		if serviceValue != nil {
-			err = json.Unmarshal([]byte(serviceValue), &service)
+			err = proto.Unmarshal([]byte(serviceValue), &service)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
@@ -1256,8 +1268,8 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceValue != nil {
-		var service ServiceDetail
-		err = json.Unmarshal([]byte(serviceValue), &service)
+		var service data.ServiceDetail
+		err = proto.Unmarshal([]byte(serviceValue), &service)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
