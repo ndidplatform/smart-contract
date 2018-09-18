@@ -43,3 +43,7 @@ message ServiceDetail {
 message ApproveService {
   bool active = 1;
 }
+
+message TimeOutBlockRegisterMsqDestination {
+  int64 time_out_block = 1;
+}
