@@ -1457,12 +1457,13 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 		}
 		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
 	}
-	nodes := make([]string, 0)
-	err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+	var nodes data.BehindNodeList
+	nodes.Nodes = make([]string, 0)
+	err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
-	for _, node := range nodes {
+	for _, node := range nodes.Nodes {
 		nodeDetailKey := "NodeID" + "|" + node
 		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 		if nodeDetailValue == nil {

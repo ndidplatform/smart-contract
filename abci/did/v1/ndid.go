@@ -744,7 +744,8 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 	}
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
 	behindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
-	nodes := make([]string, 0)
+	var nodes data.BehindNodeList
+	nodes.Nodes = make([]string, 0)
 
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
@@ -768,7 +769,7 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
-		err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
@@ -781,8 +782,8 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	nodes = append(nodes, funcParam.NodeID)
-	behindProxyNodeJSON, err := json.Marshal(nodes)
+	nodes.Nodes = append(nodes.Nodes, funcParam.NodeID)
+	behindProxyNodeJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -805,7 +806,8 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 	}
 
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
-	nodes := make([]string, 0)
+	var nodes data.BehindNodeList
+	nodes.Nodes = make([]string, 0)
 
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
@@ -831,21 +833,22 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeId
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
-		err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 		// Delete from old proxy list
-		for i, node := range nodes {
+		for i, node := range nodes.Nodes {
 			if node == funcParam.NodeID {
-				copy(nodes[i:], nodes[i+1:])
-				nodes[len(nodes)-1] = ""
-				nodes = nodes[:len(nodes)-1]
+				copy(nodes.Nodes[i:], nodes.Nodes[i+1:])
+				nodes.Nodes[len(nodes.Nodes)-1] = ""
+				nodes.Nodes = nodes.Nodes[:len(nodes.Nodes)-1]
 			}
 		}
 	}
 
-	newProxyNodes := make([]string, 0)
+	var newProxyNodes data.BehindNodeList
+	newProxyNodes.Nodes = make([]string, 0)
 	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
 	_, newBehindProxyNodeValue := app.state.db.Get(prefixKey([]byte(newBehindProxyNodeKey)))
 	if newBehindProxyNodeValue != nil {
@@ -865,13 +868,13 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 	}
 
 	// Add to new proxy list
-	newProxyNodes = append(newProxyNodes, funcParam.NodeID)
+	newProxyNodes.Nodes = append(newProxyNodes.Nodes, funcParam.NodeID)
 	proxyValue = proxyJSON
-	behindProxyNodeJSON, err := json.Marshal(nodes)
+	behindProxyNodeJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	newBehindProxyNodeJSON, err := json.Marshal(newProxyNodes)
+	newBehindProxyNodeJSON, err := proto.Marshal(&newProxyNodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -891,7 +894,8 @@ func removeNodeFromProxyNode(param string, app *DIDApplication, nodeID string) t
 	}
 
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
-	nodes := make([]string, 0)
+	var nodes data.BehindNodeList
+	nodes.Nodes = make([]string, 0)
 
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
@@ -922,21 +926,21 @@ func removeNodeFromProxyNode(param string, app *DIDApplication, nodeID string) t
 	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeId
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
-		err = json.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 		// Delete from old proxy list
-		for i, node := range nodes {
+		for i, node := range nodes.Nodes {
 			if node == funcParam.NodeID {
-				copy(nodes[i:], nodes[i+1:])
-				nodes[len(nodes)-1] = ""
-				nodes = nodes[:len(nodes)-1]
+				copy(nodes.Nodes[i:], nodes.Nodes[i+1:])
+				nodes.Nodes[len(nodes.Nodes)-1] = ""
+				nodes.Nodes = nodes.Nodes[:len(nodes.Nodes)-1]
 			}
 		}
 	}
 
-	behindProxyNodeJSON, err := json.Marshal(nodes)
+	behindProxyNodeJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

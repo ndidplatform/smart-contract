@@ -52,3 +52,7 @@ message Proxy {
   string proxy_node_id = 1;
   string config = 2;
 }
+
+message BehindNodeList {
+  repeated string nodes = 1;
+}
