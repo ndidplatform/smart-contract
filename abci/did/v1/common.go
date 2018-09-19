@@ -823,13 +823,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		// Get proxy msq address
 		key := "MsqAddress" + "|" + string(proxyNodeID)
 		_, msqAddressValue := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-		if msqAddressValue == nil {
-			return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
-		}
 		var msqAddress MsqAddress
-		err = json.Unmarshal([]byte(msqAddressValue), &msqAddress)
-		if err != nil {
-			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		if msqAddressValue != nil {
+			err = json.Unmarshal([]byte(msqAddressValue), &msqAddress)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
 		}
 
 		// Get proxy node detail
@@ -857,8 +856,10 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			resultIdPBehindProxy.Proxy.NodeName = proxyNode.NodeName
 			resultIdPBehindProxy.Proxy.PublicKey = proxyNode.PublicKey
 			resultIdPBehindProxy.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-			resultIdPBehindProxy.Proxy.Mq.IP = msqAddress.IP
-			resultIdPBehindProxy.Proxy.Mq.Port = msqAddress.Port
+			resultIdPBehindProxy.Proxy.Mq = &msqAddress
+			if msqAddressValue == nil {
+				resultIdPBehindProxy.Proxy.Mq = nil
+			}
 			resultIdPBehindProxy.Proxy.Config = proxy.Config
 			value, err := json.Marshal(resultIdPBehindProxy)
 			if err != nil {
@@ -877,8 +878,10 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		resultRPandAS.Proxy.NodeName = proxyNode.NodeName
 		resultRPandAS.Proxy.PublicKey = proxyNode.PublicKey
 		resultRPandAS.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-		resultRPandAS.Proxy.Mq.IP = msqAddress.IP
-		resultRPandAS.Proxy.Mq.Port = msqAddress.Port
+		resultRPandAS.Proxy.Mq = &msqAddress
+		if msqAddressValue == nil {
+			resultRPandAS.Proxy.Mq = nil
+		}
 		resultRPandAS.Proxy.Config = proxy.Config
 		value, err := json.Marshal(resultRPandAS)
 		if err != nil {
@@ -896,8 +899,8 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
-		resultIdP.Mq = msqAddress
-		result.Mq = msqAddress
+		resultIdP.Mq = &msqAddress
+		result.Mq = &msqAddress
 	}
 
 	var value []byte
@@ -1165,8 +1168,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 									msqDesNode.PublicKey = nodeDetail.PublicKey
 									msqDesNode.Proxy.NodeID = string(proxyNodeID)
 									msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-									msqDesNode.Proxy.Mq.IP = msqAddress.IP
-									msqDesNode.Proxy.Mq.Port = msqAddress.Port
+									msqDesNode.Proxy.Mq = &msqAddress
 									msqDesNode.Proxy.Config = proxy.Config
 									result.Node = append(result.Node, msqDesNode)
 								} else {
@@ -1186,7 +1188,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 										maxIalAal.MaxIal,
 										maxIalAal.MaxAal,
 										nodeDetail.PublicKey,
-										msqAddress,
+										&msqAddress,
 									}
 									result.Node = append(result.Node, msqDesNode)
 								}
@@ -1301,7 +1303,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 												maxIalAal.MaxIal,
 												maxIalAal.MaxAal,
 												nodeDetail.PublicKey,
-												msqAddress,
+												&msqAddress,
 											}
 											result.Node = append(result.Node, msqDesNode)
 										}
@@ -1458,8 +1460,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 									as.PublicKey = nodeDetail.PublicKey
 									as.Proxy.NodeID = string(proxyNodeID)
 									as.Proxy.PublicKey = proxyNode.PublicKey
-									as.Proxy.Mq.IP = msqAddress.IP
-									as.Proxy.Mq.Port = msqAddress.Port
+									as.Proxy.Mq = &msqAddress
 									as.Proxy.Config = proxy.Config
 									result.Node = append(result.Node, as)
 								} else {
@@ -1479,7 +1480,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 										storedData.Node[index].MinIal,
 										storedData.Node[index].MinAal,
 										nodeDetail.PublicKey,
-										msqAddress,
+										&msqAddress,
 									}
 									result.Node = append(result.Node, newRow)
 								}
