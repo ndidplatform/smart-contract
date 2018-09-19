@@ -186,13 +186,13 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 		_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 		if value != nil {
-			var nodes []Node
-			err = json.Unmarshal([]byte(value), &nodes)
+			var nodes data.MsqDesList
+			err = proto.Unmarshal([]byte(value), &nodes)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
 
-			for _, node := range nodes {
+			for _, node := range nodes.Nodes {
 				// check msq destination is not active
 				if !node.Active {
 					continue
@@ -205,7 +205,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 				if node.TimeoutBlock != 0 && app.CurrentBlock > node.TimeoutBlock {
 					continue
 				}
-				nodeDetailKey := "NodeID" + "|" + node.NodeID
+				nodeDetailKey := "NodeID" + "|" + node.NodeId
 				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 				if nodeDetailValue == nil {
 					continue
@@ -225,7 +225,7 @@ func getIdpNodes(param string, app *DIDApplication, height int64) types.Response
 					continue
 				}
 				var msqDesNode = MsqDestinationNode{
-					node.NodeID,
+					node.NodeId,
 					nodeDetail.NodeName,
 					nodeDetail.MaxIal,
 					nodeDetail.MaxAal,
@@ -651,14 +651,14 @@ func checkExistingIdentity(param string, app *DIDApplication, height int64) type
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value != nil {
-		var nodes []Node
-		err = json.Unmarshal([]byte(value), &nodes)
+		var nodes data.MsqDesList
+		err = proto.Unmarshal([]byte(value), &nodes)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
 
 		msqCount := 0
-		for _, node := range nodes {
+		for _, node := range nodes.Nodes {
 			if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
 				msqCount++
 			}
@@ -983,15 +983,15 @@ func getIdentityInfo(param string, app *DIDApplication, height int64) types.Resp
 	_, chkExists := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if chkExists != nil {
-		var nodes []Node
-		err = json.Unmarshal([]byte(chkExists), &nodes)
+		var nodes data.MsqDesList
+		err = proto.Unmarshal([]byte(chkExists), &nodes)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
 
-		for _, node := range nodes {
-			if node.NodeID == funcParam.NodeID {
-				result.Ial = node.Ial
+		for _, node := range nodes.Nodes {
+			if node.NodeId == funcParam.NodeID {
+				result.Ial = float64(node.Ial)
 				break
 			}
 		}
@@ -1231,15 +1231,15 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 		key := "MsqDestination" + "|" + funcParam.HashID
 		_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 		if value != nil {
-			var nodes []Node
-			err = json.Unmarshal([]byte(value), &nodes)
+			var nodes data.MsqDesList
+			err = proto.Unmarshal([]byte(value), &nodes)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
-			for _, node := range nodes {
+			for _, node := range nodes.Nodes {
 				// filter from node_id_list
 				if len(mapNodeIDList) > 0 {
-					if mapNodeIDList[node.NodeID] == false {
+					if mapNodeIDList[node.NodeId] == false {
 						continue
 					}
 				}
@@ -1255,7 +1255,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 				if node.TimeoutBlock != 0 && app.CurrentBlock > node.TimeoutBlock {
 					continue
 				}
-				nodeDetailKey := "NodeID" + "|" + node.NodeID
+				nodeDetailKey := "NodeID" + "|" + node.NodeId
 				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 				if nodeDetailValue == nil {
 					continue
@@ -1276,7 +1276,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 				}
 
 				// If node is behind proxy
-				proxyKey := "Proxy" + "|" + node.NodeID
+				proxyKey := "Proxy" + "|" + node.NodeId
 				_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 				if proxyValue != nil {
 
@@ -1300,7 +1300,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 						return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 					}
 					var msqDesNode IdpNodeBehindProxy
-					msqDesNode.NodeID = node.NodeID
+					msqDesNode.NodeID = node.NodeId
 					msqDesNode.Name = nodeDetail.NodeName
 					msqDesNode.MaxIal = nodeDetail.MaxIal
 					msqDesNode.MaxAal = nodeDetail.MaxAal
@@ -1316,7 +1316,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msq.IP = nodeDetail.Mq.Ip
 					msq.Port = nodeDetail.Mq.Port
 					var msqDesNode = IdpNode{
-						node.NodeID,
+						node.NodeId,
 						nodeDetail.NodeName,
 						nodeDetail.MaxIal,
 						nodeDetail.MaxAal,

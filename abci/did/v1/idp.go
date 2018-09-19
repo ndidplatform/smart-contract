@@ -216,27 +216,26 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 
 		if chkExists != nil {
-			var nodes []Node
-			err = json.Unmarshal([]byte(chkExists), &nodes)
+			var nodes data.MsqDesList
+			err = proto.Unmarshal([]byte(chkExists), &nodes)
 			if err != nil {
 				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
 			timeoutBlock := app.CurrentBlock + timeOutBlockInStateDB
-			newNode := Node{
-				user.Ial,
-				nodeID,
-				true,
-				user.First,
-				timeoutBlock,
-			}
+			var newNode data.Node
+			newNode.Ial = user.Ial
+			newNode.NodeId = nodeID
+			newNode.Active = true
+			newNode.First = user.First
+			newNode.TimeoutBlock = timeoutBlock
 			if !user.First {
 				newNode.TimeoutBlock = 0
 			}
 			// Check duplicate before add
 			chkDup := false
-			for _, node := range nodes {
-				if newNode == node {
+			for _, node := range nodes.Nodes {
+				if &newNode == node {
 					chkDup = true
 					break
 				}
@@ -244,7 +243,7 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 
 			// Check first
 			if user.First {
-				for _, node := range nodes {
+				for _, node := range nodes.Nodes {
 					if node.TimeoutBlock != 0 {
 						if node.TimeoutBlock > app.CurrentBlock {
 							return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
@@ -254,8 +253,8 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 			}
 
 			if chkDup == false {
-				nodes = append(nodes, newNode)
-				value, err := json.Marshal(nodes)
+				nodes.Nodes = append(nodes.Nodes, &newNode)
+				value, err := proto.Marshal(&nodes)
 				if err != nil {
 					return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 				}
@@ -263,20 +262,19 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 			}
 
 		} else {
-			var nodes []Node
+			var nodes data.MsqDesList
 			timeoutBlock := app.CurrentBlock + timeOutBlockInStateDB
-			newNode := Node{
-				user.Ial,
-				nodeID,
-				true,
-				user.First,
-				timeoutBlock,
-			}
+			var newNode data.Node
+			newNode.Ial = user.Ial
+			newNode.NodeId = nodeID
+			newNode.Active = true
+			newNode.First = user.First
+			newNode.TimeoutBlock = timeoutBlock
 			if !user.First {
 				newNode.TimeoutBlock = 0
 			}
-			nodes = append(nodes, newNode)
-			value, err := json.Marshal(nodes)
+			nodes.Nodes = append(nodes.Nodes, &newNode)
+			value, err := proto.Marshal(&nodes)
 			if err != nil {
 				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
@@ -297,8 +295,8 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 	key := "Request" + "|" + funcParam.RequestID
 	var response data.Response
-	response.Ial = float32(funcParam.Ial)
-	response.Aal = float32(funcParam.Aal)
+	response.Ial = funcParam.Ial
+	response.Aal = funcParam.Aal
 	response.Status = funcParam.Status
 	response.Signature = funcParam.Signature
 	response.IdpId = nodeID
@@ -345,10 +343,10 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	if response.Aal > float32(nodeDetail.MaxAal) {
+	if response.Aal > nodeDetail.MaxAal {
 		return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
 	}
-	if response.Ial > float32(nodeDetail.MaxIal) {
+	if response.Ial > nodeDetail.MaxIal {
 		return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
 	}
 
@@ -420,21 +418,21 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
 	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
 	if msqDesValue != nil {
-		var msqDes []Node
-		err := json.Unmarshal([]byte(msqDesValue), &msqDes)
+		var msqDes data.MsqDesList
+		err := proto.Unmarshal([]byte(msqDesValue), &msqDes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 		// Selective update
 		if funcParam.Ial > 0 {
-			for index := range msqDes {
-				if msqDes[index].NodeID == nodeID {
-					msqDes[index].Ial = funcParam.Ial
+			for index := range msqDes.Nodes {
+				if msqDes.Nodes[index].NodeId == nodeID {
+					msqDes.Nodes[index].Ial = funcParam.Ial
 					break
 				}
 			}
 		}
-		msqDesJSON, err := json.Marshal(msqDes)
+		msqDesJSON, err := proto.Marshal(&msqDes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -490,148 +488,6 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }
 
-// func disableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-// 	app.logger.Infof("DisableMsqDestination, Parameter: %s", param)
-// 	var funcParam DisableMsqDestinationParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 	}
-
-// 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-// 	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
-
-// 	if msqDesValue != nil {
-// 		var nodes []Node
-// 		err = json.Unmarshal([]byte(msqDesValue), &nodes)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 		}
-
-// 		for index := range nodes {
-// 			if nodes[index].NodeID == nodeID {
-// 				nodes[index].Active = false
-// 				break
-// 			}
-// 		}
-
-// 		msqDesJSON, err := json.Marshal(nodes)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-// 		}
-// 		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
-// 		return ReturnDeliverTxLog(code.OK, "success", "")
-// 	}
-// 	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
-// }
-
-// func disableAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-// 	app.logger.Infof("DisableAccessorMethod, Parameter: %s", param)
-// 	var funcParam DisableAccessorMethodParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 	}
-
-// 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-// 	_, accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
-
-// 	if accessorValue != nil {
-// 		var accessor Accessor
-// 		err = json.Unmarshal([]byte(accessorValue), &accessor)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 		}
-
-// 		// check owner of accessor
-// 		if accessor.Owner != nodeID {
-// 			return ReturnDeliverTxLog(code.NotOwnerOfAccessor, "This node is not owner of this accessor", "")
-// 		}
-
-// 		accessor.Active = false
-// 		accessorJSON, err := json.Marshal(accessor)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-// 		}
-
-// 		app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
-// 		return ReturnDeliverTxLog(code.OK, "success", "")
-// 	}
-
-// 	return ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
-// }
-
-// func enableMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-// 	app.logger.Infof("EnableMsqDestination, Parameter: %s", param)
-// 	var funcParam DisableMsqDestinationParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 	}
-
-// 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-// 	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
-
-// 	if msqDesValue != nil {
-// 		var nodes []Node
-// 		err = json.Unmarshal([]byte(msqDesValue), &nodes)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 		}
-
-// 		for index := range nodes {
-// 			if nodes[index].NodeID == nodeID {
-// 				nodes[index].Active = true
-// 				break
-// 			}
-// 		}
-
-// 		msqDesJSON, err := json.Marshal(nodes)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-// 		}
-// 		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
-// 		return ReturnDeliverTxLog(code.OK, "success", "")
-// 	}
-// 	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
-// }
-
-// func enableAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-// 	app.logger.Infof("EnableAccessorMethod, Parameter: %s", param)
-// 	var funcParam DisableAccessorMethodParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 	}
-
-// 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-// 	_, accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
-
-// 	if accessorValue != nil {
-// 		var accessor Accessor
-// 		err = json.Unmarshal([]byte(accessorValue), &accessor)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-// 		}
-
-// 		// check owner of accessor
-// 		if accessor.Owner != nodeID {
-// 			return ReturnDeliverTxLog(code.NotOwnerOfAccessor, "This node is not owner of this accessor", "")
-// 		}
-
-// 		accessor.Active = true
-// 		accessorJSON, err := json.Marshal(accessor)
-// 		if err != nil {
-// 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-// 		}
-
-// 		app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
-// 		return ReturnDeliverTxLog(code.OK, "success", "")
-// 	}
-
-// 	return ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
-// }
-
 func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ClearRegisterMsqDestinationTimeout, Parameter: %s", param)
 	var funcParam ClearRegisterMsqDestinationTimeoutParam
@@ -644,30 +500,30 @@ func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeI
 	_, msqDesValue := app.state.db.Get(prefixKey([]byte(msqDesKey)))
 
 	if msqDesValue != nil {
-		var nodes []Node
-		err = json.Unmarshal([]byte(msqDesValue), &nodes)
+		var nodes data.MsqDesList
+		err = proto.Unmarshal([]byte(msqDesValue), &nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check is not timeout
-		for index := range nodes {
-			if nodes[index].NodeID == nodeID {
-				if nodes[index].TimeoutBlock <= app.CurrentBlock {
+		for index := range nodes.Nodes {
+			if nodes.Nodes[index].NodeId == nodeID {
+				if nodes.Nodes[index].TimeoutBlock <= app.CurrentBlock {
 					return ReturnDeliverTxLog(code.MsqDestinationIsTimedOut, "Can not clear msq destination that is timed out", "")
 				}
 				break
 			}
 		}
 
-		for index := range nodes {
-			if nodes[index].NodeID == nodeID {
-				nodes[index].TimeoutBlock = 0
+		for index := range nodes.Nodes {
+			if nodes.Nodes[index].NodeId == nodeID {
+				nodes.Nodes[index].TimeoutBlock = 0
 				break
 			}
 		}
 
-		msqDesJSON, err := json.Marshal(nodes)
+		msqDesJSON, err := proto.Marshal(&nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}

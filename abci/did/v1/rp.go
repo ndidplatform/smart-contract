@@ -44,8 +44,8 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	// set request data
 	request.RequestId = funcParam.RequestID
 	request.MinIdp = int64(funcParam.MinIdp)
-	request.MinAal = float32(funcParam.MinAal)
-	request.MinIal = float32(funcParam.MinIal)
+	request.MinAal = funcParam.MinAal
+	request.MinIal = funcParam.MinIal
 	request.RequestTimeout = int64(funcParam.Timeout)
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash

@@ -60,8 +60,8 @@ message BehindNodeList {
 message Request {
   string request_id = 1;
   int64 min_idp = 2;
-  float min_aal = 3;
-  float min_ial = 4;
+  double min_aal = 3;
+  double min_ial = 4;
   int64 request_timeout = 5;
   repeated DataRequest data_request_list = 6;
   string request_message_hash = 7;
@@ -83,8 +83,8 @@ message DataRequest {
 }
 
 message Response {
-  float ial = 1;
-  float aal = 2;
+  double ial = 1;
+  double aal = 2;
   string status = 3;
   string signature = 4;
   string identity_proof = 5;
@@ -101,7 +101,7 @@ message ReportList {
 
 message Report {
   string method = 1;
-  float price = 2;
+  double price = 2;
   string data = 3;
 }
 
@@ -111,4 +111,16 @@ message Accessor  {
   string accessor_group_id = 3;
   bool active = 4;
   string owner = 5;
+}
+
+message MsqDesList {
+  repeated Node nodes = 1;
+}
+
+message Node {
+  double ial = 1;
+  string node_id = 2;
+  bool active = 3;
+  bool first = 4;
+  int64 timeout_block = 5;
 }

@@ -35,7 +35,7 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
 	var newReport pbData.Report
 	newReport.Method = method
-	newReport.Price = float32(price)
+	newReport.Price = price
 	newReport.Data = data
 	if chkExists != nil {
 		var reports pbData.ReportList
