@@ -156,15 +156,14 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	}
 	setCanAddAccessorToFalse(funcParam.RequestID, app)
 
-	var accessor = Accessor{
-		funcParam.AccessorType,
-		funcParam.AccessorPublicKey,
-		funcParam.AccessorGroupID,
-		true,
-		nodeID,
-	}
+	var accessor data.Accessor
+	accessor.AccessorType = funcParam.AccessorType
+	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
+	accessor.AccessorGroupId = funcParam.AccessorGroupID
+	accessor.Active = true
+	accessor.Owner = nodeID
 
-	accessorJSON, err := json.Marshal(accessor)
+	accessorJSON, err := proto.Marshal(&accessor)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

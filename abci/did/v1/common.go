@@ -691,10 +691,10 @@ func getAccessorGroupID(param string, app *DIDApplication, height int64) types.R
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 
 	if value != nil {
-		var accessor Accessor
-		err = json.Unmarshal([]byte(value), &accessor)
+		var accessor data.Accessor
+		err = proto.Unmarshal([]byte(value), &accessor)
 		if err == nil {
-			result.AccessorGroupID = accessor.AccessorGroupID
+			result.AccessorGroupID = accessor.AccessorGroupId
 		}
 	}
 
