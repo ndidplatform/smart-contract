@@ -100,14 +100,14 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
-	var nodes GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	var nodes data.ServiceDesList
+	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].ID == nodeID {
+		if nodes.Node[index].NodeId == nodeID {
 			if !nodes.Node[index].Active {
 				return ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not active", "")
 			}
@@ -255,45 +255,41 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	_, chkExists := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if chkExists != nil {
-		var nodes GetAsNodesByServiceIdResult
-		err := json.Unmarshal([]byte(chkExists), &nodes)
+		var nodes data.ServiceDesList
+		err := proto.Unmarshal([]byte(chkExists), &nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check duplicate node ID before add
 		for _, node := range nodes.Node {
-			if node.ID == nodeID {
+			if node.NodeId == nodeID {
 				return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
 			}
 		}
 
-		var newNode = ASNode{
-			nodeID,
-			getNodeNameByNodeID(nodeID, app),
-			funcParam.MinIal,
-			funcParam.MinAal,
-			funcParam.ServiceID,
-			true,
-		}
-		nodes.Node = append(nodes.Node, newNode)
-		value, err := json.Marshal(nodes)
+		var newNode data.ASNode
+		newNode.NodeId = nodeID
+		newNode.MinIal = funcParam.MinIal
+		newNode.MinAal = funcParam.MinAal
+		newNode.ServiceId = funcParam.ServiceID
+		newNode.Active = true
+		nodes.Node = append(nodes.Node, &newNode)
+		value, err := proto.Marshal(&nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	} else {
-		var nodes GetAsNodesByServiceIdResult
-		var newNode = ASNode{
-			nodeID,
-			getNodeNameByNodeID(nodeID, app),
-			funcParam.MinIal,
-			funcParam.MinAal,
-			funcParam.ServiceID,
-			true,
-		}
-		nodes.Node = append(nodes.Node, newNode)
-		value, err := json.Marshal(nodes)
+		var nodes data.ServiceDesList
+		var newNode data.ASNode
+		newNode.NodeId = nodeID
+		newNode.MinIal = funcParam.MinIal
+		newNode.MinAal = funcParam.MinAal
+		newNode.ServiceId = funcParam.ServiceID
+		newNode.Active = true
+		nodes.Node = append(nodes.Node, &newNode)
+		value, err := proto.Marshal(&nodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -331,14 +327,14 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
-	var nodes GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	var nodes data.ServiceDesList
+	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].ID == nodeID {
+		if nodes.Node[index].NodeId == nodeID {
 			// selective update
 			if funcParam.MinAal > 0 {
 				nodes.Node[index].MinAal = funcParam.MinAal
@@ -375,7 +371,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceDestinationJSON, err := json.Marshal(nodes)
+	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -412,14 +408,14 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
-	var nodes GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	var nodes data.ServiceDesList
+	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].ID == nodeID {
+		if nodes.Node[index].NodeId == nodeID {
 			nodes.Node[index].Active = false
 			break
 		}
@@ -446,7 +442,7 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := json.Marshal(nodes)
+	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -483,14 +479,14 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
-	var nodes GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	var nodes data.ServiceDesList
+	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].ID == nodeID {
+		if nodes.Node[index].NodeId == nodeID {
 			nodes.Node[index].Active = true
 			break
 		}
@@ -517,7 +513,7 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := json.Marshal(nodes)
+	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

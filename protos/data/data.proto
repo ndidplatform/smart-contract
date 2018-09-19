@@ -136,3 +136,15 @@ message Service {
   bool active = 4;
   bool suspended = 5;
 }
+
+message ServiceDesList {
+  repeated ASNode node = 1;
+}
+
+message ASNode {
+  string node_id = 1;
+  double min_ial = 2;
+  double min_aal = 3;
+  string service_id = 4;
+  bool active = 5;
+}

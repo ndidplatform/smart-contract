@@ -3,9 +3,11 @@
 
 package tendermint
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -33,16 +35,17 @@ func (m *Tx) Reset()         { *m = Tx{} }
 func (m *Tx) String() string { return proto.CompactTextString(m) }
 func (*Tx) ProtoMessage()    {}
 func (*Tx) Descriptor() ([]byte, []int) {
-	return fileDescriptor_tendermint_7b6b82f5ac49f186, []int{0}
+	return fileDescriptor_a91b4db4311f0d35, []int{0}
 }
+
 func (m *Tx) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Tx.Unmarshal(m, b)
 }
 func (m *Tx) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Tx.Marshal(b, m, deterministic)
 }
-func (dst *Tx) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Tx.Merge(dst, src)
+func (m *Tx) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Tx.Merge(m, src)
 }
 func (m *Tx) XXX_Size() int {
 	return xxx_messageInfo_Tx.Size(m)
@@ -100,16 +103,17 @@ func (m *Query) Reset()         { *m = Query{} }
 func (m *Query) String() string { return proto.CompactTextString(m) }
 func (*Query) ProtoMessage()    {}
 func (*Query) Descriptor() ([]byte, []int) {
-	return fileDescriptor_tendermint_7b6b82f5ac49f186, []int{1}
+	return fileDescriptor_a91b4db4311f0d35, []int{1}
 }
+
 func (m *Query) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Query.Unmarshal(m, b)
 }
 func (m *Query) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Query.Marshal(b, m, deterministic)
 }
-func (dst *Query) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Query.Merge(dst, src)
+func (m *Query) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Query.Merge(m, src)
 }
 func (m *Query) XXX_Size() int {
 	return xxx_messageInfo_Query.Size(m)
@@ -139,11 +143,9 @@ func init() {
 	proto.RegisterType((*Query)(nil), "Query")
 }
 
-func init() {
-	proto.RegisterFile("protos/tendermint/tendermint.proto", fileDescriptor_tendermint_7b6b82f5ac49f186)
-}
+func init() { proto.RegisterFile("protos/tendermint/tendermint.proto", fileDescriptor_a91b4db4311f0d35) }
 
-var fileDescriptor_tendermint_7b6b82f5ac49f186 = []byte{
+var fileDescriptor_a91b4db4311f0d35 = []byte{
 	// 164 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x2a, 0x28, 0xca, 0x2f,
 	0xc9, 0x2f, 0xd6, 0x2f, 0x49, 0xcd, 0x4b, 0x49, 0x2d, 0xca, 0xcd, 0xcc, 0x2b, 0x41, 0x62, 0xea,

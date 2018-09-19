@@ -294,8 +294,8 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
-	var storedData GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(value), &storedData)
+	var storedData data.ServiceDesList
+	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
@@ -310,7 +310,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 		}
 
 		// Filter approve from NDID
-		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].ID
+		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].NodeId
 		_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 		if approveServiceJSON == nil {
 			continue
@@ -324,7 +324,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 			continue
 		}
 
-		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].ID
+		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].NodeId
 		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 		if nodeDetailValue == nil {
 			continue
@@ -340,7 +340,7 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 			continue
 		}
 		var newRow = ASNodeResult{
-			storedData.Node[index].ID,
+			storedData.Node[index].NodeId,
 			nodeDetail.NodeName,
 			storedData.Node[index].MinIal,
 			storedData.Node[index].MinAal,
@@ -1393,8 +1393,8 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
 
-	var storedData GetAsNodesByServiceIdResult
-	err = json.Unmarshal([]byte(value), &storedData)
+	var storedData data.ServiceDesList
+	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
@@ -1411,7 +1411,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 
 		// filter from node_id_list
 		if len(mapNodeIDList) > 0 {
-			if mapNodeIDList[storedData.Node[index].ID] == false {
+			if mapNodeIDList[storedData.Node[index].NodeId] == false {
 				continue
 			}
 		}
@@ -1422,7 +1422,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		}
 
 		// Filter approve from NDID
-		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].ID
+		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].NodeId
 		_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 		if approveServiceJSON == nil {
 			continue
@@ -1436,7 +1436,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 			continue
 		}
 
-		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].ID
+		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].NodeId
 		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 		if nodeDetailValue == nil {
 			continue
@@ -1452,7 +1452,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 		}
 
 		// If node is behind proxy
-		proxyKey := "Proxy" + "|" + storedData.Node[index].ID
+		proxyKey := "Proxy" + "|" + storedData.Node[index].NodeId
 		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 		if proxyValue != nil {
 
@@ -1476,7 +1476,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 			}
 			var as ASWithMqNodeBehindProxy
-			as.NodeID = storedData.Node[index].ID
+			as.NodeID = storedData.Node[index].NodeId
 			as.Name = nodeDetail.NodeName
 			as.MinIal = storedData.Node[index].MinIal
 			as.MinAal = storedData.Node[index].MinAal
@@ -1492,7 +1492,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 			msqAddress.IP = nodeDetail.Mq.Ip
 			msqAddress.Port = nodeDetail.Mq.Port
 			var newRow = ASWithMqNode{
-				storedData.Node[index].ID,
+				storedData.Node[index].NodeId,
 				nodeDetail.NodeName,
 				storedData.Node[index].MinIal,
 				storedData.Node[index].MinAal,
