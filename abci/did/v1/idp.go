@@ -40,15 +40,14 @@ func createIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	}
 
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	var accessor = Accessor{
-		funcParam.AccessorType,
-		funcParam.AccessorPublicKey,
-		funcParam.AccessorGroupID,
-		true,
-		nodeID,
-	}
+	var accessor data.Accessor
+	accessor.AccessorType = funcParam.AccessorType
+	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
+	accessor.AccessorGroupId = funcParam.AccessorGroupID
+	accessor.Active = true
+	accessor.Owner = nodeID
 
-	accessorJSON, err := json.Marshal(accessor)
+	accessorJSON, err := proto.Marshal(&accessor)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -78,11 +77,11 @@ func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
 	key := "Request" + "|" + requestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var request Request
-		err := json.Unmarshal([]byte(value), &request)
+		var request data.Request
+		err := proto.Unmarshal([]byte(value), &request)
 		if err == nil {
 			request.CanAddAccessor = false
-			value, err := json.Marshal(request)
+			value, err := proto.Marshal(&request)
 			if err == nil {
 				app.SetStateDB([]byte(key), []byte(value))
 			}
@@ -182,19 +181,20 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
-	if maxIalAalValue != nil {
-		var maxIalAal MaxIalAal
-		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		// Validate user's ial is <= node's max_ial
-		for _, user := range funcParam.Users {
-			if user.Ial > maxIalAal.MaxIal {
-				return ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
-			}
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Validate user's ial is <= node's max_ial
+	for _, user := range funcParam.Users {
+		if user.Ial > nodeDetail.MaxIal {
+			return ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
 		}
 	}
 
@@ -404,17 +404,18 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 	}
 
 	// Check IAL must less than Max IAL
-	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
-	if maxIalAalValue != nil {
-		var maxIalAal MaxIalAal
-		err := json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		if funcParam.Ial > maxIalAal.MaxIal {
-			return ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
-		}
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if funcParam.Ial > nodeDetail.MaxIal {
+		return ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
 	}
 
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID

@@ -104,3 +104,11 @@ message Report {
   float price = 2;
   string data = 3;
 }
+
+message Accessor  {
+  string accessor_type = 1;
+  string accessor_public_key = 2;
+  string accessor_group_id = 3;
+  bool active = 4;
+  string owner = 5;
+}
