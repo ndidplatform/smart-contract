@@ -1065,9 +1065,9 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 
 	provideServiceKey := "ProvideService" + "|" + funcParam.AsID
 	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
-	var services []Service
+	var services data.ServiceList
 	if provideServiceValue != nil {
-		err := json.Unmarshal([]byte(provideServiceValue), &services)
+		err := proto.Unmarshal([]byte(provideServiceValue), &services)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 		}
@@ -1083,8 +1083,8 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 		}
 	}
 
-	for index, provideService := range services {
-		serviceKey := "Service" + "|" + provideService.ServiceID
+	for index, provideService := range services.Services {
+		serviceKey := "Service" + "|" + provideService.ServiceId
 		_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
 		var service data.ServiceDetail
 		if serviceValue != nil {
@@ -1095,16 +1095,22 @@ func getServicesByAsID(param string, app *DIDApplication, height int64) types.Re
 		}
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
-			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceID + "|" + funcParam.AsID
+			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceId + "|" + funcParam.AsID
 			_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 			if approveServiceJSON != nil {
 				var approveService data.ApproveService
 				err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 				if err == nil {
-					services[index].Suspended = !approveService.Active
+					services.Services[index].Suspended = !approveService.Active
 				}
 			}
-			result.Services = append(result.Services, services[index])
+			var newRow Service
+			newRow.Active = services.Services[index].Active
+			newRow.MinAal = services.Services[index].MinAal
+			newRow.MinIal = services.Services[index].MinIal
+			newRow.ServiceID = services.Services[index].ServiceId
+			newRow.Suspended = services.Services[index].Suspended
+			result.Services = append(result.Services, newRow)
 		}
 	}
 

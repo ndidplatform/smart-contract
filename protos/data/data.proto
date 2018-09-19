@@ -124,3 +124,15 @@ message Node {
   bool first = 4;
   int64 timeout_block = 5;
 }
+
+message ServiceList {
+  repeated Service services = 1;
+}
+
+message Service {
+  string service_id = 1;
+  double min_ial = 2;
+  double min_aal = 3;
+  bool active = 4;
+  bool suspended = 5;
+}
