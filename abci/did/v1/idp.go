@@ -297,12 +297,12 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	var response Response
-	response.Ial = funcParam.Ial
-	response.Aal = funcParam.Aal
+	var response data.Response
+	response.Ial = float32(funcParam.Ial)
+	response.Aal = float32(funcParam.Aal)
 	response.Status = funcParam.Status
 	response.Signature = funcParam.Signature
-	response.IdpID = nodeID
+	response.IdpId = nodeID
 	response.IdentityProof = funcParam.IdentityProof
 	response.PrivateProofHash = funcParam.PrivateProofHash
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
@@ -310,16 +310,16 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	if value == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check duplicate before add
 	chk := false
-	for _, oldResponse := range request.Responses {
-		if response == oldResponse {
+	for _, oldResponse := range request.ResponseList {
+		if &response == oldResponse {
 			chk = true
 			break
 		}
@@ -336,34 +336,35 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	}
 
 	// Check AAL, IAL with MaxIalAal
-	maxIalAalKey := "MaxIalAalNode" + "|" + nodeID
-	_, maxIalAalValue := app.state.db.Get(prefixKey([]byte(maxIalAalKey)))
-	if maxIalAalValue != nil {
-		var maxIalAal MaxIalAal
-		err = json.Unmarshal([]byte(maxIalAalValue), &maxIalAal)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		if response.Aal > maxIalAal.MaxAal {
-			return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
-		}
-		if response.Ial > maxIalAal.MaxIal {
-			return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
-		}
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if response.Aal > float32(nodeDetail.MaxAal) {
+		return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+	}
+	if response.Ial > float32(nodeDetail.MaxIal) {
+		return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
 	}
 
 	// Check min_idp
-	if len(request.Responses) >= request.MinIdp {
+	if int64(len(request.ResponseList)) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
 	}
 
 	// Check IsClosed
-	if request.IsClosed {
+	if request.Closed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
 	}
 
 	// Check IsTimedOut
-	if request.IsTimedOut {
+	if request.TimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 	}
 
@@ -383,28 +384,8 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	}
 
 	if chk == false {
-		request.Responses = append(request.Responses, response)
-
-		// NO data request. If accept >= min_idp, then auto close request
-		// if len(request.DataRequestList) == 0 {
-		// 	app.logger.Info("Auto close")
-		// 	accept := 0
-		// 	reject := 0
-		// 	for _, response := range request.Responses {
-		// 		if response.Status == "accept" {
-		// 			accept++
-		// 		} else {
-		// 			reject++
-		// 		}
-		// 	}
-		// 	if accept >= request.MinIdp && reject == 0 {
-		// 		request.IsClosed = true
-		// 	}
-		// } else {
-		// 	app.logger.Info("No auto close")
-		// }
-
-		value, err := json.Marshal(request)
+		request.ResponseList = append(request.ResponseList, &response)
+		value, err := proto.Marshal(&request)
 		if err != nil {
 			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -478,24 +459,24 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	if requestValue == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-	var request Request
-	err = json.Unmarshal([]byte(requestValue), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// check number of responses
-	if len(request.Responses) >= request.MinIdp {
+	if int64(len(request.ResponseList)) >= request.MinIdp {
 		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
 	}
 
 	// Check IsClosed
-	if request.IsClosed {
+	if request.Closed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
 	}
 
 	// Check IsTimedOut
-	if request.IsTimedOut {
+	if request.TimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
 	}
 

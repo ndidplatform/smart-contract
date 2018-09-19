@@ -56,3 +56,41 @@ message Proxy {
 message BehindNodeList {
   repeated string nodes = 1;
 }
+
+message Request {
+  string request_id = 1;
+  int64 min_idp = 2;
+  float min_aal = 3;
+  float min_ial = 4;
+  int64 request_timeout = 5;
+  repeated DataRequest data_request_list = 6;
+  string request_message_hash = 7;
+  repeated Response response_list = 8;
+  bool closed = 9;
+  bool timed_out = 10;
+  bool can_add_accessor = 11;
+  string owner = 12;
+  int64 mode = 13;
+}
+
+message DataRequest {
+  string service_id = 1;
+  repeated string as_id_list = 2;
+  int64 min_as = 3;
+  string request_params_hash = 4;
+  repeated string answered_as_id_list = 5;
+  repeated string received_data_from_list = 6;
+}
+
+message Response {
+  float ial = 1;
+  float aal = 2;
+  string status = 3;
+  string signature = 4;
+  string identity_proof = 5;
+  string private_proof_hash = 6;
+  string idp_id = 7;
+  string valid_proof = 8;
+  string valid_ial = 9;
+  string valid_signature = 10;
+}

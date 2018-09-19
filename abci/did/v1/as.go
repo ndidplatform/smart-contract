@@ -44,19 +44,19 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	if requestJSON == nil {
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-	var request Request
-	err = json.Unmarshal([]byte(requestJSON), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestJSON), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check IsClosed
-	if request.IsClosed {
+	if request.Closed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
 	}
 
 	// Check IsTimedOut
-	if request.IsTimedOut {
+	if request.TimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
@@ -118,12 +118,12 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	// if AS != [], Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == signData.ServiceID {
-			if len(dataRequest.As) == 0 {
+		if dataRequest.ServiceId == signData.ServiceID {
+			if len(dataRequest.AsIdList) == 0 {
 				exist = true
 				break
 			} else {
-				for _, as := range dataRequest.As {
+				for _, as := range dataRequest.AsIdList {
 					if as == nodeID {
 						exist = true
 						break
@@ -139,7 +139,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	// Check Duplicate AS ID
 	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == signData.ServiceID {
+		if dataRequest.ServiceId == signData.ServiceID {
 			for _, as := range dataRequest.AnsweredAsIdList {
 				if as == nodeID {
 					duplicate = true
@@ -154,8 +154,8 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == signData.ServiceID {
-			if len(dataRequest.AnsweredAsIdList) >= dataRequest.Count {
+		if dataRequest.ServiceId == signData.ServiceID {
+			if int64(len(dataRequest.AnsweredAsIdList)) >= dataRequest.MinAs {
 				return ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
 			}
 		}
@@ -170,12 +170,12 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 
 	// Update answered_as_id_list in request
 	for index, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == signData.ServiceID {
+		if dataRequest.ServiceId == signData.ServiceID {
 			request.DataRequestList[index].AnsweredAsIdList = append(dataRequest.AnsweredAsIdList, nodeID)
 		}
 	}
 
-	requestJSON, err = json.Marshal(request)
+	requestJSON, err = proto.Marshal(&request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

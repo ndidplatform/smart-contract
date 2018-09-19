@@ -25,21 +25,51 @@ package did
 import (
 	"encoding/json"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
 func createRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
-	var request Request
-	err := json.Unmarshal([]byte(param), &request)
+	var funcParam Request
+	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	var request data.Request
+
+	// set request data
+	request.RequestId = funcParam.RequestID
+	request.MinIdp = int64(funcParam.MinIdp)
+	request.MinAal = float32(funcParam.MinAal)
+	request.MinIal = float32(funcParam.MinIal)
+	request.RequestTimeout = int64(funcParam.Timeout)
+	// request.DataRequestList = funcParam.DataRequestList
+	request.RequestMessageHash = funcParam.MessageHash
+	request.Mode = int64(funcParam.Mode)
+
+	// set data request
+	request.DataRequestList = make([]*data.DataRequest, 0)
+	for index := range funcParam.DataRequestList {
+		var newRow data.DataRequest
+		newRow.ServiceId = funcParam.DataRequestList[index].ServiceID
+		newRow.RequestParamsHash = funcParam.DataRequestList[index].RequestParamsHash
+		newRow.MinAs = int64(funcParam.DataRequestList[index].Count)
+		newRow.AsIdList = funcParam.DataRequestList[index].As
+		if funcParam.DataRequestList[index].As == nil {
+			newRow.AsIdList = make([]string, 0)
+		}
+		newRow.AnsweredAsIdList = make([]string, 0)
+		newRow.ReceivedDataFromList = make([]string, 0)
+		request.DataRequestList = append(request.DataRequestList, &newRow)
+	}
+
 	// set default value
-	request.IsClosed = false
-	request.IsTimedOut = false
+	request.Closed = false
+	request.TimedOut = false
 	request.CanAddAccessor = false
 
 	// set Owner
@@ -52,19 +82,12 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	}
 
 	// set default value
-	request.Responses = make([]Response, 0)
-	for index := range request.DataRequestList {
-		if request.DataRequestList[index].As == nil {
-			request.DataRequestList[index].As = make([]string, 0)
-		}
-		request.DataRequestList[index].AnsweredAsIdList = make([]string, 0)
-		request.DataRequestList[index].ReceivedDataFromList = make([]string, 0)
-	}
+	request.ResponseList = make([]*data.Response, 0)
 
 	// check duplicate service ID in Data Request
 	serviceIDCount := make(map[string]int)
 	for _, dataRequest := range request.DataRequestList {
-		serviceIDCount[dataRequest.ServiceID]++
+		serviceIDCount[dataRequest.ServiceId]++
 	}
 	for _, count := range serviceIDCount {
 		if count > 1 {
@@ -72,9 +95,9 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		}
 	}
 
-	key := "Request" + "|" + request.RequestID
+	key := "Request" + "|" + request.RequestId
 
-	value, err := json.Marshal(request)
+	value, err := proto.Marshal(&request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -84,7 +107,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 		return ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", request.RequestID)
+	return ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
 func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
@@ -102,17 +125,17 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
-	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	if request.IsClosed {
+	if request.Closed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
-	if request.IsTimedOut {
+	if request.TimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
@@ -122,17 +145,35 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 	// }
 
 	for _, valid := range funcParam.ResponseValidList {
-		for index := range request.Responses {
-			if valid.IdpID == request.Responses[index].IdpID {
-				request.Responses[index].ValidProof = valid.ValidProof
-				request.Responses[index].ValidIal = valid.ValidIal
-				request.Responses[index].ValidSignature = valid.ValidSignature
+		for index := range request.ResponseList {
+			if valid.IdpID == request.ResponseList[index].IdpId {
+				if valid.ValidProof != nil {
+					if *valid.ValidProof {
+						request.ResponseList[index].ValidProof = "true"
+					} else {
+						request.ResponseList[index].ValidProof = "false"
+					}
+				}
+				if valid.ValidIal != nil {
+					if *valid.ValidIal {
+						request.ResponseList[index].ValidIal = "true"
+					} else {
+						request.ResponseList[index].ValidIal = "false"
+					}
+				}
+				if valid.ValidSignature != nil {
+					if *valid.ValidSignature {
+						request.ResponseList[index].ValidSignature = "true"
+					} else {
+						request.ResponseList[index].ValidSignature = "false"
+					}
+				}
 			}
 		}
 	}
 
-	request.IsClosed = true
-	value, err = json.Marshal(request)
+	request.Closed = true
+	value, err = proto.Marshal(&request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -155,17 +196,17 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
-	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	if request.IsTimedOut {
+	if request.TimedOut {
 		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
-	if request.IsClosed {
+	if request.Closed {
 		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
@@ -175,17 +216,35 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	// }
 
 	for _, valid := range funcParam.ResponseValidList {
-		for index := range request.Responses {
-			if valid.IdpID == request.Responses[index].IdpID {
-				request.Responses[index].ValidProof = valid.ValidProof
-				request.Responses[index].ValidIal = valid.ValidIal
-				request.Responses[index].ValidSignature = valid.ValidSignature
+		for index := range request.ResponseList {
+			if valid.IdpID == request.ResponseList[index].IdpId {
+				if valid.ValidProof != nil {
+					if *valid.ValidProof {
+						request.ResponseList[index].ValidProof = "true"
+					} else {
+						request.ResponseList[index].ValidProof = "false"
+					}
+				}
+				if valid.ValidIal != nil {
+					if *valid.ValidIal {
+						request.ResponseList[index].ValidIal = "true"
+					} else {
+						request.ResponseList[index].ValidIal = "false"
+					}
+				}
+				if valid.ValidSignature != nil {
+					if *valid.ValidSignature {
+						request.ResponseList[index].ValidSignature = "true"
+					} else {
+						request.ResponseList[index].ValidSignature = "false"
+					}
+				}
 			}
 		}
 	}
 
-	request.IsTimedOut = true
-	value, err = json.Marshal(request)
+	request.TimedOut = true
+	value, err = proto.Marshal(&request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -209,8 +268,8 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
-	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -218,7 +277,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	// Check as_id is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == funcParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			for _, as := range dataRequest.AnsweredAsIdList {
 				if as == funcParam.AsID {
 					exist = true
@@ -234,7 +293,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	// Check Duplicate AS ID
 	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == funcParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			for _, as := range dataRequest.ReceivedDataFromList {
 				if as == funcParam.AsID {
 					duplicate = true
@@ -249,7 +308,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 
 	// Update received_data_from_list in request
 	for index, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceID == funcParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
 		}
 	}
@@ -269,7 +328,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 	// 	app.logger.Info("Auto close")
 	// }
 
-	value, err = json.Marshal(request)
+	value, err = proto.Marshal(&request)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

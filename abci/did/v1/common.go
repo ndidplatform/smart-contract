@@ -387,8 +387,8 @@ func getCanAddAccessor(requestID string, app *DIDApplication) bool {
 	key := "Request" + "|" + requestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var request Request
-		err := json.Unmarshal([]byte(value), &request)
+		var request data.Request
+		err := proto.Unmarshal([]byte(value), &request)
 		if err == nil {
 			if request.CanAddAccessor {
 				result = true
@@ -412,17 +412,17 @@ func getRequest(param string, app *DIDApplication, height int64) types.ResponseQ
 		valueJSON := []byte("{}")
 		return ReturnQuery(valueJSON, "not found", app.state.db.Version64(), app)
 	}
-	var request Request
-	err = json.Unmarshal([]byte(value), &request)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 
 	var res GetRequestResult
-	res.IsClosed = request.IsClosed
-	res.IsTimedOut = request.IsTimedOut
-	res.MessageHash = request.MessageHash
-	res.Mode = request.Mode
+	res.IsClosed = request.Closed
+	res.IsTimedOut = request.TimedOut
+	res.MessageHash = request.RequestMessageHash
+	res.Mode = int(request.Mode)
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
@@ -448,17 +448,82 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 	}
 
 	var result GetRequestDetailResult
-	var request Request
-	err = json.Unmarshal([]byte(value), &result)
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		value = []byte("")
 		return ReturnQuery(value, err.Error(), app.state.db.Version64(), app)
 	}
-	err = json.Unmarshal([]byte(value), &request)
-	if err != nil {
-		value = []byte("")
-		return ReturnQuery(value, err.Error(), app.state.db.Version64(), app)
+
+	result.RequestID = request.RequestId
+	result.MinIdp = int(request.MinIdp)
+	result.MinAal = float64(request.MinAal)
+	result.MinIal = float64(request.MinIal)
+	result.Timeout = int(request.RequestTimeout)
+	for _, dataRequest := range request.DataRequestList {
+		var newRow DataRequest
+		newRow.ServiceID = dataRequest.ServiceId
+		newRow.As = dataRequest.AsIdList
+		newRow.Count = int(dataRequest.MinAs)
+		newRow.AnsweredAsIdList = dataRequest.AnsweredAsIdList
+		newRow.ReceivedDataFromList = dataRequest.ReceivedDataFromList
+		newRow.RequestParamsHash = dataRequest.RequestParamsHash
+		if newRow.As == nil {
+			newRow.As = make([]string, 0)
+		}
+		if newRow.AnsweredAsIdList == nil {
+			newRow.AnsweredAsIdList = make([]string, 0)
+		}
+		if newRow.ReceivedDataFromList == nil {
+			newRow.ReceivedDataFromList = make([]string, 0)
+		}
+		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
+	result.MessageHash = request.RequestMessageHash
+	for _, response := range request.ResponseList {
+		var newRow Response
+		newRow.Ial = float64(response.Ial)
+		newRow.Aal = float64(response.Aal)
+		newRow.Status = response.Status
+		newRow.Signature = response.Signature
+		newRow.IdentityProof = response.IdentityProof
+		newRow.PrivateProofHash = response.PrivateProofHash
+		newRow.IdpID = response.IdpId
+		if response.ValidProof != "" {
+			if response.ValidProof == "true" {
+				tValue := true
+				newRow.ValidProof = &tValue
+			} else {
+				fValue := false
+				newRow.ValidProof = &fValue
+			}
+
+		}
+		if response.ValidIal != "" {
+			if response.ValidIal == "true" {
+				tValue := true
+				newRow.ValidIal = &tValue
+			} else {
+				fValue := false
+				newRow.ValidIal = &fValue
+			}
+
+		}
+		if response.ValidSignature != "" {
+			if response.ValidSignature == "true" {
+				tValue := true
+				newRow.ValidSignature = &tValue
+			} else {
+				fValue := false
+				newRow.ValidSignature = &fValue
+			}
+
+		}
+		result.Responses = append(result.Responses, newRow)
+	}
+	result.IsClosed = request.Closed
+	result.IsTimedOut = request.TimedOut
+	result.Mode = int(request.Mode)
 
 	// Check Role, If it's IdP then Set set special = true
 	ownerRole := getRoleFromNodeID(request.Owner, app)
@@ -468,7 +533,6 @@ func getRequestDetail(param string, app *DIDApplication, height int64) types.Res
 
 	// Set requester_node_id
 	result.RequesterNodeID = request.Owner
-
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
