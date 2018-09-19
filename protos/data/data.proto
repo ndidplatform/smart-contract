@@ -94,3 +94,13 @@ message Response {
   string valid_ial = 9;
   string valid_signature = 10;
 }
+
+message ReportList {
+  repeated Report reports = 1;
+}
+
+message Report {
+  string method = 1;
+  float price = 2;
+  string data = 3;
+}

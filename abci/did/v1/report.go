@@ -25,33 +25,34 @@ package did
 import (
 	"encoding/json"
 
+	"github.com/gogo/protobuf/proto"
+	pbData "github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
 func writeBurnTokenReport(nodeID string, method string, price float64, data string, app *DIDApplication) error {
 	key := "SpendGas" + "|" + nodeID
 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
-	newReport := Report{
-		method,
-		price,
-		data,
-	}
+	var newReport pbData.Report
+	newReport.Method = method
+	newReport.Price = float32(price)
+	newReport.Data = data
 	if chkExists != nil {
-		var reports []Report
-		err := json.Unmarshal([]byte(chkExists), &reports)
+		var reports pbData.ReportList
+		err := proto.Unmarshal([]byte(chkExists), &reports)
 		if err != nil {
 			return err
 		}
-		reports = append(reports, newReport)
-		value, err := json.Marshal(reports)
+		reports.Reports = append(reports.Reports, &newReport)
+		value, err := proto.Marshal(&reports)
 		if err != nil {
 			return err
 		}
 		app.SetStateDB([]byte(key), []byte(value))
 	} else {
-		var reports []Report
-		reports = append(reports, newReport)
-		value, err := json.Marshal(reports)
+		var reports pbData.ReportList
+		reports.Reports = append(reports.Reports, &newReport)
+		value, err := proto.Marshal(&reports)
 		if err != nil {
 			return err
 		}
@@ -73,5 +74,22 @@ func getUsedTokenReport(param string, app *DIDApplication, height int64) types.R
 		value = []byte("[]")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	var result GetUsedTokenReportResult
+	var reports pbData.ReportList
+	err = proto.Unmarshal([]byte(value), &reports)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	for _, report := range reports.Reports {
+		var newRow Report
+		newRow.Method = report.Method
+		newRow.Price = float64(report.Price)
+		newRow.Data = report.Data
+		result = append(result, newRow)
+	}
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }

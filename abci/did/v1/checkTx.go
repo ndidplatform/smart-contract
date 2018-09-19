@@ -222,13 +222,13 @@ func checkIsOwnerRequest(param string, nodeID string, app *DIDApplication) types
 	key := "SpendGas" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
-	var reports []Report
-	err = json.Unmarshal([]byte(value), &reports)
+	var reports data.ReportList
+	err = proto.Unmarshal([]byte(value), &reports)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	for _, node := range reports {
+	for _, node := range reports.Reports {
 		if node.Method == "CreateRequest" &&
 			node.Data == funcParam.RequestID {
 			return ReturnCheckTx(code.OK, "")

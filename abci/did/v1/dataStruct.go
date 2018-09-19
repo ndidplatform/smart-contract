@@ -705,3 +705,5 @@ type Proxy struct {
 	ProxyNodeID string `json:"proxy_node_id"`
 	Config      string `json:"config"`
 }
+
+type GetUsedTokenReportResult []Report
