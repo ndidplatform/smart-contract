@@ -697,3 +697,11 @@ type Proxy struct {
 }
 
 type GetUsedTokenReportResult []Report
+
+type GetNodeIDListParam struct {
+	Role string `json:"role"`
+}
+
+type GetNodeIDListResult struct {
+	NodeIDList []string `json:"node_id_list"`
+}

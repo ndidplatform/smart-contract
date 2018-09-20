@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -1613,6 +1614,125 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	if len(result.Nodes) == 0 {
+		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
+	}
+	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
+}
+
+func getNodeIDList(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetNodeIDList, Parameter: %s", param)
+	var funcParam GetNodeIDListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+
+	var result GetNodeIDListResult
+	result.NodeIDList = make([]string, 0)
+
+	if strings.ToLower(funcParam.Role) == "rp" {
+		var rpsList data.RPList
+		rpsKey := "rpList"
+		_, rpsValue := app.state.db.Get(prefixKey([]byte(rpsKey)))
+		if rpsValue != nil {
+			err := proto.Unmarshal(rpsValue, &rpsList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, nodeID := range rpsList.NodeId {
+				nodeDetailKey := "NodeID" + "|" + nodeID
+				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+				if nodeDetailValue != nil {
+					var nodeDetail data.NodeDetail
+					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+					if err != nil {
+						continue
+					}
+					if nodeDetail.Active {
+						result.NodeIDList = append(result.NodeIDList, nodeID)
+					}
+				}
+			}
+		}
+	} else if strings.ToLower(funcParam.Role) == "idp" {
+		var idpsList data.IdPList
+		idpsKey := "IdPList"
+		_, idpsValue := app.state.db.Get(prefixKey([]byte(idpsKey)))
+		if idpsValue != nil {
+			err := proto.Unmarshal(idpsValue, &idpsList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, nodeID := range idpsList.NodeId {
+				nodeDetailKey := "NodeID" + "|" + nodeID
+				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+				if nodeDetailValue != nil {
+					var nodeDetail data.NodeDetail
+					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+					if err != nil {
+						continue
+					}
+					if nodeDetail.Active {
+						result.NodeIDList = append(result.NodeIDList, nodeID)
+					}
+				}
+			}
+		}
+	} else if strings.ToLower(funcParam.Role) == "as" {
+		var asList data.ASList
+		asKey := "asList"
+		_, asValue := app.state.db.Get(prefixKey([]byte(asKey)))
+		if asValue != nil {
+			err := proto.Unmarshal(asValue, &asList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, nodeID := range asList.NodeId {
+				nodeDetailKey := "NodeID" + "|" + nodeID
+				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+				if nodeDetailValue != nil {
+					var nodeDetail data.NodeDetail
+					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+					if err != nil {
+						continue
+					}
+					if nodeDetail.Active {
+						result.NodeIDList = append(result.NodeIDList, nodeID)
+					}
+				}
+			}
+		}
+	} else {
+		var allList data.AllList
+		allKey := "allList"
+		_, allValue := app.state.db.Get(prefixKey([]byte(allKey)))
+		if allValue != nil {
+			err := proto.Unmarshal(allValue, &allList)
+			if err != nil {
+				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+			}
+			for _, nodeID := range allList.NodeId {
+				nodeDetailKey := "NodeID" + "|" + nodeID
+				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+				if nodeDetailValue != nil {
+					var nodeDetail data.NodeDetail
+					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+					if err != nil {
+						continue
+					}
+					if nodeDetail.Active {
+						result.NodeIDList = append(result.NodeIDList, nodeID)
+					}
+				}
+			}
+		}
+	}
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+	}
+	if len(result.NodeIDList) == 0 {
 		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
 	}
 	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)

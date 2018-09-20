@@ -148,3 +148,15 @@ message ASNode {
   string service_id = 4;
   bool active = 5;
 }
+
+message RPList {
+  repeated string node_id = 1;
+}
+
+message ASList {
+  repeated string node_id = 1;
+}
+
+message AllList {
+  repeated string node_id = 1;
+}

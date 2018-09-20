@@ -2216,3 +2216,40 @@ func TestQueryGetNodeInfoIdP6BehindProxy3(t *testing.T) {
 	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP6BehindProxy1","role":"IdP","max_ial":3,"max_aal":3,"mq":{"ip":"192.168.3.99","port":9000}}`)
 	GetNodeInfo(t, param, expected)
 }
+
+func TestQueryGetNodeIDListAll(t *testing.T) {
+	var param did.GetNodeIDListParam
+	expected := string(`{"node_id_list":["` + RP1 + `","` + IdP1 + `","` + AS1 + `","` + IdP4 + `","` + IdP5 + `","` + Proxy1 + `","` + IdP6BehindProxy1 + `","` + AS3BehindProxy1 + `","` + Proxy2 + `"]}`)
+	GetNodeIDList(t, param, expected)
+}
+
+func TestQueryGetNodeIDListRP(t *testing.T) {
+	var param did.GetNodeIDListParam
+	param.Role = "RP"
+	expected := string(`{"node_id_list":["` + RP1 + `"]}`)
+	GetNodeIDList(t, param, expected)
+}
+
+func TestQueryGetNodeIDListIdP(t *testing.T) {
+	var param did.GetNodeIDListParam
+	param.Role = "IdP"
+	expected := string(`{"node_id_list":["` + IdP1 + `","` + IdP4 + `","` + IdP5 + `","` + IdP6BehindProxy1 + `"]}`)
+	GetNodeIDList(t, param, expected)
+}
+
+func TestQueryGetNodeIDListAS(t *testing.T) {
+	var param did.GetNodeIDListParam
+	param.Role = "AS"
+	expected := string(`{"node_id_list":["` + AS1 + `","` + AS3BehindProxy1 + `"]}`)
+	GetNodeIDList(t, param, expected)
+}
+
+func TestDisableAllNode(t *testing.T) {
+	var param did.GetNodeIDListParam
+	allNode := GetNodeIDListForDisable(t, param)
+	for _, nodeID := range allNode {
+		var param did.DisableNodeParam
+		param.NodeID = nodeID
+		DisableNode(t, param)
+	}
+}

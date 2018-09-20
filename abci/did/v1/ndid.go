@@ -142,6 +142,61 @@ func registerNode(param string, app *DIDApplication, nodeID string) types.Respon
 		}
 		app.SetStateDB([]byte(idpsKey), []byte(idpsListByte))
 	}
+
+	// if node is rp, add node id to rpList
+	var rpsList data.RPList
+	rpsKey := "rpList"
+	if funcParam.Role == "RP" {
+		_, rpsValue := app.state.db.Get(prefixKey([]byte(rpsKey)))
+		if rpsValue != nil {
+			err := proto.Unmarshal(rpsValue, &rpsList)
+			if err != nil {
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+		}
+		rpsList.NodeId = append(rpsList.NodeId, funcParam.NodeID)
+		rpsListByte, err := proto.Marshal(&rpsList)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(rpsKey), []byte(rpsListByte))
+	}
+
+	// if node is as, add node id to asList
+	var asList data.ASList
+	asKey := "asList"
+	if funcParam.Role == "AS" {
+		_, asValue := app.state.db.Get(prefixKey([]byte(asKey)))
+		if asValue != nil {
+			err := proto.Unmarshal(asValue, &asList)
+			if err != nil {
+				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+		}
+		asList.NodeId = append(asList.NodeId, funcParam.NodeID)
+		asListByte, err := proto.Marshal(&asList)
+		if err != nil {
+			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(asKey), []byte(asListByte))
+	}
+
+	var allList data.AllList
+	allKey := "allList"
+	_, allValue := app.state.db.Get(prefixKey([]byte(allKey)))
+	if allValue != nil {
+		err := proto.Unmarshal(allValue, &allList)
+		if err != nil {
+			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	allList.NodeId = append(allList.NodeId, funcParam.NodeID)
+	allListByte, err := proto.Marshal(&allList)
+	if err != nil {
+		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(allKey), []byte(allListByte))
+
 	nodeDetailByte, err := proto.Marshal(&nodeDetail)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
