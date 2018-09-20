@@ -1546,9 +1546,9 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 			var row IdPBehindProxy
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
-			row.Role = nodeDetail.NodeName
-			row.PublicKey = nodeDetail.NodeName
-			row.MasterPublicKey = nodeDetail.NodeName
+			row.Role = nodeDetail.Role
+			row.PublicKey = nodeDetail.PublicKey
+			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = maxAalIal.MaxIal
 			row.MaxAal = maxAalIal.MaxAal
 			result.Nodes = append(result.Nodes, row)
@@ -1556,9 +1556,9 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 			var row ASorRPBehindProxy
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
-			row.Role = nodeDetail.NodeName
-			row.PublicKey = nodeDetail.NodeName
-			row.MasterPublicKey = nodeDetail.NodeName
+			row.Role = nodeDetail.Role
+			row.PublicKey = nodeDetail.PublicKey
+			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			result.Nodes = append(result.Nodes, row)
 		}
 	}
