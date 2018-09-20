@@ -7,7 +7,7 @@ message NodeDetail {
   string role = 4;
   double max_ial = 5;
   double max_aal = 6;
-  MQ mq = 7;
+  repeated MQ mq = 7;
   bool active = 8;
 }
   

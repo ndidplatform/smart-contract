@@ -46,10 +46,14 @@ func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	var msqAddress data.MQ
-	msqAddress.Ip = funcParam.IP
-	msqAddress.Port = funcParam.Port
-	nodeDetail.Mq = &msqAddress
+	var msqAddress []*data.MQ
+	for _, address := range funcParam.Addresses {
+		var msq data.MQ
+		msq.Ip = address.IP
+		msq.Port = address.Port
+		msqAddress = append(msqAddress, &msq)
+	}
+	nodeDetail.Mq = msqAddress
 	nodeDetailByte, err := proto.Marshal(&nodeDetail)
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
@@ -373,10 +377,17 @@ func getMsqAddress(param string, app *DIDApplication, height int64) types.Respon
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
 	if value == nil {
-		value = []byte("{}")
+		value = []byte("[]")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	resultJSON, err := json.Marshal(nodeDetail.Mq)
+	var result GetMsqAddressResult
+	for _, msq := range nodeDetail.Mq {
+		var newRow MsqAddress
+		newRow.IP = msq.Ip
+		newRow.Port = msq.Port
+		result = append(result, newRow)
+	}
+	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
@@ -913,10 +924,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			result.Proxy.PublicKey = proxyNode.PublicKey
 			result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
 			if proxyNode.Mq != nil {
-				var msq MsqAddress
-				msq.IP = proxyNode.Mq.Ip
-				msq.Port = proxyNode.Mq.Port
-				result.Proxy.Mq = &msq
+				for _, mq := range proxyNode.Mq {
+					var msq MsqAddress
+					msq.IP = mq.Ip
+					msq.Port = mq.Port
+					result.Proxy.Mq = append(result.Proxy.Mq, msq)
+				}
 			}
 			result.Proxy.Config = proxy.Config
 			value, err := json.Marshal(result)
@@ -935,10 +948,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.Proxy.PublicKey = proxyNode.PublicKey
 		result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
 		if proxyNode.Mq != nil {
-			var msq MsqAddress
-			msq.IP = proxyNode.Mq.Ip
-			msq.Port = proxyNode.Mq.Port
-			result.Proxy.Mq = &msq
+			for _, mq := range proxyNode.Mq {
+				var msq MsqAddress
+				msq.IP = mq.Ip
+				msq.Port = mq.Port
+				result.Proxy.Mq = append(result.Proxy.Mq, msq)
+			}
 		}
 		result.Proxy.Config = proxy.Config
 		value, err := json.Marshal(result)
@@ -956,10 +971,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			result.MaxIal = nodeDetail.MaxIal
 			result.MaxAal = nodeDetail.MaxAal
 			if nodeDetail.Mq != nil {
-				var msq MsqAddress
-				msq.IP = nodeDetail.Mq.Ip
-				msq.Port = nodeDetail.Mq.Port
-				result.Mq = &msq
+				for _, mq := range nodeDetail.Mq {
+					var msq MsqAddress
+					msq.IP = mq.Ip
+					msq.Port = mq.Port
+					result.Mq = append(result.Mq, msq)
+				}
 			}
 			value, err := json.Marshal(result)
 			if err != nil {
@@ -973,10 +990,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.NodeName = nodeDetail.NodeName
 		result.Role = nodeDetail.Role
 		if nodeDetail.Mq != nil {
-			var msq MsqAddress
-			msq.IP = nodeDetail.Mq.Ip
-			msq.Port = nodeDetail.Mq.Port
-			result.Mq = &msq
+			for _, mq := range nodeDetail.Mq {
+				var msq MsqAddress
+				msq.IP = mq.Ip
+				msq.Port = mq.Port
+				result.Mq = append(result.Mq, msq)
+			}
 		}
 		value, err := json.Marshal(result)
 		if err != nil {
@@ -1230,24 +1249,30 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.Proxy.NodeID = string(proxyNodeID)
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 					if proxyNode.Mq != nil {
-						var msq MsqAddress
-						msq.IP = proxyNode.Mq.Ip
-						msq.Port = proxyNode.Mq.Port
-						msqDesNode.Proxy.Mq = &msq
+						for _, mq := range proxyNode.Mq {
+							var msq MsqAddress
+							msq.IP = mq.Ip
+							msq.Port = mq.Port
+							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+						}
 					}
 					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
-					var msq MsqAddress
-					msq.IP = nodeDetail.Mq.Ip
-					msq.Port = nodeDetail.Mq.Port
+					var msq []MsqAddress
+					for _, mq := range nodeDetail.Mq {
+						var msqAddress MsqAddress
+						msqAddress.IP = mq.Ip
+						msqAddress.Port = mq.Port
+						msq = append(msq, msqAddress)
+					}
 					var msqDesNode = IdpNode{
 						idp,
 						nodeDetail.NodeName,
 						nodeDetail.MaxIal,
 						nodeDetail.MaxAal,
 						nodeDetail.PublicKey,
-						&msq,
+						msq,
 					}
 					result.Node = append(result.Node, msqDesNode)
 				}
@@ -1335,24 +1360,30 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.Proxy.NodeID = string(proxyNodeID)
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 					if proxyNode.Mq != nil {
-						var msq MsqAddress
-						msq.IP = proxyNode.Mq.Ip
-						msq.Port = proxyNode.Mq.Port
-						msqDesNode.Proxy.Mq = &msq
+						for _, mq := range proxyNode.Mq {
+							var msq MsqAddress
+							msq.IP = mq.Ip
+							msq.Port = mq.Port
+							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+						}
 					}
 					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
-					var msq MsqAddress
-					msq.IP = nodeDetail.Mq.Ip
-					msq.Port = nodeDetail.Mq.Port
+					var msq []MsqAddress
+					for _, mq := range nodeDetail.Mq {
+						var msqAddress MsqAddress
+						msqAddress.IP = mq.Ip
+						msqAddress.Port = mq.Port
+						msq = append(msq, msqAddress)
+					}
 					var msqDesNode = IdpNode{
 						node.NodeId,
 						nodeDetail.NodeName,
 						nodeDetail.MaxIal,
 						nodeDetail.MaxAal,
 						nodeDetail.PublicKey,
-						&msq,
+						msq,
 					}
 					result.Node = append(result.Node, msqDesNode)
 				}
@@ -1509,24 +1540,30 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 			as.Proxy.NodeID = string(proxyNodeID)
 			as.Proxy.PublicKey = proxyNode.PublicKey
 			if proxyNode.Mq != nil {
-				var msq MsqAddress
-				msq.IP = proxyNode.Mq.Ip
-				msq.Port = proxyNode.Mq.Port
-				as.Proxy.Mq = &msq
+				for _, mq := range proxyNode.Mq {
+					var msq MsqAddress
+					msq.IP = mq.Ip
+					msq.Port = mq.Port
+					as.Proxy.Mq = append(as.Proxy.Mq, msq)
+				}
 			}
 			as.Proxy.Config = proxy.Config
 			result.Node = append(result.Node, as)
 		} else {
-			var msqAddress MsqAddress
-			msqAddress.IP = nodeDetail.Mq.Ip
-			msqAddress.Port = nodeDetail.Mq.Port
+			var msqAddress []MsqAddress
+			for _, mq := range nodeDetail.Mq {
+				var msq MsqAddress
+				msq.IP = mq.Ip
+				msq.Port = mq.Port
+				msqAddress = append(msqAddress, msq)
+			}
 			var newRow = ASWithMqNode{
 				storedData.Node[index].NodeId,
 				nodeDetail.NodeName,
 				storedData.Node[index].MinIal,
 				storedData.Node[index].MinAal,
 				nodeDetail.PublicKey,
-				&msqAddress,
+				msqAddress,
 			}
 			result.Node = append(result.Node, newRow)
 		}

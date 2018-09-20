@@ -181,7 +181,7 @@ func GetIdpNodesExpectString(t *testing.T, param did.GetIdpNodesParam, expected 
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetMsqAddress(t *testing.T, param did.GetMsqAddressParam, expected did.MsqAddress) {
+func GetMsqAddress(t *testing.T, param did.GetMsqAddressParam, expected []did.MsqAddress) {
 	fnName := "GetMsqAddress"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -190,7 +190,7 @@ func GetMsqAddress(t *testing.T, param did.GetMsqAddressParam, expected did.MsqA
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.MsqAddress
+	var res []did.MsqAddress
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -210,7 +210,7 @@ func GetMsqAddressExpectString(t *testing.T, param did.GetMsqAddressParam, expec
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.MsqAddress
+	var res []did.MsqAddress
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
