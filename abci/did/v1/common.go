@@ -1282,8 +1282,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 											msqDesNode.PublicKey = nodeDetail.PublicKey
 											msqDesNode.Proxy.NodeID = string(proxyNodeID)
 											msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-											msqDesNode.Proxy.Mq.IP = msqAddress.IP
-											msqDesNode.Proxy.Mq.Port = msqAddress.Port
+											msqDesNode.Proxy.Mq = &msqAddress
 											msqDesNode.Proxy.Config = proxy.Config
 											result.Node = append(result.Node, msqDesNode)
 										} else {
