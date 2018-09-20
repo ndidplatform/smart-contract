@@ -1532,6 +1532,19 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 		if err != nil {
 			continue
 		}
+
+		// Get proxy detail
+		proxyKey := "Proxy" + "|" + node
+		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+		if proxyValue == nil {
+			continue
+		}
+		var proxy Proxy
+		err = json.Unmarshal([]byte(proxyValue), &proxy)
+		if err != nil {
+			continue
+		}
+
 		if nodeDetail.Role == "IdP" {
 			maxIalAalKey := "MaxIalAalNode" + "|" + node
 			_, maxIalAalValue := app.state.db.GetVersioned(prefixKey([]byte(maxIalAalKey)), height)
@@ -1551,6 +1564,7 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = maxAalIal.MaxIal
 			row.MaxAal = maxAalIal.MaxAal
+			row.Config = proxy.Config
 			result.Nodes = append(result.Nodes, row)
 		} else {
 			var row ASorRPBehindProxy
@@ -1559,6 +1573,7 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 			row.Role = nodeDetail.Role
 			row.PublicKey = nodeDetail.PublicKey
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
+			row.Config = proxy.Config
 			result.Nodes = append(result.Nodes, row)
 		}
 	}

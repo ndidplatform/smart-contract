@@ -679,6 +679,7 @@ type IdPBehindProxy struct {
 	MasterPublicKey string  `json:"master_public_key"`
 	MaxIal          float64 `json:"max_ial"`
 	MaxAal          float64 `json:"max_aal"`
+	Config          string  `json:"config"`
 }
 
 type ASorRPBehindProxy struct {
@@ -687,6 +688,7 @@ type ASorRPBehindProxy struct {
 	Role            string `json:"role"`
 	PublicKey       string `json:"public_key"`
 	MasterPublicKey string `json:"master_public_key"`
+	Config          string `json:"config"`
 }
 
 type Proxy struct {
