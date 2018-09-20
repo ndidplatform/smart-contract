@@ -417,21 +417,21 @@ type GetNodeInfoParam struct {
 }
 
 type GetNodeInfoResult struct {
-	PublicKey       string     `json:"public_key"`
-	MasterPublicKey string     `json:"master_public_key"`
-	NodeName        string     `json:"node_name"`
-	Role            string     `json:"role"`
-	Mq              MsqAddress `json:"mq"`
+	PublicKey       string      `json:"public_key"`
+	MasterPublicKey string      `json:"master_public_key"`
+	NodeName        string      `json:"node_name"`
+	Role            string      `json:"role"`
+	Mq              *MsqAddress `json:"mq"`
 }
 
 type GetNodeInfoIdPResult struct {
-	PublicKey       string     `json:"public_key"`
-	MasterPublicKey string     `json:"master_public_key"`
-	NodeName        string     `json:"node_name"`
-	Role            string     `json:"role"`
-	MaxIal          float64    `json:"max_ial"`
-	MaxAal          float64    `json:"max_aal"`
-	Mq              MsqAddress `json:"mq"`
+	PublicKey       string      `json:"public_key"`
+	MasterPublicKey string      `json:"master_public_key"`
+	NodeName        string      `json:"node_name"`
+	Role            string      `json:"role"`
+	MaxIal          float64     `json:"max_ial"`
+	MaxAal          float64     `json:"max_aal"`
+	Mq              *MsqAddress `json:"mq"`
 }
 
 type GetIdentityInfoParam struct {
@@ -566,21 +566,21 @@ type GetIdpNodesInfoResult struct {
 }
 
 type IdpNode struct {
-	NodeID    string     `json:"node_id"`
-	Name      string     `json:"name"`
-	MaxIal    float64    `json:"max_ial"`
-	MaxAal    float64    `json:"max_aal"`
-	PublicKey string     `json:"public_key"`
-	Mq        MsqAddress `json:"mq"`
+	NodeID    string      `json:"node_id"`
+	Name      string      `json:"name"`
+	MaxIal    float64     `json:"max_ial"`
+	MaxAal    float64     `json:"max_aal"`
+	PublicKey string      `json:"public_key"`
+	Mq        *MsqAddress `json:"mq"`
 }
 
 type ASWithMqNode struct {
-	ID        string     `json:"node_id"`
-	Name      string     `json:"name"`
-	MinIal    float64    `json:"min_ial"`
-	MinAal    float64    `json:"min_aal"`
-	PublicKey string     `json:"public_key"`
-	Mq        MsqAddress `json:"mq"`
+	ID        string      `json:"node_id"`
+	Name      string      `json:"name"`
+	MinIal    float64     `json:"min_ial"`
+	MinAal    float64     `json:"min_aal"`
+	PublicKey string      `json:"public_key"`
+	Mq        *MsqAddress `json:"mq"`
 }
 
 type GetAsNodesInfoByServiceIdResult struct {
@@ -599,15 +599,12 @@ type GetNodeInfoResultRPandASBehindProxy struct {
 	NodeName        string `json:"node_name"`
 	Role            string `json:"role"`
 	Proxy           struct {
-		NodeID          string `json:"node_id"`
-		NodeName        string `json:"node_name"`
-		PublicKey       string `json:"public_key"`
-		MasterPublicKey string `json:"master_public_key"`
-		Mq              struct {
-			IP   string `json:"ip"`
-			Port int64  `json:"port"`
-		} `json:"mq"`
-		Config string `json:"config"`
+		NodeID          string      `json:"node_id"`
+		NodeName        string      `json:"node_name"`
+		PublicKey       string      `json:"public_key"`
+		MasterPublicKey string      `json:"master_public_key"`
+		Mq              *MsqAddress `json:"mq"`
+		Config          string      `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -619,15 +616,12 @@ type GetNodeInfoResultIdPandASBehindProxy struct {
 	MaxIal          float64 `json:"max_ial"`
 	MaxAal          float64 `json:"max_aal"`
 	Proxy           struct {
-		NodeID          string `json:"node_id"`
-		NodeName        string `json:"node_name"`
-		PublicKey       string `json:"public_key"`
-		MasterPublicKey string `json:"master_public_key"`
-		Mq              struct {
-			IP   string `json:"ip"`
-			Port int64  `json:"port"`
-		} `json:"mq"`
-		Config string `json:"config"`
+		NodeID          string      `json:"node_id"`
+		NodeName        string      `json:"node_name"`
+		PublicKey       string      `json:"public_key"`
+		MasterPublicKey string      `json:"master_public_key"`
+		Mq              *MsqAddress `json:"mq"`
+		Config          string      `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -648,13 +642,10 @@ type IdpNodeBehindProxy struct {
 	MaxAal    float64 `json:"max_aal"`
 	PublicKey string  `json:"public_key"`
 	Proxy     struct {
-		NodeID    string `json:"node_id"`
-		PublicKey string `json:"public_key"`
-		Mq        struct {
-			IP   string `json:"ip"`
-			Port int64  `json:"port"`
-		} `json:"mq"`
-		Config string `json:"config"`
+		NodeID    string      `json:"node_id"`
+		PublicKey string      `json:"public_key"`
+		Mq        *MsqAddress `json:"mq"`
+		Config    string      `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -665,13 +656,10 @@ type ASWithMqNodeBehindProxy struct {
 	MinAal    float64 `json:"min_aal"`
 	PublicKey string  `json:"public_key"`
 	Proxy     struct {
-		NodeID    string `json:"node_id"`
-		PublicKey string `json:"public_key"`
-		Mq        struct {
-			IP   string `json:"ip"`
-			Port int64  `json:"port"`
-		} `json:"mq"`
-		Config string `json:"config"`
+		NodeID    string      `json:"node_id"`
+		PublicKey string      `json:"public_key"`
+		Mq        *MsqAddress `json:"mq"`
+		Config    string      `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -691,6 +679,7 @@ type IdPBehindProxy struct {
 	MasterPublicKey string  `json:"master_public_key"`
 	MaxIal          float64 `json:"max_ial"`
 	MaxAal          float64 `json:"max_aal"`
+	Config          string  `json:"config"`
 }
 
 type ASorRPBehindProxy struct {
@@ -699,6 +688,7 @@ type ASorRPBehindProxy struct {
 	Role            string `json:"role"`
 	PublicKey       string `json:"public_key"`
 	MasterPublicKey string `json:"master_public_key"`
+	Config          string `json:"config"`
 }
 
 type Proxy struct {

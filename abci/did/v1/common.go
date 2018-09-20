@@ -122,8 +122,8 @@ func getNodeNameByNodeID(nodeID string, app *DIDApplication) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
-		var nodeDetail NodeDetail
-		err := json.Unmarshal([]byte(value), &nodeDetail)
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal([]byte(value), &nodeDetail)
 		if err != nil {
 			return ""
 		}
@@ -911,8 +911,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			result.Proxy.NodeName = proxyNode.NodeName
 			result.Proxy.PublicKey = proxyNode.PublicKey
 			result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-			result.Proxy.Mq.IP = proxyNode.Mq.Ip
-			result.Proxy.Mq.Port = proxyNode.Mq.Port
+			if proxyNode.Mq != nil {
+				var msq MsqAddress
+				msq.IP = proxyNode.Mq.Ip
+				msq.Port = proxyNode.Mq.Port
+				result.Proxy.Mq = &msq
+			}
 			result.Proxy.Config = proxy.Config
 			value, err := json.Marshal(result)
 			if err != nil {
@@ -929,8 +933,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.Proxy.NodeName = proxyNode.NodeName
 		result.Proxy.PublicKey = proxyNode.PublicKey
 		result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-		result.Proxy.Mq.IP = proxyNode.Mq.Ip
-		result.Proxy.Mq.Port = proxyNode.Mq.Port
+		if proxyNode.Mq != nil {
+			var msq MsqAddress
+			msq.IP = proxyNode.Mq.Ip
+			msq.Port = proxyNode.Mq.Port
+			result.Proxy.Mq = &msq
+		}
 		result.Proxy.Config = proxy.Config
 		value, err := json.Marshal(result)
 		if err != nil {
@@ -946,8 +954,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 			result.Role = nodeDetail.Role
 			result.MaxIal = nodeDetail.MaxIal
 			result.MaxAal = nodeDetail.MaxAal
-			result.Mq.IP = nodeDetail.Mq.Ip
-			result.Mq.Port = nodeDetail.Mq.Port
+			if nodeDetail.Mq != nil {
+				var msq MsqAddress
+				msq.IP = nodeDetail.Mq.Ip
+				msq.Port = nodeDetail.Mq.Port
+				result.Mq = &msq
+			}
 			value, err := json.Marshal(result)
 			if err != nil {
 				return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -959,8 +971,12 @@ func getNodeInfo(param string, app *DIDApplication, height int64) types.Response
 		result.MasterPublicKey = nodeDetail.MasterPublicKey
 		result.NodeName = nodeDetail.NodeName
 		result.Role = nodeDetail.Role
-		result.Mq.IP = nodeDetail.Mq.Ip
-		result.Mq.Port = nodeDetail.Mq.Port
+		if nodeDetail.Mq != nil {
+			var msq MsqAddress
+			msq.IP = nodeDetail.Mq.Ip
+			msq.Port = nodeDetail.Mq.Port
+			result.Mq = &msq
+		}
 		value, err := json.Marshal(result)
 		if err != nil {
 			return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -1212,8 +1228,12 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.PublicKey = nodeDetail.PublicKey
 					msqDesNode.Proxy.NodeID = string(proxyNodeID)
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-					msqDesNode.Proxy.Mq.IP = proxyNode.Mq.Ip
-					msqDesNode.Proxy.Mq.Port = proxyNode.Mq.Port
+					if proxyNode.Mq != nil {
+						var msq MsqAddress
+						msq.IP = proxyNode.Mq.Ip
+						msq.Port = proxyNode.Mq.Port
+						msqDesNode.Proxy.Mq = &msq
+					}
 					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
@@ -1226,7 +1246,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 						nodeDetail.MaxIal,
 						nodeDetail.MaxAal,
 						nodeDetail.PublicKey,
-						msq,
+						&msq,
 					}
 					result.Node = append(result.Node, msqDesNode)
 				}
@@ -1313,8 +1333,12 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 					msqDesNode.PublicKey = nodeDetail.PublicKey
 					msqDesNode.Proxy.NodeID = string(proxyNodeID)
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-					msqDesNode.Proxy.Mq.IP = proxyNode.Mq.Ip
-					msqDesNode.Proxy.Mq.Port = proxyNode.Mq.Port
+					if proxyNode.Mq != nil {
+						var msq MsqAddress
+						msq.IP = proxyNode.Mq.Ip
+						msq.Port = proxyNode.Mq.Port
+						msqDesNode.Proxy.Mq = &msq
+					}
 					msqDesNode.Proxy.Config = proxy.Config
 					result.Node = append(result.Node, msqDesNode)
 				} else {
@@ -1327,7 +1351,7 @@ func getIdpNodesInfo(param string, app *DIDApplication, height int64) types.Resp
 						nodeDetail.MaxIal,
 						nodeDetail.MaxAal,
 						nodeDetail.PublicKey,
-						msq,
+						&msq,
 					}
 					result.Node = append(result.Node, msqDesNode)
 				}
@@ -1483,8 +1507,12 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 			as.PublicKey = nodeDetail.PublicKey
 			as.Proxy.NodeID = string(proxyNodeID)
 			as.Proxy.PublicKey = proxyNode.PublicKey
-			as.Proxy.Mq.IP = proxyNode.Mq.Ip
-			as.Proxy.Mq.Port = proxyNode.Mq.Port
+			if proxyNode.Mq != nil {
+				var msq MsqAddress
+				msq.IP = proxyNode.Mq.Ip
+				msq.Port = proxyNode.Mq.Port
+				as.Proxy.Mq = &msq
+			}
 			as.Proxy.Config = proxy.Config
 			result.Node = append(result.Node, as)
 		} else {
@@ -1497,7 +1525,7 @@ func getAsNodesInfoByServiceId(param string, app *DIDApplication, height int64) 
 				storedData.Node[index].MinIal,
 				storedData.Node[index].MinAal,
 				nodeDetail.PublicKey,
-				msqAddress,
+				&msqAddress,
 			}
 			result.Node = append(result.Node, newRow)
 		}
@@ -1544,25 +1572,41 @@ func getNodesBehindProxyNode(param string, app *DIDApplication, height int64) ty
 		if err != nil {
 			continue
 		}
+
+		// Get proxy detail
+		proxyKey := "Proxy" + "|" + node
+		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+		if proxyValue == nil {
+			continue
+		}
+		var proxy data.Proxy
+		err = proto.Unmarshal([]byte(proxyValue), &proxy)
+		if err != nil {
+			continue
+		}
+
 		if nodeDetail.Role == "IdP" {
 			var row IdPBehindProxy
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
-			row.Role = nodeDetail.NodeName
-			row.PublicKey = nodeDetail.NodeName
-			row.MasterPublicKey = nodeDetail.NodeName
+			row.Role = nodeDetail.Role
+			row.PublicKey = nodeDetail.PublicKey
+			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
+			row.Config = proxy.Config
 			result.Nodes = append(result.Nodes, row)
 		} else {
 			var row ASorRPBehindProxy
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
-			row.Role = nodeDetail.NodeName
-			row.PublicKey = nodeDetail.NodeName
-			row.MasterPublicKey = nodeDetail.NodeName
+			row.Role = nodeDetail.Role
+			row.PublicKey = nodeDetail.PublicKey
+			row.MasterPublicKey = nodeDetail.MasterPublicKey
+			row.Config = proxy.Config
 			result.Nodes = append(result.Nodes, row)
 		}
+
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
