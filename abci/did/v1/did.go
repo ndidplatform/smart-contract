@@ -132,7 +132,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	}()
 
 	var txObj protoTm.Tx
-	err = proto.Unmarshal(tx, &txObj)
+	err := proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -163,7 +163,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	}()
 
 	var txObj protoTm.Tx
-	err = proto.Unmarshal(tx, &txObj)
+	err := proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -208,7 +208,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}()
 
 	var query protoTm.Query
-	err = proto.Unmarshal(reqQuery.Data, &query)
+	err := proto.Unmarshal(reqQuery.Data, &query)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
