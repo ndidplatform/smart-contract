@@ -35,7 +35,7 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
-func RegisterMsqDestination(t *testing.T, param did.RegisterMsqDestinationParam, privKeyFile string, nodeID string, expected string) {
+func RegisterIdentity(t *testing.T, param did.RegisterIdentityParam, privKeyFile string, nodeID string, expected string) {
 	idpKey := getPrivateKeyFromString(privKeyFile)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
@@ -43,7 +43,7 @@ func RegisterMsqDestination(t *testing.T, param did.RegisterMsqDestinationParam,
 		fmt.Println("error:", err)
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "RegisterMsqDestination"
+	fnName := "RegisterIdentity"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
@@ -118,7 +118,7 @@ func CreateIdpResponse(t *testing.T, param did.CreateIdpResponseParam, privKeyFi
 	t.Logf("PASS: %s", fnName)
 }
 
-func CreateIdentity(t *testing.T, param did.CreateIdentityParam, nodeID string) {
+func RegisterAccessor(t *testing.T, param did.RegisterAccessorParam, nodeID string) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
@@ -126,7 +126,7 @@ func CreateIdentity(t *testing.T, param did.CreateIdentityParam, nodeID string) 
 		fmt.Println("error:", err)
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "CreateIdentity"
+	fnName := "RegisterAccessor"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
@@ -174,7 +174,7 @@ func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func ClearRegisterMsqDestinationTimeout(t *testing.T, param did.ClearRegisterMsqDestinationTimeoutParam, privKeyFile string, nodeID string) {
+func ClearRegisterIdentityTimeout(t *testing.T, param did.ClearRegisterIdentityTimeoutParam, privKeyFile string, nodeID string) {
 	idpKey := getPrivateKeyFromString(privKeyFile)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
@@ -182,7 +182,7 @@ func ClearRegisterMsqDestinationTimeout(t *testing.T, param did.ClearRegisterMsq
 		fmt.Println("error:", err)
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "ClearRegisterMsqDestinationTimeout"
+	fnName := "ClearRegisterIdentityTimeout"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))

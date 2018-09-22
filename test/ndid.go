@@ -33,7 +33,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ndidplatform/smart-contract/abci/did/v1"
+	did "github.com/ndidplatform/smart-contract/abci/did/v1"
 	"github.com/tendermint/tendermint/libs/common"
 )
 
@@ -106,15 +106,15 @@ func RegisterNode(t *testing.T, param did.RegisterNode) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func SetTimeOutBlockRegisterMsqDestination(t *testing.T) {
+func SetTimeOutBlockRegisterIdentity(t *testing.T) {
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
-	var param did.TimeOutBlockRegisterMsqDestination
+	var param did.TimeOutBlockRegisterIdentity
 	param.TimeOutBlock = 100
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	fnName := "SetTimeOutBlockRegisterMsqDestination"
+	fnName := "SetTimeOutBlockRegisterIdentity"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)

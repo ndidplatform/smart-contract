@@ -78,7 +78,7 @@ const (
 	UnsupportedKeyType                        uint32 = 51
 	UnknownKeyType                            uint32 = 52
 	NDIDisAlreadyExisted                      uint32 = 53
-	NoPermissionForRegisterMsqAddress         uint32 = 54
+	NoPermissionForSetMqAddresses             uint32 = 54
 	NoPermissionForCallNDIDMethod             uint32 = 55
 	NoPermissionForCallIdPMethod              uint32 = 56
 	NoPermissionForCallASMethod               uint32 = 57

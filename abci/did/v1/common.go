@@ -32,9 +32,9 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func registerMsqAddress(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterMsqAddress, Parameter: %s", param)
-	var funcParam RegisterMsqAddressParam
+func setMqAddresses(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
+	var funcParam SetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

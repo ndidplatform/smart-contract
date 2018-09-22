@@ -30,9 +30,8 @@ import (
 	"strings"
 	"testing"
 
+	did "github.com/ndidplatform/smart-contract/abci/did/v1"
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/ndidplatform/smart-contract/abci/did/v1"
 )
 
 var RP1 = RandStringRunes(20)
@@ -153,8 +152,8 @@ func TestRegisterNodeAS(t *testing.T) {
 	RegisterNode(t, param)
 }
 
-func TestNDIDSetTimeOutBlockRegisterMsqDestination(t *testing.T) {
-	SetTimeOutBlockRegisterMsqDestination(t)
+func TestNDIDSetTimeOutBlockRegisterIdentity(t *testing.T) {
+	SetTimeOutBlockRegisterIdentity(t)
 }
 
 func TestQueryGetNodePublicKeyRP(t *testing.T) {
@@ -298,7 +297,7 @@ func TestNDIDDisableService(t *testing.T) {
 	DisableService(t, param)
 }
 
-func TestIdPRegisterMsqDestination(t *testing.T) {
+func TestIdPRegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
@@ -309,10 +308,10 @@ func TestIdPRegisterMsqDestination(t *testing.T) {
 		true,
 	}
 	users = append(users, user)
-	var param = did.RegisterMsqDestinationParam{
+	var param = did.RegisterIdentityParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK, IdP1, "success")
+	RegisterIdentity(t, param, idpPrivK, IdP1, "success")
 }
 
 func TestDisableOldIdPNode1(t *testing.T) {
@@ -341,15 +340,15 @@ func TestQueryGetMsqAddressBeforeRegister(t *testing.T) {
 	var expected []did.MsqAddress
 	GetMsqAddress(t, param, expected)
 }
-func TestIdPRegisterMsqAddress(t *testing.T) {
+func TestIdPSetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = IdP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK, IdP1)
+	SetMqAddresses(t, param, idpPrivK, IdP1)
 }
 
 func TestQueryGetIdpNodesInfo1(t *testing.T) {
@@ -457,15 +456,15 @@ func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	GetAsNodesByServiceId(t, param, expected)
 }
 
-func TestAS1RegisterMsqAddress(t *testing.T) {
+func TestAS1SetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.102"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = AS1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, asPrivK, AS1)
+	SetMqAddresses(t, param, asPrivK, AS1)
 }
 
 func TestQueryGetAsNodesInfoByServiceId(t *testing.T) {
@@ -631,7 +630,7 @@ func TestReportGetUsedTokenRP(t *testing.T) {
 }
 
 func TestReportGetUsedTokenIdP(t *testing.T) {
-	expectedString := `[{"method":"RegisterMsqDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"CreateRequest","price":1,"data":"` + requestID2.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
+	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"CreateRequest","price":1,"data":"` + requestID2.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
 	var param = did.GetUsedTokenReportParam{
 		IdP1,
 	}
@@ -642,7 +641,7 @@ func TestReportGetUsedTokenAS(t *testing.T) {
 	var param = did.GetUsedTokenReportParam{
 		AS1,
 	}
-	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"RegisterMsqAddress","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
+	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
 	GetUsedTokenReport(t, param, expectedString)
 }
 
@@ -822,14 +821,14 @@ func TestQueryGetNamespaceList(t *testing.T) {
 	GetNamespaceList(t, expected)
 }
 
-func TestIdPCreateIdentity(t *testing.T) {
-	var param = did.CreateIdentityParam{
+func TestIdPRegisterAccessor(t *testing.T) {
+	var param = did.RegisterAccessorParam{
 		accessorID1.String(),
 		"accessor_type",
 		accessorPubKey,
 		accessorGroupID1.String(),
 	}
-	CreateIdentity(t, param, IdP1)
+	RegisterAccessor(t, param, IdP1)
 }
 
 func TestIdPAddAccessorMethod(t *testing.T) {
@@ -843,15 +842,15 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	AddAccessorMethod(t, param, IdP1)
 }
 
-func TestIdP1ClearRegisterMsqDestinationTimeout(t *testing.T) {
+func TestIdP1ClearRegisterIdentityTimeout(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
 
-	var param = did.ClearRegisterMsqDestinationTimeoutParam{
+	var param = did.ClearRegisterIdentityTimeoutParam{
 		hex.EncodeToString(userHash),
 	}
-	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK, IdP1)
+	ClearRegisterIdentityTimeout(t, param, idpPrivK, IdP1)
 }
 
 func TestQueryCheckExistingIdentity(t *testing.T) {
@@ -1141,26 +1140,26 @@ func TestIdPUpdateNode5(t *testing.T) {
 	UpdateNode(t, param, allMasterKey, IdP5)
 }
 
-func TestIdP4RegisterMsqAddress(t *testing.T) {
+func TestIdP4SetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = IdP4
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK5, IdP4)
+	SetMqAddresses(t, param, idpPrivK5, IdP4)
 }
 
-func TestIdP5RegisterMsqAddress(t *testing.T) {
+func TestIdP5SetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = IdP5
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK4, IdP5)
+	SetMqAddresses(t, param, idpPrivK4, IdP5)
 }
 
 func TestQueryGetNodeInfoIdP4(t *testing.T) {
@@ -1177,7 +1176,7 @@ func TestQueryGetNodeInfoIdP5(t *testing.T) {
 	GetNodeInfo(t, param, expected)
 }
 
-func TestIdP4RegisterMsqDestination0(t *testing.T) {
+func TestIdP4RegisterIdentity0(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID2))
 	userHash := h.Sum(nil)
@@ -1188,13 +1187,13 @@ func TestIdP4RegisterMsqDestination0(t *testing.T) {
 		true,
 	}
 	users = append(users, user)
-	var param = did.RegisterMsqDestinationParam{
+	var param = did.RegisterIdentityParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
+	RegisterIdentity(t, param, idpPrivK5, IdP4, "success")
 }
 
-func TestIdP4RegisterMsqDestination11(t *testing.T) {
+func TestIdP4RegisterIdentity11(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID2))
 	userHash := h.Sum(nil)
@@ -1205,23 +1204,23 @@ func TestIdP4RegisterMsqDestination11(t *testing.T) {
 		true,
 	}
 	users = append(users, user)
-	var param = did.RegisterMsqDestinationParam{
+	var param = did.RegisterIdentityParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "This node is not first IdP")
+	RegisterIdentity(t, param, idpPrivK5, IdP4, "This node is not first IdP")
 }
 
-func TestIdP4ClearRegisterMsqDestinationTimeout(t *testing.T) {
+func TestIdP4ClearRegisterIdentityTimeout(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID2))
 	userHash := h.Sum(nil)
-	var param = did.ClearRegisterMsqDestinationTimeoutParam{
+	var param = did.ClearRegisterIdentityTimeoutParam{
 		hex.EncodeToString(userHash),
 	}
-	ClearRegisterMsqDestinationTimeout(t, param, idpPrivK5, IdP4)
+	ClearRegisterIdentityTimeout(t, param, idpPrivK5, IdP4)
 }
 
-func TestIdP4RegisterMsqDestination12(t *testing.T) {
+func TestIdP4RegisterIdentity12(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID2))
 	userHash := h.Sum(nil)
@@ -1232,13 +1231,13 @@ func TestIdP4RegisterMsqDestination12(t *testing.T) {
 		true,
 	}
 	users = append(users, user)
-	var param = did.RegisterMsqDestinationParam{
+	var param = did.RegisterIdentityParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
+	RegisterIdentity(t, param, idpPrivK5, IdP4, "success")
 }
 
-func TestIdP4RegisterMsqDestination2(t *testing.T) {
+func TestIdP4RegisterIdentity2(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
 	userHash := h.Sum(nil)
@@ -1249,10 +1248,10 @@ func TestIdP4RegisterMsqDestination2(t *testing.T) {
 		false,
 	}
 	users = append(users, user)
-	var param = did.RegisterMsqDestinationParam{
+	var param = did.RegisterIdentityParam{
 		users,
 	}
-	RegisterMsqDestination(t, param, idpPrivK5, IdP4, "success")
+	RegisterIdentity(t, param, idpPrivK5, IdP4, "success")
 }
 
 func TestQueryGetIdpNodes3(t *testing.T) {
@@ -1566,15 +1565,15 @@ func TestQueryGetNodeNotFound(t *testing.T) {
 	GetNodeInfo(t, param, expected)
 }
 
-func TestRP1RegisterMsqAddress(t *testing.T) {
+func TestRP1SetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = RP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, rpPrivK, RP1)
+	SetMqAddresses(t, param, rpPrivK, RP1)
 }
 
 func TestQueryGetNodeInfoRP1(t *testing.T) {
@@ -2027,15 +2026,15 @@ func TestQueryGetNodeInfoIdP6BehindProxy1BeforeProxyRegisterMsq(t *testing.T) {
 	GetNodeInfo(t, param, expected)
 }
 
-func TestRegisterMsqAddressProxy1(t *testing.T) {
+func TestSetMqAddressesProxy1(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = Proxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK, Proxy1)
+	SetMqAddresses(t, param, idpPrivK, Proxy1)
 }
 
 func TestQueryGetNodeInfoProxy1(t *testing.T) {
@@ -2171,15 +2170,15 @@ func TestSetNodeTokenProxy2(t *testing.T) {
 	SetNodeToken(t, param)
 }
 
-func TestRegisterMsqAddressProxy2(t *testing.T) {
+func TestSetMqAddressesProxy2(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = Proxy2
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK, Proxy1)
+	SetMqAddresses(t, param, idpPrivK, Proxy1)
 }
 
 func TestUpdateNodeProxyNodeProxy2(t *testing.T) {
@@ -2218,15 +2217,15 @@ func TestRemoveNodeFromProxyNode1(t *testing.T) {
 	RemoveNodeFromProxyNode(t, param, "success")
 }
 
-func TestRegisterMsqAddressIdP6BehindProxy1(t *testing.T) {
+func TestSetMqAddressesIdP6BehindProxy1(t *testing.T) {
 	var mq did.MsqAddress
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
-	var param did.RegisterMsqAddressParam
+	var param did.SetMqAddressesParam
 	param.NodeID = IdP6BehindProxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	RegisterMsqAddress(t, param, idpPrivK, Proxy1)
+	SetMqAddresses(t, param, idpPrivK, Proxy1)
 }
 
 func TestQueryGetGetNodesBehindProxyNode5(t *testing.T) {

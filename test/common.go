@@ -35,7 +35,7 @@ import (
 	"github.com/tendermint/tendermint/libs/common"
 )
 
-func RegisterMsqAddress(t *testing.T, param did.RegisterMsqAddressParam, priveKFile string, nodeID string) {
+func SetMqAddresses(t *testing.T, param did.SetMqAddressesParam, priveKFile string, nodeID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -43,7 +43,7 @@ func RegisterMsqAddress(t *testing.T, param did.RegisterMsqAddressParam, priveKF
 	idpKey := getPrivateKeyFromString(priveKFile)
 	idpNodeID := []byte(nodeID)
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "RegisterMsqAddress"
+	fnName := "SetMqAddresses"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))

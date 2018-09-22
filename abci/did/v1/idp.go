@@ -31,9 +31,9 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func createIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateIdentity, Parameter: %s", param)
-	var funcParam CreateIdentityParam
+func registerAccessor(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RegisterAccessor, Parameter: %s", param)
+	var funcParam RegisterAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -172,9 +172,9 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func registerMsqDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RegisterMsqDestination, Parameter: %s", param)
-	var funcParam RegisterMsqDestinationParam
+func registerIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
+	var funcParam RegisterIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -197,8 +197,8 @@ func registerMsqDestination(param string, app *DIDApplication, nodeID string) ty
 		}
 	}
 
-	timeOutKey := "TimeOutBlockRegisterMsqDestination"
-	var timeOut data.TimeOutBlockRegisterMsqDestination
+	timeOutKey := "TimeOutBlockRegisterIdentity"
+	var timeOut data.TimeOutBlockRegisterIdentity
 	_, timeOutValue := app.state.db.Get(prefixKey([]byte(timeOutKey)))
 	if timeOutValue != nil {
 		err := proto.Unmarshal([]byte(timeOutValue), &timeOut)
@@ -488,9 +488,9 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }
 
-func clearRegisterMsqDestinationTimeout(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("ClearRegisterMsqDestinationTimeout, Parameter: %s", param)
-	var funcParam ClearRegisterMsqDestinationTimeoutParam
+func clearRegisterIdentityTimeout(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("ClearRegisterIdentityTimeout, Parameter: %s", param)
+	var funcParam ClearRegisterIdentityTimeoutParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

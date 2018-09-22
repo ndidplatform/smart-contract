@@ -2,6 +2,15 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- Rename functions
+  - `RegisterMsqAddress` to `SetMqAddresses`
+  - `RegisterMsqDestination` to `RegisterIdentity`
+  - `ClearRegisterMsqDestinationTimeout` to `ClearRegisterIdentityTimeout`
+  - `SetTimeOutBlockRegisterMsqDestination` to `SetTimeOutBlockRegisterIdentity`
+  - `CreateIdentity` to `RegisterAccessor`
+
 IMPROVEMENTS:
 
 - Change Tx and Query input format from base64 string to byte array.

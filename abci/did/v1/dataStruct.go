@@ -49,7 +49,7 @@ type User struct {
 	First  bool    `json:"first"`
 }
 
-type RegisterMsqDestinationParam struct {
+type RegisterIdentityParam struct {
 	Users []User `json:"users"`
 }
 
@@ -261,7 +261,7 @@ type MaxIalAal struct {
 // 	Port   int64  `json:"port"`
 // }
 
-type RegisterMsqAddressParam struct {
+type SetMqAddressesParam struct {
 	NodeID    string       `json:"node_id"`
 	Addresses []MsqAddress `json:"addresses"`
 }
@@ -340,7 +340,7 @@ type UpdateNodeParam struct {
 	MasterPublicKey string `json:"master_public_key"`
 }
 
-type CreateIdentityParam struct {
+type RegisterAccessorParam struct {
 	AccessorID        string `json:"accessor_id"`
 	AccessorType      string `json:"accessor_type"`
 	AccessorPublicKey string `json:"accessor_public_key"`
@@ -558,11 +558,11 @@ type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-type ClearRegisterMsqDestinationTimeoutParam struct {
+type ClearRegisterIdentityTimeoutParam struct {
 	HashID string `json:"hash_id"`
 }
 
-type TimeOutBlockRegisterMsqDestination struct {
+type TimeOutBlockRegisterIdentity struct {
 	TimeOutBlock int64 `json:"time_out_block"`
 }
 

@@ -61,32 +61,32 @@ var IsMethod = map[string]bool{
 	"EnableServiceDestinationByNDID":   true,
 	"EnableNamespace":                  true,
 	"EnableService":                    true,
-	"RegisterMsqDestination":           true,
+	"RegisterIdentity":                 true,
 	"AddAccessorMethod":                true,
 	"CreateIdpResponse":                true,
-	"CreateIdentity":                   true,
+	"RegisterAccessor":                 true,
 	"UpdateIdentity":                   true,
 	"DeclareIdentityProof":             true,
 	// "DisableMsqDestination":                 true,
 	// "DisableAccessorMethod":                 true,
 	// "EnableMsqDestination":                  true,
 	// "EnableAccessorMethod":                  true,
-	"SignData":                              true,
-	"RegisterServiceDestination":            true,
-	"UpdateServiceDestination":              true,
-	"CreateRequest":                         true,
-	"RegisterMsqAddress":                    true,
-	"UpdateNode":                            true,
-	"CloseRequest":                          true,
-	"TimeOutRequest":                        true,
-	"SetDataReceived":                       true,
-	"DisableServiceDestination":             true,
-	"EnableServiceDestination":              true,
-	"ClearRegisterMsqDestinationTimeout":    true,
-	"SetTimeOutBlockRegisterMsqDestination": true,
-	"AddNodeToProxyNode":                    true,
-	"UpdateNodeProxyNode":                   true,
-	"RemoveNodeFromProxyNode":               true,
+	"SignData":                        true,
+	"RegisterServiceDestination":      true,
+	"UpdateServiceDestination":        true,
+	"CreateRequest":                   true,
+	"SetMqAddresses":                  true,
+	"UpdateNode":                      true,
+	"CloseRequest":                    true,
+	"TimeOutRequest":                  true,
+	"SetDataReceived":                 true,
+	"DisableServiceDestination":       true,
+	"EnableServiceDestination":        true,
+	"ClearRegisterIdentityTimeout":    true,
+	"SetTimeOutBlockRegisterIdentity": true,
+	"AddNodeToProxyNode":              true,
+	"UpdateNodeProxyNode":             true,
+	"RemoveNodeFromProxyNode":         true,
 }
 
 func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
@@ -99,7 +99,7 @@ func checkTxInitNDID(param string, nodeID string, app *DIDApplication) types.Res
 	return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
 }
 
-func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
+func checkTxSetMqAddresses(param string, nodeID string, app *DIDApplication) types.ResponseCheckTx {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	var node data.NodeDetail
@@ -114,7 +114,7 @@ func checkTxRegisterMsqAddress(param string, nodeID string, app *DIDApplication)
 		string(node.Role) == "Proxy" {
 		return ReturnCheckTx(code.OK, "")
 	}
-	return ReturnCheckTx(code.NoPermissionForRegisterMsqAddress, "This node does not have permission for register msq address")
+	return ReturnCheckTx(code.NoPermissionForSetMqAddresses, "This node does not have permission to set MQ addresses")
 }
 
 func checkNDID(param string, nodeID string, app *DIDApplication) bool {
@@ -423,7 +423,7 @@ func CheckTxRouter(method string, param string, nonce []byte, signature []byte, 
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
-	} else if method == "CreateIdentity" || method == "AddAccessorMethod" {
+	} else if method == "RegisterAccessor" || method == "AddAccessorMethod" {
 		checkCode, log := checkAccessorPubKey(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
@@ -494,22 +494,22 @@ func callCheckTx(name string, param string, nodeID string, app *DIDApplication) 
 		"EnableServiceDestinationByNDID",
 		"EnableNamespace",
 		"EnableService",
-		"SetTimeOutBlockRegisterMsqDestination",
+		"SetTimeOutBlockRegisterIdentity",
 		"AddNodeToProxyNode",
 		"UpdateNodeProxyNode",
 		"RemoveNodeFromProxyNode":
 		return checkIsNDID(param, nodeID, app)
-	case "RegisterMsqDestination",
+	case "RegisterIdentity",
 		"AddAccessorMethod",
 		"CreateIdpResponse",
-		"CreateIdentity",
+		"RegisterAccessor",
 		"UpdateIdentity",
 		"DeclareIdentityProof",
 		// "DisableMsqDestination",
 		// "DisableAccessorMethod",
 		// "EnableMsqDestination",
 		// "EnableAccessorMethod",
-		"ClearRegisterMsqDestinationTimeout":
+		"ClearRegisterIdentityTimeout":
 		return checkIsIDP(param, nodeID, app)
 	case "SignData",
 		"RegisterServiceDestination",
@@ -519,8 +519,8 @@ func callCheckTx(name string, param string, nodeID string, app *DIDApplication) 
 		return checkIsAS(param, nodeID, app)
 	case "CreateRequest":
 		return checkIsRPorIdP(param, nodeID, app)
-	case "RegisterMsqAddress":
-		return checkTxRegisterMsqAddress(param, nodeID, app)
+	case "SetMqAddresses":
+		return checkTxSetMqAddresses(param, nodeID, app)
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

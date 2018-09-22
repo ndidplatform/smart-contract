@@ -199,7 +199,7 @@ Posible role is RP,IdP and AS
 log: "success"
 ```
 
-## RegisterMsqDestination
+## RegisterIdentity
 ### Parameter
 ```sh
 {
@@ -244,13 +244,17 @@ log: "success"
 log: "success"
 ```
 
-## RegisterMsqAddress
+## SetMqAddresses
 ### Parameter
 ```sh
 {
   "node_id": "IdP1",
-  "ip": "192.168.3.99",
-  "port": 8000
+  "addresses": [
+    {
+      "ip": "192.168.3.99",
+      "port": 8000
+    }
+  ]
 }
 ```
 ### Expected Output
@@ -448,7 +452,7 @@ log: "success"
 log: "success"
 ```
 
-## CreateIdentity
+## RegisterAccessor
 ### Parameter
 ```sh
 {
@@ -693,7 +697,7 @@ log: "success"
 log: "success"
 ```
 
-## ClearRegisterMsqDestinationTimeout
+## ClearRegisterIdentityTimeout
 ### Parameter
 ```sh
 {
@@ -705,7 +709,7 @@ log: "success"
 log: "success"
 ```
 
-## SetTimeOutBlockRegisterMsqDestination
+## SetTimeOutBlockRegisterIdentity
 ### Parameter
 ```sh
 {

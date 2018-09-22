@@ -86,8 +86,8 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return initNDID(param, app, nodeID)
 	case "RegisterNode":
 		return registerNode(param, app, nodeID)
-	case "RegisterMsqDestination":
-		return registerMsqDestination(param, app, nodeID)
+	case "RegisterIdentity":
+		return registerIdentity(param, app, nodeID)
 	case "AddAccessorMethod":
 		return addAccessorMethod(param, app, nodeID)
 	case "CreateRequest":
@@ -98,8 +98,8 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return signData(param, app, nodeID)
 	case "RegisterServiceDestination":
 		return registerServiceDestination(param, app, nodeID)
-	case "RegisterMsqAddress":
-		return registerMsqAddress(param, app, nodeID)
+	case "SetMqAddresses":
+		return setMqAddresses(param, app, nodeID)
 	case "AddNodeToken":
 		return addNodeToken(param, app, nodeID)
 	case "ReduceNodeToken":
@@ -116,8 +116,8 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return addNamespace(param, app, nodeID)
 	case "UpdateNode":
 		return updateNode(param, app, nodeID)
-	case "CreateIdentity":
-		return createIdentity(param, app, nodeID)
+	case "RegisterAccessor":
+		return registerAccessor(param, app, nodeID)
 	case "SetValidator":
 		return setValidator(param, app, nodeID)
 	case "AddService":
@@ -164,10 +164,10 @@ func callDeliverTx(name string, param string, app *DIDApplication, nodeID string
 		return disableServiceDestination(param, app, nodeID)
 	case "EnableServiceDestination":
 		return enableServiceDestination(param, app, nodeID)
-	case "ClearRegisterMsqDestinationTimeout":
-		return clearRegisterMsqDestinationTimeout(param, app, nodeID)
-	case "SetTimeOutBlockRegisterMsqDestination":
-		return setTimeOutBlockRegisterMsqDestination(param, app, nodeID)
+	case "ClearRegisterIdentityTimeout":
+		return clearRegisterIdentityTimeout(param, app, nodeID)
+	case "SetTimeOutBlockRegisterIdentity":
+		return setTimeOutBlockRegisterIdentity(param, app, nodeID)
 	case "AddNodeToProxyNode":
 		return addNodeToProxyNode(param, app, nodeID)
 	case "UpdateNodeProxyNode":

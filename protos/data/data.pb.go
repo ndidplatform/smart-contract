@@ -418,38 +418,38 @@ func (m *ApproveService) GetActive() bool {
 	return false
 }
 
-type TimeOutBlockRegisterMsqDestination struct {
+type TimeOutBlockRegisterIdentity struct {
 	TimeOutBlock         int64    `protobuf:"varint,1,opt,name=time_out_block,json=timeOutBlock,proto3" json:"time_out_block,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TimeOutBlockRegisterMsqDestination) Reset()         { *m = TimeOutBlockRegisterMsqDestination{} }
-func (m *TimeOutBlockRegisterMsqDestination) String() string { return proto.CompactTextString(m) }
-func (*TimeOutBlockRegisterMsqDestination) ProtoMessage()    {}
-func (*TimeOutBlockRegisterMsqDestination) Descriptor() ([]byte, []int) {
+func (m *TimeOutBlockRegisterIdentity) Reset()         { *m = TimeOutBlockRegisterIdentity{} }
+func (m *TimeOutBlockRegisterIdentity) String() string { return proto.CompactTextString(m) }
+func (*TimeOutBlockRegisterIdentity) ProtoMessage()    {}
+func (*TimeOutBlockRegisterIdentity) Descriptor() ([]byte, []int) {
 	return fileDescriptor_data_01d1e109b93d321d, []int{8}
 }
-func (m *TimeOutBlockRegisterMsqDestination) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_TimeOutBlockRegisterMsqDestination.Unmarshal(m, b)
+func (m *TimeOutBlockRegisterIdentity) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TimeOutBlockRegisterIdentity.Unmarshal(m, b)
 }
-func (m *TimeOutBlockRegisterMsqDestination) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_TimeOutBlockRegisterMsqDestination.Marshal(b, m, deterministic)
+func (m *TimeOutBlockRegisterIdentity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TimeOutBlockRegisterIdentity.Marshal(b, m, deterministic)
 }
-func (dst *TimeOutBlockRegisterMsqDestination) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TimeOutBlockRegisterMsqDestination.Merge(dst, src)
+func (dst *TimeOutBlockRegisterIdentity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TimeOutBlockRegisterIdentity.Merge(dst, src)
 }
-func (m *TimeOutBlockRegisterMsqDestination) XXX_Size() int {
-	return xxx_messageInfo_TimeOutBlockRegisterMsqDestination.Size(m)
+func (m *TimeOutBlockRegisterIdentity) XXX_Size() int {
+	return xxx_messageInfo_TimeOutBlockRegisterIdentity.Size(m)
 }
-func (m *TimeOutBlockRegisterMsqDestination) XXX_DiscardUnknown() {
-	xxx_messageInfo_TimeOutBlockRegisterMsqDestination.DiscardUnknown(m)
+func (m *TimeOutBlockRegisterIdentity) XXX_DiscardUnknown() {
+	xxx_messageInfo_TimeOutBlockRegisterIdentity.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TimeOutBlockRegisterMsqDestination proto.InternalMessageInfo
+var xxx_messageInfo_TimeOutBlockRegisterIdentity proto.InternalMessageInfo
 
-func (m *TimeOutBlockRegisterMsqDestination) GetTimeOutBlock() int64 {
+func (m *TimeOutBlockRegisterIdentity) GetTimeOutBlock() int64 {
 	if m != nil {
 		return m.TimeOutBlock
 	}
@@ -1471,7 +1471,7 @@ func init() {
 	proto.RegisterType((*ServiceDetailList)(nil), "ServiceDetailList")
 	proto.RegisterType((*ServiceDetail)(nil), "ServiceDetail")
 	proto.RegisterType((*ApproveService)(nil), "ApproveService")
-	proto.RegisterType((*TimeOutBlockRegisterMsqDestination)(nil), "TimeOutBlockRegisterMsqDestination")
+	proto.RegisterType((*TimeOutBlockRegisterIdentity)(nil), "TimeOutBlockRegisterIdentity")
 	proto.RegisterType((*Proxy)(nil), "Proxy")
 	proto.RegisterType((*BehindNodeList)(nil), "BehindNodeList")
 	proto.RegisterType((*Request)(nil), "Request")
