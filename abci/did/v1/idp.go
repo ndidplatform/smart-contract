@@ -510,7 +510,7 @@ func clearRegisterIdentityTimeout(param string, app *DIDApplication, nodeID stri
 		for index := range nodes.Nodes {
 			if nodes.Nodes[index].NodeId == nodeID {
 				if nodes.Nodes[index].TimeoutBlock <= app.CurrentBlock {
-					return ReturnDeliverTxLog(code.MsqDestinationIsTimedOut, "Can not clear msq destination that is timed out", "")
+					return ReturnDeliverTxLog(code.RegisterIdentityIsTimedOut, "Cannot clear register identity that is timed out", "")
 				}
 				break
 			}

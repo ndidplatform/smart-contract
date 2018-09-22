@@ -801,7 +801,7 @@ log: "success"
 }
 ```
 
-## GetMsqAddress
+## GetMqAddresses
 ### Parameter
 ```sh
 {
@@ -810,10 +810,12 @@ log: "success"
 ```
 ### Expected Output
 ```sh
-{
-  "ip": "192.168.3.99",
-  "port": 8000
-}
+[
+  {
+    "ip": "192.168.3.99",
+    "port": 8000
+  }
+]
 ```
 
 ## GetRequest

@@ -266,7 +266,7 @@ type SetMqAddressesParam struct {
 	Addresses []MsqAddress `json:"addresses"`
 }
 
-type GetMsqAddressParam struct {
+type GetMqAddressesParam struct {
 	NodeID string `json:"node_id"`
 }
 
@@ -711,4 +711,4 @@ type GetNodeIDListResult struct {
 	NodeIDList []string `json:"node_id_list"`
 }
 
-type GetMsqAddressResult []MsqAddress
+type GetMqAddressesResult []MsqAddress

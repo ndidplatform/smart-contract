@@ -333,12 +333,12 @@ func TestDisableOldIdPNode1(t *testing.T) {
 
 }
 
-func TestQueryGetMsqAddressBeforeRegister(t *testing.T) {
-	var param = did.GetMsqAddressParam{
+func TestQueryGetMqAddressesBeforeRegister(t *testing.T) {
+	var param = did.GetMqAddressesParam{
 		IdP1,
 	}
 	var expected []did.MsqAddress
-	GetMsqAddress(t, param, expected)
+	GetMqAddresses(t, param, expected)
 }
 func TestIdPSetMqAddresses(t *testing.T) {
 	var mq did.MsqAddress
@@ -382,8 +382,8 @@ func TestQueryGetIdpNodes(t *testing.T) {
 	GetIdpNodes(t, param, expected)
 }
 
-func TestQueryGetMsqAddress(t *testing.T) {
-	var param = did.GetMsqAddressParam{
+func TestQueryGetMqAddresses(t *testing.T) {
+	var param = did.GetMqAddressesParam{
 		IdP1,
 	}
 	var expected []did.MsqAddress
@@ -391,7 +391,7 @@ func TestQueryGetMsqAddress(t *testing.T) {
 	msq.IP = "192.168.3.99"
 	msq.Port = 8000
 	expected = append(expected, msq)
-	GetMsqAddress(t, param, expected)
+	GetMqAddresses(t, param, expected)
 }
 
 func TestASRegisterServiceDestinationByNDIDForAS1(t *testing.T) {
@@ -1789,12 +1789,12 @@ func TestQueryGetAsNodesByServiceIdInvalid(t *testing.T) {
 	GetAsNodesByServiceId(t, param, expected)
 }
 
-func TestQueryGetMsqAddressInvalid(t *testing.T) {
-	var param = did.GetMsqAddressParam{
+func TestQueryGetMqAddressesInvalid(t *testing.T) {
+	var param = did.GetMqAddressesParam{
 		"IdP1-Invalid",
 	}
 	expected := "not found"
-	GetMsqAddressExpectString(t, param, expected)
+	GetMqAddressesExpectString(t, param, expected)
 }
 
 func TestQueryGetNodeTokenInvalid(t *testing.T) {

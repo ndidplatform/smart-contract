@@ -90,7 +90,7 @@ const (
 	CannotGetPublicKeyFromNodeID              uint32 = 63
 	TimeOutBlockIsMustGreaterThanZero         uint32 = 64
 	RSAKeyLengthTooShort                      uint32 = 65
-	MsqDestinationIsTimedOut                  uint32 = 66
+	RegisterIdentityIsTimedOut                uint32 = 66
 	AmountMustBeGreaterOrEqualToZero          uint32 = 67
 	NodeIsNotActive                           uint32 = 68
 	ServiceIsNotActive                        uint32 = 69

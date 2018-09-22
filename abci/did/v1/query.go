@@ -55,8 +55,8 @@ func callQuery(name string, param string, app *DIDApplication, height int64) typ
 		return getRequestDetail(param, app, height)
 	case "GetAsNodesByServiceId":
 		return getAsNodesByServiceId(param, app, height)
-	case "GetMsqAddress":
-		return getMsqAddress(param, app, height)
+	case "GetMqAddresses":
+		return getMqAddresses(param, app, height)
 	case "GetNodeToken":
 		return getNodeToken(param, app, height)
 	case "GetPriceFunc":

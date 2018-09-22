@@ -181,8 +181,8 @@ func GetIdpNodesExpectString(t *testing.T, param did.GetIdpNodesParam, expected 
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetMsqAddress(t *testing.T, param did.GetMsqAddressParam, expected []did.MsqAddress) {
-	fnName := "GetMsqAddress"
+func GetMqAddresses(t *testing.T, param did.GetMqAddressesParam, expected []did.MsqAddress) {
+	fnName := "GetMqAddresses"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -211,8 +211,8 @@ func GetMsqAddress(t *testing.T, param did.GetMsqAddressParam, expected []did.Ms
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetMsqAddressExpectString(t *testing.T, param did.GetMsqAddressParam, expected string) {
-	fnName := "GetMsqAddress"
+func GetMqAddressesExpectString(t *testing.T, param did.GetMqAddressesParam, expected string) {
+	fnName := "GetMqAddresses"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)

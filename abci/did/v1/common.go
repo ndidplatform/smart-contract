@@ -359,9 +359,9 @@ func getAsNodesByServiceId(param string, app *DIDApplication, height int64) type
 	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }
 
-func getMsqAddress(param string, app *DIDApplication, height int64) types.ResponseQuery {
-	app.logger.Infof("GetMsqAddress, Parameter: %s", param)
-	var funcParam GetMsqAddressParam
+func getMqAddresses(param string, app *DIDApplication, height int64) types.ResponseQuery {
+	app.logger.Infof("GetMqAddresses, Parameter: %s", param)
+	var funcParam GetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
@@ -380,7 +380,7 @@ func getMsqAddress(param string, app *DIDApplication, height int64) types.Respon
 		value = []byte("[]")
 		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
 	}
-	var result GetMsqAddressResult
+	var result GetMqAddressesResult
 	for _, msq := range nodeDetail.Mq {
 		var newRow MsqAddress
 		newRow.IP = msq.Ip
