@@ -2,6 +2,10 @@
 
 ## TBD
 
+IMPROVEMENTS:
+
+- Change Tx and Query input format from base64 string to byte array.
+
 BUG FIXES:
 
 - [Query] Node name is invalid after update node (GetAsNodesByServiceId)
