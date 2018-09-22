@@ -44,12 +44,15 @@ func RegisterServiceDestination(t *testing.T, param did.RegisterServiceDestinati
 		log.Fatal(err.Error())
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
+	fnName := "RegisterServiceDestination"
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	fnName := "RegisterServiceDestination"
+
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -67,13 +70,16 @@ func UpdateServiceDestination(t *testing.T, param did.UpdateServiceDestinationPa
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	fnName := "UpdateServiceDestination"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	fnName := "UpdateServiceDestination"
+
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -92,13 +98,16 @@ func SignData(t *testing.T, param did.SignDataParam, expected string, nodeID str
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+	fnName := "SignData"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	fnName := "SignData"
+
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -116,13 +125,16 @@ func DisableServiceDestination(t *testing.T, param did.DisableServiceDestination
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	fnName := "DisableServiceDestination"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	fnName := "DisableServiceDestination"
+
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)
@@ -141,13 +153,16 @@ func EnableServiceDestination(t *testing.T, param did.DisableServiceDestinationP
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	fnName := "EnableServiceDestination"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	PSSmessage := append(paramJSON, []byte(nonce)...)
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	fnName := "EnableServiceDestination"
+
 	signature, err := rsa.SignPKCS1v15(rand.Reader, asKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, asNodeID)
 	resultObj, _ := result.(ResponseTx)

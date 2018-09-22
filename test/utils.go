@@ -80,10 +80,10 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 
 	var tx protoTm.Tx
 	tx.Method = string(fnName)
-	tx.Param = string(param)
+	tx.Params = string(param)
 	tx.Nonce = string(nonce)
 	tx.Signature = signature
-	tx.NodeID = string(nodeID)
+	tx.NodeId = string(nodeID)
 
 	txByte, err := proto.Marshal(&tx)
 	if err != nil {
@@ -128,19 +128,30 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 }
 
 func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
-	var path string
-	path += string(fnName)
-	path += "|"
-	path += base64.StdEncoding.EncodeToString(param)
+	// var path string
+	// path += string(fnName)
+	// path += "|"
+	// path += base64.StdEncoding.EncodeToString(param)
+
+	var data protoTm.Query
+	data.Method = string(fnName)
+	data.Params = string(param)
+
+	dataByte, err := proto.Marshal(&data)
+	if err != nil {
+		log.Printf("err: %s", err.Error())
+	}
+
+	dataEncoded := base64.StdEncoding.EncodeToString(dataByte)
 
 	var URL *url.URL
-	URL, err := url.Parse(tendermintAddr)
+	URL, err = url.Parse(tendermintAddr)
 	if err != nil {
 		panic("boom")
 	}
 	URL.Path += "/abci_query"
 	parameters := url.Values{}
-	parameters.Add("data", `"`+path+`"`)
+	parameters.Add("data", `"`+dataEncoded+`"`)
 	URL.RawQuery = parameters.Encode()
 	encodedURL := URL.String()
 	req, err := http.NewRequest("GET", encodedURL, nil)
