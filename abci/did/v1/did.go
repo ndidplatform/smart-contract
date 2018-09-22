@@ -23,7 +23,6 @@
 package did
 
 import (
-	"encoding/base64"
 	"fmt"
 	"os"
 	"runtime"
@@ -132,10 +131,8 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 		}
 	}()
 
-	txString := string(tx)
-	decodedTx, err := base64.StdEncoding.DecodeString(txString)
 	var txObj protoTm.Tx
-	err = proto.Unmarshal(decodedTx, &txObj)
+	err = proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -165,10 +162,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		}
 	}()
 
-	txString := string(tx)
-	decodedTx, err := base64.StdEncoding.DecodeString(txString)
 	var txObj protoTm.Tx
-	err = proto.Unmarshal(decodedTx, &txObj)
+	err = proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -212,10 +207,8 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 		}
 	}()
 
-	data := string(reqQuery.Data)
-	decodedData, err := base64.StdEncoding.DecodeString(data)
 	var query protoTm.Query
-	err = proto.Unmarshal(decodedData, &query)
+	err = proto.Unmarshal(reqQuery.Data, &query)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
