@@ -391,6 +391,9 @@ func getMsqAddress(param string, app *DIDApplication, height int64) types.Respon
 	if err != nil {
 		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
 	}
+	if len(result) == 0 {
+		return ReturnQuery(resultJSON, "not found", app.state.db.Version64(), app)
+	}
 	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
 }
 

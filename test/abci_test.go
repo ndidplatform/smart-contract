@@ -331,6 +331,15 @@ func TestDisableOldIdPNode1(t *testing.T) {
 			DisableNode(t, param)
 		}
 	}
+
+}
+
+func TestQueryGetMsqAddressBeforeRegister(t *testing.T) {
+	var param = did.GetMsqAddressParam{
+		IdP1,
+	}
+	var expected []did.MsqAddress
+	GetMsqAddress(t, param, expected)
 }
 func TestIdPRegisterMsqAddress(t *testing.T) {
 	var mq did.MsqAddress
