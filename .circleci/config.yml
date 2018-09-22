@@ -19,14 +19,11 @@ jobs:
             make get_tools
             make get_vendor_deps
             make install
-
       - run:
           name: Setup Smartcontract
           command: |
             go get github.com/tendermint/tmlibs/common
-            cd abci
             dep ensure
-
       - run:
           name: Start ABCI
           command: |
@@ -47,7 +44,6 @@ jobs:
             dep ensure
             cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
-
   push_to_docker_hub:
     docker:
       - image: circleci/node:carbon
@@ -76,7 +72,6 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push $REPO_NAME/abci:$DOCKER_TAG
             docker push $REPO_NAME/tendermint:$DOCKER_TAG
-
 workflows:
   version: 2
   build_and_deploy:
