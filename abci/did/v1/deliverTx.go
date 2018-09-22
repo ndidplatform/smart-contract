@@ -51,7 +51,7 @@ func ReturnDeliverTxLog(code uint32, log string, extraData string) types.Respons
 }
 
 // DeliverTxRouter is Pointer to function
-func DeliverTxRouter(method string, param string, nonce string, signature []byte, nodeID string, app *DIDApplication) types.ResponseDeliverTx {
+func DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, app *DIDApplication) types.ResponseDeliverTx {
 	// ---- check authorization ----
 	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
 	if checkTxResult.Code != code.OK {

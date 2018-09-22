@@ -181,7 +181,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" && param != "" && nonce != "" && signature != nil && nodeID != "" {
+	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
 			result := CheckTxRouter(method, param, nonce, signature, nodeID, app)

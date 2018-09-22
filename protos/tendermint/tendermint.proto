@@ -3,7 +3,7 @@ syntax = "proto3";
 message Tx {
   string method = 1;
   string params = 2;
-  string nonce = 3;
+  bytes nonce = 3;
   bytes signature = 4;
   string node_id = 5;
 }

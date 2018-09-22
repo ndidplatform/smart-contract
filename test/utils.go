@@ -81,7 +81,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 	var tx protoTm.Tx
 	tx.Method = string(fnName)
 	tx.Params = string(param)
-	tx.Nonce = string(nonce)
+	tx.Nonce = nonce
 	tx.Signature = signature
 	tx.NodeId = string(nodeID)
 
