@@ -10,6 +10,7 @@ BREAKING CHANGES:
   - `ClearRegisterMsqDestinationTimeout` to `ClearRegisterIdentityTimeout`
   - `SetTimeOutBlockRegisterMsqDestination` to `SetTimeOutBlockRegisterIdentity`
   - `CreateIdentity` to `RegisterAccessor`
+  - `GetMsqAddress` to `GetMqAddresses`
 
 IMPROVEMENTS:
 
