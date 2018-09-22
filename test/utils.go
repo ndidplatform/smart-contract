@@ -25,7 +25,7 @@ package test
 import (
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -90,7 +90,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 		log.Printf("err: %s", err.Error())
 	}
 
-	txEncoded := base64.StdEncoding.EncodeToString(txByte)
+	txEncoded := hex.EncodeToString(txByte)
 
 	var URL *url.URL
 	URL, err = url.Parse(tendermintAddr)
@@ -99,7 +99,7 @@ func callTendermint(fnName []byte, param []byte, nonce []byte, signature []byte,
 	}
 	URL.Path += "/broadcast_tx_commit"
 	parameters := url.Values{}
-	parameters.Add("tx", `"`+txEncoded+`"`)
+	parameters.Add("tx", `0x`+txEncoded)
 	URL.RawQuery = parameters.Encode()
 	encodedURL := URL.String()
 	req, err := http.NewRequest("GET", encodedURL, nil)
@@ -142,7 +142,7 @@ func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
 		log.Printf("err: %s", err.Error())
 	}
 
-	dataEncoded := base64.StdEncoding.EncodeToString(dataByte)
+	dataEncoded := hex.EncodeToString(dataByte)
 
 	var URL *url.URL
 	URL, err = url.Parse(tendermintAddr)
@@ -151,7 +151,7 @@ func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
 	}
 	URL.Path += "/abci_query"
 	parameters := url.Values{}
-	parameters.Add("data", `"`+dataEncoded+`"`)
+	parameters.Add("data", `0x`+dataEncoded)
 	URL.RawQuery = parameters.Encode()
 	encodedURL := URL.String()
 	req, err := http.NewRequest("GET", encodedURL, nil)
