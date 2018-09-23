@@ -52,7 +52,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 3.  Get dependency (tendermint ABCI)
 
     ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
     dep ensure
     ```
 
@@ -150,18 +150,27 @@ docker-compose -f docker/docker-compose.yml up
 
     to show in the first terminal (`go run abci ...`) of both processes before starting `api` processes.
 
-3.  When IDP node and RP node run on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
+3.  When running IDP node and RP node on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
 ## Technical details to connect with `api`
 
-# Broadcast tx format
-```sh
-functionName|base64(parameterJSON)|nonce|base64(sign(param+nonce))|base64(nodeID)
+# Broadcast tx format (Protobuf)
+```
+message Tx {
+  string method = 1;
+  string params = 2;
+  bytes nonce = 3;
+  bytes signature = 4;
+  string node_id = 5;
+}
 ```
 
-# Query format
-```sh
-functionName|base64(parameterJSON)
+# Query format (Protobuf)
+```
+message Query {
+  string method = 1;
+  string params = 2;
+}
 ```
 
 # Create transaction function
