@@ -1,6 +1,6 @@
 FROM golang:1.10 as builder
 
-# This is the release of tendermint to pull in.
+# This is the release of dep to pull in.
 ENV DEP_VERSION v0.4.1
 ENV DEP_SHA256SUM 31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
 
@@ -9,11 +9,14 @@ RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/down
     echo "${DEP_SHA256SUM} /usr/local/bin/dep" | sha256sum -c && \
     chmod +x /usr/local/bin/dep
 
-COPY abci/Gopkg.toml abci/Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/abci/
-WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+COPY Gopkg.toml Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/
+WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract
 RUN dep ensure --vendor-only
 
 COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
+COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
+
+WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 RUN go install
 
 
