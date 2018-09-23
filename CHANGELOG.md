@@ -11,9 +11,9 @@ BREAKING CHANGES:
   - `SetTimeOutBlockRegisterMsqDestination` to `SetTimeOutBlockRegisterIdentity`
   - `CreateIdentity` to `RegisterAccessor`
   - `GetMsqAddress` to `GetMqAddresses`
-- [DeliverTx] Update `RegisterNode` to can register proxy node.
+- [DeliverTx] Update `RegisterNode` to be able to register proxy node.
 - [DeliverTx] Add new functions (`AddNodeToProxyNode`, `UpdateNodeProxyNode` and `RemoveNodeFromProxyNode`).
-- [Query] Add new function (`GetNodesBehindProxyNode`, `GetNodeIDList`).
+- [Query] Add new functions (`GetNodesBehindProxyNode`, `GetNodeIDList`).
 - [Key/Value store] Change all stored data format in app state DB from `JSON` to `Protobuf`.
 
 IMPROVEMENTS:
