@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 0.8.0 (September, 23 2018)
 
 BREAKING CHANGES:
 
