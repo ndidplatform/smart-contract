@@ -11,11 +11,19 @@ BREAKING CHANGES:
   - `SetTimeOutBlockRegisterMsqDestination` to `SetTimeOutBlockRegisterIdentity`
   - `CreateIdentity` to `RegisterAccessor`
   - `GetMsqAddress` to `GetMqAddresses`
+- [DeliverTx] Update `RegisterNode` to can register proxy node.
+- [DeliverTx] Add new functions (`AddNodeToProxyNode`, `UpdateNodeProxyNode` and `RemoveNodeFromProxyNode`).
+- [Query] Add new function (`GetNodesBehindProxyNode`, `GetNodeIDList`).
+- [Key/Value store] Change all stored data format in app state DB from `JSON` to `Protobuf`.
 
 IMPROVEMENTS:
 
 - Change Tx and Query input format from base64 string to byte array.
-
+- [Query] Add `GetIdpNodesInfo` function for get IdP node with mq addresses.
+- [Query] Add `GetAsNodesInfoByServiceId` function for get AS node with mq addresses.
+- [Query] Add mq addresses property to result of `GetNodeInfo`.
+- [Query] Add `requester_node_id` to request returns from calling `GetRequestDetail`
+ 
 BUG FIXES:
 
 - [Query] Node name is invalid after update node (GetAsNodesByServiceId)
