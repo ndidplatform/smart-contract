@@ -55,7 +55,7 @@ var _ types.Application = (*DIDApplication)(nil)
 type DIDApplication struct {
 	types.BaseApplication
 	state        State
-	ValUpdates   []types.Validator
+	ValUpdates   []types.ValidatorUpdate
 	logger       *logrus.Entry
 	Version      string
 	CurrentBlock int64
@@ -112,7 +112,7 @@ func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.Respons
 	app.logger.Infof("BeginBlock: %d", req.Header.Height)
 	app.CurrentBlock = app.state.db.Version64()
 	// reset valset changes
-	app.ValUpdates = make([]types.Validator, 0)
+	app.ValUpdates = make([]types.ValidatorUpdate, 0)
 	return types.ResponseBeginBlock{}
 }
 

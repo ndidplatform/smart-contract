@@ -152,7 +152,7 @@
   version = "v0.9.2"
 
 [[projects]]
-  digest = "1:3ee378181392a53d204838e6ce34cae096365a22c81b6ddbc2a8eae1932ebc05"
+  digest = "1:1a4f3b76e8055836495ae4ea6af1c1393a31e9aed413b6a882543f3147b5693f"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/server",
@@ -160,11 +160,12 @@
     "crypto/tmhash",
     "libs/common",
     "libs/db",
+    "libs/errors",
     "libs/log",
   ]
   pruneopts = "UT"
-  revision = "d542d2c3945116697f60451e6a407082c41c3cc9"
-  version = "v0.22.8"
+  revision = "0c9c3292c918617624f6f3fbcd95eceade18bcd5"
+  version = "v0.25.0"
 
 [[projects]]
   branch = "master"

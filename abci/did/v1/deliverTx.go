@@ -34,13 +34,17 @@ import (
 func ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
 	var tags []cmn.KVPair
 	if code == 0 {
-		tags = []cmn.KVPair{
-			{[]byte("success"), []byte("true")},
-		}
+		tags = []cmn.KVPair{}
+		var kv1 cmn.KVPair
+		kv1.Key = []byte("success")
+		kv1.Value = []byte("true")
+		tags = append(tags, kv1)
 	} else {
-		tags = []cmn.KVPair{
-			{[]byte("success"), []byte("false")},
-		}
+		tags = []cmn.KVPair{}
+		var kv1 cmn.KVPair
+		kv1.Key = []byte("success")
+		kv1.Value = []byte("false")
+		tags = append(tags, kv1)
 	}
 	return types.ResponseDeliverTx{
 		Code: code,

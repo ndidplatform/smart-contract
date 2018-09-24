@@ -58,7 +58,7 @@ func (app *DIDApplication) Validators() (validators []types.Validator) {
 }
 
 // add, update, or remove a validator
-func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeliverTx {
+func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
 	key := []byte("val:" + base64.StdEncoding.EncodeToString(v.PubKey.GetData()))
 
 	if v.Power == 0 {
@@ -99,6 +99,9 @@ func setValidator(param string, app *DIDApplication, nodeID string) types.Respon
 		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 
-	var pubKeyObj = types.Ed25519Validator(pubKey, funcParam.Power)
-	return app.updateValidator(types.Validator{pubKeyObj.Address, pubKeyObj.PubKey, pubKeyObj.Power})
+	var pubKeyObj = types.Ed25519ValidatorUpdate(pubKey, funcParam.Power)
+	var newValidator types.ValidatorUpdate
+	newValidator.PubKey = pubKeyObj.PubKey
+	newValidator.Power = pubKeyObj.Power
+	return app.updateValidator(newValidator)
 }
