@@ -907,7 +907,7 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
 	_, newBehindProxyNodeValue := app.state.db.Get(prefixKey([]byte(newBehindProxyNodeKey)))
 	if newBehindProxyNodeValue != nil {
-		err = json.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
+		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
 		if err != nil {
 			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
