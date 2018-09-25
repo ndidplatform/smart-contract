@@ -887,33 +887,38 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 
 	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeId
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
-	if behindProxyNodeValue != nil {
-		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		// Delete from old proxy list
-		for i, node := range nodes.Nodes {
-			if node == funcParam.NodeID {
-				copy(nodes.Nodes[i:], nodes.Nodes[i+1:])
-				nodes.Nodes[len(nodes.Nodes)-1] = ""
-				nodes.Nodes = nodes.Nodes[:len(nodes.Nodes)-1]
-			}
-		}
-	}
 
 	var newProxyNodes data.BehindNodeList
 	newProxyNodes.Nodes = make([]string, 0)
 	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
 	_, newBehindProxyNodeValue := app.state.db.Get(prefixKey([]byte(newBehindProxyNodeKey)))
-	if newBehindProxyNodeValue != nil {
-		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
-		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+
+	if funcParam.ProxyNodeID != "" {
+		if proxy.ProxyNodeId != funcParam.ProxyNodeID {
+			if behindProxyNodeValue != nil {
+				err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
+				if err != nil {
+					return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				// Delete from old proxy list
+				for i, node := range nodes.Nodes {
+					if node == funcParam.NodeID {
+						copy(nodes.Nodes[i:], nodes.Nodes[i+1:])
+						nodes.Nodes[len(nodes.Nodes)-1] = ""
+						nodes.Nodes = nodes.Nodes[:len(nodes.Nodes)-1]
+					}
+				}
+			}
+			if newBehindProxyNodeValue != nil {
+				err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
+				if err != nil {
+					return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+			}
 		}
+		proxy.ProxyNodeId = funcParam.ProxyNodeID
 	}
 
-	proxy.ProxyNodeId = funcParam.ProxyNodeID
 	if funcParam.Config != "" {
 		proxy.Config = funcParam.Config
 	}

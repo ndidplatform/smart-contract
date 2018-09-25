@@ -2203,6 +2203,31 @@ func TestQueryGetGetNodesBehindProxyNode4(t *testing.T) {
 	GetNodesBehindProxyNode(t, param, expected)
 }
 
+func TestUpdateNodeProxyNodeProxy2_2(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		Proxy2,
+		"KEY_ON_NODE",
+	}
+	UpdateNodeProxyNode(t, param, "success")
+}
+
+func TestQueryGetGetNodesBehindProxyNode4_2(t *testing.T) {
+	var param did.GetNodesBehindProxyNodeParam
+	param.ProxyNodeID = Proxy2
+	expected := string(`{"nodes":[{"node_id":"` + IdP6BehindProxy1 + `","node_name":"IdP6BehindProxy1","role":"IdP","public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","max_ial":3,"max_aal":3,"config":"KEY_ON_NODE"}]}`)
+	GetNodesBehindProxyNode(t, param, expected)
+}
+
+func TestUpdateNodeProxyNodeProxy2_3(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		Proxy2,
+		"KEY_ON_PROXY",
+	}
+	UpdateNodeProxyNode(t, param, "success")
+}
+
 func TestQueryGetNodeInfoIdP6BehindProxy2(t *testing.T) {
 	var param did.GetNodeInfoParam
 	param.NodeID = IdP6BehindProxy1
