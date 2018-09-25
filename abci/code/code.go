@@ -99,5 +99,6 @@ const (
 	NodeIDIsAlreadyAssociatedWithProxyNode    uint32 = 72
 	NodeIDisProxyNode                         uint32 = 73
 	NodeIDHasNotBeenAssociatedWithProxyNode   uint32 = 74
+	ProxyNodeNotFound                         uint32 = 75
 	UnknownError                              uint32 = 999
 )

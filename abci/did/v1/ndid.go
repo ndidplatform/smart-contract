@@ -822,6 +822,11 @@ func addNodeToProxyNode(param string, app *DIDApplication, nodeID string) types.
 		return ReturnDeliverTxLog(code.NodeIDisProxyNode, "This node ID is an ID of a proxy node", "")
 	}
 
+	// Check ProxyNodeID is proxy node
+	if !checkIsProxyNode(funcParam.ProxyNodeID, app) {
+		return ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
+	}
+
 	_, behindProxyNodeValue := app.state.db.Get(prefixKey([]byte(behindProxyNodeKey)))
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
@@ -880,6 +885,13 @@ func updateNodeProxyNode(param string, app *DIDApplication, nodeID string) types
 	_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 	if proxyValue == nil {
 		return ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
+	}
+
+	if funcParam.ProxyNodeID != "" {
+		// Check ProxyNodeID is proxy node
+		if !checkIsProxyNode(funcParam.ProxyNodeID, app) {
+			return ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
+		}
 	}
 
 	var proxy data.Proxy

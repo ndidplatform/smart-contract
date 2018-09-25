@@ -1992,6 +1992,14 @@ func TestRegisterIdP6BehindProxy1(t *testing.T) {
 	RegisterNode(t, param)
 }
 
+func TestAddNodeToProxyNodeProxy_Invalid(t *testing.T) {
+	var param = did.AddNodeToProxyNodeParam{
+		IdP6BehindProxy1,
+		"Invalid-Proxy",
+		"KEY_ON_PROXY",
+	}
+	AddNodeToProxyNode(t, param, "Proxy node ID not found")
+}
 func TestAddNodeToProxyNodeProxy1(t *testing.T) {
 	var param = did.AddNodeToProxyNodeParam{
 		IdP6BehindProxy1,
@@ -2226,6 +2234,15 @@ func TestUpdateNodeProxyNodeProxy2_3(t *testing.T) {
 		"KEY_ON_PROXY",
 	}
 	UpdateNodeProxyNode(t, param, "success")
+}
+
+func TestUpdateNodeProxyNodeProxy2_InvalidProxy(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		"Invalid-Proxy",
+		"KEY_ON_PROXY",
+	}
+	UpdateNodeProxyNode(t, param, "Proxy node ID not found")
 }
 
 func TestQueryGetNodeInfoIdP6BehindProxy2(t *testing.T) {
