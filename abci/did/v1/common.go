@@ -880,9 +880,6 @@ func (app *DIDApplication) getNodeInfo(param string, height int64) types.Respons
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
 	_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 	if proxyValue != nil {
-
-		app.logger.Errorln("Proxy")
-
 		// Get proxy node ID
 		var proxy data.Proxy
 		err = proto.Unmarshal([]byte(proxyValue), &proxy)
