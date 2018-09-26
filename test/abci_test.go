@@ -345,7 +345,6 @@ func TestIdPSetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, IdP1)
@@ -461,7 +460,6 @@ func TestAS1SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.102"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = AS1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, asPrivK, AS1)
@@ -1145,7 +1143,6 @@ func TestIdP4SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP4
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK5, IdP4)
@@ -1156,7 +1153,6 @@ func TestIdP5SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP5
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK4, IdP5)
@@ -1570,7 +1566,6 @@ func TestRP1SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = RP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, rpPrivK, RP1)
@@ -2005,7 +2000,6 @@ func TestSetMqAddressesIdP6BehindProxy1_After_Register_Node(t *testing.T) {
 	mq.IP = "192.168.3.102"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP6BehindProxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, IdP6BehindProxy1)
@@ -2058,7 +2052,6 @@ func TestSetMqAddressesProxy1(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = Proxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, Proxy1)
@@ -2202,7 +2195,6 @@ func TestSetMqAddressesProxy2(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = Proxy2
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, Proxy2)
@@ -2290,7 +2282,6 @@ func TestSetMqAddressesIdP6BehindProxy1(t *testing.T) {
 	mq.IP = "192.168.3.102"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP6BehindProxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, IdP6BehindProxy1)
