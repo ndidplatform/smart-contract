@@ -31,12 +31,12 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func registerAccessor(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) registerAccessor(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterAccessor, Parameter: %s", param)
 	var funcParam RegisterAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
@@ -49,7 +49,7 @@ func registerAccessor(param string, app *DIDApplication, nodeID string) types.Re
 
 	accessorJSON, err := proto.Marshal(&accessor)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
@@ -58,22 +58,22 @@ func registerAccessor(param string, app *DIDApplication, nodeID string) types.Re
 	// Check duplicate accessor_id
 	_, chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
 	if chkAccessorKeyExists != nil {
-		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
+		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
 
 	// Check duplicate accessor_group_id
 	_, chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
 	if chkAccessorGroupKeyExists != nil {
-		return ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
+		return app.ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
 	}
 
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	app.SetStateDB([]byte(accessorGroupKey), []byte(accessorGroup))
 
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
+func (app *DIDApplication) setCanAddAccessorToFalse(requestID string) {
 	key := "Request" + "|" + requestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
@@ -89,26 +89,26 @@ func setCanAddAccessorToFalse(requestID string, app *DIDApplication) {
 	}
 }
 
-func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
 	var funcParam AccessorMethod
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// AccessorGroupID: must already exist
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
 	_, chkAccessorGroupKeyExists := app.state.db.Get(prefixKey([]byte(accessorGroupKey)))
 	if chkAccessorGroupKeyExists == nil {
-		return ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
+		return app.ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
 	}
 
 	// AccessorID: must not duplicate
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
 	_, chkAccessorKeyExists := app.state.db.Get(prefixKey([]byte(accessorKey)))
 	if chkAccessorKeyExists != nil {
-		return ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
+		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
 
 	// Request must be completed, can be used only once, special type
@@ -116,19 +116,19 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	getRequestparam.RequestID = funcParam.RequestID
 	getRequestparamJSON, err := json.Marshal(getRequestparam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var request = getRequest(string(getRequestparamJSON), app, app.state.db.Version64())
-	var requestDetail = getRequestDetail(string(getRequestparamJSON), app, app.state.db.Version64())
+	var request = app.getRequest(string(getRequestparamJSON), app.state.db.Version64())
+	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.db.Version64())
 	var requestResult GetRequestResult
 	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(request.Value), &requestResult)
 	if err != nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
 	if err != nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	// Check accept result >= min_idp
@@ -139,22 +139,22 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		}
 	}
 	if acceptCount < requestDetailResult.MinIdp {
-		return ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+		return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 	}
 
 	if requestDetailResult.Mode != 3 {
-		return ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
+		return app.ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
 	}
 
 	if requestDetailResult.MinIdp < 1 {
-		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
+		return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
 	// check special type of Request && set can used only once
-	canAddAccessor := getCanAddAccessor(funcParam.RequestID, app)
+	canAddAccessor := app.getCanAddAccessor(funcParam.RequestID)
 	if canAddAccessor != true {
-		return ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
+		return app.ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
 	}
-	setCanAddAccessorToFalse(funcParam.RequestID, app)
+	app.setCanAddAccessorToFalse(funcParam.RequestID)
 
 	var accessor data.Accessor
 	accessor.AccessorType = funcParam.AccessorType
@@ -165,35 +165,35 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 
 	accessorJSON, err := proto.Marshal(&accessor)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func registerIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	if nodeDetailValue == nil {
-		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Validate user's ial is <= node's max_ial
 	for _, user := range funcParam.Users {
 		if user.Ial > nodeDetail.MaxIal {
-			return ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
+			return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
 		}
 	}
 
@@ -203,7 +203,7 @@ func registerIdentity(param string, app *DIDApplication, nodeID string) types.Re
 	if timeOutValue != nil {
 		err := proto.Unmarshal([]byte(timeOutValue), &timeOut)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	} else {
 		timeOut.TimeOutBlock = 500
@@ -219,7 +219,7 @@ func registerIdentity(param string, app *DIDApplication, nodeID string) types.Re
 			var nodes data.MsqDesList
 			err = proto.Unmarshal([]byte(chkExists), &nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 
 			timeoutBlock := app.CurrentBlock + timeOutBlockInStateDB
@@ -246,7 +246,7 @@ func registerIdentity(param string, app *DIDApplication, nodeID string) types.Re
 				for _, node := range nodes.Nodes {
 					if node.TimeoutBlock != 0 {
 						if node.TimeoutBlock > app.CurrentBlock {
-							return ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
+							return app.ReturnDeliverTxLog(code.NotFirstIdP, "This node is not first IdP", "")
 						}
 					}
 				}
@@ -256,7 +256,7 @@ func registerIdentity(param string, app *DIDApplication, nodeID string) types.Re
 				nodes.Nodes = append(nodes.Nodes, &newNode)
 				value, err := proto.Marshal(&nodes)
 				if err != nil {
-					return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+					return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 				}
 				app.SetStateDB([]byte(key), []byte(value))
 			}
@@ -276,21 +276,21 @@ func registerIdentity(param string, app *DIDApplication, nodeID string) types.Re
 			nodes.Nodes = append(nodes.Nodes, &newNode)
 			value, err := proto.Marshal(&nodes)
 			if err != nil {
-				return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+				return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
 			app.SetStateDB([]byte(key), []byte(value))
 		}
 	}
 
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func createIdpResponse(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var funcParam CreateIdpResponseParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
@@ -305,12 +305,12 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check duplicate before add
@@ -324,45 +324,45 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 
 	// Check AAL
 	if request.MinAal > response.Aal {
-		return ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
+		return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
 	}
 
 	// Check IAL
 	if request.MinIal > response.Ial {
-		return ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
+		return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 	}
 
 	// Check AAL, IAL with MaxIalAal
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	if nodeDetailValue == nil {
-		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if response.Aal > nodeDetail.MaxAal {
-		return ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
 	}
 	if response.Ial > nodeDetail.MaxIal {
-		return ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
 	}
 
 	// Check min_idp
 	if int64(len(request.ResponseList)) >= request.MinIdp {
-		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
+		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
 	}
 
 	// Check IsClosed
 	if request.Closed {
-		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
 	}
 
 	// Check IsTimedOut
 	if request.TimedOut {
-		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 	}
 
 	// Check identity proof if mode == 3
@@ -376,7 +376,7 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 			}
 		}
 		if proofPassed == false {
-			return ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
+			return app.ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
 		}
 	}
 
@@ -384,35 +384,35 @@ func createIdpResponse(param string, app *DIDApplication, nodeID string) types.R
 		request.ResponseList = append(request.ResponseList, &response)
 		value, err := proto.Marshal(&request)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(value))
-		return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+		return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 	}
-	return ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
+	return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 }
 
-func updateIdentity(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) updateIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check IAL must less than Max IAL
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	if nodeDetailValue == nil {
-		return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if funcParam.Ial > nodeDetail.MaxIal {
-		return ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
+		return app.ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
 	}
 
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
@@ -421,7 +421,7 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 		var msqDes data.MsqDesList
 		err := proto.Unmarshal([]byte(msqDesValue), &msqDes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 		// Selective update
 		if funcParam.Ial > 0 {
@@ -434,20 +434,20 @@ func updateIdentity(param string, app *DIDApplication, nodeID string) types.Resp
 		}
 		msqDesJSON, err := proto.Marshal(&msqDes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		return app.ReturnDeliverTxLog(code.OK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+	return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
 }
 
-func declareIdentityProof(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) declareIdentityProof(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
 	var funcParam DeclareIdentityProofParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check the request
@@ -455,27 +455,27 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
 
 	if requestValue == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// check number of responses
 	if int64(len(request.ResponseList)) >= request.MinIdp {
-		return ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
+		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
 	}
 
 	// Check IsClosed
 	if request.Closed {
-		return ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
 	}
 
 	// Check IsTimedOut
 	if request.TimedOut {
-		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
 	}
 
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
@@ -483,17 +483,17 @@ func declareIdentityProof(param string, app *DIDApplication, nodeID string) type
 	if identityProofValue == nil {
 		identityProofValue := funcParam.IdentityProof
 		app.SetStateDB([]byte(identityProofKey), []byte(identityProofValue))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		return app.ReturnDeliverTxLog(code.OK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
+	return app.ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 }
 
-func clearRegisterIdentityTimeout(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ClearRegisterIdentityTimeout, Parameter: %s", param)
 	var funcParam ClearRegisterIdentityTimeoutParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
@@ -503,14 +503,14 @@ func clearRegisterIdentityTimeout(param string, app *DIDApplication, nodeID stri
 		var nodes data.MsqDesList
 		err = proto.Unmarshal([]byte(msqDesValue), &nodes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check is not timeout
 		for index := range nodes.Nodes {
 			if nodes.Nodes[index].NodeId == nodeID {
 				if nodes.Nodes[index].TimeoutBlock <= app.CurrentBlock {
-					return ReturnDeliverTxLog(code.RegisterIdentityIsTimedOut, "Cannot clear register identity that is timed out", "")
+					return app.ReturnDeliverTxLog(code.RegisterIdentityIsTimedOut, "Cannot clear register identity that is timed out", "")
 				}
 				break
 			}
@@ -525,10 +525,10 @@ func clearRegisterIdentityTimeout(param string, app *DIDApplication, nodeID stri
 
 		msqDesJSON, err := proto.Marshal(&nodes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		return app.ReturnDeliverTxLog(code.OK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+	return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
 }

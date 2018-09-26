@@ -2,6 +2,13 @@
 
 ## TBD
 
+BREAKING CHANGES:
+  - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
+
+IMPROVEMENTS:
+
+- Refactor code.
+
 BUG FIXES:
 
 - [DeliverTx] Fix unmarshal error in `UpdateNodeProxyNode`.

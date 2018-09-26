@@ -858,8 +858,7 @@ message Query {
       "ip": "192.168.3.99",
       "port": 8000
     }
-  ],
-  "node_id": "CuQfyyhjGcCAzKREzHmL"
+  ]
 }
 ```
 ### Expected Output

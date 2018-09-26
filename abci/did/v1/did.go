@@ -127,7 +127,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnDeliverTxLog(code.UnknownError, "Unknown error", "")
+			res = app.ReturnDeliverTxLog(code.UnknownError, "Unknown error", "")
 		}
 	}()
 
@@ -146,11 +146,11 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" {
-		result := DeliverTxRouter(method, param, nonce, signature, nodeID, app)
+		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
 		return result
 	}
-	return ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
+	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
 func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
@@ -179,7 +179,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
-			result := CheckTxRouter(method, param, nonce, signature, nodeID, app)
+			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 			return result
 		}
 		res.Code = code.UnknownMethod
@@ -203,7 +203,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnQuery(nil, "Unknown error", app.state.db.Version64(), app)
+			res = app.ReturnQuery(nil, "Unknown error", app.state.db.Version64())
 		}
 	}()
 
@@ -224,9 +224,9 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
-		return QueryRouter(method, param, app, height)
+		return app.QueryRouter(method, param, height)
 	}
-	return ReturnQuery(nil, "method can't empty", app.state.db.Version64(), app)
+	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version64())
 }
 
 func getEnv(key, defaultValue string) string {

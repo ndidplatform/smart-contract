@@ -255,14 +255,7 @@ type MaxIalAal struct {
 	MaxAal float64 `json:"max_aal"`
 }
 
-// type RegisterMsqAddressParam struct {
-// 	NodeID string `json:"node_id"`
-// 	IP     string `json:"ip"`
-// 	Port   int64  `json:"port"`
-// }
-
 type SetMqAddressesParam struct {
-	NodeID    string       `json:"node_id"`
 	Addresses []MsqAddress `json:"addresses"`
 }
 

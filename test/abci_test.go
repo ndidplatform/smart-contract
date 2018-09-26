@@ -345,7 +345,6 @@ func TestIdPSetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, IdP1)
@@ -461,7 +460,6 @@ func TestAS1SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.102"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = AS1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, asPrivK, AS1)
@@ -1145,7 +1143,6 @@ func TestIdP4SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP4
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK5, IdP4)
@@ -1156,7 +1153,6 @@ func TestIdP5SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP5
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK4, IdP5)
@@ -1570,7 +1566,6 @@ func TestRP1SetMqAddresses(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = RP1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, rpPrivK, RP1)
@@ -1992,6 +1987,32 @@ func TestRegisterIdP6BehindProxy1(t *testing.T) {
 	RegisterNode(t, param)
 }
 
+func TestSetNodeTokenIdP6BehindProxy1(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		IdP6BehindProxy1,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestSetMqAddressesIdP6BehindProxy1_After_Register_Node(t *testing.T) {
+	var mq did.MsqAddress
+	mq.IP = "192.168.3.102"
+	mq.Port = 8000
+	var param did.SetMqAddressesParam
+	param.Addresses = make([]did.MsqAddress, 0)
+	param.Addresses = append(param.Addresses, mq)
+	SetMqAddresses(t, param, idpPrivK, IdP6BehindProxy1)
+}
+
+func TestAddNodeToProxyNodeProxy_Invalid(t *testing.T) {
+	var param = did.AddNodeToProxyNodeParam{
+		IdP6BehindProxy1,
+		"Invalid-Proxy",
+		"KEY_ON_PROXY",
+	}
+	AddNodeToProxyNode(t, param, "Proxy node ID not found")
+}
 func TestAddNodeToProxyNodeProxy1(t *testing.T) {
 	var param = did.AddNodeToProxyNodeParam{
 		IdP6BehindProxy1,
@@ -2031,7 +2052,6 @@ func TestSetMqAddressesProxy1(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = Proxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, param, idpPrivK, Proxy1)
@@ -2175,10 +2195,9 @@ func TestSetMqAddressesProxy2(t *testing.T) {
 	mq.IP = "192.168.3.99"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = Proxy2
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	SetMqAddresses(t, param, idpPrivK, Proxy1)
+	SetMqAddresses(t, param, idpPrivK, Proxy2)
 }
 
 func TestUpdateNodeProxyNodeProxy2(t *testing.T) {
@@ -2203,6 +2222,40 @@ func TestQueryGetGetNodesBehindProxyNode4(t *testing.T) {
 	GetNodesBehindProxyNode(t, param, expected)
 }
 
+func TestUpdateNodeProxyNodeProxy2_2(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		Proxy2,
+		"KEY_ON_NODE",
+	}
+	UpdateNodeProxyNode(t, param, "success")
+}
+
+func TestQueryGetGetNodesBehindProxyNode4_2(t *testing.T) {
+	var param did.GetNodesBehindProxyNodeParam
+	param.ProxyNodeID = Proxy2
+	expected := string(`{"nodes":[{"node_id":"` + IdP6BehindProxy1 + `","node_name":"IdP6BehindProxy1","role":"IdP","public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","max_ial":3,"max_aal":3,"config":"KEY_ON_NODE"}]}`)
+	GetNodesBehindProxyNode(t, param, expected)
+}
+
+func TestUpdateNodeProxyNodeProxy2_3(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		Proxy2,
+		"KEY_ON_PROXY",
+	}
+	UpdateNodeProxyNode(t, param, "success")
+}
+
+func TestUpdateNodeProxyNodeProxy2_InvalidProxy(t *testing.T) {
+	var param = did.UpdateNodeProxyNodeParam{
+		IdP6BehindProxy1,
+		"Invalid-Proxy",
+		"KEY_ON_PROXY",
+	}
+	UpdateNodeProxyNode(t, param, "Proxy node ID not found")
+}
+
 func TestQueryGetNodeInfoIdP6BehindProxy2(t *testing.T) {
 	var param did.GetNodeInfoParam
 	param.NodeID = IdP6BehindProxy1
@@ -2217,15 +2270,21 @@ func TestRemoveNodeFromProxyNode1(t *testing.T) {
 	RemoveNodeFromProxyNode(t, param, "success")
 }
 
+func TestQueryGetNodeInfoIdP6BehindProxy3_After_Remove_From_Proxy(t *testing.T) {
+	var param did.GetNodeInfoParam
+	param.NodeID = IdP6BehindProxy1
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP6BehindProxy1","role":"IdP","max_ial":3,"max_aal":3,"mq":null}`)
+	GetNodeInfo(t, param, expected)
+}
+
 func TestSetMqAddressesIdP6BehindProxy1(t *testing.T) {
 	var mq did.MsqAddress
-	mq.IP = "192.168.3.99"
+	mq.IP = "192.168.3.102"
 	mq.Port = 8000
 	var param did.SetMqAddressesParam
-	param.NodeID = IdP6BehindProxy1
 	param.Addresses = make([]did.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
-	SetMqAddresses(t, param, idpPrivK, Proxy1)
+	SetMqAddresses(t, param, idpPrivK, IdP6BehindProxy1)
 }
 
 func TestQueryGetGetNodesBehindProxyNode5(t *testing.T) {
@@ -2238,7 +2297,7 @@ func TestQueryGetGetNodesBehindProxyNode5(t *testing.T) {
 func TestQueryGetNodeInfoIdP6BehindProxy3(t *testing.T) {
 	var param did.GetNodeInfoParam
 	param.NodeID = IdP6BehindProxy1
-	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP6BehindProxy1","role":"IdP","max_ial":3,"max_aal":3,"mq":[{"ip":"192.168.3.99","port":8000}]}`)
+	expected := string(`{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP6BehindProxy1","role":"IdP","max_ial":3,"max_aal":3,"mq":[{"ip":"192.168.3.102","port":8000}]}`)
 	GetNodeInfo(t, param, expected)
 }
 
