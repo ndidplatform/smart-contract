@@ -30,8 +30,8 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-// ReturnDeliverTxLog return types.ResponseDeliverTx
-func ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
+// app.ReturnDeliverTxLog return types.ResponseDeliverTx
+func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
 	var tags []cmn.KVPair
 	if code == 0 {
 		tags = []cmn.KVPair{
@@ -51,22 +51,22 @@ func ReturnDeliverTxLog(code uint32, log string, extraData string) types.Respons
 }
 
 // DeliverTxRouter is Pointer to function
-func DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, app *DIDApplication) types.ResponseDeliverTx {
+func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
 	// ---- check authorization ----
-	checkTxResult := CheckTxRouter(method, param, nonce, signature, nodeID, app)
+	checkTxResult := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 	if checkTxResult.Code != code.OK {
 		if checkTxResult.Log != "" {
-			return ReturnDeliverTxLog(checkTxResult.Code, checkTxResult.Log, "")
+			return app.ReturnDeliverTxLog(checkTxResult.Code, checkTxResult.Log, "")
 		}
-		return ReturnDeliverTxLog(checkTxResult.Code, "Unauthorized", "")
+		return app.ReturnDeliverTxLog(checkTxResult.Code, "Unauthorized", "")
 	}
 
-	result := callDeliverTx(method, param, app, nodeID)
+	result := app.callDeliverTx(method, param, nodeID)
 	// ---- Burn token ----
 	if result.Code == code.OK {
-		if !checkNDID(param, nodeID, app) && !isNDIDMethod[method] {
-			needToken := getTokenPriceByFunc(method, app, app.state.db.Version64())
-			err := reduceToken(nodeID, needToken, app)
+		if !app.checkNDID(param, nodeID) && !isNDIDMethod[method] {
+			needToken := app.getTokenPriceByFunc(method, app.state.db.Version64())
+			err := app.reduceToken(nodeID, needToken)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
 				result.Log = err.Error()
@@ -80,100 +80,92 @@ func DeliverTxRouter(method string, param string, nonce []byte, signature []byte
 	return result
 }
 
-func callDeliverTx(name string, param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) callDeliverTx(name string, param string, nodeID string) types.ResponseDeliverTx {
 	switch name {
 	case "InitNDID":
-		return initNDID(param, app, nodeID)
+		return app.initNDID(param, nodeID)
 	case "RegisterNode":
-		return registerNode(param, app, nodeID)
+		return app.registerNode(param, nodeID)
 	case "RegisterIdentity":
-		return registerIdentity(param, app, nodeID)
+		return app.registerIdentity(param, nodeID)
 	case "AddAccessorMethod":
-		return addAccessorMethod(param, app, nodeID)
+		return app.addAccessorMethod(param, nodeID)
 	case "CreateRequest":
-		return createRequest(param, app, nodeID)
+		return app.createRequest(param, nodeID)
 	case "CreateIdpResponse":
-		return createIdpResponse(param, app, nodeID)
+		return app.createIdpResponse(param, nodeID)
 	case "SignData":
-		return signData(param, app, nodeID)
+		return app.signData(param, nodeID)
 	case "RegisterServiceDestination":
-		return registerServiceDestination(param, app, nodeID)
+		return app.registerServiceDestination(param, nodeID)
 	case "SetMqAddresses":
-		return setMqAddresses(param, app, nodeID)
+		return app.setMqAddresses(param, nodeID)
 	case "AddNodeToken":
-		return addNodeToken(param, app, nodeID)
+		return app.addNodeToken(param, nodeID)
 	case "ReduceNodeToken":
-		return reduceNodeToken(param, app, nodeID)
+		return app.reduceNodeToken(param, nodeID)
 	case "SetNodeToken":
-		return setNodeToken(param, app, nodeID)
+		return app.setNodeToken(param, nodeID)
 	case "SetPriceFunc":
-		return setPriceFunc(param, app, nodeID)
+		return app.setPriceFunc(param, nodeID)
 	case "CloseRequest":
-		return closeRequest(param, app, nodeID)
+		return app.closeRequest(param, nodeID)
 	case "TimeOutRequest":
-		return timeOutRequest(param, app, nodeID)
+		return app.timeOutRequest(param, nodeID)
 	case "AddNamespace":
-		return addNamespace(param, app, nodeID)
+		return app.addNamespace(param, nodeID)
 	case "UpdateNode":
-		return updateNode(param, app, nodeID)
+		return app.updateNode(param, nodeID)
 	case "RegisterAccessor":
-		return registerAccessor(param, app, nodeID)
+		return app.registerAccessor(param, nodeID)
 	case "SetValidator":
-		return setValidator(param, app, nodeID)
+		return app.setValidator(param, nodeID)
 	case "AddService":
-		return addService(param, app, nodeID)
+		return app.addService(param, nodeID)
 	case "SetDataReceived":
-		return setDataReceived(param, app, nodeID)
+		return app.setDataReceived(param, nodeID)
 	case "UpdateNodeByNDID":
-		return updateNodeByNDID(param, app, nodeID)
+		return app.updateNodeByNDID(param, nodeID)
 	case "UpdateIdentity":
-		return updateIdentity(param, app, nodeID)
+		return app.updateIdentity(param, nodeID)
 	case "DeclareIdentityProof":
-		return declareIdentityProof(param, app, nodeID)
+		return app.declareIdentityProof(param, nodeID)
 	case "UpdateServiceDestination":
-		return updateServiceDestination(param, app, nodeID)
+		return app.updateServiceDestination(param, nodeID)
 	case "UpdateService":
-		return updateService(param, app, nodeID)
+		return app.updateService(param, nodeID)
 	case "RegisterServiceDestinationByNDID":
-		return registerServiceDestinationByNDID(param, app, nodeID)
-	// case "DisableMsqDestination":
-	// 	return disableMsqDestination(param, app, nodeID)
-	// case "DisableAccessorMethod":
-	// 	return disableAccessorMethod(param, app, nodeID)
+		return app.registerServiceDestinationByNDID(param, nodeID)
 	case "DisableNode":
-		return disableNode(param, app, nodeID)
+		return app.disableNode(param, nodeID)
 	case "DisableServiceDestinationByNDID":
-		return disableServiceDestinationByNDID(param, app, nodeID)
+		return app.disableServiceDestinationByNDID(param, nodeID)
 	case "DisableNamespace":
-		return disableNamespace(param, app, nodeID)
+		return app.disableNamespace(param, nodeID)
 	case "DisableService":
-		return disableService(param, app, nodeID)
-	// case "EnableMsqDestination":
-	// 	return enableMsqDestination(param, app, nodeID)
-	// case "EnableAccessorMethod":
-	// 	return enableAccessorMethod(param, app, nodeID)
+		return app.disableService(param, nodeID)
 	case "EnableNode":
-		return enableNode(param, app, nodeID)
+		return app.enableNode(param, nodeID)
 	case "EnableServiceDestinationByNDID":
-		return enableServiceDestinationByNDID(param, app, nodeID)
+		return app.enableServiceDestinationByNDID(param, nodeID)
 	case "EnableNamespace":
-		return enableNamespace(param, app, nodeID)
+		return app.enableNamespace(param, nodeID)
 	case "EnableService":
-		return enableService(param, app, nodeID)
+		return app.enableService(param, nodeID)
 	case "DisableServiceDestination":
-		return disableServiceDestination(param, app, nodeID)
+		return app.disableServiceDestination(param, nodeID)
 	case "EnableServiceDestination":
-		return enableServiceDestination(param, app, nodeID)
+		return app.enableServiceDestination(param, nodeID)
 	case "ClearRegisterIdentityTimeout":
-		return clearRegisterIdentityTimeout(param, app, nodeID)
+		return app.clearRegisterIdentityTimeout(param, nodeID)
 	case "SetTimeOutBlockRegisterIdentity":
-		return setTimeOutBlockRegisterIdentity(param, app, nodeID)
+		return app.setTimeOutBlockRegisterIdentity(param, nodeID)
 	case "AddNodeToProxyNode":
-		return addNodeToProxyNode(param, app, nodeID)
+		return app.addNodeToProxyNode(param, nodeID)
 	case "UpdateNodeProxyNode":
-		return updateNodeProxyNode(param, app, nodeID)
+		return app.updateNodeProxyNode(param, nodeID)
 	case "RemoveNodeFromProxyNode":
-		return removeNodeFromProxyNode(param, app, nodeID)
+		return app.removeNodeFromProxyNode(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

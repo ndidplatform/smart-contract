@@ -83,20 +83,20 @@ func (app *DIDApplication) updateValidator(v types.Validator) types.ResponseDeli
 	// we only update the changes array if we successfully updated the tree
 	app.ValUpdates = append(app.ValUpdates, v)
 
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func setValidator(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) setValidator(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
 	if err != nil {
-		return ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
 
 	var pubKeyObj = types.Ed25519Validator(pubKey, funcParam.Power)

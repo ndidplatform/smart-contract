@@ -31,65 +31,65 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func signData(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) signData(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SignData, Parameter: %s", param)
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	requestKey := "Request" + "|" + signData.RequestID
 	_, requestJSON := app.state.db.Get(prefixKey([]byte(requestKey)))
 	if requestJSON == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestJSON), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check IsClosed
 	if request.Closed {
-		return ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
 	}
 
 	// Check IsTimedOut
 	if request.TimedOut {
-		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + signData.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check service is active
 	if !service.Active {
-		return ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
+		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
 	}
 
 	// Check service destination is approved by NDID
 	approveServiceKey := "ApproveKey" + "|" + signData.ServiceID + "|" + nodeID
 	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 	if approveServiceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var approveService data.ApproveService
 	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if !approveService.Active {
-		return ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not approved by NDID", "")
+		return app.ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not approved by NDID", "")
 	}
 
 	// Check service destination is active
@@ -97,19 +97,19 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if serviceDestinationValue == nil {
-		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
 		if nodes.Node[index].NodeId == nodeID {
 			if !nodes.Node[index].Active {
-				return ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not active", "")
+				return app.ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not active", "")
 			}
 			break
 		}
@@ -133,7 +133,7 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		}
 	}
 	if exist == false {
-		return ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
+		return app.ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
 	}
 
 	// Check Duplicate AS ID
@@ -149,14 +149,14 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 		}
 	}
 	if duplicate == true {
-		return ReturnDeliverTxLog(code.DuplicateAnsweredAsIDList, "Duplicate AS ID in answered AS list", "")
+		return app.ReturnDeliverTxLog(code.DuplicateAnsweredAsIDList, "Duplicate AS ID in answered AS list", "")
 	}
 
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == signData.ServiceID {
 			if int64(len(dataRequest.AnsweredAsIdList)) >= dataRequest.MinAs {
-				return ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
+				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
 			}
 		}
 	}
@@ -173,37 +173,37 @@ func signData(param string, app *DIDApplication, nodeID string) types.ResponseDe
 
 	requestJSON, err = proto.Marshal(&request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	app.SetStateDB([]byte(requestKey), []byte(requestJSON))
 	app.SetStateDB([]byte(signDataKey), []byte(signDataValue))
-	return ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
+	return app.ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
 }
 
-func registerServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check service is active
 	if !service.Active {
-		return ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
+		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
 	}
 
 	provideServiceKey := "ProvideService" + "|" + nodeID
@@ -212,13 +212,13 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	if provideServiceValue != nil {
 		err := proto.Unmarshal([]byte(provideServiceValue), &services)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	// Check duplicate service ID
 	for _, service := range services.Services {
 		if service.ServiceId == funcParam.ServiceID {
-			return ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID in provide service list", "")
+			return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID in provide service list", "")
 		}
 	}
 
@@ -226,15 +226,15 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + nodeID
 	_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
 	if approveServiceJSON == nil {
-		return ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
+		return app.ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
 	}
 	var approveService data.ApproveService
 	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if approveService.Active == false {
-		return ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
+		return app.ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
 	}
 
 	// Append to ProvideService list
@@ -247,7 +247,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 
 	provideServiceJSON, err := proto.Marshal(&services)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	// Add ServiceDestination
@@ -258,13 +258,13 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		var nodes data.ServiceDesList
 		err := proto.Unmarshal([]byte(chkExists), &nodes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// Check duplicate node ID before add
 		for _, node := range nodes.Node {
 			if node.NodeId == nodeID {
-				return ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
+				return app.ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
 			}
 		}
 
@@ -277,7 +277,7 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		nodes.Node = append(nodes.Node, &newNode)
 		value, err := proto.Marshal(&nodes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	} else {
@@ -291,32 +291,32 @@ func registerServiceDestination(param string, app *DIDApplication, nodeID string
 		nodes.Node = append(nodes.Node, &newNode)
 		value, err := proto.Marshal(&nodes)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(serviceDestinationKey), []byte(value))
 	}
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func updateServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -324,13 +324,13 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if serviceDestinationValue == nil {
-		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
@@ -353,7 +353,7 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if provideServiceValue != nil {
 		err := proto.Unmarshal([]byte(provideServiceValue), &services)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	for index, service := range services.Services {
@@ -369,35 +369,35 @@ func updateServiceDestination(param string, app *DIDApplication, nodeID string) 
 	}
 	provideServiceJSON, err := proto.Marshal(&services)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func disableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -405,13 +405,13 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if serviceDestinationValue == nil {
-		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
@@ -428,7 +428,7 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 	if provideServiceValue != nil {
 		err := proto.Unmarshal([]byte(provideServiceValue), &services)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	for index, service := range services.Services {
@@ -439,36 +439,36 @@ func disableServiceDestination(param string, app *DIDApplication, nodeID string)
 	}
 	provideServiceJSON, err := proto.Marshal(&services)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func enableServiceDestination(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
-		return ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -476,13 +476,13 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 	_, serviceDestinationValue := app.state.db.Get(prefixKey([]byte(serviceDestinationKey)))
 
 	if serviceDestinationValue == nil {
-		return ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
+		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	for index := range nodes.Node {
@@ -499,7 +499,7 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 	if provideServiceValue != nil {
 		err := proto.Unmarshal([]byte(provideServiceValue), &services)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	for index, service := range services.Services {
@@ -510,14 +510,14 @@ func enableServiceDestination(param string, app *DIDApplication, nodeID string) 
 	}
 	provideServiceJSON, err := proto.Marshal(&services)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	serviceDestinationJSON, err := proto.Marshal(&nodes)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.SetStateDB([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

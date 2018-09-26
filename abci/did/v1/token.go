@@ -31,7 +31,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func getTokenPriceByFunc(fnName string, app *DIDApplication, height int64) float64 {
+func (app *DIDApplication) getTokenPriceByFunc(fnName string, height int64) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value != nil {
@@ -42,19 +42,19 @@ func getTokenPriceByFunc(fnName string, app *DIDApplication, height int64) float
 	return 1.0
 }
 
-func setTokenPriceByFunc(fnName string, price float64, app *DIDApplication) {
+func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) {
 	key := "TokenPriceFunc" + "|" + fnName
 	value := strconv.FormatFloat(price, 'f', -1, 64)
 	app.SetStateDB([]byte(key), []byte(value))
 }
 
-func createTokenAccount(nodeID string, app *DIDApplication) {
+func (app *DIDApplication) createTokenAccount(nodeID string) {
 	key := "Token" + "|" + nodeID
 	value := strconv.FormatFloat(0, 'f', -1, 64)
 	app.SetStateDB([]byte(key), []byte(value))
 }
 
-func setToken(nodeID string, amount float64, app *DIDApplication) error {
+func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
@@ -65,15 +65,15 @@ func setToken(nodeID string, amount float64, app *DIDApplication) error {
 	return errors.New("token account not found")
 }
 
-func setPriceFunc(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	setTokenPriceByFunc(funcParam.Func, funcParam.Price, app)
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	app.setTokenPriceByFunc(funcParam.Func, funcParam.Price)
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *DIDApplication) getPriceFunc(param string, height int64) types.ResponseQuery {
@@ -83,7 +83,7 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	price := getTokenPriceByFunc(funcParam.Func, app, height)
+	price := app.getTokenPriceByFunc(funcParam.Func, height)
 	var res = GetPriceFuncResult{
 		price,
 	}
@@ -94,7 +94,7 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }
 
-func addToken(nodeID string, amount float64, app *DIDApplication) error {
+func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
@@ -110,7 +110,7 @@ func addToken(nodeID string, amount float64, app *DIDApplication) error {
 	return errors.New("token account not found")
 }
 
-func checkTokenAccount(nodeID string, app *DIDApplication) bool {
+func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
@@ -123,7 +123,7 @@ func checkTokenAccount(nodeID string, app *DIDApplication) bool {
 	return true
 }
 
-func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
+func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
@@ -142,7 +142,7 @@ func reduceToken(nodeID string, amount float64, app *DIDApplication) error {
 	return errors.New("token account not found")
 }
 
-func getToken(nodeID string, app *DIDApplication) (float64, error) {
+func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value != nil {
@@ -152,70 +152,70 @@ func getToken(nodeID string, app *DIDApplication) (float64, error) {
 	return 0, errors.New("token account not found")
 }
 
-func setNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
-	if !checkTokenAccount(funcParam.NodeID, app) {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+	if !app.checkTokenAccount(funcParam.NodeID) {
+		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
-	err = setToken(funcParam.NodeID, funcParam.Amount, app)
+	err = app.setToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func addNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) addNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
-	if !checkTokenAccount(funcParam.NodeID, app) {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+	if !app.checkTokenAccount(funcParam.NodeID) {
+		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
-	err = addToken(funcParam.NodeID, funcParam.Amount, app)
+	err = app.addToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Validate parameter
 	if funcParam.Amount < 0 {
-		return ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
 	}
 	// Check token account
-	if !checkTokenAccount(funcParam.NodeID, app) {
-		return ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+	if !app.checkTokenAccount(funcParam.NodeID) {
+		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
-	err = reduceToken(funcParam.NodeID, funcParam.Amount, app)
+	err = app.reduceToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
-		return ReturnDeliverTxLog(code.TokenNotEnough, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.TokenNotEnough, err.Error(), "")
 	}
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *DIDApplication) getNodeToken(param string, height int64) types.ResponseQuery {
@@ -225,7 +225,7 @@ func (app *DIDApplication) getNodeToken(param string, height int64) types.Respon
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version64())
 	}
-	tokenAmount, err := getToken(funcParam.NodeID, app)
+	tokenAmount, err := app.getToken(funcParam.NodeID)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
 	}

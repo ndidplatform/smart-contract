@@ -32,19 +32,19 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func setMqAddresses(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	var msqAddress []*data.MQ
 	for _, address := range funcParam.Addresses {
@@ -56,10 +56,10 @@ func setMqAddresses(param string, app *DIDApplication, nodeID string) types.Resp
 	nodeDetail.Mq = msqAddress
 	nodeDetailByte, err := proto.Marshal(&nodeDetail)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
-	return ReturnDeliverTxLog(code.OK, "success", "")
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *DIDApplication) getNodeMasterPublicKey(param string, height int64) types.ResponseQuery {
@@ -366,9 +366,6 @@ func (app *DIDApplication) getMqAddresses(param string, height int64) types.Resp
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	// key := "MsqAddress" + "|" + funcParam.NodeID
-	// _, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	var nodeDetail data.NodeDetail
@@ -541,7 +538,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	result.Mode = int(request.Mode)
 
 	// Check Role, If it's IdP then Set set special = true
-	ownerRole := getRoleFromNodeID(request.Owner, app)
+	ownerRole := app.getRoleFromNodeID(request.Owner)
 	if string(ownerRole) == "IdP" {
 		result.Special = true
 	}
@@ -613,12 +610,12 @@ func (app *DIDApplication) getServiceDetail(param string, height int64) types.Re
 	return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 }
 
-func updateNode(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "NodeID" + "|" + nodeID
@@ -628,7 +625,7 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 		var nodeDetail data.NodeDetail
 		err := proto.Unmarshal([]byte(value), &nodeDetail)
 		if err != nil {
-			return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
 		// update MasterPublicKey
@@ -643,12 +640,12 @@ func updateNode(param string, app *DIDApplication, nodeID string) types.Response
 
 		nodeDetailValue, err := proto.Marshal(&nodeDetail)
 		if err != nil {
-			return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
 		app.SetStateDB([]byte(key), []byte(nodeDetailValue))
-		return ReturnDeliverTxLog(code.OK, "success", "")
+		return app.ReturnDeliverTxLog(code.OK, "success", "")
 	}
-	return ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 }
 
 func (app *DIDApplication) checkExistingIdentity(param string, height int64) types.ResponseQuery {

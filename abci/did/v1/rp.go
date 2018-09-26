@@ -31,12 +31,12 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func createRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam Request
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	var request data.Request
@@ -76,7 +76,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	request.Owner = nodeID
 
 	// set Can add accossor
-	ownerRole := getRoleFromNodeID(nodeID, app)
+	ownerRole := app.getRoleFromNodeID(nodeID)
 	if string(ownerRole) == "IdP" || string(ownerRole) == "MasterIdP" {
 		request.CanAddAccessor = true
 	}
@@ -91,7 +91,7 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 	}
 	for _, count := range serviceIDCount {
 		if count > 1 {
-			return ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
+			return app.ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
 		}
 	}
 
@@ -99,49 +99,49 @@ func createRequest(param string, app *DIDApplication, nodeID string) types.Respo
 
 	value, err := proto.Marshal(&request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	_, existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
-		return ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
+		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", request.RequestId)
+	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
-func closeRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	if request.Closed {
-		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
 	if request.TimedOut {
-		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
 	// // Check valid list
 	// if len(funcParam.ResponseValidList) != len(request.Responses) {
-	// 	return ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
+	// 	return app.ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
 	// }
 
 	for _, valid := range funcParam.ResponseValidList {
@@ -175,44 +175,44 @@ func closeRequest(param string, app *DIDApplication, nodeID string) types.Respon
 	request.Closed = true
 	value, err = proto.Marshal(&request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func timeOutRequest(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	if request.TimedOut {
-		return ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
 
 	if request.Closed {
-		return ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
 
 	// // Check valid list
 	// if len(funcParam.ResponseValidList) != len(request.Responses) {
-	// 	return ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
+	// 	return app.ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
 	// }
 
 	for _, valid := range funcParam.ResponseValidList {
@@ -246,32 +246,32 @@ func timeOutRequest(param string, app *DIDApplication, nodeID string) types.Resp
 	request.TimedOut = true
 	value, err = proto.Marshal(&request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func setDataReceived(param string, app *DIDApplication, nodeID string) types.ResponseDeliverTx {
+func (app *DIDApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
 
 	if value == nil {
-		return ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
 	// Check as_id is exist in as_id_list
@@ -287,7 +287,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		}
 	}
 	if exist == false {
-		return ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
+		return app.ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
 	}
 
 	// Check Duplicate AS ID
@@ -303,7 +303,7 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 		}
 	}
 	if duplicate == true {
-		return ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
+		return app.ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
 	}
 
 	// Update received_data_from_list in request
@@ -330,8 +330,8 @@ func setDataReceived(param string, app *DIDApplication, nodeID string) types.Res
 
 	value, err = proto.Marshal(&request)
 	if err != nil {
-		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
