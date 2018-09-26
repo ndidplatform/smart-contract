@@ -76,12 +76,12 @@ func setPriceFunc(param string, app *DIDApplication, nodeID string) types.Respon
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getPriceFunc(param string, app *DIDApplication, height int64) types.ResponseQuery {
+func (app *DIDApplication) getPriceFunc(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
 	price := getTokenPriceByFunc(funcParam.Func, app, height)
 	var res = GetPriceFuncResult{
@@ -89,9 +89,9 @@ func getPriceFunc(param string, app *DIDApplication, height int64) types.Respons
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }
 
 func addToken(nodeID string, amount float64, app *DIDApplication) error {
@@ -218,23 +218,23 @@ func reduceNodeToken(param string, app *DIDApplication, nodeID string) types.Res
 	return ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func getNodeToken(param string, app *DIDApplication, height int64) types.ResponseQuery {
+func (app *DIDApplication) getNodeToken(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version64())
 	}
 	tokenAmount, err := getToken(funcParam.NodeID, app)
 	if err != nil {
-		return ReturnQuery([]byte("{}"), "not found", app.state.db.Version64(), app)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	return ReturnQuery(value, "success", app.state.db.Version64(), app)
+	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }

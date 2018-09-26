@@ -28,7 +28,7 @@ import (
 )
 
 // ReturnQuery return types.ResponseQuery
-func ReturnQuery(value []byte, log string, height int64, app *DIDApplication) types.ResponseQuery {
+func (app *DIDApplication) ReturnQuery(value []byte, log string, height int64) types.ResponseQuery {
 	app.logger.Infof("Query result: %s", string(value))
 	var res types.ResponseQuery
 	res.Value = value
@@ -38,67 +38,67 @@ func ReturnQuery(value []byte, log string, height int64, app *DIDApplication) ty
 }
 
 // QueryRouter is Pointer to function
-func QueryRouter(method string, param string, app *DIDApplication, height int64) types.ResponseQuery {
-	result := callQuery(method, param, app, height)
+func (app *DIDApplication) QueryRouter(method string, param string, height int64) types.ResponseQuery {
+	result := app.callQuery(method, param, height)
 	return result
 }
 
-func callQuery(name string, param string, app *DIDApplication, height int64) types.ResponseQuery {
+func (app *DIDApplication) callQuery(name string, param string, height int64) types.ResponseQuery {
 	switch name {
 	case "GetNodePublicKey":
-		return getNodePublicKey(param, app, height)
+		return app.getNodePublicKey(param, height)
 	case "GetIdpNodes":
-		return getIdpNodes(param, app, height)
+		return app.getIdpNodes(param, height)
 	case "GetRequest":
-		return getRequest(param, app, height)
+		return app.getRequest(param, height)
 	case "GetRequestDetail":
-		return getRequestDetail(param, app, height)
+		return app.getRequestDetail(param, height)
 	case "GetAsNodesByServiceId":
-		return getAsNodesByServiceId(param, app, height)
+		return app.getAsNodesByServiceId(param, height)
 	case "GetMqAddresses":
-		return getMqAddresses(param, app, height)
+		return app.getMqAddresses(param, height)
 	case "GetNodeToken":
-		return getNodeToken(param, app, height)
+		return app.getNodeToken(param, height)
 	case "GetPriceFunc":
-		return getPriceFunc(param, app, height)
+		return app.getPriceFunc(param, height)
 	case "GetUsedTokenReport":
-		return getUsedTokenReport(param, app, height)
+		return app.getUsedTokenReport(param, height)
 	case "GetServiceDetail":
-		return getServiceDetail(param, app, height)
+		return app.getServiceDetail(param, height)
 	case "GetNamespaceList":
-		return getNamespaceList(param, app, height)
+		return app.getNamespaceList(param, height)
 	case "CheckExistingIdentity":
-		return checkExistingIdentity(param, app, height)
+		return app.checkExistingIdentity(param, height)
 	case "GetAccessorGroupID":
-		return getAccessorGroupID(param, app, height)
+		return app.getAccessorGroupID(param, height)
 	case "GetAccessorKey":
-		return getAccessorKey(param, app, height)
+		return app.getAccessorKey(param, height)
 	case "GetServiceList":
-		return getServiceList(param, app, height)
+		return app.getServiceList(param, height)
 	case "GetNodeMasterPublicKey":
-		return getNodeMasterPublicKey(param, app, height)
+		return app.getNodeMasterPublicKey(param, height)
 	case "GetNodeInfo":
-		return getNodeInfo(param, app, height)
+		return app.getNodeInfo(param, height)
 	case "CheckExistingAccessorID":
-		return checkExistingAccessorID(param, app, height)
+		return app.checkExistingAccessorID(param, height)
 	case "CheckExistingAccessorGroupID":
-		return checkExistingAccessorGroupID(param, app, height)
+		return app.checkExistingAccessorGroupID(param, height)
 	case "GetIdentityInfo":
-		return getIdentityInfo(param, app, height)
+		return app.getIdentityInfo(param, height)
 	case "GetDataSignature":
-		return getDataSignature(param, app, height)
+		return app.getDataSignature(param, height)
 	case "GetIdentityProof":
-		return getIdentityProof(param, app, height)
+		return app.getIdentityProof(param, height)
 	case "GetServicesByAsID":
-		return getServicesByAsID(param, app, height)
+		return app.getServicesByAsID(param, height)
 	case "GetIdpNodesInfo":
-		return getIdpNodesInfo(param, app, height)
+		return app.getIdpNodesInfo(param, height)
 	case "GetAsNodesInfoByServiceId":
-		return getAsNodesInfoByServiceId(param, app, height)
+		return app.getAsNodesInfoByServiceId(param, height)
 	case "GetNodesBehindProxyNode":
-		return getNodesBehindProxyNode(param, app, height)
+		return app.getNodesBehindProxyNode(param, height)
 	case "GetNodeIDList":
-		return getNodeIDList(param, app, height)
+		return app.getNodeIDList(param, height)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

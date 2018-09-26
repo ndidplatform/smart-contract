@@ -61,24 +61,24 @@ func writeBurnTokenReport(nodeID string, method string, price float64, data stri
 	return nil
 }
 
-func getUsedTokenReport(param string, app *DIDApplication, height int64) types.ResponseQuery {
+func (app *DIDApplication) getUsedTokenReport(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetUsedTokenReport, Parameter: %s", param)
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
 	key := "SpendGas" + "|" + funcParam.NodeID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
 		value = []byte("[]")
-		return ReturnQuery(value, "not found", app.state.db.Version64(), app)
+		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
 	var result GetUsedTokenReportResult
 	var reports pbData.ReportList
 	err = proto.Unmarshal([]byte(value), &reports)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
 	for _, report := range reports.Reports {
 		var newRow Report
@@ -89,7 +89,7 @@ func getUsedTokenReport(param string, app *DIDApplication, height int64) types.R
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return ReturnQuery(nil, err.Error(), app.state.db.Version64(), app)
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	return ReturnQuery(resultJSON, "success", app.state.db.Version64(), app)
+	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }

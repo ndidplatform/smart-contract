@@ -203,7 +203,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnQuery(nil, "Unknown error", app.state.db.Version64(), app)
+			res = app.ReturnQuery(nil, "Unknown error", app.state.db.Version64())
 		}
 	}()
 
@@ -224,9 +224,9 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
-		return QueryRouter(method, param, app, height)
+		return app.QueryRouter(method, param, height)
 	}
-	return ReturnQuery(nil, "method can't empty", app.state.db.Version64(), app)
+	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version64())
 }
 
 func getEnv(key, defaultValue string) string {

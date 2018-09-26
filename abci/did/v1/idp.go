@@ -118,8 +118,8 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 	if err != nil {
 		return ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var request = getRequest(string(getRequestparamJSON), app, app.state.db.Version64())
-	var requestDetail = getRequestDetail(string(getRequestparamJSON), app, app.state.db.Version64())
+	var request = app.getRequest(string(getRequestparamJSON), app.state.db.Version64())
+	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.db.Version64())
 	var requestResult GetRequestResult
 	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(request.Value), &requestResult)
@@ -150,7 +150,7 @@ func addAccessorMethod(param string, app *DIDApplication, nodeID string) types.R
 		return ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
 	// check special type of Request && set can used only once
-	canAddAccessor := getCanAddAccessor(funcParam.RequestID, app)
+	canAddAccessor := app.getCanAddAccessor(funcParam.RequestID)
 	if canAddAccessor != true {
 		return ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
 	}
