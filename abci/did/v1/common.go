@@ -39,7 +39,7 @@ func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
@@ -880,6 +880,8 @@ func (app *DIDApplication) getNodeInfo(param string, height int64) types.Respons
 	proxyKey := "Proxy" + "|" + funcParam.NodeID
 	_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 	if proxyValue != nil {
+
+		app.logger.Errorln("Proxy")
 
 		// Get proxy node ID
 		var proxy data.Proxy
