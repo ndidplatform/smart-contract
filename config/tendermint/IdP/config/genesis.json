@@ -1,6 +1,6 @@
 {
   "genesis_time": "2018-09-24T03:13:10.436346664Z",
-  "chain_id": "test-chain-lyAvGf",
+  "chain_id": "test-chain-NDID",
   "consensus_params": {
     "block_size_params": {
       "max_bytes": "22020096",
