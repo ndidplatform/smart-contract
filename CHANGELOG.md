@@ -3,7 +3,8 @@
 ## TBD
 
 BREAKING CHANGES:
-  - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
+
+- [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
 
 IMPROVEMENTS:
 
@@ -12,6 +13,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 - [DeliverTx] Fix unmarshal error in `UpdateNodeProxyNode`.
+- [DeliverTx] Remove invalid key of `MqAddresses` in `AddNodeToProxyNode`.
 
 ## 0.8.0 (September 23, 2018)
 
