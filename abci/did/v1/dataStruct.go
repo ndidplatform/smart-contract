@@ -108,6 +108,7 @@ type Request struct {
 	MinAal          float64       `json:"min_aal"`
 	MinIal          float64       `json:"min_ial"`
 	Timeout         int           `json:"request_timeout"`
+	IdPIDList       []string      `json:"idp_id_list"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
 	Responses       []Response    `json:"response_list"`
@@ -158,6 +159,7 @@ type GetRequestDetailResult struct {
 	MinAal          float64       `json:"min_aal"`
 	MinIal          float64       `json:"min_ial"`
 	Timeout         int           `json:"request_timeout"`
+	IdPIDList       []string      `json:"idp_id_list"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
 	Responses       []Response    `json:"response_list"`

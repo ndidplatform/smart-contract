@@ -472,6 +472,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	result.MinAal = float64(request.MinAal)
 	result.MinIal = float64(request.MinIal)
 	result.Timeout = int(request.RequestTimeout)
+	result.IdPIDList = request.IdpIdList
 	for _, dataRequest := range request.DataRequestList {
 		var newRow DataRequest
 		newRow.ServiceID = dataRequest.ServiceId

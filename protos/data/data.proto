@@ -63,14 +63,15 @@ message Request {
   double min_aal = 3;
   double min_ial = 4;
   int64 request_timeout = 5;
-  repeated DataRequest data_request_list = 6;
-  string request_message_hash = 7;
-  repeated Response response_list = 8;
-  bool closed = 9;
-  bool timed_out = 10;
-  bool can_add_accessor = 11;
-  string owner = 12;
-  int64 mode = 13;
+  repeated string idp_id_list = 6;
+  repeated DataRequest data_request_list = 7;
+  string request_message_hash = 8;
+  repeated Response response_list = 9;
+  bool closed = 10;
+  bool timed_out = 11;
+  bool can_add_accessor = 12;
+  string owner = 13;
+  int64 mode = 14;
 }
 
 message DataRequest {

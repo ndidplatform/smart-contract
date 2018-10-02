@@ -50,6 +50,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash
 	request.Mode = int64(funcParam.Mode)
+	request.IdpIdList = funcParam.IdPIDList
 
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
