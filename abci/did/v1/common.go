@@ -544,6 +544,14 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 		result.Special = true
 	}
 
+	// make nil to array len 0
+	if result.IdPIDList == nil {
+		result.IdPIDList = make([]string, 0)
+	}
+	if result.DataRequestList == nil {
+		result.DataRequestList = make([]DataRequest, 0)
+	}
+
 	// Set requester_node_id
 	result.RequesterNodeID = request.Owner
 	resultJSON, err := json.Marshal(result)
