@@ -371,6 +371,10 @@ message Query {
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "idp_id_list": [
+    "lvEzsuTcZvIRvZyrdEsi",
+    "njHtYuHHxCvzzofcpwon"
+  ],
   "data_request_list": [
     {
       "answered_as_id_list": null,
@@ -1591,6 +1595,10 @@ message Query {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
+  "idp_id_list": [
+    "lvEzsuTcZvIRvZyrdEsi",
+    "njHtYuHHxCvzzofcpwon"
+  ],
   "requester_node_id": "nfhwDGTTeRdMeXzAgLij",
   "response_list": [
     {

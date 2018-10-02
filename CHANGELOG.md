@@ -5,10 +5,12 @@
 BREAKING CHANGES:
 
 - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
+- [DeliverTx] Add `idp_id_list` property to parameters of `CreateRequest`
 
 IMPROVEMENTS:
 
 - Refactor code.
+- [Query] Add `idp_id_list` property to result of `GetRequestDetail`.
 
 BUG FIXES:
 
