@@ -707,3 +707,12 @@ type GetNodeIDListResult struct {
 }
 
 type GetMqAddressesResult []MsqAddress
+
+type GetAccessorsInAccessorGroupParam struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+	IdpID           string `json:"idp_id"`
+}
+
+type GetAccessorsInAccessorGroupResult struct {
+	AccessorList []string `json:"accessor_list"`
+}

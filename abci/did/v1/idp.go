@@ -67,9 +67,18 @@ func (app *DIDApplication) registerAccessor(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
 	}
 
+	// Add relation AccessorGroupID -> AccessorID
+	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+	var accessorInGroup data.AccessorInGroup
+	accessorInGroup.Accessors = append(accessorInGroup.Accessors, funcParam.AccessorID)
+	accessorInGroupProtobuf, err := proto.Marshal(&accessorInGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	app.SetStateDB([]byte(accessorGroupKey), []byte(accessorGroup))
-
+	app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -168,6 +177,21 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
+	// Add relation AccessorGroupID -> AccessorID
+	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+	_, accessorInGroupKeyValue := app.state.db.Get(prefixKey([]byte(accessorInGroupKey)))
+	var accessors data.AccessorInGroup
+	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	accessors.Accessors = append(accessors.Accessors, funcParam.AccessorID)
+	accessorInGroupProtobuf, err := proto.Marshal(&accessors)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

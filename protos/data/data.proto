@@ -161,3 +161,7 @@ message ASList {
 message AllList {
   repeated string node_id = 1;
 }
+
+message AccessorInGroup {
+  repeated string accessors = 1;
+}

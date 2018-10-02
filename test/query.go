@@ -795,3 +795,22 @@ func GetNodeIDListForDisable(t *testing.T, param did.GetNodeIDListParam) []strin
 	}
 	return res.NodeIDList
 }
+
+func GetAccessorsInAccessorGroup(t *testing.T, param did.GetAccessorsInAccessorGroupParam, expected string) {
+	fnName := "GetAccessorsInAccessorGroup"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

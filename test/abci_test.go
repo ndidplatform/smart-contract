@@ -39,6 +39,7 @@ var IdP1 = RandStringRunes(20)
 var IdP2 = RandStringRunes(20)
 var IdP4 = RandStringRunes(20)
 var IdP5 = RandStringRunes(20)
+var IdP10 = RandStringRunes(20)
 var AS1 = RandStringRunes(20)
 var AS2 = RandStringRunes(20)
 var Proxy1 = RandStringRunes(20)
@@ -119,6 +120,31 @@ func TestRegisterNodeIDP(t *testing.T) {
 
 	var param did.RegisterNode
 	param.NodeID = IdP1
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes2)
+	param.NodeName = "IdP Number 1 from ..."
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	RegisterNode(t, param)
+}
+
+func TestRegisterNodeIDP10(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param did.RegisterNode
+	param.NodeID = IdP10
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 1 from ..."
@@ -215,6 +241,14 @@ func TestAddNodeTokenRP(t *testing.T) {
 func TestAddNodeTokenIdP(t *testing.T) {
 	var param = did.AddNodeTokenParam{
 		IdP1,
+		222.22,
+	}
+	AddNodeToken(t, param)
+}
+
+func TestAddNodeTokenIdP10(t *testing.T) {
+	var param = did.AddNodeTokenParam{
+		IdP10,
 		222.22,
 	}
 	AddNodeToken(t, param)
@@ -581,7 +615,7 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, idpPrivK, IdP1)
+	CreateRequest(t, param, idpPrivK, IdP10)
 }
 
 func TestIdPDeclareIdentityProof2(t *testing.T) {
@@ -630,7 +664,7 @@ func TestReportGetUsedTokenRP(t *testing.T) {
 }
 
 func TestReportGetUsedTokenIdP(t *testing.T) {
-	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"CreateRequest","price":1,"data":"` + requestID2.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
+	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
 	var param = did.GetUsedTokenReportParam{
 		IdP1,
 	}
@@ -833,6 +867,22 @@ func TestIdPRegisterAccessor(t *testing.T) {
 	RegisterAccessor(t, param, IdP1)
 }
 
+func TestQueryGetAccessorsInAccessorGroupInvalidIdP(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP2
+	expected := string(`{"accessor_list":[]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP1
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
 func TestIdPAddAccessorMethod(t *testing.T) {
 	var param = did.AccessorMethod{
 		accessorID2.String(),
@@ -841,7 +891,30 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 		accessorGroupID1.String(),
 		requestID2.String(),
 	}
-	AddAccessorMethod(t, param, IdP1)
+	AddAccessorMethod(t, param, IdP10)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_IdP1(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP1
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_IdP10(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP10
+	expected := string(`{"accessor_list":["` + accessorID2.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_WithOut_IdP_ID(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `","` + accessorID2.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
 }
 
 func TestIdP1ClearRegisterIdentityTimeout(t *testing.T) {

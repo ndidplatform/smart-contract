@@ -1771,3 +1771,48 @@ func (app *DIDApplication) getNodeIDList(param string, height int64) types.Respo
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }
+
+func (app *DIDApplication) getAccessorsInAccessorGroup(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetAccessorsInAccessorGroup, Parameter: %s", param)
+	var funcParam GetAccessorsInAccessorGroupParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	var result GetAccessorsInAccessorGroupResult
+	result.AccessorList = make([]string, 0)
+	if funcParam.AccessorGroupID != "" {
+		accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+		_, accessorInGroupKeyValue := app.state.db.GetVersioned(prefixKey([]byte(accessorInGroupKey)), height)
+		var accessors data.AccessorInGroup
+		err := proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		// If IdpID == "", return all accessors in group
+		if funcParam.IdpID == "" {
+			for _, accessor := range accessors.Accessors {
+				result.AccessorList = append(result.AccessorList, accessor)
+			}
+		} else {
+			// filter by owner of accessor
+			for _, accessor := range accessors.Accessors {
+				accessorKey := "Accessor" + "|" + accessor
+				_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
+				var accessorObj data.Accessor
+				err := proto.Unmarshal(accessorValue, &accessorObj)
+				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				if accessorObj.Owner == funcParam.IdpID {
+					result.AccessorList = append(result.AccessorList, accessor)
+				}
+			}
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if len(result.AccessorList) > 0 {
+		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
+	}
+	return app.ReturnQuery(returnValue, "not found", app.state.db.Version64())
+}
