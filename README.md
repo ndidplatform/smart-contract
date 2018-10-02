@@ -1718,3 +1718,20 @@ message Query {
   }
 ]
 ```
+
+## GetAccessorsInAccessorGroup
+### Parameter
+```sh
+{
+  "accessor_group_id": "b0dbc48f-9b72-42fa-904e-22c00c30d5e5",
+  "idp_id": "xTkDRjpgwuIazfaCHAAM"
+}
+```
+### Expected Output
+```sh
+{
+  "accessor_list": [
+    "c719e6aa-16ab-4ecb-9063-eff1a2e75fd3"
+  ]
+}
+```

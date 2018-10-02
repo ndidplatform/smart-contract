@@ -11,6 +11,8 @@ IMPROVEMENTS:
 
 - Refactor code.
 - [Query] Add `idp_id_list` property to result of `GetRequestDetail`.
+- [Key/Value store] Add accessorID in accessorGroupID relation.
+- [Query] Add new function (`GetAccessorsInAccessorGroup`).
 
 BUG FIXES:
 
