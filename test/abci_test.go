@@ -513,6 +513,7 @@ func TestRPCreateRequest(t *testing.T) {
 	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
+	data1.As = append(data1.As, AS1)
 	datas = append(datas, data1)
 	var param did.Request
 	param.RequestID = requestID1.String()
@@ -686,7 +687,7 @@ func TestQueryGetRequestDetail1(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `","` + IdP2 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `","` + IdP2 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -723,7 +724,7 @@ func TestQueryGetRequestDetail2(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `","` + IdP2 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `","` + IdP2 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -1734,6 +1735,7 @@ func TestRPCreateRequestAferEnableNode(t *testing.T) {
 	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
+	data1.As = append(data1.As, AS1)
 	datas = append(datas, data1)
 	var param did.Request
 	param.RequestID = requestID4.String()
