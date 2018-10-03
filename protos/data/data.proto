@@ -69,9 +69,10 @@ message Request {
   repeated Response response_list = 9;
   bool closed = 10;
   bool timed_out = 11;
-  bool can_add_accessor = 12;
+  string purpose = 12;
   string owner = 13;
   int64 mode = 14;
+  int64 use_count = 15;
 }
 
 message DataRequest {

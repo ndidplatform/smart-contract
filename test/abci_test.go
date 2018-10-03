@@ -59,6 +59,7 @@ var namespaceID1 = RandStringRunes(20)
 var namespaceID2 = RandStringRunes(20)
 var accessorID1 = uuid.NewV4()
 var accessorID2 = uuid.NewV4()
+var accessorID3 = uuid.NewV4()
 var accessorGroupID1 = uuid.NewV4()
 
 var serviceID3 = RandStringRunes(20)
@@ -615,6 +616,7 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
+	param.Purpose = "AddAccessor"
 	CreateRequest(t, param, idpPrivK, IdP10)
 }
 
@@ -891,7 +893,18 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 		accessorGroupID1.String(),
 		requestID2.String(),
 	}
-	AddAccessorMethod(t, param, IdP10)
+	AddAccessorMethod(t, param, IdP10, true)
+}
+
+func TestIdPAddAccessorMethod2(t *testing.T) {
+	var param = did.AccessorMethod{
+		accessorID3.String(),
+		"accessor_type_2",
+		accessorPubKey2,
+		accessorGroupID1.String(),
+		requestID2.String(),
+	}
+	AddAccessorMethod(t, param, IdP10, false)
 }
 
 func TestQueryGetAccessorsInAccessorGroup_IdP1(t *testing.T) {

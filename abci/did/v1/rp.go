@@ -71,7 +71,8 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set default value
 	request.Closed = false
 	request.TimedOut = false
-	request.CanAddAccessor = false
+	request.Purpose = ""
+	request.UseCount = 0
 
 	// set Owner
 	request.Owner = nodeID
@@ -79,7 +80,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set Can add accossor
 	ownerRole := app.getRoleFromNodeID(nodeID)
 	if string(ownerRole) == "IdP" || string(ownerRole) == "MasterIdP" {
-		request.CanAddAccessor = true
+		request.Purpose = funcParam.Purpose
 	}
 
 	// set default value

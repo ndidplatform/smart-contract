@@ -111,11 +111,7 @@ type Request struct {
 	IdPIDList       []string      `json:"idp_id_list"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"response_list"`
-	IsClosed        bool          `json:"closed"`
-	IsTimedOut      bool          `json:"timed_out"`
-	CanAddAccessor  bool          `json:"can_add_accessor"`
-	Owner           string        `json:"owner"`
+	Purpose         string        `json:"purpose"`
 	Mode            int           `json:"mode"`
 }
 
