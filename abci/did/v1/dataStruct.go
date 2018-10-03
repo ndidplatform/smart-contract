@@ -161,7 +161,7 @@ type GetRequestDetailResult struct {
 	Responses           []Response    `json:"response_list"`
 	IsClosed            bool          `json:"closed"`
 	IsTimedOut          bool          `json:"timed_out"`
-	Special             bool          `json:"special"`
+	Purpose             string        `json:"purpose"`
 	Mode                int           `json:"mode"`
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`

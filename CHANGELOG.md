@@ -7,6 +7,7 @@ BREAKING CHANGES:
 - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
 - [DeliverTx] Add `idp_id_list` property to parameters of `CreateRequest`
 - [DeliverTx] Add `purpose` property to parameters of `CreateRequest`
+- [Query] Return `purpose` instead `special` in result of `GetRequestDetail`.
 
 IMPROVEMENTS:
 

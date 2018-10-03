@@ -1615,7 +1615,7 @@ message Query {
       "valid_signature": null
     }
   ],
-  "special": false,
+  "purpose": "",
   "timed_out": false,
   "creation_block_height": 50
 }

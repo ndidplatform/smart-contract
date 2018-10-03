@@ -522,11 +522,8 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	result.IsTimedOut = request.TimedOut
 	result.Mode = int(request.Mode)
 
-	// Check Role, If it's IdP then Set set special = true
-	ownerRole := app.getRoleFromNodeID(request.Owner)
-	if string(ownerRole) == "IdP" {
-		result.Special = true
-	}
+	// Set purpose
+	result.Purpose = request.Purpose
 
 	// make nil to array len 0
 	if result.IdPIDList == nil {
