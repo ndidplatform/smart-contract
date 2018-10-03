@@ -391,6 +391,7 @@ message Query {
   "mode": 3,
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
+  "puspose": "AddAccessor"
 }
 ```
 ### Expected Output
@@ -1615,7 +1616,8 @@ message Query {
     }
   ],
   "special": false,
-  "timed_out": false
+  "timed_out": false,
+  "creation_block_height": 50
 }
 ```
 

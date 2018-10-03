@@ -6,6 +6,7 @@ BREAKING CHANGES:
 
 - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
 - [DeliverTx] Add `idp_id_list` property to parameters of `CreateRequest`
+- [DeliverTx] Add `purpose` property to parameters of `CreateRequest`
 
 IMPROVEMENTS:
 
@@ -13,6 +14,7 @@ IMPROVEMENTS:
 - [Query] Add `idp_id_list` property to result of `GetRequestDetail`.
 - [Key/Value store] Add accessorID in accessorGroupID relation.
 - [Query] Add new function (`GetAccessorsInAccessorGroup`).
+- [Query] Add `creation_block_height` property to result of `GetRequestDetail`.
 
 BUG FIXES:
 
