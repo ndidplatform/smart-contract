@@ -8,6 +8,7 @@ BREAKING CHANGES:
 - [DeliverTx] Add `idp_id_list` property to parameters of `CreateRequest`
 - [DeliverTx] Add `purpose` property to parameters of `CreateRequest`
 - [Query] Return `purpose` instead `special` in result of `GetRequestDetail`.
+- [CheckTx] Check proxy node is active when creating a transaction.
 
 IMPROVEMENTS:
 

@@ -431,6 +431,33 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		if !app.getActiveStatusByNodeID(nodeID) {
 			return ReturnCheckTx(code.NodeIsNotActive, "Node is not active")
 		}
+		// If node behind proxy then check proxy is active
+		proxyKey := "Proxy" + "|" + nodeID
+		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+		if proxyValue != nil {
+			// Get proxy node ID
+			var proxy data.Proxy
+			err := proto.Unmarshal([]byte(proxyValue), &proxy)
+			if err != nil {
+				return ReturnCheckTx(code.UnmarshalError, err.Error())
+			}
+			proxyNodeID := proxy.ProxyNodeId
+
+			// Get proxy node detail
+			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			_, proxyNodeDetailValue := app.state.db.Get(prefixKey([]byte(proxyNodeDetailKey)))
+			if proxyNodeDetailValue == nil {
+				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
+			}
+			var proxyNode data.NodeDetail
+			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+			if err != nil {
+				return ReturnCheckTx(code.UnmarshalError, err.Error())
+			}
+			if !proxyNode.Active {
+				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
+			}
+		}
 	}
 
 	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)

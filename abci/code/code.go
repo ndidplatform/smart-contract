@@ -101,5 +101,6 @@ const (
 	NodeIDHasNotBeenAssociatedWithProxyNode   uint32 = 74
 	ProxyNodeNotFound                         uint32 = 75
 	NodeIDIsNotExistInIdPList                 uint32 = 76
+	ProxyNodeIsNotActive                      uint32 = 77
 	UnknownError                              uint32 = 999
 )
