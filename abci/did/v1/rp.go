@@ -79,7 +79,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 
 	// set Can add accossor
 	ownerRole := app.getRoleFromNodeID(nodeID)
-	if string(ownerRole) == "IdP" || string(ownerRole) == "MasterIdP" {
+	if string(ownerRole) == "IdP" {
 		request.Purpose = funcParam.Purpose
 	}
 
