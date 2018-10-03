@@ -617,6 +617,7 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
 	param.Purpose = "AddAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
 	CreateRequest(t, param, idpPrivK, IdP10)
 }
 

@@ -401,6 +401,18 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		}
 	}
 
+	// Check nodeID is exist in idp_id_list
+	exist := false
+	for _, idpID := range request.IdpIdList {
+		if idpID == nodeID {
+			exist = true
+			break
+		}
+	}
+	if exist == false {
+		return app.ReturnDeliverTxLog(code.NodeIDIsNotExistInIdPList, "Node ID is not exist in IdP list", "")
+	}
+
 	if chk == false {
 		request.ResponseList = append(request.ResponseList, &response)
 		value, err := proto.Marshal(&request)
