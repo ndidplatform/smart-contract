@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"testing"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
@@ -395,6 +396,19 @@ func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expecte
 	t.Logf("PASS: %s", fnName)
 }
 
+func after(value string, a string) string {
+	// Get substring after a string.
+	pos := strings.LastIndex(value, a)
+	if pos == -1 {
+		return ""
+	}
+	adjustedPos := pos + len(a)
+	if adjustedPos >= len(value) {
+		return ""
+	}
+	return value[adjustedPos:len(value)]
+}
+
 func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) {
 	fnName := "GetRequestDetail"
 	paramJSON, err := json.Marshal(param)
@@ -408,6 +422,9 @@ func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) 
 		t.Logf("PASS: %s", fnName)
 		return
 	}
+	oldBlockNumber := after(string(expected), `"creation_block_height":`)
+	newBlockNumber := after(string(resultString), `"creation_block_height":`)
+	expected = strings.Replace(expected, oldBlockNumber, newBlockNumber, -1)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
