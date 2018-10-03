@@ -571,19 +571,14 @@ func GetAccessorKey(t *testing.T, param did.GetAccessorGroupIDParam, expected st
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetServiceList(t *testing.T, expected []did.ServiceDetail) {
+func GetServiceList(t *testing.T, expected string) {
 	fnName := "GetServiceList"
 	paramJSON := []byte("")
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res []did.ServiceDetail
-	err := json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

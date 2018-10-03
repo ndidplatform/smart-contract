@@ -304,6 +304,8 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	service.ServiceId = funcParam.ServiceID
 	service.ServiceName = funcParam.ServiceName
 	service.Active = true
+	service.DataSchema = funcParam.DataSchema
+	service.DataSchemaVersion = funcParam.DataSchemaVersion
 	serviceJSON, err := proto.Marshal(&service)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
@@ -463,6 +465,12 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 	}
 	if funcParam.ServiceName != "" {
 		service.ServiceName = funcParam.ServiceName
+	}
+	if funcParam.DataSchema != "" {
+		service.DataSchema = funcParam.DataSchema
+	}
+	if funcParam.DataSchemaVersion != "" {
+		service.DataSchemaVersion = funcParam.DataSchemaVersion
 	}
 
 	// Update detail in service directory

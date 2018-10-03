@@ -310,18 +310,20 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 }
 
 func TestNDIDAddService(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID1,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID1
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddServiceAgain(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID2,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID2
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
@@ -454,26 +456,41 @@ func TestASRegisterServiceDestination2(t *testing.T) {
 	RegisterServiceDestination(t, param, asPrivK, AS1, "Duplicate service ID in provide service list")
 }
 
-func TestNDIDUpdateService(t *testing.T) {
-	var param = did.UpdateServiceParam{
+func TestQueryGetServiceDetail1(t *testing.T) {
+	var param = did.GetServiceDetailParam{
 		serviceID1,
-		"Bank statement (ย้อนหลัง 3 เดือน)",
 	}
+	var expected = did.ServiceDetail{
+		serviceID1,
+		"Bank statement",
+		"DataSchema",
+		"DataSchemaVersion",
+		true,
+	}
+	GetServiceDetail(t, param, expected)
+}
+
+func TestNDIDUpdateService(t *testing.T) {
+	var param did.UpdateServiceParam
+	param.ServiceID = serviceID1
+	param.ServiceName = "Bank statement (ย้อนหลัง 3 เดือน)"
+	param.DataSchemaVersion = "DataSchemaVersion2"
 	UpdateService(t, param)
 }
 
-func TestQueryGetServiceDetail(t *testing.T) {
+func TestQueryGetServiceDetail2(t *testing.T) {
 	var param = did.GetServiceDetailParam{
 		serviceID1,
 	}
 	var expected = did.ServiceDetail{
 		serviceID1,
 		"Bank statement (ย้อนหลัง 3 เดือน)",
+		"DataSchema",
+		"DataSchemaVersion2",
 		true,
 	}
 	GetServiceDetail(t, param, expected)
 }
-
 func TestASUpdateServiceDestination(t *testing.T) {
 	var param = did.UpdateServiceDestinationParam{
 		serviceID1,
@@ -1053,13 +1070,7 @@ func TestDisableOldService(t *testing.T) {
 }
 
 func TestQueryGetServiceList(t *testing.T) {
-	var expected = []did.ServiceDetail{
-		did.ServiceDetail{
-			serviceID1,
-			"Bank statement (ย้อนหลัง 3 เดือน)",
-			true,
-		},
-	}
+	var expected = `[{"service_id":"` + serviceID1 + `","service_name":"Bank statement (ย้อนหลัง 3 เดือน)","active":true}]`
 	GetServiceList(t, expected)
 }
 
@@ -1439,26 +1450,29 @@ func TestQueryGetAsNodesByServiceId4(t *testing.T) {
 }
 
 func TestNDIDAddService3(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID3,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID3
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddService4(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID4,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID4
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddService5(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID5,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID5
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
@@ -2232,10 +2246,11 @@ func TestQueryGetGetNodesBehindProxyNode2(t *testing.T) {
 }
 
 func TestNDIDAddServiceserviceID6(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID6,
-		"Service 6",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID6
+	param.ServiceName = "Service 6"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 

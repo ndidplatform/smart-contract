@@ -593,11 +593,7 @@ func (app *DIDApplication) getServiceDetail(param string, height int64) types.Re
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	res := make(map[string]interface{})
-	res["service_id"] = service.ServiceId
-	res["service_name"] = service.ServiceName
-	res["active"] = service.Active
-	returnValue, err := json.Marshal(res)
+	returnValue, err := json.Marshal(service)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}

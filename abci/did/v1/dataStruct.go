@@ -174,8 +174,10 @@ type SignDataParam struct {
 }
 
 type AddServiceParam struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
 }
 
 type DisableServiceParam struct {
@@ -392,9 +394,11 @@ type SetDataReceivedParam struct {
 }
 
 type ServiceDetail struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
-	Active      bool   `json:"active"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
+	Active            bool   `json:"active"`
 }
 
 type CheckExistingAccessorIDParam struct {
@@ -500,8 +504,10 @@ type UpdateServiceDestinationParam struct {
 }
 
 type UpdateServiceParam struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
 }
 
 type DisableMsqDestinationParam struct {

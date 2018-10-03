@@ -37,7 +37,9 @@ message ServiceDetailList {
 message ServiceDetail {
   string service_id = 1;
   string service_name = 2;
-  bool active = 3;
+  string data_schema = 3;
+  string data_schema_version = 4;
+  bool active = 5;
 }
 
 message ApproveService {
