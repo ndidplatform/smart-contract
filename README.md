@@ -391,7 +391,7 @@ message Query {
   "mode": 3,
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
-  "puspose": "AddAccessor"
+  "purpose": "AddAccessor"
 }
 ```
 ### Expected Output
