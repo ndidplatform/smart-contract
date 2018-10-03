@@ -272,7 +272,9 @@ message Query {
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement"
+  "service_name": "Bank statement",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 ### Expected Output
@@ -1115,7 +1117,9 @@ message Query {
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 ### Expected Output
@@ -1633,7 +1637,9 @@ message Query {
 {
   "active": true,
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 

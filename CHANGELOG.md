@@ -9,6 +9,8 @@ BREAKING CHANGES:
 - [DeliverTx] Add `purpose` property to parameters of `CreateRequest`
 - [Query] Return `purpose` instead `special` in result of `GetRequestDetail`.
 - [CheckTx] Check proxy node is active when creating a transaction.
+- [DeliverTx] Add `data_schema` and `data_schema_version` property to parameters of `AddService` and `UpdateService`.
+- [Query] Add `data_schema` and `data_schema_version` property to result of `GetServiceDetail`.
 
 IMPROVEMENTS:
 
