@@ -73,6 +73,7 @@ message Request {
   string owner = 13;
   int64 mode = 14;
   int64 use_count = 15;
+  int64 creation_block_height = 16;
 }
 
 message DataRequest {

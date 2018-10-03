@@ -150,20 +150,21 @@ type GetRequestResult struct {
 }
 
 type GetRequestDetailResult struct {
-	RequestID       string        `json:"request_id"`
-	MinIdp          int           `json:"min_idp"`
-	MinAal          float64       `json:"min_aal"`
-	MinIal          float64       `json:"min_ial"`
-	Timeout         int           `json:"request_timeout"`
-	IdPIDList       []string      `json:"idp_id_list"`
-	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"response_list"`
-	IsClosed        bool          `json:"closed"`
-	IsTimedOut      bool          `json:"timed_out"`
-	Special         bool          `json:"special"`
-	Mode            int           `json:"mode"`
-	RequesterNodeID string        `json:"requester_node_id"`
+	RequestID           string        `json:"request_id"`
+	MinIdp              int           `json:"min_idp"`
+	MinAal              float64       `json:"min_aal"`
+	MinIal              float64       `json:"min_ial"`
+	Timeout             int           `json:"request_timeout"`
+	IdPIDList           []string      `json:"idp_id_list"`
+	DataRequestList     []DataRequest `json:"data_request_list"`
+	MessageHash         string        `json:"request_message_hash"`
+	Responses           []Response    `json:"response_list"`
+	IsClosed            bool          `json:"closed"`
+	IsTimedOut          bool          `json:"timed_out"`
+	Special             bool          `json:"special"`
+	Mode                int           `json:"mode"`
+	RequesterNodeID     string        `json:"requester_node_id"`
+	CreationBlockHeight int64         `json:"creation_block_height"`
 }
 
 type SignDataParam struct {

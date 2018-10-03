@@ -394,22 +394,6 @@ func (app *DIDApplication) getMqAddresses(param string, height int64) types.Resp
 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }
 
-// func (app *DIDApplication) getCanAddAccessor(requestID string) bool {
-// 	result := false
-// 	key := "Request" + "|" + requestID
-// 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-// 	if value != nil {
-// 		var request data.Request
-// 		err := proto.Unmarshal([]byte(value), &request)
-// 		if err == nil {
-// 			if request.CanAddAccessor {
-// 				result = true
-// 			}
-// 		}
-// 	}
-// 	return result
-// }
-
 func (app *DIDApplication) getRequest(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
@@ -554,6 +538,10 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 
 	// Set requester_node_id
 	result.RequesterNodeID = request.Owner
+
+	// Set creation_block_height
+	result.CreationBlockHeight = request.CreationBlockHeight
+
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
