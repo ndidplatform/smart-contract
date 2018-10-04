@@ -5,10 +5,12 @@
 BREAKING CHANGES:
 
 - [DeliverTx] Check all IdP in `idp_id_list` is active (`CreateRequest`).
+- [DeliverTx] Check all AS in `as_id_list` is active (`CreateRequest`).
 
 IMPROVEMENTS:
 
 - [Query] Filter proxy node is not active `GetIdpNodesInfo`.
+- [Query] Filter proxy node is not active `GetAsNodesInfoByServiceId`.
 
 ## 0.9.0 (October 4, 2018)
 
