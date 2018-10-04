@@ -52,6 +52,53 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.Mode = int64(funcParam.Mode)
 	request.IdpIdList = funcParam.IdPIDList
 
+	// Check all IdP in list is active
+	for _, idp := range request.IdpIdList {
+		// If node is behind proxy
+		proxyKey := "Proxy" + "|" + idp
+		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+		if proxyValue != nil {
+			// Get proxy node ID
+			var proxy data.Proxy
+			err = proto.Unmarshal([]byte(proxyValue), &proxy)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			proxyNodeID := proxy.ProxyNodeId
+			// Get proxy node detail
+			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			_, proxyNodeDetailValue := app.state.db.Get(prefixKey([]byte(proxyNodeDetailKey)))
+			if proxyNodeDetailValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var proxyNode data.NodeDetail
+			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			// Check proxy node is active
+			if !proxyNode.Active {
+				return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
+			}
+		} else {
+			// Get node detail
+			nodeDetailKey := "NodeID" + "|" + idp
+			_, nodeDetaiValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+			if nodeDetaiValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var node data.NodeDetail
+			err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			// Check node is active
+			if !node.Active {
+				return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
+			}
+		}
+	}
+
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
 	for index := range funcParam.DataRequestList {
