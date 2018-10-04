@@ -112,6 +112,54 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		}
 		newRow.AnsweredAsIdList = make([]string, 0)
 		newRow.ReceivedDataFromList = make([]string, 0)
+
+		// Check all as in as_list is active
+		for _, as := range newRow.AsIdList {
+			// If node is behind proxy
+			proxyKey := "Proxy" + "|" + as
+			_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+			if proxyValue != nil {
+				// Get proxy node ID
+				var proxy data.Proxy
+				err = proto.Unmarshal([]byte(proxyValue), &proxy)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				proxyNodeID := proxy.ProxyNodeId
+				// Get proxy node detail
+				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				_, proxyNodeDetailValue := app.state.db.Get(prefixKey([]byte(proxyNodeDetailKey)))
+				if proxyNodeDetailValue == nil {
+					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				}
+				var proxyNode data.NodeDetail
+				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				// Check proxy node is active
+				if !proxyNode.Active {
+					return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
+				}
+			} else {
+				// Get node detail
+				nodeDetailKey := "NodeID" + "|" + as
+				_, nodeDetaiValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+				if nodeDetaiValue == nil {
+					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				}
+				var node data.NodeDetail
+				err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				// Check node is active
+				if !node.Active {
+					return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
+				}
+			}
+		}
+
 		request.DataRequestList = append(request.DataRequestList, &newRow)
 	}
 

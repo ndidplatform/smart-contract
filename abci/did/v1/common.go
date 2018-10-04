@@ -1521,6 +1521,12 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
+
+			// Check proxy node is active
+			if !proxyNode.Active {
+				continue
+			}
+
 			var as ASWithMqNodeBehindProxy
 			as.NodeID = storedData.Node[index].NodeId
 			as.Name = nodeDetail.NodeName
