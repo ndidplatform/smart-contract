@@ -2,6 +2,10 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- [DeliverTx] Check all IdP in `idp_id_list` is active (`CreateRequest`).
+
 IMPROVEMENTS:
 
 - [Query] Filter proxy node is not active `GetIdpNodesInfo`.
