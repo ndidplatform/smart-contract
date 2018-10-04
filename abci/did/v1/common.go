@@ -1218,6 +1218,12 @@ func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.Res
 					if err != nil {
 						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 					}
+
+					// Check proxy node is active
+					if !proxyNode.Active {
+						continue
+					}
+
 					var msqDesNode IdpNodeBehindProxy
 					msqDesNode.NodeID = idp
 					msqDesNode.Name = nodeDetail.NodeName
@@ -1329,6 +1335,12 @@ func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.Res
 					if err != nil {
 						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 					}
+
+					// Check proxy node is active
+					if !proxyNode.Active {
+						continue
+					}
+
 					var msqDesNode IdpNodeBehindProxy
 					msqDesNode.NodeID = node.NodeId
 					msqDesNode.Name = nodeDetail.NodeName
