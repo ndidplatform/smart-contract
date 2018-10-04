@@ -751,7 +751,6 @@ func TestCreateRequest(t *testing.T) {
 	data1.ServiceID = serviceID1
 	data1.As = []string{
 		AS1,
-		AS2,
 	}
 	data1.Count = 2
 	data1.RequestParamsHash = "hash"
@@ -760,7 +759,6 @@ func TestCreateRequest(t *testing.T) {
 	data2.ServiceID = "credit"
 	data2.As = []string{
 		AS1,
-		AS2,
 	}
 	data2.Count = 2
 	data2.RequestParamsHash = "hash"
@@ -820,7 +818,7 @@ func TestQueryGetRequestDetail3(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID3.String(),
 	}
-	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":38}`
+	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":38}`
 	GetRequestDetail(t, param, expected)
 }
 

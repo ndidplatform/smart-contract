@@ -103,5 +103,6 @@ const (
 	NodeIDIsNotExistInIdPList                 uint32 = 76
 	ProxyNodeIsNotActive                      uint32 = 77
 	NodeIDInIdPListIsNotActive                uint32 = 78
+	NodeIDInASListIsNotActive                 uint32 = 79
 	UnknownError                              uint32 = 999
 )
