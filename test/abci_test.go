@@ -39,6 +39,7 @@ var IdP1 = RandStringRunes(20)
 var IdP2 = RandStringRunes(20)
 var IdP4 = RandStringRunes(20)
 var IdP5 = RandStringRunes(20)
+var IdP10 = RandStringRunes(20)
 var AS1 = RandStringRunes(20)
 var AS2 = RandStringRunes(20)
 var Proxy1 = RandStringRunes(20)
@@ -58,6 +59,7 @@ var namespaceID1 = RandStringRunes(20)
 var namespaceID2 = RandStringRunes(20)
 var accessorID1 = uuid.NewV4()
 var accessorID2 = uuid.NewV4()
+var accessorID3 = uuid.NewV4()
 var accessorGroupID1 = uuid.NewV4()
 
 var serviceID3 = RandStringRunes(20)
@@ -119,6 +121,31 @@ func TestRegisterNodeIDP(t *testing.T) {
 
 	var param did.RegisterNode
 	param.NodeID = IdP1
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpPublicKeyBytes2)
+	param.NodeName = "IdP Number 1 from ..."
+	param.Role = "IdP"
+	param.MaxIal = 3.0
+	param.MaxAal = 3.0
+
+	RegisterNode(t, param)
+}
+
+func TestRegisterNodeIDP10(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	idpKey2 := getPrivateKeyFromString(allMasterKey)
+	idpPublicKeyBytes2, err := generatePublicKey(&idpKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	var param did.RegisterNode
+	param.NodeID = IdP10
 	param.PublicKey = string(idpPublicKeyBytes)
 	param.MasterPublicKey = string(idpPublicKeyBytes2)
 	param.NodeName = "IdP Number 1 from ..."
@@ -220,6 +247,14 @@ func TestAddNodeTokenIdP(t *testing.T) {
 	AddNodeToken(t, param)
 }
 
+func TestAddNodeTokenIdP10(t *testing.T) {
+	var param = did.AddNodeTokenParam{
+		IdP10,
+		222.22,
+	}
+	AddNodeToken(t, param)
+}
+
 func TestAddNodeTokenAS(t *testing.T) {
 	var param = did.AddNodeTokenParam{
 		AS1,
@@ -275,18 +310,20 @@ func TestQueryGetNodeTokenRPAfterSetToken(t *testing.T) {
 }
 
 func TestNDIDAddService(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID1,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID1
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddServiceAgain(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID2,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID2
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
@@ -419,26 +456,41 @@ func TestASRegisterServiceDestination2(t *testing.T) {
 	RegisterServiceDestination(t, param, asPrivK, AS1, "Duplicate service ID in provide service list")
 }
 
-func TestNDIDUpdateService(t *testing.T) {
-	var param = did.UpdateServiceParam{
+func TestQueryGetServiceDetail1(t *testing.T) {
+	var param = did.GetServiceDetailParam{
 		serviceID1,
-		"Bank statement (ย้อนหลัง 3 เดือน)",
 	}
+	var expected = did.ServiceDetail{
+		serviceID1,
+		"Bank statement",
+		"DataSchema",
+		"DataSchemaVersion",
+		true,
+	}
+	GetServiceDetail(t, param, expected)
+}
+
+func TestNDIDUpdateService(t *testing.T) {
+	var param did.UpdateServiceParam
+	param.ServiceID = serviceID1
+	param.ServiceName = "Bank statement (ย้อนหลัง 3 เดือน)"
+	param.DataSchemaVersion = "DataSchemaVersion2"
 	UpdateService(t, param)
 }
 
-func TestQueryGetServiceDetail(t *testing.T) {
+func TestQueryGetServiceDetail2(t *testing.T) {
 	var param = did.GetServiceDetailParam{
 		serviceID1,
 	}
 	var expected = did.ServiceDetail{
 		serviceID1,
 		"Bank statement (ย้อนหลัง 3 เดือน)",
+		"DataSchema",
+		"DataSchemaVersion2",
 		true,
 	}
 	GetServiceDetail(t, param, expected)
 }
-
 func TestASUpdateServiceDestination(t *testing.T) {
 	var param = did.UpdateServiceDestinationParam{
 		serviceID1,
@@ -478,6 +530,7 @@ func TestRPCreateRequest(t *testing.T) {
 	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
+	data1.As = append(data1.As, AS1)
 	datas = append(datas, data1)
 	var param did.Request
 	param.RequestID = requestID1.String()
@@ -485,6 +538,8 @@ func TestRPCreateRequest(t *testing.T) {
 	param.MinIal = 3
 	param.MinAal = 3
 	param.Timeout = 259200
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	// param.IdPIDList = append(param.IdPIDList, IdP2)
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
@@ -579,7 +634,9 @@ func TestIdPCreateRequestSpecial(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	CreateRequest(t, param, idpPrivK, IdP1)
+	param.Purpose = "AddAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK, IdP10)
 }
 
 func TestIdPDeclareIdentityProof2(t *testing.T) {
@@ -628,7 +685,7 @@ func TestReportGetUsedTokenRP(t *testing.T) {
 }
 
 func TestReportGetUsedTokenIdP(t *testing.T) {
-	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"CreateRequest","price":1,"data":"` + requestID2.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
+	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
 	var param = did.GetUsedTokenReportParam{
 		IdP1,
 	}
@@ -647,7 +704,7 @@ func TestQueryGetRequestDetail1(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -684,7 +741,7 @@ func TestQueryGetRequestDetail2(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID1.String(),
 	}
-	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":[],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
+	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -715,6 +772,8 @@ func TestCreateRequest(t *testing.T) {
 	param.MinIal = 3
 	param.MinAal = 3
 	param.Timeout = 259200
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	// param.IdPIDList = append(param.IdPIDList, IdP2)
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
@@ -761,7 +820,7 @@ func TestQueryGetRequestDetail3(t *testing.T) {
 	var param = did.GetRequestParam{
 		requestID3.String(),
 	}
-	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"special":false,"mode":3,"requester_node_id":"` + RP1 + `"}`
+	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `","` + AS2 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":38}`
 	GetRequestDetail(t, param, expected)
 }
 
@@ -829,6 +888,22 @@ func TestIdPRegisterAccessor(t *testing.T) {
 	RegisterAccessor(t, param, IdP1)
 }
 
+func TestQueryGetAccessorsInAccessorGroupInvalidIdP(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP2
+	expected := string(`{"accessor_list":[]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP1
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
 func TestIdPAddAccessorMethod(t *testing.T) {
 	var param = did.AccessorMethod{
 		accessorID2.String(),
@@ -837,7 +912,41 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 		accessorGroupID1.String(),
 		requestID2.String(),
 	}
-	AddAccessorMethod(t, param, IdP1)
+	AddAccessorMethod(t, param, IdP10, true)
+}
+
+func TestIdPAddAccessorMethod2(t *testing.T) {
+	var param = did.AccessorMethod{
+		accessorID3.String(),
+		"accessor_type_2",
+		accessorPubKey2,
+		accessorGroupID1.String(),
+		requestID2.String(),
+	}
+	AddAccessorMethod(t, param, IdP10, false)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_IdP1(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP1
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_IdP10(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	param.IdpID = IdP10
+	expected := string(`{"accessor_list":["` + accessorID2.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestQueryGetAccessorsInAccessorGroup_WithOut_IdP_ID(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `","` + accessorID2.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
 }
 
 func TestIdP1ClearRegisterIdentityTimeout(t *testing.T) {
@@ -961,13 +1070,7 @@ func TestDisableOldService(t *testing.T) {
 }
 
 func TestQueryGetServiceList(t *testing.T) {
-	var expected = []did.ServiceDetail{
-		did.ServiceDetail{
-			serviceID1,
-			"Bank statement (ย้อนหลัง 3 เดือน)",
-			true,
-		},
-	}
+	var expected = `[{"service_id":"` + serviceID1 + `","service_name":"Bank statement (ย้อนหลัง 3 เดือน)","active":true}]`
 	GetServiceList(t, expected)
 }
 
@@ -1347,26 +1450,29 @@ func TestQueryGetAsNodesByServiceId4(t *testing.T) {
 }
 
 func TestNDIDAddService3(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID3,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID3
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddService4(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID4,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID4
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
 func TestNDIDAddService5(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID5,
-		"Bank statement",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID5
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 
@@ -1637,12 +1743,13 @@ func TestEnableNodeRP1(t *testing.T) {
 	EnableNode(t, param)
 }
 
-func TestRPCreateRequestAferEnableNode(t *testing.T) {
+func TestRPCreateRequestAferEnableNodeWithDisabledIdP(t *testing.T) {
 	var datas []did.DataRequest
 	var data1 did.DataRequest
 	data1.ServiceID = serviceID1
 	data1.Count = 1
 	data1.RequestParamsHash = "hash"
+	data1.As = append(data1.As, AS1)
 	datas = append(datas, data1)
 	var param did.Request
 	param.RequestID = requestID4.String()
@@ -1651,6 +1758,30 @@ func TestRPCreateRequestAferEnableNode(t *testing.T) {
 	param.MinAal = 1
 	param.Timeout = 259200
 	param.DataRequestList = datas
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	param.IdPIDList = append(param.IdPIDList, IdP2)
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	CreateRequestExpectLogDeliverTx(t, param, rpPrivK, RP1, "Node ID in IdP list is not active")
+}
+
+func TestRPCreateRequestAferEnableNode(t *testing.T) {
+	var datas []did.DataRequest
+	var data1 did.DataRequest
+	data1.ServiceID = serviceID1
+	data1.Count = 1
+	data1.RequestParamsHash = "hash"
+	data1.As = append(data1.As, AS1)
+	datas = append(datas, data1)
+	var param did.Request
+	param.RequestID = requestID4.String()
+	param.MinIdp = 1
+	param.MinIal = 1
+	param.MinAal = 1
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	// param.IdPIDList = append(param.IdPIDList, IdP2)
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
 	CreateRequest(t, param, rpPrivK, RP1)
@@ -2090,6 +2221,30 @@ func TestQueryGetIdpNodesInfo4(t *testing.T) {
 	GetIdpNodesInfoParamJSON(t, string(jsonStr), expected)
 }
 
+func TestDisableNodeProxy1(t *testing.T) {
+	var param did.DisableNodeParam
+	param.NodeID = Proxy1
+	DisableNode(t, param)
+}
+
+func TestQueryGetIdpNodesInfo4AfterDisableProxy(t *testing.T) {
+	param := make(map[string]interface{})
+	param["min_ial"] = 3
+	param["min_aal"] = 3
+	jsonStr, err := json.Marshal(param)
+	if err != nil {
+		panic(err)
+	}
+	var expected = `{"node":[{"node_id":"` + IdP4 + `","name":"IdP Number 4 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu9+CK/vznpXtAUC0QhuJ\ngYKCfMMBiIgVcp2A+e+SsKvv6ESQ72R8K6nQAhH2MGtnj3ScLI0tMwCtgotWCEGi\nyUXKXLVTiqAqtwflCUVuxCDVuvOm3GQCxvwzE34jEgbGZ33G3tV7uKTtifhoJzVY\nD+WkZVslBhaBgQCUewCX4zkCCTYC5VEhkr7K8HGEr6n1eBOO5VORCkrHKYoZK7eu\nNjyWvWYyVN07F8K0RhgIF9Xsa6Tiu1Yf8zuyJ/awR6U4Nw+oTkvRpx64+caBNYgR\n4n8peg9ZJeTAwV49o1ymx34pPjHUgSdpyhZX4i3z9ji+o7KbNkA/O0l+3doMuH1e\nxwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}]},{"node_id":"` + IdP5 + `","name":"IdP Number 5 from ...","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApbxaA5aKnkpnV7+dMW5x\n7iEINouvjhQ8gl6+8A6ApiVbYIzJCCaexU9mn7jDP634SyjFNSxzhjklEm7qFPaH\nOk1FfX6tk5i5uGWifRQHueXhXjR8HSBkjQAoZ0eqBqTsxsSpASsT4qoBKtsIVN7X\nHdh9Mqz+XAkq4T6vtdaocduarNG6ALZFkX+pAgkCj4hIhRmHjlyYIh1yOZw1KM3T\nHkM9noP2AYEH2MBHCzuu+bifCwurOBq+ZKAdfroCG4rPGfOXuDQK8BHpru1lg0jd\nAmbbqMyGpAsF+WjW4V2rcTMFZOoYFYE5m2ssxC4O9h3f/H2gBtjjWzYv6bRC6ZdP\n2wIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}]}]}`
+	GetIdpNodesInfoParamJSON(t, string(jsonStr), expected)
+}
+
+func TestEnableNodeProxy1(t *testing.T) {
+	var param did.DisableNodeParam
+	param.NodeID = Proxy1
+	EnableNode(t, param)
+}
+
 func TestRegisterAS3BehindProxy1(t *testing.T) {
 	asKey := getPrivateKeyFromString(asPrivK)
 	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
@@ -2137,10 +2292,11 @@ func TestQueryGetGetNodesBehindProxyNode2(t *testing.T) {
 }
 
 func TestNDIDAddServiceserviceID6(t *testing.T) {
-	var param = did.AddServiceParam{
-		serviceID6,
-		"Service 6",
-	}
+	var param did.AddServiceParam
+	param.ServiceID = serviceID6
+	param.ServiceName = "Service 6"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
 	AddService(t, param)
 }
 

@@ -2,16 +2,34 @@
 
 ## TBD
 
+IMPROVEMENTS:
+
+- [Query] Filter proxy node is not active `GetIdpNodesInfo`.
+
+## 0.9.0 (October 4, 2018)
+
 BREAKING CHANGES:
-  - [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
+
+- [DeliverTx] Delete `node_id` property from parameters of `SetMqAddresses`
+- [DeliverTx] Add `idp_id_list` property to parameters of `CreateRequest`
+- [DeliverTx] Add `purpose` property to parameters of `CreateRequest`
+- [Query] Return `purpose` instead `special` in result of `GetRequestDetail`.
+- [CheckTx] Check proxy node is active when creating a transaction.
+- [DeliverTx] Add `data_schema` and `data_schema_version` property to parameters of `AddService` and `UpdateService`.
+- [Query] Add `data_schema` and `data_schema_version` property to result of `GetServiceDetail`.
 
 IMPROVEMENTS:
 
 - Refactor code.
+- [Query] Add `idp_id_list` property to result of `GetRequestDetail`.
+- [Key/Value store] Add accessorID in accessorGroupID relation.
+- [Query] Add new function (`GetAccessorsInAccessorGroup`).
+- [Query] Add `creation_block_height` property to result of `GetRequestDetail`.
 
 BUG FIXES:
 
 - [DeliverTx] Fix unmarshal error in `UpdateNodeProxyNode`.
+- [DeliverTx] Remove invalid key of `MqAddresses` in `AddNodeToProxyNode`.
 
 ## 0.8.0 (September 23, 2018)
 

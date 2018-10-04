@@ -37,7 +37,9 @@ message ServiceDetailList {
 message ServiceDetail {
   string service_id = 1;
   string service_name = 2;
-  bool active = 3;
+  string data_schema = 3;
+  string data_schema_version = 4;
+  bool active = 5;
 }
 
 message ApproveService {
@@ -63,14 +65,17 @@ message Request {
   double min_aal = 3;
   double min_ial = 4;
   int64 request_timeout = 5;
-  repeated DataRequest data_request_list = 6;
-  string request_message_hash = 7;
-  repeated Response response_list = 8;
-  bool closed = 9;
-  bool timed_out = 10;
-  bool can_add_accessor = 11;
-  string owner = 12;
-  int64 mode = 13;
+  repeated string idp_id_list = 6;
+  repeated DataRequest data_request_list = 7;
+  string request_message_hash = 8;
+  repeated Response response_list = 9;
+  bool closed = 10;
+  bool timed_out = 11;
+  string purpose = 12;
+  string owner = 13;
+  int64 mode = 14;
+  int64 use_count = 15;
+  int64 creation_block_height = 16;
 }
 
 message DataRequest {
@@ -159,4 +164,8 @@ message ASList {
 
 message AllList {
   repeated string node_id = 1;
+}
+
+message AccessorInGroup {
+  repeated string accessors = 1;
 }

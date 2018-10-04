@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"testing"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
@@ -395,6 +396,19 @@ func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expecte
 	t.Logf("PASS: %s", fnName)
 }
 
+func after(value string, a string) string {
+	// Get substring after a string.
+	pos := strings.LastIndex(value, a)
+	if pos == -1 {
+		return ""
+	}
+	adjustedPos := pos + len(a)
+	if adjustedPos >= len(value) {
+		return ""
+	}
+	return value[adjustedPos:len(value)]
+}
+
 func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) {
 	fnName := "GetRequestDetail"
 	paramJSON, err := json.Marshal(param)
@@ -408,6 +422,9 @@ func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) 
 		t.Logf("PASS: %s", fnName)
 		return
 	}
+	oldBlockNumber := after(string(expected), `"creation_block_height":`)
+	newBlockNumber := after(string(resultString), `"creation_block_height":`)
+	expected = strings.Replace(expected, oldBlockNumber, newBlockNumber, -1)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
@@ -554,19 +571,14 @@ func GetAccessorKey(t *testing.T, param did.GetAccessorGroupIDParam, expected st
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetServiceList(t *testing.T, expected []did.ServiceDetail) {
+func GetServiceList(t *testing.T, expected string) {
 	fnName := "GetServiceList"
 	paramJSON := []byte("")
 	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res []did.ServiceDetail
-	err := json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
@@ -794,4 +806,23 @@ func GetNodeIDListForDisable(t *testing.T, param did.GetNodeIDListParam) []strin
 		log.Fatal(err.Error())
 	}
 	return res.NodeIDList
+}
+
+func GetAccessorsInAccessorGroup(t *testing.T, param did.GetAccessorsInAccessorGroupParam, expected string) {
+	fnName := "GetAccessorsInAccessorGroup"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
 }

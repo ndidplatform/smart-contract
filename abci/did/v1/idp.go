@@ -67,26 +67,19 @@ func (app *DIDApplication) registerAccessor(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
 	}
 
+	// Add relation AccessorGroupID -> AccessorID
+	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+	var accessorInGroup data.AccessorInGroup
+	accessorInGroup.Accessors = append(accessorInGroup.Accessors, funcParam.AccessorID)
+	accessorInGroupProtobuf, err := proto.Marshal(&accessorInGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	app.SetStateDB([]byte(accessorGroupKey), []byte(accessorGroup))
-
+	app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
-}
-
-func (app *DIDApplication) setCanAddAccessorToFalse(requestID string) {
-	key := "Request" + "|" + requestID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var request data.Request
-		err := proto.Unmarshal([]byte(value), &request)
-		if err == nil {
-			request.CanAddAccessor = false
-			value, err := proto.Marshal(&request)
-			if err == nil {
-				app.SetStateDB([]byte(key), []byte(value))
-			}
-		}
-	}
 }
 
 func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
@@ -118,14 +111,9 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var request = app.getRequest(string(getRequestparamJSON), app.state.db.Version64())
+
 	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.db.Version64())
-	var requestResult GetRequestResult
 	var requestDetailResult GetRequestDetailResult
-	err = json.Unmarshal([]byte(request.Value), &requestResult)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	}
 	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -149,12 +137,24 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if requestDetailResult.MinIdp < 1 {
 		return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
+
+	requestKey := "Request" + "|" + funcParam.RequestID
+	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+	if requestValue == nil {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
 	// check special type of Request && set can used only once
-	canAddAccessor := app.getCanAddAccessor(funcParam.RequestID)
-	if canAddAccessor != true {
+	if request.Purpose != "AddAccessor" || request.UseCount != 0 {
 		return app.ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
 	}
-	app.setCanAddAccessorToFalse(funcParam.RequestID)
+	// set use count
+	request.UseCount = 1
 
 	var accessor data.Accessor
 	accessor.AccessorType = funcParam.AccessorType
@@ -168,6 +168,27 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
+	// Add relation AccessorGroupID -> AccessorID
+	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+	_, accessorInGroupKeyValue := app.state.db.Get(prefixKey([]byte(accessorInGroupKey)))
+	var accessors data.AccessorInGroup
+	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	accessors.Accessors = append(accessors.Accessors, funcParam.AccessorID)
+	accessorInGroupProtobuf, err := proto.Marshal(&accessors)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	requestProtobuf, err := proto.Marshal(&request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+
+	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
+	app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -378,6 +399,18 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		if proofPassed == false {
 			return app.ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
 		}
+	}
+
+	// Check nodeID is exist in idp_id_list
+	exist := false
+	for _, idpID := range request.IdpIdList {
+		if idpID == nodeID {
+			exist = true
+			break
+		}
+	}
+	if exist == false {
+		return app.ReturnDeliverTxLog(code.NodeIDIsNotExistInIdPList, "Node ID is not exist in IdP list", "")
 	}
 
 	if chk == false {

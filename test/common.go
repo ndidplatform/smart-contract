@@ -118,6 +118,33 @@ func CreateRequestExpectLog(t *testing.T, param did.Request, priveKFile string, 
 	t.Logf("PASS: %s", fnName)
 }
 
+func CreateRequestExpectLogDeliverTx(t *testing.T, param did.Request, priveKFile string, nodeID string, expected string) {
+	privKey := getPrivateKeyFromString(priveKFile)
+	byteNodeID := []byte(nodeID)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	fnName := "CreateRequest"
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, byteNodeID)
+	resultObj, _ := result.(ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
 func UpdateNode(t *testing.T, param did.UpdateNodeParam, masterPriveKFile string, nodeID string) {
 	masterKey := getPrivateKeyFromString(masterPriveKFile)
 	paramJSON, err := json.Marshal(param)

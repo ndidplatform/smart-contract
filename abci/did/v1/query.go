@@ -99,6 +99,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodesBehindProxyNode(param, height)
 	case "GetNodeIDList":
 		return app.getNodeIDList(param, height)
+	case "GetAccessorsInAccessorGroup":
+		return app.getAccessorsInAccessorGroup(param, height)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

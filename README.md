@@ -272,7 +272,9 @@ message Query {
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement"
+  "service_name": "Bank statement",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 ### Expected Output
@@ -371,6 +373,10 @@ message Query {
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "idp_id_list": [
+    "lvEzsuTcZvIRvZyrdEsi",
+    "njHtYuHHxCvzzofcpwon"
+  ],
   "data_request_list": [
     {
       "answered_as_id_list": null,
@@ -387,6 +393,7 @@ message Query {
   "mode": 3,
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
+  "purpose": "AddAccessor"
 }
 ```
 ### Expected Output
@@ -1110,7 +1117,9 @@ message Query {
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 ### Expected Output
@@ -1591,6 +1600,10 @@ message Query {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
+  "idp_id_list": [
+    "lvEzsuTcZvIRvZyrdEsi",
+    "njHtYuHHxCvzzofcpwon"
+  ],
   "requester_node_id": "nfhwDGTTeRdMeXzAgLij",
   "response_list": [
     {
@@ -1606,8 +1619,9 @@ message Query {
       "valid_signature": null
     }
   ],
-  "special": false,
-  "timed_out": false
+  "purpose": "",
+  "timed_out": false,
+  "creation_block_height": 50
 }
 ```
 
@@ -1623,7 +1637,9 @@ message Query {
 {
   "active": true,
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)"
+  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)",
+  "data_schema": "string",
+  "data_schema_version": "string"
 }
 ```
 
@@ -1709,4 +1725,21 @@ message Query {
     "data": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
   }
 ]
+```
+
+## GetAccessorsInAccessorGroup
+### Parameter
+```sh
+{
+  "accessor_group_id": "b0dbc48f-9b72-42fa-904e-22c00c30d5e5",
+  "idp_id": "xTkDRjpgwuIazfaCHAAM"
+}
+```
+### Expected Output
+```sh
+{
+  "accessor_list": [
+    "c719e6aa-16ab-4ecb-9063-eff1a2e75fd3"
+  ]
+}
 ```

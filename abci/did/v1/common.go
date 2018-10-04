@@ -394,22 +394,6 @@ func (app *DIDApplication) getMqAddresses(param string, height int64) types.Resp
 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }
 
-func (app *DIDApplication) getCanAddAccessor(requestID string) bool {
-	result := false
-	key := "Request" + "|" + requestID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var request data.Request
-		err := proto.Unmarshal([]byte(value), &request)
-		if err == nil {
-			if request.CanAddAccessor {
-				result = true
-			}
-		}
-	}
-	return result
-}
-
 func (app *DIDApplication) getRequest(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
@@ -472,6 +456,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	result.MinAal = float64(request.MinAal)
 	result.MinIal = float64(request.MinIal)
 	result.Timeout = int(request.RequestTimeout)
+	result.IdPIDList = request.IdpIdList
 	for _, dataRequest := range request.DataRequestList {
 		var newRow DataRequest
 		newRow.ServiceID = dataRequest.ServiceId
@@ -537,14 +522,23 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	result.IsTimedOut = request.TimedOut
 	result.Mode = int(request.Mode)
 
-	// Check Role, If it's IdP then Set set special = true
-	ownerRole := app.getRoleFromNodeID(request.Owner)
-	if string(ownerRole) == "IdP" {
-		result.Special = true
+	// Set purpose
+	result.Purpose = request.Purpose
+
+	// make nil to array len 0
+	if result.IdPIDList == nil {
+		result.IdPIDList = make([]string, 0)
+	}
+	if result.DataRequestList == nil {
+		result.DataRequestList = make([]DataRequest, 0)
 	}
 
 	// Set requester_node_id
 	result.RequesterNodeID = request.Owner
+
+	// Set creation_block_height
+	result.CreationBlockHeight = request.CreationBlockHeight
+
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
@@ -599,11 +593,7 @@ func (app *DIDApplication) getServiceDetail(param string, height int64) types.Re
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	res := make(map[string]interface{})
-	res["service_id"] = service.ServiceId
-	res["service_name"] = service.ServiceName
-	res["active"] = service.Active
-	returnValue, err := json.Marshal(res)
+	returnValue, err := json.Marshal(service)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
@@ -1228,6 +1218,12 @@ func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.Res
 					if err != nil {
 						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 					}
+
+					// Check proxy node is active
+					if !proxyNode.Active {
+						continue
+					}
+
 					var msqDesNode IdpNodeBehindProxy
 					msqDesNode.NodeID = idp
 					msqDesNode.Name = nodeDetail.NodeName
@@ -1339,6 +1335,12 @@ func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.Res
 					if err != nil {
 						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 					}
+
+					// Check proxy node is active
+					if !proxyNode.Active {
+						continue
+					}
+
 					var msqDesNode IdpNodeBehindProxy
 					msqDesNode.NodeID = node.NodeId
 					msqDesNode.Name = nodeDetail.NodeName
@@ -1761,4 +1763,49 @@ func (app *DIDApplication) getNodeIDList(param string, height int64) types.Respo
 		return app.ReturnQuery(resultJSON, "not found", app.state.db.Version64())
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
+}
+
+func (app *DIDApplication) getAccessorsInAccessorGroup(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetAccessorsInAccessorGroup, Parameter: %s", param)
+	var funcParam GetAccessorsInAccessorGroupParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	var result GetAccessorsInAccessorGroupResult
+	result.AccessorList = make([]string, 0)
+	if funcParam.AccessorGroupID != "" {
+		accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+		_, accessorInGroupKeyValue := app.state.db.GetVersioned(prefixKey([]byte(accessorInGroupKey)), height)
+		var accessors data.AccessorInGroup
+		err := proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		// If IdpID == "", return all accessors in group
+		if funcParam.IdpID == "" {
+			for _, accessor := range accessors.Accessors {
+				result.AccessorList = append(result.AccessorList, accessor)
+			}
+		} else {
+			// filter by owner of accessor
+			for _, accessor := range accessors.Accessors {
+				accessorKey := "Accessor" + "|" + accessor
+				_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
+				var accessorObj data.Accessor
+				err := proto.Unmarshal(accessorValue, &accessorObj)
+				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				if accessorObj.Owner == funcParam.IdpID {
+					result.AccessorList = append(result.AccessorList, accessor)
+				}
+			}
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if len(result.AccessorList) > 0 {
+		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
+	}
+	return app.ReturnQuery(returnValue, "not found", app.state.db.Version64())
 }

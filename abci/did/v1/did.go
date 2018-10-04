@@ -70,7 +70,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.VersionedTree) *DIDAppli
 	}()
 	var state State
 	state.db = tree
-	ABCIversion := "0.8.0" // Hard code set version
+	ABCIversion := "0.9.0" // Hard code set version
 	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
 		state:   state,
@@ -110,7 +110,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d", req.Header.Height)
-	app.CurrentBlock = app.state.db.Version64()
+	app.CurrentBlock = req.Header.Height
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
 	return types.ResponseBeginBlock{}

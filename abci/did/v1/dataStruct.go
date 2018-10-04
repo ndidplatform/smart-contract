@@ -108,13 +108,10 @@ type Request struct {
 	MinAal          float64       `json:"min_aal"`
 	MinIal          float64       `json:"min_ial"`
 	Timeout         int           `json:"request_timeout"`
+	IdPIDList       []string      `json:"idp_id_list"`
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"response_list"`
-	IsClosed        bool          `json:"closed"`
-	IsTimedOut      bool          `json:"timed_out"`
-	CanAddAccessor  bool          `json:"can_add_accessor"`
-	Owner           string        `json:"owner"`
+	Purpose         string        `json:"purpose"`
 	Mode            int           `json:"mode"`
 }
 
@@ -153,19 +150,21 @@ type GetRequestResult struct {
 }
 
 type GetRequestDetailResult struct {
-	RequestID       string        `json:"request_id"`
-	MinIdp          int           `json:"min_idp"`
-	MinAal          float64       `json:"min_aal"`
-	MinIal          float64       `json:"min_ial"`
-	Timeout         int           `json:"request_timeout"`
-	DataRequestList []DataRequest `json:"data_request_list"`
-	MessageHash     string        `json:"request_message_hash"`
-	Responses       []Response    `json:"response_list"`
-	IsClosed        bool          `json:"closed"`
-	IsTimedOut      bool          `json:"timed_out"`
-	Special         bool          `json:"special"`
-	Mode            int           `json:"mode"`
-	RequesterNodeID string        `json:"requester_node_id"`
+	RequestID           string        `json:"request_id"`
+	MinIdp              int           `json:"min_idp"`
+	MinAal              float64       `json:"min_aal"`
+	MinIal              float64       `json:"min_ial"`
+	Timeout             int           `json:"request_timeout"`
+	IdPIDList           []string      `json:"idp_id_list"`
+	DataRequestList     []DataRequest `json:"data_request_list"`
+	MessageHash         string        `json:"request_message_hash"`
+	Responses           []Response    `json:"response_list"`
+	IsClosed            bool          `json:"closed"`
+	IsTimedOut          bool          `json:"timed_out"`
+	Purpose             string        `json:"purpose"`
+	Mode                int           `json:"mode"`
+	RequesterNodeID     string        `json:"requester_node_id"`
+	CreationBlockHeight int64         `json:"creation_block_height"`
 }
 
 type SignDataParam struct {
@@ -175,8 +174,10 @@ type SignDataParam struct {
 }
 
 type AddServiceParam struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
 }
 
 type DisableServiceParam struct {
@@ -393,9 +394,11 @@ type SetDataReceivedParam struct {
 }
 
 type ServiceDetail struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
-	Active      bool   `json:"active"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
+	Active            bool   `json:"active"`
 }
 
 type CheckExistingAccessorIDParam struct {
@@ -501,8 +504,10 @@ type UpdateServiceDestinationParam struct {
 }
 
 type UpdateServiceParam struct {
-	ServiceID   string `json:"service_id"`
-	ServiceName string `json:"service_name"`
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
 }
 
 type DisableMsqDestinationParam struct {
@@ -705,3 +710,12 @@ type GetNodeIDListResult struct {
 }
 
 type GetMqAddressesResult []MsqAddress
+
+type GetAccessorsInAccessorGroupParam struct {
+	AccessorGroupID string `json:"accessor_group_id"`
+	IdpID           string `json:"idp_id"`
+}
+
+type GetAccessorsInAccessorGroupResult struct {
+	AccessorList []string `json:"accessor_list"`
+}

@@ -115,19 +115,14 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 
-	// if AS != [], Check nodeID is exist in as_id_list
+	// Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == signData.ServiceID {
-			if len(dataRequest.AsIdList) == 0 {
-				exist = true
-				break
-			} else {
-				for _, as := range dataRequest.AsIdList {
-					if as == nodeID {
-						exist = true
-						break
-					}
+			for _, as := range dataRequest.AsIdList {
+				if as == nodeID {
+					exist = true
+					break
 				}
 			}
 		}

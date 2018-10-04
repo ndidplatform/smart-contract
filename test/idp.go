@@ -146,7 +146,7 @@ func RegisterAccessor(t *testing.T, param did.RegisterAccessorParam, nodeID stri
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string) {
+func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string, valid bool) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
@@ -167,6 +167,9 @@ func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string) {
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)
 	expected := "success"
+	if !valid {
+		expected = "Request is not special"
+	}
 	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
