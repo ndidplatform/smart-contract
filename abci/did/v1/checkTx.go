@@ -88,11 +88,11 @@ var IsMethod = map[string]bool{
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
 	key := "MasterNDID"
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value == nil {
-		return ReturnCheckTx(code.OK, "")
+	if value != nil {
+		// NDID node (first node of the network) is already existed
+		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
 	}
-	// NDID node (first node of the network) is already existed
-	return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
+	return ReturnCheckTx(code.OK, "")
 }
 
 func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
@@ -103,14 +103,13 @@ func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) ty
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
-
-	if string(node.Role) == "RP" ||
-		string(node.Role) == "IdP" ||
-		string(node.Role) == "AS" ||
-		string(node.Role) == "Proxy" {
-		return ReturnCheckTx(code.OK, "")
+	if string(node.Role) != "RP" &&
+		string(node.Role) != "IdP" &&
+		string(node.Role) != "AS" &&
+		string(node.Role) != "Proxy" {
+		return ReturnCheckTx(code.NoPermissionForSetMqAddresses, "This node does not have permission to set MQ addresses")
 	}
-	return ReturnCheckTx(code.NoPermissionForSetMqAddresses, "This node does not have permission to set MQ addresses")
+	return ReturnCheckTx(code.OK, "")
 }
 
 func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
@@ -121,10 +120,10 @@ func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role == "NDID" {
-		return true
+	if node.Role != "NDID" {
+		return false
 	}
-	return false
+	return true
 }
 
 func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
@@ -135,10 +134,10 @@ func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role == "IdP" {
-		return true
+	if node.Role != "IdP" {
+		return false
 	}
-	return false
+	return true
 }
 
 func (app *DIDApplication) checkAS(param string, nodeID string) bool {
@@ -149,10 +148,10 @@ func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role == "AS" {
-		return true
+	if node.Role != "AS" {
+		return false
 	}
-	return false
+	return true
 }
 
 func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
@@ -163,10 +162,10 @@ func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role == "IdP" || node.Role == "RP" {
-		return true
+	if node.Role != "IdP" && node.Role != "RP" {
+		return false
 	}
-	return false
+	return true
 }
 
 func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -207,32 +206,22 @@ func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string) type
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
-
-	// Check request is exist
+	// Check request is existed
 	requestKey := "Request" + "|" + funcParam.RequestID
 	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
-
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
-
-	key := "SpendGas" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
-
-	var reports data.ReportList
-	err = proto.Unmarshal([]byte(value), &reports)
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
-
-	for _, node := range reports.Reports {
-		if node.Method == "CreateRequest" &&
-			node.Data == funcParam.RequestID {
-			return ReturnCheckTx(code.OK, "")
-		}
+	// Check node ID is owner of request
+	if request.Owner != nodeID {
+		return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
 	}
-
-	return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
+	return ReturnCheckTx(code.OK, "")
 }
 
 func verifySignature(param string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
@@ -278,43 +267,43 @@ func getPublicKeyInitNDID(param string) string {
 func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal(value, &nodeDetail)
-		if err != nil {
-			return ""
-		}
-		return nodeDetail.MasterPublicKey
+	if value == nil {
+		return ""
 	}
-	return ""
+	var nodeDetail data.NodeDetail
+	err := proto.Unmarshal(value, &nodeDetail)
+	if err != nil {
+		return ""
+	}
+	return nodeDetail.MasterPublicKey
 }
 
 func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal(value, &nodeDetail)
-		if err != nil {
-			return ""
-		}
-		return nodeDetail.PublicKey
+	if value == nil {
+		return ""
 	}
-	return ""
+	var nodeDetail data.NodeDetail
+	err := proto.Unmarshal(value, &nodeDetail)
+	if err != nil {
+		return ""
+	}
+	return nodeDetail.PublicKey
 }
 
 func (app *DIDApplication) getRoleFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal(value, &nodeDetail)
-		if err != nil {
-			return ""
-		}
-		return string(nodeDetail.Role)
+	if value == nil {
+		return ""
 	}
-	return ""
+	var nodeDetail data.NodeDetail
+	err := proto.Unmarshal(value, &nodeDetail)
+	if err != nil {
+		return ""
+	}
+	return string(nodeDetail.Role)
 }
 
 func checkPubKey(key string) (returnCode uint32, log string) {
@@ -548,27 +537,30 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal(value, &nodeDetail)
-		if err != nil {
-			return false
-		}
-		return nodeDetail.Active
+	if value == nil {
+		return false
 	}
-	return false
+	var nodeDetail data.NodeDetail
+	err := proto.Unmarshal(value, &nodeDetail)
+	if err != nil {
+		return false
+	}
+	return nodeDetail.Active
 }
 
 func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if value == nil {
+		return false
+	}
 	var node data.NodeDetail
 	err := proto.Unmarshal([]byte(value), &node)
 	if err != nil {
 		return false
 	}
-	if node.Role == "Proxy" {
-		return true
+	if node.Role != "Proxy" {
+		return false
 	}
-	return false
+	return true
 }
