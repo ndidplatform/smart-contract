@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- Align the happy path to the left edge.
+
 ## 0.10.0 (October 7, 2018)
 
 BREAKING CHANGES:

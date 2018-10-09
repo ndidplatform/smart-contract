@@ -126,15 +126,15 @@ func (app *DIDApplication) getNodePublicKey(param string, height int64) types.Re
 func (app *DIDApplication) getNodeNameByNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal([]byte(value), &nodeDetail)
-		if err != nil {
-			return ""
-		}
-		return nodeDetail.NodeName
+	if value == nil {
+		return ""
 	}
-	return ""
+	var nodeDetail data.NodeDetail
+	err := proto.Unmarshal([]byte(value), &nodeDetail)
+	if err != nil {
+		return ""
+	}
+	return nodeDetail.NodeName
 }
 
 func (app *DIDApplication) getIdpNodes(param string, height int64) types.ResponseQuery {
@@ -244,11 +244,10 @@ func (app *DIDApplication) getIdpNodes(param string, height int64) types.Respons
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	// return app.ReturnQuery(value, "success", app.state.db.Version64())
-	if len(returnNodes.Node) > 0 {
-		return app.ReturnQuery(value, "success", app.state.db.Version64())
+	if len(returnNodes.Node) == 0 {
+		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
-	return app.ReturnQuery(value, "not found", app.state.db.Version64())
+	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getAsNodesByServiceId(param string, height int64) types.ResponseQuery {
@@ -274,22 +273,7 @@ func (app *DIDApplication) getAsNodesByServiceId(param string, height int64) typ
 	// filter serive is active
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
-	if serviceValue != nil {
-		var service data.ServiceDetail
-		err = proto.Unmarshal([]byte(serviceValue), &service)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-		}
-		if service.Active == false {
-			var result GetAsNodesByServiceIdResult
-			result.Node = make([]ASNode, 0)
-			value, err := json.Marshal(result)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-			}
-			return app.ReturnQuery(value, "service is not active", app.state.db.Version64())
-		}
-	} else {
+	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
@@ -297,6 +281,20 @@ func (app *DIDApplication) getAsNodesByServiceId(param string, height int64) typ
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
 		return app.ReturnQuery(value, "not found", app.state.db.Version64())
+	}
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	if service.Active == false {
+		var result GetAsNodesByServiceIdResult
+		result.Node = make([]ASNode, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		return app.ReturnQuery(value, "service is not active", app.state.db.Version64())
 	}
 
 	var storedData data.ServiceDesList
@@ -355,6 +353,9 @@ func (app *DIDApplication) getAsNodesByServiceId(param string, height int64) typ
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	if len(result.Node) == 0 {
+		return app.ReturnQuery(resultJSON, "not found", app.state.db.Version64())
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }
@@ -494,7 +495,6 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 				fValue := false
 				newRow.ValidProof = &fValue
 			}
-
 		}
 		if response.ValidIal != "" {
 			if response.ValidIal == "true" {
@@ -504,7 +504,6 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 				fValue := false
 				newRow.ValidIal = &fValue
 			}
-
 		}
 		if response.ValidSignature != "" {
 			if response.ValidSignature == "true" {
@@ -514,7 +513,6 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 				fValue := false
 				newRow.ValidSignature = &fValue
 			}
-
 		}
 		result.Responses = append(result.Responses, newRow)
 	}
@@ -607,35 +605,30 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	key := "NodeID" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-
-	if value != nil {
-		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal([]byte(value), &nodeDetail)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-
-		// update MasterPublicKey
-		if funcParam.MasterPublicKey != "" {
-			nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
-		}
-
-		// update PublicKey
-		if funcParam.PublicKey != "" {
-			nodeDetail.PublicKey = funcParam.PublicKey
-		}
-
-		nodeDetailValue, err := proto.Marshal(&nodeDetail)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-		}
-		app.SetStateDB([]byte(key), []byte(nodeDetailValue))
-		return app.ReturnDeliverTxLog(code.OK, "success", "")
+	if value == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
-	return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(value), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// update MasterPublicKey
+	if funcParam.MasterPublicKey != "" {
+		nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	}
+	// update PublicKey
+	if funcParam.PublicKey != "" {
+		nodeDetail.PublicKey = funcParam.PublicKey
+	}
+	nodeDetailValue, err := proto.Marshal(&nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(key), []byte(nodeDetailValue))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *DIDApplication) checkExistingIdentity(param string, height int64) types.ResponseQuery {
@@ -645,32 +638,31 @@ func (app *DIDApplication) checkExistingIdentity(param string, height int64) typ
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result CheckExistingIdentityResult
 	result.Exist = false
-
 	key := "MsqDestination" + "|" + funcParam.HashID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
-	if value != nil {
-		var nodes data.MsqDesList
-		err = proto.Unmarshal([]byte(value), &nodes)
+	if value == nil {
+		returnValue, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
-
-		msqCount := 0
-		for _, node := range nodes.Nodes {
-			if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
-				msqCount++
-			}
-		}
-
-		if msqCount > 0 {
-			result.Exist = true
+		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
+	}
+	var nodes data.MsqDesList
+	err = proto.Unmarshal([]byte(value), &nodes)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	msqCount := 0
+	for _, node := range nodes.Nodes {
+		if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
+			msqCount++
 		}
 	}
-
+	if msqCount > 0 {
+		result.Exist = true
+	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
@@ -685,28 +677,20 @@ func (app *DIDApplication) getAccessorGroupID(param string, height int64) types.
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result GetAccessorGroupIDResult
 	result.AccessorGroupID = ""
-
 	key := "Accessor" + "|" + funcParam.AccessorID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
-	if value != nil {
-		var accessor data.Accessor
-		err = proto.Unmarshal([]byte(value), &accessor)
-		if err == nil {
-			result.AccessorGroupID = accessor.AccessorGroupId
-		}
-	}
-
-	returnValue, err := json.Marshal(result)
-
 	// If value == nil set log = "not found"
 	if value == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
 	}
-
+	var accessor data.Accessor
+	err = proto.Unmarshal([]byte(value), &accessor)
+	if err == nil {
+		result.AccessorGroupID = accessor.AccessorGroupId
+	}
+	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
@@ -720,29 +704,21 @@ func (app *DIDApplication) getAccessorKey(param string, height int64) types.Resp
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result GetAccessorKeyResult
 	result.AccessorPublicKey = ""
-
 	key := "Accessor" + "|" + funcParam.AccessorID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
-	if value != nil {
-		var accessor data.Accessor
-		err = proto.Unmarshal([]byte(value), &accessor)
-		if err == nil {
-			result.AccessorPublicKey = accessor.AccessorPublicKey
-			result.Active = accessor.Active
-		}
-	}
-
-	returnValue, err := json.Marshal(result)
-
 	// If value == nil set log = "not found"
 	if value == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
 	}
-
+	var accessor data.Accessor
+	err = proto.Unmarshal([]byte(value), &accessor)
+	if err == nil {
+		result.AccessorPublicKey = accessor.AccessorPublicKey
+		result.Active = accessor.Active
+	}
+	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
@@ -761,7 +737,6 @@ func (app *DIDApplication) getServiceList(param string, height int64) types.Resp
 		}
 		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
-
 	result := make([]*data.ServiceDetail, 0)
 	// filter flag==true
 	var services data.ServiceDetailList
@@ -784,15 +759,15 @@ func (app *DIDApplication) getServiceList(param string, height int64) types.Resp
 func (app *DIDApplication) getServiceNameByServiceID(serviceID string) string {
 	key := "Service" + "|" + serviceID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	var result ServiceDetail
-	if value != nil {
-		err := json.Unmarshal([]byte(value), &result)
-		if err != nil {
-			return ""
-		}
-		return result.ServiceName
+	if value == nil {
+		return ""
 	}
-	return ""
+	var result ServiceDetail
+	err := json.Unmarshal([]byte(value), &result)
+	if err != nil {
+		return ""
+	}
+	return result.ServiceName
 }
 
 func (app *DIDApplication) checkExistingAccessorID(param string, height int64) types.ResponseQuery {
@@ -802,20 +777,23 @@ func (app *DIDApplication) checkExistingAccessorID(param string, height int64) t
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result CheckExistingResult
 	result.Exist = false
-
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
 	_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
-	if accessorValue != nil {
-		var accessor data.Accessor
-		err = proto.Unmarshal([]byte(accessorValue), &accessor)
-		if err == nil {
-			result.Exist = true
+	if accessorValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
+		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 	}
-
+	var accessor data.Accessor
+	err = proto.Unmarshal([]byte(accessorValue), &accessor)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
@@ -830,16 +808,18 @@ func (app *DIDApplication) checkExistingAccessorGroupID(param string, height int
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result CheckExistingResult
 	result.Exist = false
-
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
 	_, accessorGroupValue := app.state.db.GetVersioned(prefixKey([]byte(accessorGroupKey)), height)
-	if accessorGroupValue != nil {
-		result.Exist = true
+	if accessorGroupValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 	}
-
+	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
@@ -939,34 +919,15 @@ func (app *DIDApplication) getNodeInfo(param string, height int64) types.Respons
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
 		return app.ReturnQuery(value, "success", app.state.db.Version64())
-	} else {
-		if nodeDetail.Role == "IdP" {
-			var result GetNodeInfoIdPResult
-			result.PublicKey = nodeDetail.PublicKey
-			result.MasterPublicKey = nodeDetail.MasterPublicKey
-			result.NodeName = nodeDetail.NodeName
-			result.Role = nodeDetail.Role
-			result.MaxIal = nodeDetail.MaxIal
-			result.MaxAal = nodeDetail.MaxAal
-			if nodeDetail.Mq != nil {
-				for _, mq := range nodeDetail.Mq {
-					var msq MsqAddress
-					msq.IP = mq.Ip
-					msq.Port = mq.Port
-					result.Mq = append(result.Mq, msq)
-				}
-			}
-			value, err := json.Marshal(result)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-			}
-			return app.ReturnQuery(value, "success", app.state.db.Version64())
-		}
-		var result GetNodeInfoResult
+	}
+	if nodeDetail.Role == "IdP" {
+		var result GetNodeInfoIdPResult
 		result.PublicKey = nodeDetail.PublicKey
 		result.MasterPublicKey = nodeDetail.MasterPublicKey
 		result.NodeName = nodeDetail.NodeName
 		result.Role = nodeDetail.Role
+		result.MaxIal = nodeDetail.MaxIal
+		result.MaxAal = nodeDetail.MaxAal
 		if nodeDetail.Mq != nil {
 			for _, mq := range nodeDetail.Mq {
 				var msq MsqAddress
@@ -981,6 +942,24 @@ func (app *DIDApplication) getNodeInfo(param string, height int64) types.Respons
 		}
 		return app.ReturnQuery(value, "success", app.state.db.Version64())
 	}
+	var result GetNodeInfoResult
+	result.PublicKey = nodeDetail.PublicKey
+	result.MasterPublicKey = nodeDetail.MasterPublicKey
+	result.NodeName = nodeDetail.NodeName
+	result.Role = nodeDetail.Role
+	if nodeDetail.Mq != nil {
+		for _, mq := range nodeDetail.Mq {
+			var msq MsqAddress
+			msq.IP = mq.Ip
+			msq.Port = mq.Port
+			result.Mq = append(result.Mq, msq)
+		}
+	}
+	value, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getIdentityInfo(param string, height int64) types.ResponseQuery {
@@ -990,36 +969,31 @@ func (app *DIDApplication) getIdentityInfo(param string, height int64) types.Res
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result GetIdentityInfoResult
-
 	key := "MsqDestination" + "|" + funcParam.HashID
 	_, chkExists := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
-	if chkExists != nil {
-		var nodes data.MsqDesList
-		err = proto.Unmarshal([]byte(chkExists), &nodes)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-		}
-
-		for _, node := range nodes.Nodes {
-			if node.NodeId == funcParam.NodeID {
-				result.Ial = float64(node.Ial)
-				break
-			}
+	if chkExists == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	}
+	var nodes data.MsqDesList
+	err = proto.Unmarshal([]byte(chkExists), &nodes)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	for _, node := range nodes.Nodes {
+		if node.NodeId == funcParam.NodeID {
+			result.Ial = float64(node.Ial)
+			break
 		}
 	}
-
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
-	if result.Ial > 0.0 {
-		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
+	if result.Ial <= 0.0 {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
 	}
-	return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getDataSignature(param string, height int64) types.ResponseQuery {
@@ -1029,21 +1003,15 @@ func (app *DIDApplication) getDataSignature(param string, height int64) types.Re
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
 	_, signDataValue := app.state.db.GetVersioned(prefixKey([]byte(signDataKey)), height)
-
+	if signDataValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	}
 	var result GetDataSignatureResult
-
-	if signDataValue != nil {
-		result.Signature = string(signDataValue)
-	}
-
+	result.Signature = string(signDataValue)
 	returnValue, err := json.Marshal(result)
-	if signDataValue != nil {
-		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
-	}
-	return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getIdentityProof(param string, height int64) types.ResponseQuery {
@@ -1055,15 +1023,13 @@ func (app *DIDApplication) getIdentityProof(param string, height int64) types.Re
 	}
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
 	_, identityProofValue := app.state.db.GetVersioned(prefixKey([]byte(identityProofKey)), height)
+	if identityProofValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	}
 	var result GetIdentityProofResult
-	if identityProofValue != nil {
-		result.IdentityProof = string(identityProofValue)
-	}
+	result.IdentityProof = string(identityProofValue)
 	returnValue, err := json.Marshal(result)
-	if identityProofValue != nil {
-		return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
-	}
-	return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getServicesByAsID(param string, height int64) types.ResponseQuery {
@@ -1073,50 +1039,58 @@ func (app *DIDApplication) getServicesByAsID(param string, height int64) types.R
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result GetServicesByAsIDResult
 	result.Services = make([]Service, 0)
-
 	provideServiceKey := "ProvideService" + "|" + funcParam.AsID
 	_, provideServiceValue := app.state.db.Get(prefixKey([]byte(provideServiceKey)))
-	var services data.ServiceList
-	if provideServiceValue != nil {
-		err := proto.Unmarshal([]byte(provideServiceValue), &services)
+	if provideServiceValue == nil {
+		resultJSON, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
+		return app.ReturnQuery(resultJSON, "not found", app.state.db.Version64())
 	}
-
+	var services data.ServiceList
+	err = proto.Unmarshal([]byte(provideServiceValue), &services)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.AsID
 	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-	var nodeDetail data.NodeDetail
-	if nodeDetailValue != nil {
-		err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if nodeDetailValue == nil {
+		resultJSON, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
+		return app.ReturnQuery(resultJSON, "not found", app.state.db.Version64())
 	}
-
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
 	for index, provideService := range services.Services {
 		serviceKey := "Service" + "|" + provideService.ServiceId
 		_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
+		if serviceValue == nil {
+			continue
+		}
 		var service data.ServiceDetail
-		if serviceValue != nil {
-			err = proto.Unmarshal([]byte(serviceValue), &service)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-			}
+		err = proto.Unmarshal([]byte(serviceValue), &service)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
 			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceId + "|" + funcParam.AsID
 			_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
-			if approveServiceJSON != nil {
-				var approveService data.ApproveService
-				err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
-				if err == nil {
-					services.Services[index].Suspended = !approveService.Active
-				}
+			if approveServiceJSON == nil {
+				continue
+			}
+			var approveService data.ApproveService
+			err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
+			if err == nil {
+				services.Services[index].Suspended = !approveService.Active
 			}
 			var newRow Service
 			newRow.Active = services.Services[index].Active
@@ -1127,17 +1101,14 @@ func (app *DIDApplication) getServicesByAsID(param string, height int64) types.R
 			result.Services = append(result.Services, newRow)
 		}
 	}
-
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
-	if len(result.Services) > 0 {
-		return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
-	} else {
+	if len(result.Services) == 0 {
 		return app.ReturnQuery(resultJSON, "not found", app.state.db.Version64())
 	}
+	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.ResponseQuery {
@@ -1149,246 +1120,240 @@ func (app *DIDApplication) getIdpNodesInfo(param string, height int64) types.Res
 	}
 	var result GetIdpNodesInfoResult
 	result.Node = make([]interface{}, 0)
-
 	// Make mapping
 	mapNodeIDList := map[string]bool{}
 	for _, nodeID := range funcParam.NodeIDList {
 		mapNodeIDList[nodeID] = true
 	}
-
 	if funcParam.HashID == "" {
 		idpsKey := "IdPList"
 		_, idpsValue := app.state.db.GetVersioned(prefixKey([]byte(idpsKey)), height)
-		var idpsList data.IdPList
-		if idpsValue != nil {
-			err := proto.Unmarshal(idpsValue, &idpsList)
+		if idpsValue == nil {
+			value, err := json.Marshal(result)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
-			for _, idp := range idpsList.NodeId {
-
-				// filter from node_id_list
-				if len(mapNodeIDList) > 0 {
-					if mapNodeIDList[idp] == false {
-						continue
-					}
-				}
-
-				nodeDetailKey := "NodeID" + "|" + idp
-				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-				if nodeDetailValue == nil {
+			return app.ReturnQuery(value, "not found", app.state.db.Version64())
+		}
+		var idpsList data.IdPList
+		err := proto.Unmarshal(idpsValue, &idpsList)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		for _, idp := range idpsList.NodeId {
+			// filter from node_id_list
+			if len(mapNodeIDList) > 0 {
+				if mapNodeIDList[idp] == false {
 					continue
 				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			}
+			nodeDetailKey := "NodeID" + "|" + idp
+			_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+			if nodeDetailValue == nil {
+				continue
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				continue
+			}
+			// check node is active
+			if !nodeDetail.Active {
+				continue
+			}
+			// check Max IAL && AAL
+			if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+				nodeDetail.MaxAal >= funcParam.MinAal) {
+				continue
+			}
+			// If node is behind proxy
+			proxyKey := "Proxy" + "|" + idp
+			_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+			if proxyValue != nil {
+				// Get proxy node ID
+				var proxy data.Proxy
+				err = proto.Unmarshal([]byte(proxyValue), &proxy)
 				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				proxyNodeID := proxy.ProxyNodeId
+				// Get proxy node detail
+				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
+				if proxyNodeDetailValue == nil {
+					return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+				}
+				var proxyNode data.NodeDetail
+				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				// Check proxy node is active
+				if !proxyNode.Active {
 					continue
 				}
-				// check node is active
-				if !nodeDetail.Active {
-					continue
+				var msqDesNode IdpNodeBehindProxy
+				msqDesNode.NodeID = idp
+				msqDesNode.Name = nodeDetail.NodeName
+				msqDesNode.MaxIal = nodeDetail.MaxIal
+				msqDesNode.MaxAal = nodeDetail.MaxAal
+				msqDesNode.PublicKey = nodeDetail.PublicKey
+				msqDesNode.Proxy.NodeID = string(proxyNodeID)
+				msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
+				if proxyNode.Mq != nil {
+					for _, mq := range proxyNode.Mq {
+						var msq MsqAddress
+						msq.IP = mq.Ip
+						msq.Port = mq.Port
+						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+					}
 				}
-				// check Max IAL && AAL
-				if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-					nodeDetail.MaxAal >= funcParam.MinAal) {
-					continue
+				msqDesNode.Proxy.Config = proxy.Config
+				result.Node = append(result.Node, msqDesNode)
+			} else {
+				var msq []MsqAddress
+				for _, mq := range nodeDetail.Mq {
+					var msqAddress MsqAddress
+					msqAddress.IP = mq.Ip
+					msqAddress.Port = mq.Port
+					msq = append(msq, msqAddress)
 				}
-
-				// If node is behind proxy
-				proxyKey := "Proxy" + "|" + idp
-				_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
-				if proxyValue != nil {
-
-					// Get proxy node ID
-					var proxy data.Proxy
-					err = proto.Unmarshal([]byte(proxyValue), &proxy)
-					if err != nil {
-						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-					}
-					proxyNodeID := proxy.ProxyNodeId
-
-					// Get proxy node detail
-					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-					_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
-					if proxyNodeDetailValue == nil {
-						return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
-					}
-					var proxyNode data.NodeDetail
-					err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-					if err != nil {
-						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-					}
-
-					// Check proxy node is active
-					if !proxyNode.Active {
-						continue
-					}
-
-					var msqDesNode IdpNodeBehindProxy
-					msqDesNode.NodeID = idp
-					msqDesNode.Name = nodeDetail.NodeName
-					msqDesNode.MaxIal = nodeDetail.MaxIal
-					msqDesNode.MaxAal = nodeDetail.MaxAal
-					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.Proxy.NodeID = string(proxyNodeID)
-					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-					if proxyNode.Mq != nil {
-						for _, mq := range proxyNode.Mq {
-							var msq MsqAddress
-							msq.IP = mq.Ip
-							msq.Port = mq.Port
-							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-						}
-					}
-					msqDesNode.Proxy.Config = proxy.Config
-					result.Node = append(result.Node, msqDesNode)
-				} else {
-					var msq []MsqAddress
-					for _, mq := range nodeDetail.Mq {
-						var msqAddress MsqAddress
-						msqAddress.IP = mq.Ip
-						msqAddress.Port = mq.Port
-						msq = append(msq, msqAddress)
-					}
-					var msqDesNode = IdpNode{
-						idp,
-						nodeDetail.NodeName,
-						nodeDetail.MaxIal,
-						nodeDetail.MaxAal,
-						nodeDetail.PublicKey,
-						msq,
-					}
-					result.Node = append(result.Node, msqDesNode)
+				var msqDesNode = IdpNode{
+					idp,
+					nodeDetail.NodeName,
+					nodeDetail.MaxIal,
+					nodeDetail.MaxAal,
+					nodeDetail.PublicKey,
+					msq,
 				}
-
+				result.Node = append(result.Node, msqDesNode)
 			}
 		}
 	} else {
 		key := "MsqDestination" + "|" + funcParam.HashID
 		_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-		if value != nil {
-			var nodes data.MsqDesList
-			err = proto.Unmarshal([]byte(value), &nodes)
+		if value == nil {
+			value, err := json.Marshal(result)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
-			for _, node := range nodes.Nodes {
-				// filter from node_id_list
-				if len(mapNodeIDList) > 0 {
-					if mapNodeIDList[node.NodeId] == false {
-						continue
-					}
-				}
-				// check msq destination is not active
-				if !node.Active {
+			return app.ReturnQuery(value, "not found", app.state.db.Version64())
+		}
+		var nodes data.MsqDesList
+		err = proto.Unmarshal([]byte(value), &nodes)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		for _, node := range nodes.Nodes {
+			// filter from node_id_list
+			if len(mapNodeIDList) > 0 {
+				if mapNodeIDList[node.NodeId] == false {
 					continue
 				}
-				// check Ial > min ial
-				if node.Ial < funcParam.MinIal {
-					continue
-				}
-				// check msq destination is not timed out
-				if node.TimeoutBlock != 0 && app.CurrentBlock > node.TimeoutBlock {
-					continue
-				}
-				nodeDetailKey := "NodeID" + "|" + node.NodeId
-				_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
-				if nodeDetailValue == nil {
-					continue
-				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			}
+			// check msq destination is not active
+			if !node.Active {
+				continue
+			}
+			// check Ial > min ial
+			if node.Ial < funcParam.MinIal {
+				continue
+			}
+			// check msq destination is not timed out
+			if node.TimeoutBlock != 0 && app.CurrentBlock > node.TimeoutBlock {
+				continue
+			}
+			nodeDetailKey := "NodeID" + "|" + node.NodeId
+			_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+			if nodeDetailValue == nil {
+				continue
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				continue
+			}
+			// check node is active
+			if !nodeDetail.Active {
+				continue
+			}
+			// check Max IAL && AAL
+			if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+				nodeDetail.MaxAal >= funcParam.MinAal) {
+				continue
+			}
+			// If node is behind proxy
+			proxyKey := "Proxy" + "|" + node.NodeId
+			_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
+			if proxyValue != nil {
+				// Get proxy node ID
+				var proxy data.Proxy
+				err = proto.Unmarshal([]byte(proxyValue), &proxy)
 				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				proxyNodeID := proxy.ProxyNodeId
+				// Get proxy node detail
+				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
+				if proxyNodeDetailValue == nil {
+					return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+				}
+				var proxyNode data.NodeDetail
+				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+				}
+				// Check proxy node is active
+				if !proxyNode.Active {
 					continue
 				}
-				// check node is active
-				if !nodeDetail.Active {
-					continue
+				var msqDesNode IdpNodeBehindProxy
+				msqDesNode.NodeID = node.NodeId
+				msqDesNode.Name = nodeDetail.NodeName
+				msqDesNode.MaxIal = nodeDetail.MaxIal
+				msqDesNode.MaxAal = nodeDetail.MaxAal
+				msqDesNode.PublicKey = nodeDetail.PublicKey
+				msqDesNode.Proxy.NodeID = string(proxyNodeID)
+				msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
+				if proxyNode.Mq != nil {
+					for _, mq := range proxyNode.Mq {
+						var msq MsqAddress
+						msq.IP = mq.Ip
+						msq.Port = mq.Port
+						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+					}
 				}
-				// check Max IAL && AAL
-				if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-					nodeDetail.MaxAal >= funcParam.MinAal) {
-					continue
+				msqDesNode.Proxy.Config = proxy.Config
+				result.Node = append(result.Node, msqDesNode)
+			} else {
+				var msq []MsqAddress
+				for _, mq := range nodeDetail.Mq {
+					var msqAddress MsqAddress
+					msqAddress.IP = mq.Ip
+					msqAddress.Port = mq.Port
+					msq = append(msq, msqAddress)
 				}
-
-				// If node is behind proxy
-				proxyKey := "Proxy" + "|" + node.NodeId
-				_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
-				if proxyValue != nil {
-
-					// Get proxy node ID
-					var proxy data.Proxy
-					err = proto.Unmarshal([]byte(proxyValue), &proxy)
-					if err != nil {
-						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-					}
-					proxyNodeID := proxy.ProxyNodeId
-
-					// Get proxy node detail
-					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-					_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
-					if proxyNodeDetailValue == nil {
-						return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
-					}
-					var proxyNode data.NodeDetail
-					err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-					if err != nil {
-						return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-					}
-
-					// Check proxy node is active
-					if !proxyNode.Active {
-						continue
-					}
-
-					var msqDesNode IdpNodeBehindProxy
-					msqDesNode.NodeID = node.NodeId
-					msqDesNode.Name = nodeDetail.NodeName
-					msqDesNode.MaxIal = nodeDetail.MaxIal
-					msqDesNode.MaxAal = nodeDetail.MaxAal
-					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.Proxy.NodeID = string(proxyNodeID)
-					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-					if proxyNode.Mq != nil {
-						for _, mq := range proxyNode.Mq {
-							var msq MsqAddress
-							msq.IP = mq.Ip
-							msq.Port = mq.Port
-							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-						}
-					}
-					msqDesNode.Proxy.Config = proxy.Config
-					result.Node = append(result.Node, msqDesNode)
-				} else {
-					var msq []MsqAddress
-					for _, mq := range nodeDetail.Mq {
-						var msqAddress MsqAddress
-						msqAddress.IP = mq.Ip
-						msqAddress.Port = mq.Port
-						msq = append(msq, msqAddress)
-					}
-					var msqDesNode = IdpNode{
-						node.NodeId,
-						nodeDetail.NodeName,
-						nodeDetail.MaxIal,
-						nodeDetail.MaxAal,
-						nodeDetail.PublicKey,
-						msq,
-					}
-					result.Node = append(result.Node, msqDesNode)
+				var msqDesNode = IdpNode{
+					node.NodeId,
+					nodeDetail.NodeName,
+					nodeDetail.MaxIal,
+					nodeDetail.MaxAal,
+					nodeDetail.PublicKey,
+					msq,
 				}
+				result.Node = append(result.Node, msqDesNode)
 			}
 		}
 	}
-
 	value, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-	if len(result.Node) > 0 {
-		return app.ReturnQuery(value, "success", app.state.db.Version64())
+	if len(result.Node) == 0 {
+		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
-	return app.ReturnQuery(value, "not found", app.state.db.Version64())
+	return app.ReturnQuery(value, "success", app.state.db.Version64())
 }
 
 func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64) types.ResponseQuery {
@@ -1400,7 +1365,6 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 	}
 	key := "ServiceDestination" + "|" + funcParam.ServiceID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-
 	if value == nil {
 		var result GetAsNodesInfoByServiceIdResult
 		result.Node = make([]interface{}, 0)
@@ -1410,26 +1374,10 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 		}
 		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
-
 	// filter serive is active
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceValue := app.state.db.Get(prefixKey([]byte(serviceKey)))
-	if serviceValue != nil {
-		var service data.ServiceDetail
-		err = proto.Unmarshal([]byte(serviceValue), &service)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-		}
-		if service.Active == false {
-			var result GetAsNodesByServiceIdResult
-			result.Node = make([]ASNode, 0)
-			value, err := json.Marshal(result)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-			}
-			return app.ReturnQuery(value, "service is not active", app.state.db.Version64())
-		}
-	} else {
+	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
@@ -1438,35 +1386,43 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 		}
 		return app.ReturnQuery(value, "not found", app.state.db.Version64())
 	}
-
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	if service.Active == false {
+		var result GetAsNodesByServiceIdResult
+		result.Node = make([]ASNode, 0)
+		value, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		}
+		return app.ReturnQuery(value, "service is not active", app.state.db.Version64())
+	}
 	var storedData data.ServiceDesList
 	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	// Make mapping
 	mapNodeIDList := map[string]bool{}
 	for _, nodeID := range funcParam.NodeIDList {
 		mapNodeIDList[nodeID] = true
 	}
-
 	var result GetAsNodesInfoByServiceIdResult
 	result.Node = make([]interface{}, 0)
 	for index := range storedData.Node {
-
 		// filter from node_id_list
 		if len(mapNodeIDList) > 0 {
 			if mapNodeIDList[storedData.Node[index].NodeId] == false {
 				continue
 			}
 		}
-
 		// filter service destination is Active
 		if !storedData.Node[index].Active {
 			continue
 		}
-
 		// Filter approve from NDID
 		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].NodeId
 		_, approveServiceJSON := app.state.db.Get(prefixKey([]byte(approveServiceKey)))
@@ -1481,7 +1437,6 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 		if !approveService.Active {
 			continue
 		}
-
 		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].NodeId
 		_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
 		if nodeDetailValue == nil {
@@ -1496,12 +1451,10 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 		if !nodeDetail.Active {
 			continue
 		}
-
 		// If node is behind proxy
 		proxyKey := "Proxy" + "|" + storedData.Node[index].NodeId
 		_, proxyValue := app.state.db.Get(prefixKey([]byte(proxyKey)))
 		if proxyValue != nil {
-
 			// Get proxy node ID
 			var proxy data.Proxy
 			err = proto.Unmarshal([]byte(proxyValue), &proxy)
@@ -1509,7 +1462,6 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
 			proxyNodeID := proxy.ProxyNodeId
-
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.state.db.GetVersioned(prefixKey([]byte(proxyNodeDetailKey)), height)
@@ -1521,12 +1473,10 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string, height int64)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
-
 			// Check proxy node is active
 			if !proxyNode.Active {
 				continue
 			}
-
 			var as ASWithMqNodeBehindProxy
 			as.NodeID = storedData.Node[index].NodeId
 			as.Name = nodeDetail.NodeName
@@ -1659,10 +1609,8 @@ func (app *DIDApplication) getNodeIDList(param string, height int64) types.Respo
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 	}
-
 	var result GetNodeIDListResult
 	result.NodeIDList = make([]string, 0)
-
 	if strings.ToLower(funcParam.Role) == "rp" {
 		var rpsList data.RPList
 		rpsKey := "rpList"
@@ -1760,7 +1708,6 @@ func (app *DIDApplication) getNodeIDList(param string, height int64) types.Respo
 			}
 		}
 	}
-
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
@@ -1780,32 +1727,37 @@ func (app *DIDApplication) getAccessorsInAccessorGroup(param string, height int6
 	}
 	var result GetAccessorsInAccessorGroupResult
 	result.AccessorList = make([]string, 0)
-	if funcParam.AccessorGroupID != "" {
-		accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
-		_, accessorInGroupKeyValue := app.state.db.GetVersioned(prefixKey([]byte(accessorInGroupKey)), height)
-		var accessors data.AccessorInGroup
-		err := proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+	if funcParam.AccessorGroupID == "" {
+		returnValue, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 		}
-		// If IdpID == "", return all accessors in group
-		if funcParam.IdpID == "" {
-			for _, accessor := range accessors.Accessors {
-				result.AccessorList = append(result.AccessorList, accessor)
+		return app.ReturnQuery(returnValue, "not found", app.state.db.Version64())
+	}
+	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
+	_, accessorInGroupKeyValue := app.state.db.GetVersioned(prefixKey([]byte(accessorInGroupKey)), height)
+	var accessors data.AccessorInGroup
+	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	// If IdpID == "", return all accessors in group
+	if funcParam.IdpID == "" {
+		for _, accessor := range accessors.Accessors {
+			result.AccessorList = append(result.AccessorList, accessor)
+		}
+	} else {
+		// filter by owner of accessor
+		for _, accessor := range accessors.Accessors {
+			accessorKey := "Accessor" + "|" + accessor
+			_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
+			var accessorObj data.Accessor
+			err := proto.Unmarshal(accessorValue, &accessorObj)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
 			}
-		} else {
-			// filter by owner of accessor
-			for _, accessor := range accessors.Accessors {
-				accessorKey := "Accessor" + "|" + accessor
-				_, accessorValue := app.state.db.GetVersioned(prefixKey([]byte(accessorKey)), height)
-				var accessorObj data.Accessor
-				err := proto.Unmarshal(accessorValue, &accessorObj)
-				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
-				}
-				if accessorObj.Owner == funcParam.IdpID {
-					result.AccessorList = append(result.AccessorList, accessor)
-				}
+			if accessorObj.Owner == funcParam.IdpID {
+				result.AccessorList = append(result.AccessorList, accessor)
 			}
 		}
 	}
