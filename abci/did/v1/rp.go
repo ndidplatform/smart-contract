@@ -38,9 +38,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	var request data.Request
-
 	// set request data
 	request.RequestId = funcParam.RequestID
 	request.MinIdp = int64(funcParam.MinIdp)
@@ -51,7 +49,6 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.RequestMessageHash = funcParam.MessageHash
 	request.Mode = int64(funcParam.Mode)
 	request.IdpIdList = funcParam.IdPIDList
-
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
 		// If node is behind proxy
@@ -98,7 +95,6 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			}
 		}
 	}
-
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
 	for index := range funcParam.DataRequestList {
@@ -112,7 +108,6 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		}
 		newRow.AnsweredAsIdList = make([]string, 0)
 		newRow.ReceivedDataFromList = make([]string, 0)
-
 		// Check all as in as_list is active
 		for _, as := range newRow.AsIdList {
 			// If node is behind proxy
@@ -159,28 +154,22 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 				}
 			}
 		}
-
 		request.DataRequestList = append(request.DataRequestList, &newRow)
 	}
-
 	// set default value
 	request.Closed = false
 	request.TimedOut = false
 	request.Purpose = ""
 	request.UseCount = 0
-
 	// set Owner
 	request.Owner = nodeID
-
 	// set Can add accossor
 	ownerRole := app.getRoleFromNodeID(nodeID)
 	if string(ownerRole) == "IdP" {
 		request.Purpose = funcParam.Purpose
 	}
-
 	// set default value
 	request.ResponseList = make([]*data.Response, 0)
-
 	// check duplicate service ID in Data Request
 	serviceIDCount := make(map[string]int)
 	for _, dataRequest := range request.DataRequestList {
@@ -191,17 +180,13 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			return app.ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
 		}
 	}
-
 	// set creation_block_height
 	request.CreationBlockHeight = app.CurrentBlock
-
 	key := "Request" + "|" + request.RequestId
-
 	value, err := proto.Marshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-
 	_, existValue := app.state.db.Get(prefixKey([]byte(key)))
 	if existValue != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
@@ -217,33 +202,22 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	if request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
-
 	if request.TimedOut {
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
-
-	// // Check valid list
-	// if len(funcParam.ResponseValidList) != len(request.Responses) {
-	// 	return app.ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
-	// }
-
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
@@ -271,7 +245,6 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 			}
 		}
 	}
-
 	request.Closed = true
 	value, err = proto.Marshal(&request)
 	if err != nil {
@@ -288,33 +261,22 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	if request.TimedOut {
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
 	}
-
 	if request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
 	}
-
-	// // Check valid list
-	// if len(funcParam.ResponseValidList) != len(request.Responses) {
-	// 	return app.ReturnDeliverTxLog(code.IncompleteValidList, "Incomplete valid list", "")
-	// }
-
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
@@ -342,13 +304,11 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 			}
 		}
 	}
-
 	request.TimedOut = true
 	value, err = proto.Marshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-
 	app.SetStateDB([]byte(key), []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
@@ -360,20 +320,16 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
-
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-
 	// Check as_id is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
@@ -389,7 +345,6 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 	if exist == false {
 		return app.ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
 	}
-
 	// Check Duplicate AS ID
 	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
@@ -405,29 +360,12 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 	if duplicate == true {
 		return app.ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
 	}
-
 	// Update received_data_from_list in request
 	for index, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == funcParam.ServiceID {
 			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
 		}
 	}
-
-	// Request has data request. If received data, signed answer > data request count on each data request
-	// dataRequestCompletedCount := 0
-	// for _, dataRequest := range request.DataRequestList {
-	// 	if len(dataRequest.AnsweredAsIdList) >= dataRequest.Count &&
-	// 		len(dataRequest.ReceivedDataFromList) >= dataRequest.Count {
-	// 		dataRequestCompletedCount++
-	// 	}
-	// }
-	// if dataRequestCompletedCount == len(request.DataRequestList) {
-	// 	app.logger.Info("Auto close")
-	// 	request.IsClosed = true
-	// } else {
-	// 	app.logger.Info("Auto close")
-	// }
-
 	value, err = proto.Marshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
