@@ -34,12 +34,12 @@ import (
 func (app *DIDApplication) getTokenPriceByFunc(fnName string, height int64) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
-	if value != nil {
-		s, _ := strconv.ParseFloat(string(value), 64)
-		return s
+	if value == nil {
+		// if not set price of Function --> return price=1
+		return 1.0
 	}
-	// if not set price of Function --> return price=1
-	return 1.0
+	s, _ := strconv.ParseFloat(string(value), 64)
+	return s
 }
 
 func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) {
@@ -57,12 +57,12 @@ func (app *DIDApplication) createTokenAccount(nodeID string) {
 func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		value := strconv.FormatFloat(amount, 'f', -1, 64)
-		app.SetStateDB([]byte(key), []byte(value))
-		return nil
+	if value == nil {
+		return errors.New("token account not found")
 	}
-	return errors.New("token account not found")
+	valueToken := strconv.FormatFloat(amount, 'f', -1, 64)
+	app.SetStateDB([]byte(key), []byte(valueToken))
+	return nil
 }
 
 func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
@@ -126,30 +126,30 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		s, err := strconv.ParseFloat(string(value), 64)
-		if err != nil {
-			return err
-		}
-		if s-amount >= 0 {
-			s = s - amount
-			value := strconv.FormatFloat(s, 'f', -1, 64)
-			app.SetStateDB([]byte(key), []byte(value))
-			return nil
-		}
+	if value == nil {
+		return errors.New("token account not found")
+	}
+	s, err := strconv.ParseFloat(string(value), 64)
+	if err != nil {
+		return err
+	}
+	if s-amount < 0 {
 		return errors.New("token not enough")
 	}
-	return errors.New("token account not found")
+	s = s - amount
+	valueToken := strconv.FormatFloat(s, 'f', -1, 64)
+	app.SetStateDB([]byte(key), []byte(valueToken))
+	return nil
 }
 
 func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		s, _ := strconv.ParseFloat(string(value), 64)
-		return s, nil
+	if value == nil {
+		return 0, errors.New("token account not found")
 	}
-	return 0, errors.New("token account not found")
+	s, _ := strconv.ParseFloat(string(value), 64)
+	return s, nil
 }
 
 func (app *DIDApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
