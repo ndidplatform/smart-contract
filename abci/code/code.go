@@ -105,5 +105,6 @@ const (
 	NodeIDInIdPListIsNotActive                uint32 = 78
 	NodeIDInASListIsNotActive                 uint32 = 79
 	RoleIsNotAS                               uint32 = 80
+	RequestIsNotClosed                        uint32 = 81
 	UnknownError                              uint32 = 999
 )

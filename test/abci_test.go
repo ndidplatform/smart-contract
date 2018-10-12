@@ -918,6 +918,22 @@ func TestQueryGetAccessorsInAccessorGroup(t *testing.T) {
 	GetAccessorsInAccessorGroup(t, param, expected)
 }
 
+func TestIdPCloseRequest(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID2.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, IdP10)
+}
+
 func TestIdPAddAccessorMethod(t *testing.T) {
 	var param = did.AccessorMethod{
 		accessorID2.String(),
