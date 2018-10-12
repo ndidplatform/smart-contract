@@ -110,12 +110,26 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	// Check accept result >= min_idp
 	acceptCount := 0
 	for _, response := range requestDetailResult.Responses {
-		if response.Status == "accept" {
+		// Check status is 'accept', valid IAL = true, valid Proof = true and valid signature = true
+		if response.ValidIal == nil {
+			continue
+		}
+		if response.ValidProof == nil {
+			continue
+		}
+		if response.ValidSignature == nil {
+			continue
+		}
+		if response.Status == "accept" && *response.ValidIal && *response.ValidProof && *response.ValidSignature {
 			acceptCount++
 		}
 	}
 	if acceptCount < requestDetailResult.MinIdp {
 		return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+	}
+	// check request is closed
+	if !requestDetailResult.IsClosed {
+		return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
 	}
 	if requestDetailResult.Mode != 3 {
 		return app.ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
