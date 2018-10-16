@@ -524,3 +524,156 @@ func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID str
 	app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
+
+func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RevokeAccessorMethod, Parameter: %s", param)
+	var funcParam RevokeAccessorMethodParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Request must be completed, can be used only once, special type
+	var getRequestparam GetRequestParam
+	getRequestparam.RequestID = funcParam.RequestID
+	getRequestparamJSON, err := json.Marshal(getRequestparam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.db.Version64())
+	var requestDetailResult GetRequestDetailResult
+	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	if requestDetailResult.RequestID == "" {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	// Check accept result >= min_idp
+	acceptCount := 0
+	for _, response := range requestDetailResult.Responses {
+		// Check status is 'accept', valid IAL = true, valid Proof = true and valid signature = true
+		if response.ValidIal == nil {
+			continue
+		}
+		if response.ValidProof == nil {
+			continue
+		}
+		if response.ValidSignature == nil {
+			continue
+		}
+		// All of the response(s) in the request must belong to IDP that call the function
+		if response.IdpID != nodeID {
+			continue
+		}
+		if response.Status == "accept" && *response.ValidIal && *response.ValidProof && *response.ValidSignature {
+			acceptCount++
+		}
+	}
+	if acceptCount < requestDetailResult.MinIdp {
+		return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+	}
+	// check request is closed
+	if !requestDetailResult.IsClosed {
+		return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
+	}
+	if requestDetailResult.Mode != 3 {
+		return app.ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
+	}
+	if requestDetailResult.MinIdp < 1 {
+		return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
+	}
+	requestKey := "Request" + "|" + funcParam.RequestID
+	_, requestValue := app.state.db.Get(prefixKey([]byte(requestKey)))
+	if requestValue == nil {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// check special type of Request && set can used only once
+	// Request must be complete and closed, with purpose "RevokeAccessor"
+	if request.Purpose != "RevokeAccessor" || request.UseCount != 0 {
+		return app.ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
+	}
+	// set use count
+	request.UseCount = 1
+	// All accessor key with id in "accessor_id_list" must be created by IDP that call the function
+	for _, accessorID := range funcParam.AccessorIDList {
+		accessorKey := "Accessor" + "|" + accessorID
+		_, accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
+		if accessorValue == nil {
+			return app.ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
+		}
+		var accessor data.Accessor
+		err = proto.Unmarshal([]byte(accessorValue), &accessor)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Check node ID is owner of accessor
+		if nodeID != accessor.Owner {
+			return app.ReturnDeliverTxLog(code.NotOwnerOfAccessor, "Node ID is not owner of accessor", "")
+		}
+	}
+	// If all condition pass, disable all accessor key with id in "accessor_id_list"
+	for _, accessorID := range funcParam.AccessorIDList {
+		accessorKey := "Accessor" + "|" + accessorID
+		_, accessorValue := app.state.db.Get(prefixKey([]byte(accessorKey)))
+		if accessorValue == nil {
+			return app.ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
+		}
+		var accessor data.Accessor
+		err = proto.Unmarshal([]byte(accessorValue), &accessor)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Set disable
+		accessor.Active = false
+		accessorProtobuf, err := proto.Marshal(&accessor)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		// Remove AccessorID from AccessorInGroup
+		accessorInGroupKey := "AccessorInGroup" + "|" + accessor.AccessorGroupId
+		_, accessorInGroupKeyValue := app.state.db.Get(prefixKey([]byte(accessorInGroupKey)))
+		var accessors data.AccessorInGroup
+		err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		for i, accessorIDInList := range accessors.Accessors {
+			if accessorIDInList == accessorID {
+				copy(accessors.Accessors[i:], accessors.Accessors[i+1:])
+				accessors.Accessors[len(accessors.Accessors)-1] = ""
+				accessors.Accessors = accessors.Accessors[:len(accessors.Accessors)-1]
+			}
+		}
+		accessorInGroupProtobuf, err := proto.Marshal(&accessors)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		// Add accessor ID to revokedAccessorInGroup
+		revokedAccessorInGroupKey := "RevokedAccessorInGroup" + "|" + accessor.AccessorGroupId
+		_, revokedAccessorInGroupValue := app.state.db.Get(prefixKey([]byte(revokedAccessorInGroupKey)))
+		var revokedAccessorInGroup data.AccessorInGroup
+		err = proto.Unmarshal(revokedAccessorInGroupValue, &revokedAccessorInGroup)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		revokedAccessorInGroup.Accessors = append(revokedAccessorInGroup.Accessors, accessorID)
+		revokedAccessorInGroupProtobuf, err := proto.Marshal(&revokedAccessorInGroup)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.SetStateDB([]byte(accessorKey), []byte(accessorProtobuf))
+		app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
+		app.SetStateDB([]byte(revokedAccessorInGroupKey), []byte(revokedAccessorInGroupProtobuf))
+	}
+	requestProtobuf, err := proto.Marshal(&request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}

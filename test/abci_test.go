@@ -55,6 +55,7 @@ var requestID1 = uuid.NewV4()
 var requestID2 = uuid.NewV4()
 var requestID3 = uuid.NewV4()
 var requestID4 = uuid.NewV4()
+var requestID5 = uuid.NewV4()
 var namespaceID1 = RandStringRunes(20)
 var namespaceID2 = RandStringRunes(20)
 var accessorID1 = uuid.NewV4()
@@ -960,6 +961,72 @@ func TestQueryGetAccessorsInAccessorGroup_WithOut_IdP_ID(t *testing.T) {
 	var param did.GetAccessorsInAccessorGroupParam
 	param.AccessorGroupID = accessorGroupID1.String()
 	expected := string(`{"accessor_list":["` + accessorID1.String() + `","` + accessorID2.String() + `"]}`)
+	GetAccessorsInAccessorGroup(t, param, expected)
+}
+
+func TestIdP10CreateRequestSpecial(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID5.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "RevokeAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP10)
+	CreateRequest(t, param, idpPrivK, IdP10)
+}
+
+func TestIdP10DeclareIdentityProof(t *testing.T) {
+	var param did.DeclareIdentityProofParam
+	param.RequestID = requestID5.String()
+	param.IdentityProof = "Magic"
+	DeclareIdentityProof(t, param, idpPrivK, IdP10)
+}
+
+func TestIdP10CreateIdpResponse(t *testing.T) {
+	var param = did.CreateIdpResponseParam{
+		requestID5.String(),
+		3,
+		3,
+		"accept",
+		"signature",
+		"Magic",
+		"Magic",
+	}
+	CreateIdpResponse(t, param, idpPrivK, IdP10)
+}
+
+func TestIdP10CloseRequest(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP10
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID5.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, IdP10)
+}
+
+func TestIdP10RevokeAccessorMethod(t *testing.T) {
+	var param did.RevokeAccessorMethodParam
+	param.RequestID = requestID5.String()
+	param.AccessorIDList = append(param.AccessorIDList, accessorID2.String())
+	RevokeAccessorMethod(t, param, IdP10, "success")
+}
+
+func TestQueryGetAccessorsInAccessorGroup_WithOut_IdP_ID_After_Removed(t *testing.T) {
+	var param did.GetAccessorsInAccessorGroupParam
+	param.AccessorGroupID = accessorGroupID1.String()
+	expected := string(`{"accessor_list":["` + accessorID1.String() + `"]}`)
 	GetAccessorsInAccessorGroup(t, param, expected)
 }
 

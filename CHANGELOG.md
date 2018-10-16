@@ -1,5 +1,12 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- [DeliverTx] Add new functions (`RevokeAccessorMethod`).
+- [DeliverTx] Check request is closed with valid ial, proof and signature (`AddAccessorMethod`).
+
 ## 0.10.1 (October 9, 2018)
 
 IMPROVEMENTS:
