@@ -1159,6 +1159,30 @@ message Query {
 }
 ```
 
+## RevokeAccessorMethod
+### Parameter
+```sh
+{
+  "accessor_id_list": [
+    "11d10976-aede-4ba0-9f44-fc0c96db1f32"
+  ],
+  "request_id": "e7dcf1c2-eea7-4dc8-af75-724cf86454ef"
+}
+```
+### Expected Output
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
 # Query function
 
 ## CheckExistingAccessorGroupID
@@ -1741,5 +1765,19 @@ message Query {
   "accessor_list": [
     "c719e6aa-16ab-4ecb-9063-eff1a2e75fd3"
   ]
+}
+```
+
+## GetAccessorOwner
+### Parameter
+```sh
+{
+  "accessor_id": "11d10976-aede-4ba0-9f44-fc0c96db1f32"
+}
+```
+### Expected Output
+```sh
+{
+  "node_id": "NsutHiOdeiAGSODKTNOF"
 }
 ```
