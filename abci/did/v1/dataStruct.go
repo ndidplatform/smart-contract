@@ -724,3 +724,11 @@ type RevokeAccessorMethodParam struct {
 	AccessorIDList []string `json:"accessor_id_list"`
 	RequestID      string   `json:"request_id"`
 }
+
+type GetAccessorOwnerParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type GetAccessorOwnerResult struct {
+	NodeID string `json:"node_id"`
+}
