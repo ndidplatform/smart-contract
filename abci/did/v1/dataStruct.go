@@ -719,3 +719,8 @@ type GetAccessorsInAccessorGroupParam struct {
 type GetAccessorsInAccessorGroupResult struct {
 	AccessorList []string `json:"accessor_list"`
 }
+
+type RevokeAccessorMethodParam struct {
+	AccessorIDList []string `json:"accessor_id_list"`
+	RequestID      string   `json:"request_id"`
+}
