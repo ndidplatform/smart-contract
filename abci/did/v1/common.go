@@ -1767,3 +1767,30 @@ func (app *DIDApplication) getAccessorsInAccessorGroup(param string, height int6
 	}
 	return app.ReturnQuery(returnValue, "not found", app.state.db.Version64())
 }
+
+func (app *DIDApplication) getAccessorOwner(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
+	var funcParam GetAccessorOwnerParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	var result GetAccessorOwnerResult
+	result.NodeID = ""
+	key := "Accessor" + "|" + funcParam.AccessorID
+	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+	// If value == nil set log = "not found"
+	if value == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+	}
+	var accessor data.Accessor
+	err = proto.Unmarshal([]byte(value), &accessor)
+	if err == nil {
+		result.NodeID = accessor.Owner
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.db.Version64())
+}

@@ -1060,6 +1060,14 @@ func TestQueryGetAccessorGroupID(t *testing.T) {
 	GetAccessorGroupID(t, param, expected)
 }
 
+func TestQueryGetAccessorOwner(t *testing.T) {
+	var param = did.GetAccessorOwnerParam{
+		accessorID2.String(),
+	}
+	var expected = `{"node_id":"` + IdP10 + `"}`
+	GetAccessorOwner(t, param, expected)
+}
+
 func TestQueryGetAccessorKey(t *testing.T) {
 	var param = did.GetAccessorGroupIDParam{
 		accessorID1.String(),

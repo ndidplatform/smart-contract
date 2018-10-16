@@ -826,3 +826,22 @@ func GetAccessorsInAccessorGroup(t *testing.T, param did.GetAccessorsInAccessorG
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func GetAccessorOwner(t *testing.T, param did.GetAccessorOwnerParam, expected string) {
+	fnName := "GetAccessorOwner"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
