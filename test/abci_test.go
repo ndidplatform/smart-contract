@@ -1046,6 +1046,14 @@ func TestQueryGetAccessorsInAccessorGroup_WithOut_IdP_ID_After_Removed(t *testin
 	GetAccessorsInAccessorGroup(t, param, expected)
 }
 
+func TestQueryGetAccessorKeyAfterRevoke(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":false}`
+	GetAccessorKey(t, param, expected)
+}
+
 func TestIdP1ClearRegisterIdentityTimeout(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID))
