@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## TBD (Reset chain required)
 
 BREAKING CHANGES:
 
