@@ -104,5 +104,6 @@ const (
 	ProxyNodeIsNotActive                      uint32 = 77
 	NodeIDInIdPListIsNotActive                uint32 = 78
 	NodeIDInASListIsNotActive                 uint32 = 79
+	RoleIsNotAS                               uint32 = 80
 	UnknownError                              uint32 = 999
 )

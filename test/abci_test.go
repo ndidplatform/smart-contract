@@ -430,6 +430,22 @@ func TestQueryGetMqAddresses(t *testing.T) {
 	GetMqAddresses(t, param, expected)
 }
 
+func TestRegisterServiceDestinationByNDIDForInvalidNodeID(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		"Invalid-node-ID",
+	}
+	RegisterServiceDestinationByNDIDExpectedString(t, param, "Node ID not found")
+}
+
+func TestRegisterServiceDestinationByNDIDForInvalidRole(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		IdP1,
+	}
+	RegisterServiceDestinationByNDIDExpectedString(t, param, "Role of node ID is not AS")
+}
+
 func TestASRegisterServiceDestinationByNDIDForAS1(t *testing.T) {
 	var param = did.RegisterServiceDestinationByNDIDParam{
 		serviceID1,
@@ -1549,6 +1565,22 @@ func TestNDIDDisableService3(t *testing.T) {
 	DisableService(t, param)
 }
 
+func TestNDIDDisableServiceDestinationByNDIDInvalidNodeID(t *testing.T) {
+	var param = did.DisableServiceDestinationByNDIDParam{
+		serviceID4,
+		"Invalid node ID",
+	}
+	DisableServiceDestinationByNDIDExpectedString(t, param, "Node ID not found")
+}
+
+func TestNDIDDisableServiceDestinationByNDIDInvalidRole(t *testing.T) {
+	var param = did.DisableServiceDestinationByNDIDParam{
+		serviceID4,
+		IdP1,
+	}
+	DisableServiceDestinationByNDIDExpectedString(t, param, "Role of node ID is not AS")
+}
+
 func TestNDIDDisableServiceDestinationByNDID(t *testing.T) {
 	var param = did.DisableServiceDestinationByNDIDParam{
 		serviceID4,
@@ -1608,6 +1640,22 @@ func TestQueryGetIdpNodes7(t *testing.T) {
 	param.MinAal = 1
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1 from ...","max_ial":2.3,"max_aal":2.4},{"node_id":"` + IdP4 + `","node_name":"IdP Number 4 from ...","max_ial":3,"max_aal":3}]}`
 	GetIdpNodesExpectString(t, param, expected)
+}
+
+func TestNDIDEnableServiceDestinationByNDIDInvalidNodeID(t *testing.T) {
+	var param = did.DisableServiceDestinationByNDIDParam{
+		serviceID4,
+		"Invalid node ID",
+	}
+	EnableServiceDestinationByNDIDExpectedString(t, param, "Node ID not found")
+}
+
+func TestNDIDEnableServiceDestinationByNDIDInvalidRole(t *testing.T) {
+	var param = did.DisableServiceDestinationByNDIDParam{
+		serviceID4,
+		IdP1,
+	}
+	EnableServiceDestinationByNDIDExpectedString(t, param, "Role of node ID is not AS")
 }
 
 func TestNDIDEnableServiceDestinationByNDID(t *testing.T) {

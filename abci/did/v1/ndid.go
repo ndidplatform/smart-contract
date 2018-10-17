@@ -472,6 +472,21 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// Check node ID
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Check role is AS
+	if nodeDetail.Role != "AS" {
+		return app.ReturnDeliverTxLog(code.RoleIsNotAS, "Role of node ID is not AS", "")
+	}
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
@@ -532,6 +547,21 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	// Check node ID
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Check role is AS
+	if nodeDetail.Role != "AS" {
+		return app.ReturnDeliverTxLog(code.RoleIsNotAS, "Role of node ID is not AS", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)
@@ -595,6 +625,21 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 	_, serviceJSON := app.state.db.Get(prefixKey([]byte(serviceKey)))
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+	}
+	// Check node ID
+	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	_, nodeDetailValue := app.state.db.Get(prefixKey([]byte(nodeDetailKey)))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Check role is AS
+	if nodeDetail.Role != "AS" {
+		return app.ReturnDeliverTxLog(code.RoleIsNotAS, "Role of node ID is not AS", "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceJSON), &service)

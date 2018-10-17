@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- [DeliverTx] Check node ID is valid and role is `AS` (`RegisterServiceDestinationByNDID`, `EnableServiceDestinationByNDID` and `DisableServiceDestinationByNDID`).
+
 ## 0.10.1 (October 9, 2018)
 
 IMPROVEMENTS:
