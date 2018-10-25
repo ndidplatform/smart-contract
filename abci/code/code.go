@@ -56,8 +56,8 @@ const (
 	RequestIsNotCompleted                     uint32 = 29
 	RequestIsNotSpecial                       uint32 = 30
 	InvalidMinIdp                             uint32 = 31
-	NodeIDIsNotExistInASList                  uint32 = 32
-	AsIDIsNotExistInASList                    uint32 = 33
+	NodeIDDoesNotExistInASList                uint32 = 32
+	AsIDDoesNotExistInASList                  uint32 = 33
 	ServiceIDNotFound                         uint32 = 34
 	InvalidMode                               uint32 = 35
 	HashIDNotFound                            uint32 = 36
@@ -100,7 +100,7 @@ const (
 	NodeIDisProxyNode                         uint32 = 73
 	NodeIDHasNotBeenAssociatedWithProxyNode   uint32 = 74
 	ProxyNodeNotFound                         uint32 = 75
-	NodeIDIsNotExistInIdPList                 uint32 = 76
+	NodeIDDoesNotExistInIdPList               uint32 = 76
 	ProxyNodeIsNotActive                      uint32 = 77
 	NodeIDInIdPListIsNotActive                uint32 = 78
 	NodeIDInASListIsNotActive                 uint32 = 79

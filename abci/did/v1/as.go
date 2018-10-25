@@ -128,7 +128,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 	if exist == false {
-		return app.ReturnDeliverTxLog(code.NodeIDIsNotExistInASList, "Node ID is not exist in AS list", "")
+		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInASList, "Node ID does not exist in AS list", "")
 	}
 
 	// Check Duplicate AS ID

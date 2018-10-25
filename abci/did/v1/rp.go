@@ -343,7 +343,7 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 		}
 	}
 	if exist == false {
-		return app.ReturnDeliverTxLog(code.AsIDIsNotExistInASList, "AS ID is not exist in answered AS list", "")
+		return app.ReturnDeliverTxLog(code.AsIDDoesNotExistInASList, "AS ID does not exist in answered AS list", "")
 	}
 	// Check Duplicate AS ID
 	duplicate := false

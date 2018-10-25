@@ -383,7 +383,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		}
 	}
 	if exist == false {
-		return app.ReturnDeliverTxLog(code.NodeIDIsNotExistInIdPList, "Node ID is not exist in IdP list", "")
+		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
 	}
 	if chkDup == true {
 		return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
