@@ -11,6 +11,7 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
 - [Query] Add new function (`GetAccessorOwner`).
+- [Dependency] Update iavl version to 0.11.0.
 
 ## 0.10.1 (October 9, 2018)
 
