@@ -172,7 +172,7 @@ func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkNDID(param, nodeID)
 	if ok == false {
-		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission for call NDID method")
+		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -180,7 +180,7 @@ func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.Respon
 func (app *DIDApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkIdP(param, nodeID)
 	if ok == false {
-		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission for call IdP method")
+		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -188,7 +188,7 @@ func (app *DIDApplication) checkIsIDP(param string, nodeID string) types.Respons
 func (app *DIDApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkAS(param, nodeID)
 	if ok == false {
-		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission for call AS method")
+		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -196,7 +196,7 @@ func (app *DIDApplication) checkIsAS(param string, nodeID string) types.Response
 func (app *DIDApplication) checkIsRPorIdP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkIdPorRP(param, nodeID)
 	if ok == false {
-		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission for call RP and IdP method")
+		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
