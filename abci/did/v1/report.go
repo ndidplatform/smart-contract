@@ -66,19 +66,19 @@ func (app *DIDApplication) getUsedTokenReport(param string, height int64) types.
 	var funcParam GetUsedTokenReportParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
 	key := "SpendGas" + "|" + funcParam.NodeID
 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
 	if value == nil {
 		value = []byte("[]")
-		return app.ReturnQuery(value, "not found", app.state.db.Version64())
+		return app.ReturnQuery(value, "not found", app.state.db.Version())
 	}
 	var result GetUsedTokenReportResult
 	var reports pbData.ReportList
 	err = proto.Unmarshal([]byte(value), &reports)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
 	for _, report := range reports.Reports {
 		var newRow Report
@@ -89,7 +89,7 @@ func (app *DIDApplication) getUsedTokenReport(param string, height int64) types.
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.db.Version64())
+	return app.ReturnQuery(resultJSON, "success", app.state.db.Version())
 }

@@ -43,7 +43,7 @@ var (
 )
 
 type State struct {
-	db *iavl.VersionedTree
+	db *iavl.MutableTree
 }
 
 func prefixKey(key []byte) []byte {
@@ -61,7 +61,7 @@ type DIDApplication struct {
 	CurrentBlock int64
 }
 
-func NewDIDApplication(logger *logrus.Entry, tree *iavl.VersionedTree) *DIDApplication {
+func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -90,9 +90,9 @@ func (app *DIDApplication) DeleteStateDB(key []byte) {
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
-	res.LastBlockHeight = app.state.db.Version64()
+	res.LastBlockHeight = app.state.db.Version()
 	res.LastBlockAppHash = app.state.db.Hash()
-	app.CurrentBlock = app.state.db.Version64()
+	app.CurrentBlock = app.state.db.Version()
 	return res
 }
 
@@ -203,7 +203,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = app.ReturnQuery(nil, "Unknown error", app.state.db.Version64())
+			res = app.ReturnQuery(nil, "Unknown error", app.state.db.Version())
 		}
 	}()
 
@@ -220,13 +220,13 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	height := reqQuery.Height
 	if height == 0 {
-		height = app.state.db.Version64()
+		height = app.state.db.Version()
 	}
 
 	if method != "" {
 		return app.QueryRouter(method, param, height)
 	}
-	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version64())
+	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
 func getEnv(key, defaultValue string) string {

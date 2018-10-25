@@ -46,7 +46,7 @@ func NewDIDApplicationInterface() *DIDApplicationInterface {
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
 	db := dbm.NewDB(name, "leveldb", dbDir)
-	tree := iavl.NewVersionedTree(db, 0)
+	tree := iavl.NewMutableTree(db, 0)
 	tree.Load()
 	return &DIDApplicationInterface{
 		appV1: didV1.NewDIDApplication(logger, tree),

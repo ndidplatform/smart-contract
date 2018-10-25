@@ -81,7 +81,7 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
 	price := app.getTokenPriceByFunc(funcParam.Func, height)
 	var res = GetPriceFuncResult{
@@ -89,9 +89,9 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
-	return app.ReturnQuery(value, "success", app.state.db.Version64())
+	return app.ReturnQuery(value, "success", app.state.db.Version())
 }
 
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
@@ -223,18 +223,18 @@ func (app *DIDApplication) getNodeToken(param string, height int64) types.Respon
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version64())
+		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version())
 	}
 	tokenAmount, err := app.getToken(funcParam.NodeID)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version64())
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version())
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version64())
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
-	return app.ReturnQuery(value, "success", app.state.db.Version64())
+	return app.ReturnQuery(value, "success", app.state.db.Version())
 }

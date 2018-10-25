@@ -65,7 +65,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	// ---- Burn token ----
 	if result.Code == code.OK {
 		if !app.checkNDID(param, nodeID) && !isNDIDMethod[method] {
-			needToken := app.getTokenPriceByFunc(method, app.state.db.Version64())
+			needToken := app.getTokenPriceByFunc(method, app.state.db.Version())
 			err := app.reduceToken(nodeID, needToken)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
