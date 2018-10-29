@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 (October 29, 2018)
+
+NOTHING CHANGES, BUMP VERSION TO MATCH API REPOSITORY
+
 ## 0.10.1 (October 9, 2018)
 
 IMPROVEMENTS:
