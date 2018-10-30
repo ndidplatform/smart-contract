@@ -5,8 +5,6 @@
 
 *.swp
 
-main.go
-
 # localDB
 localDB/
 vendor/
