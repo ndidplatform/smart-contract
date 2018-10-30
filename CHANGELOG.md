@@ -13,6 +13,10 @@ IMPROVEMENTS:
 - [Query] Add new function (`GetAccessorOwner`).
 - [Dependency] Update iavl version to 0.11.0.
 
+## 0.10.2 (October 29, 2018)
+
+NOTHING CHANGES, BUMP VERSION TO MATCH API REPOSITORY
+
 ## 0.10.1 (October 9, 2018)
 
 IMPROVEMENTS:
@@ -79,7 +83,7 @@ IMPROVEMENTS:
 - [Query] Add `GetAsNodesInfoByServiceId` function for get AS node with mq addresses.
 - [Query] Add mq addresses property to result of `GetNodeInfo`.
 - [Query] Add `requester_node_id` to request returns from calling `GetRequestDetail`
- 
+
 BUG FIXES:
 
 - [Query] Node name is invalid after update node (GetAsNodesByServiceId)
