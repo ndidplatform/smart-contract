@@ -57,6 +57,7 @@ var isNDIDMethod = map[string]bool{
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
+	"SetInitData":                      true,
 }
 
 func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -973,5 +974,18 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	}
 	app.DeleteStateDB([]byte(proxyKey))
 	app.SetStateDB([]byte(behindProxyNodeKey), []byte(behindProxyNodeJSON))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetInitData, Parameter: %s", param)
+	var funcParam SetInitDataParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	for _, kv := range funcParam.KVList {
+		app.SetStateDB(kv.Key, kv.Value)
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

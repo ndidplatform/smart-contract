@@ -732,3 +732,12 @@ type GetAccessorOwnerParam struct {
 type GetAccessorOwnerResult struct {
 	NodeID string `json:"node_id"`
 }
+
+type KeyValue struct {
+	Key   []byte `json:"key"`
+	Value []byte `json:"value"`
+}
+
+type SetInitDataParam struct {
+	KVList []KeyValue `json:"kv_list"`
+}
