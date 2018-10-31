@@ -741,3 +741,5 @@ type KeyValue struct {
 type SetInitDataParam struct {
 	KVList []KeyValue `json:"kv_list"`
 }
+
+type EndInitParam struct{}

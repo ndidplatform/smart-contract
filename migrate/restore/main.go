@@ -58,6 +58,7 @@ func main() {
 	if count > 0 {
 		setInitData(param, ndidPrivKey)
 	}
+	endInit(ndidPrivKey)
 }
 
 func initNDID(ndidKey *rsa.PrivateKey) {
@@ -104,6 +105,28 @@ func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey) {
 	hashed := pssh.Sum(nil)
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte("NDID"))
+	resultObj, _ := result.(utils.ResponseTx)
+	fmt.Println(resultObj.Result.DeliverTx.Log)
+}
+
+func endInit(ndidKey *rsa.PrivateKey) {
+	var param did.EndInitParam
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fnName := "EndInit"
+	nodeID := "NDID"
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
+	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	fmt.Println(resultObj.Result.DeliverTx.Log)
 }

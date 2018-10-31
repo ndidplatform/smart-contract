@@ -26,6 +26,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 	"testing"
@@ -74,6 +75,7 @@ var userID2 = RandStringRunes(20)
 
 func TestInitNDID(t *testing.T) {
 	InitNDID(t)
+	EndInit(t)
 }
 
 func TestInitData(t *testing.T) {
@@ -1879,6 +1881,7 @@ func TestRPCreateRequestAferDisableNode(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
+	fmt.Println(param.RequestID)
 	CreateRequestExpectLog(t, param, rpPrivK, RP1, "Node is not active")
 }
 

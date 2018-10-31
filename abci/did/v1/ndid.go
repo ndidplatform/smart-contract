@@ -58,6 +58,7 @@ var isNDIDMethod = map[string]bool{
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
 	"SetInitData":                      true,
+	"EndInit":                          true,
 }
 
 func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -79,8 +80,10 @@ func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseD
 	}
 	masterNDIDKey := "MasterNDID"
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	initStateKey := "InitState"
 	app.SetStateDB([]byte(masterNDIDKey), []byte(nodeID))
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
+	app.SetStateDB([]byte(initStateKey), []byte("true"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -987,5 +990,17 @@ func (app *DIDApplication) SetInitData(param string, nodeID string) types.Respon
 	for _, kv := range funcParam.KVList {
 		app.SetStateDB(kv.Key, kv.Value)
 	}
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EndInit, Parameter: %s", param)
+	var funcParam EndInitParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	initStateKey := "InitState"
+	app.SetStateDB([]byte(initStateKey), []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
