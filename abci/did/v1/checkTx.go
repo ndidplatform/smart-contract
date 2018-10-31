@@ -32,6 +32,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
@@ -84,6 +85,7 @@ var IsMethod = map[string]bool{
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
 	"RevokeAccessorMethod":             true,
+	"SetLastBlock":                     true,
 }
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -382,8 +384,35 @@ var IsMasterKeyMethod = map[string]bool{
 	"UpdateNode": true,
 }
 
+func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
+	lastBlockKey := "lastBlock"
+	_, value := app.state.db.Get(prefixKey([]byte(lastBlockKey)))
+	if string(value) == "" {
+		value = []byte("-1")
+	}
+	if string(value) == "-1" {
+		return ReturnCheckTx(code.OK, "")
+	}
+	lastBlock, err := strconv.ParseInt(string(value), 10, 64)
+	if err != nil {
+		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+	}
+	if app.CurrentBlock > lastBlock {
+		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+	}
+	return ReturnCheckTx(code.OK, "")
+}
+
 // CheckTxRouter is Pointer to function
 func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseCheckTx {
+
+	// ---- Check current block <= last block ----
+	if method != "SetLastBlock" {
+		result := app.checkLastBlock()
+		if result.Code != code.OK {
+			return result
+		}
+	}
 
 	var publicKey string
 	if method == "InitNDID" {
@@ -510,7 +539,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"SetTimeOutBlockRegisterIdentity",
 		"AddNodeToProxyNode",
 		"UpdateNodeProxyNode",
-		"RemoveNodeFromProxyNode":
+		"RemoveNodeFromProxyNode",
+		"SetLastBlock":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessorMethod",

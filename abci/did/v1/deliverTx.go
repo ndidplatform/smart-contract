@@ -168,6 +168,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.removeNodeFromProxyNode(param, nodeID)
 	case "RevokeAccessorMethod":
 		return app.revokeAccessorMethod(param, nodeID)
+	case "SetLastBlock":
+		return app.setLastBlock(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

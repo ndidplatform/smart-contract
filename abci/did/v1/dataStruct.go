@@ -732,3 +732,7 @@ type GetAccessorOwnerParam struct {
 type GetAccessorOwnerResult struct {
 	NodeID string `json:"node_id"`
 }
+
+type SetLastBlockParam struct {
+	BlockHeight int64 `json:"block_height"`
+}
