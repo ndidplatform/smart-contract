@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/gogo/protobuf/proto"
@@ -59,6 +60,7 @@ var isNDIDMethod = map[string]bool{
 	"RemoveNodeFromProxyNode":          true,
 	"SetInitData":                      true,
 	"EndInit":                          true,
+	"SetLastBlock":                     true,
 }
 
 func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -977,6 +979,25 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	}
 	app.DeleteStateDB([]byte(proxyKey))
 	app.SetStateDB([]byte(behindProxyNodeKey), []byte(behindProxyNodeJSON))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetLastBlock, Parameter: %s", param)
+	var funcParam SetLastBlockParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	lastBlockKey := "lastBlock"
+	lastBlockValue := funcParam.BlockHeight
+	if funcParam.BlockHeight == 0 {
+		lastBlockValue = app.CurrentBlock
+	}
+	if funcParam.BlockHeight < -1 {
+		lastBlockValue = app.CurrentBlock
+	}
+	app.SetStateDB([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 

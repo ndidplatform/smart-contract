@@ -743,3 +743,7 @@ type SetInitDataParam struct {
 }
 
 type EndInitParam struct{}
+
+type SetLastBlockParam struct {
+	BlockHeight int64 `json:"block_height"`
+}

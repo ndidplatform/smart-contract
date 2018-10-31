@@ -30,6 +30,7 @@ import (
 	"log"
 	"strings"
 	"testing"
+	"time"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
 	uuid "github.com/satori/go.uuid"
@@ -76,6 +77,38 @@ var userID2 = RandStringRunes(20)
 func TestInitNDID(t *testing.T) {
 	InitNDID(t)
 	EndInit(t)
+}
+
+func TestSetLastBlock1(t *testing.T) {
+	var param did.SetLastBlockParam
+	param.BlockHeight = 0
+	SetLastBlock(t, param)
+	time.Sleep(2 * time.Second)
+}
+
+func TestCreateRequestAferSetLastBlock(t *testing.T) {
+	var datas []did.DataRequest
+	var data1 did.DataRequest
+	data1.ServiceID = serviceID1
+	data1.Count = 1
+	data1.RequestParamsHash = "hash"
+	datas = append(datas, data1)
+	var param did.Request
+	param.RequestID = requestID4.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	CreateRequestExpectLog(t, param, rpPrivK, RP1, "Chain is disabled")
+}
+
+func TestSetLastBlock2(t *testing.T) {
+	var param did.SetLastBlockParam
+	param.BlockHeight = -1
+	SetLastBlock(t, param)
 }
 
 func TestInitData(t *testing.T) {

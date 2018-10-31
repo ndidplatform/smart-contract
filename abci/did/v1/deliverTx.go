@@ -172,6 +172,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.SetInitData(param, nodeID)
 	case "EndInit":
 		return app.EndInit(param, nodeID)
+	case "SetLastBlock":
+		return app.setLastBlock(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
