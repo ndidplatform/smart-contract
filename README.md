@@ -1183,6 +1183,27 @@ message Query {
 }
 ```
 
+## SetLastBlock
+### Parameter
+```sh
+{
+  "block_height": 0
+}
+```
+### Expected Output
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
 # Query function
 
 ## CheckExistingAccessorGroupID
