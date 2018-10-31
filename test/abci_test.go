@@ -81,7 +81,7 @@ func TestSetLastBlock1(t *testing.T) {
 	var param did.SetLastBlockParam
 	param.BlockHeight = 0
 	SetLastBlock(t, param)
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 }
 
 func TestCreateRequestAferSetLastBlock(t *testing.T) {
