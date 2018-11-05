@@ -7,14 +7,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install Tendermint 0.22.8
+          name: Install Tendermint 0.26.0
           command: |
             go get -u github.com/golang/dep/cmd/dep
             mkdir -p /go/src/github.com/tendermint
             cd /go/src/github.com/tendermint
             git clone https://github.com/tendermint/tendermint.git
             cd tendermint
-            git checkout v0.22.8
+            git checkout v0.26.0
             dep ensure
             make get_tools
             make get_vendor_deps
