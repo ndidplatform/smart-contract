@@ -1009,7 +1009,7 @@ func (app *DIDApplication) SetInitData(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	for _, kv := range funcParam.KVList {
-		app.SetStateDB(kv.Key, kv.Value)
+		app.SetStateDBWithOutPrefix(kv.Key, kv.Value)
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

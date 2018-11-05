@@ -33,6 +33,9 @@ func main() {
 		if strings.Contains(string(key), "MasterNDID") {
 			return false
 		}
+		if strings.Contains(string(key), "InitState") {
+			return false
+		}
 		var kv did.KeyValue
 		kv.Key = key
 		kv.Value = value

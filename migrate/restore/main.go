@@ -35,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	maximum := 100
+	maximum := 20
 	count := 0
 	var param did.SetInitDataParam
 	param.KVList = make([]did.KeyValue, 0)

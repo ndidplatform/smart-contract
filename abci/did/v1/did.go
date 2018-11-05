@@ -83,6 +83,10 @@ func (app *DIDApplication) SetStateDB(key, value []byte) {
 	app.state.db.Set(prefixKey(key), value)
 }
 
+func (app *DIDApplication) SetStateDBWithOutPrefix(key, value []byte) {
+	app.state.db.Set(key, value)
+}
+
 func (app *DIDApplication) DeleteStateDB(key []byte) {
 	app.state.db.Remove(prefixKey(key))
 }
