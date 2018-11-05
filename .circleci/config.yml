@@ -15,7 +15,6 @@ jobs:
             git clone https://github.com/tendermint/tendermint.git
             cd tendermint
             git checkout v0.26.0
-            dep ensure
             make get_tools
             make get_vendor_deps
             make install
