@@ -435,6 +435,8 @@ func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) 
 	oldBlockNumber = before(string(oldBlockNumber), `,"creation_chain_id":`)
 	newBlockNumber := after(string(resultString), `"creation_block_height":`)
 	newBlockNumber = before(string(newBlockNumber), `,"creation_chain_id":`)
+	oldBlockNumber = ":" + oldBlockNumber
+	newBlockNumber = ":" + newBlockNumber
 	expected = strings.Replace(expected, oldBlockNumber, newBlockNumber, -1)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
