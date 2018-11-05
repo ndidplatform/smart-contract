@@ -15,6 +15,7 @@ jobs:
             git clone https://github.com/tendermint/tendermint.git
             cd tendermint
             git checkout v0.26.0
+            make get_vendor_deps
             make install
       - run:
           name: Setup Smartcontract
