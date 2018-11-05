@@ -409,6 +409,15 @@ func after(value string, a string) string {
 	return value[adjustedPos:len(value)]
 }
 
+func before(value string, a string) string {
+	// Get substring before a string.
+	pos := strings.Index(value, a)
+	if pos == -1 {
+		return ""
+	}
+	return value[0:pos]
+}
+
 func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) {
 	fnName := "GetRequestDetail"
 	paramJSON, err := json.Marshal(param)
@@ -423,7 +432,9 @@ func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) 
 		return
 	}
 	oldBlockNumber := after(string(expected), `"creation_block_height":`)
+	oldBlockNumber = before(string(oldBlockNumber), `,"creation_chain_id":`)
 	newBlockNumber := after(string(resultString), `"creation_block_height":`)
+	newBlockNumber = before(string(newBlockNumber), `,"creation_chain_id":`)
 	expected = strings.Replace(expected, oldBlockNumber, newBlockNumber, -1)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)

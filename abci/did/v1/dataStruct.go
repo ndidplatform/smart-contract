@@ -165,6 +165,7 @@ type GetRequestDetailResult struct {
 	Mode                int           `json:"mode"`
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`
+	CreationChainID     string        `json:"creation_chain_id"`
 }
 
 type SignDataParam struct {

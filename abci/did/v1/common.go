@@ -537,6 +537,9 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	// Set creation_block_height
 	result.CreationBlockHeight = request.CreationBlockHeight
 
+	// Set creation_chain_id
+	result.CreationChainID = request.ChainId
+
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")

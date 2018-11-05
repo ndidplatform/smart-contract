@@ -182,6 +182,8 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	}
 	// set creation_block_height
 	request.CreationBlockHeight = app.CurrentBlock
+	// set chain_id
+	request.ChainId = app.CurrentChain
 	key := "Request" + "|" + request.RequestId
 	value, err := proto.Marshal(&request)
 	if err != nil {
