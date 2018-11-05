@@ -34,13 +34,15 @@ import (
 func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
 	var tags []cmn.KVPair
 	if code == 0 {
-		tags = []cmn.KVPair{
-			{[]byte("success"), []byte("true")},
-		}
+		var tag cmn.KVPair
+		tag.Key = []byte("success")
+		tag.Value = []byte("true")
+		tags = append(tags, tag)
 	} else {
-		tags = []cmn.KVPair{
-			{[]byte("success"), []byte("false")},
-		}
+		var tag cmn.KVPair
+		tag.Key = []byte("success")
+		tag.Value = []byte("false")
+		tags = append(tags, tag)
 	}
 	return types.ResponseDeliverTx{
 		Code: code,
