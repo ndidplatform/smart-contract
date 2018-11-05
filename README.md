@@ -1666,7 +1666,8 @@ message Query {
   ],
   "purpose": "",
   "timed_out": false,
-  "creation_block_height": 50
+  "creation_block_height": 50,
+  "creation_chain_id": "test-chain-NDID"
 }
 ```
 

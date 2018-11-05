@@ -59,6 +59,7 @@ type DIDApplication struct {
 	logger       *logrus.Entry
 	Version      string
 	CurrentBlock int64
+	CurrentChain string
 }
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
@@ -102,6 +103,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 
 // Save the validators in the merkle tree
 func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+	app.CurrentChain = req.ChainId
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {

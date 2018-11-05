@@ -76,6 +76,7 @@ message Request {
   int64 mode = 14;
   int64 use_count = 15;
   int64 creation_block_height = 16;
+  string chain_id = 17;
 }
 
 message DataRequest {
