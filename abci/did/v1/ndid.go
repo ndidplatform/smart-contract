@@ -997,6 +997,9 @@ func (app *DIDApplication) setLastBlock(param string, nodeID string) types.Respo
 	if funcParam.BlockHeight < -1 {
 		lastBlockValue = app.CurrentBlock
 	}
+	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.CurrentBlock {
+		lastBlockValue = app.CurrentBlock
+	}
 	app.SetStateDB([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
