@@ -78,6 +78,7 @@ func TestInitNDID(t *testing.T) {
 	InitNDID(t)
 	IsInitEnded(t, false)
 	EndInit(t)
+	IsInitEnded(t, true)
 }
 
 func TestSetLastBlock1(t *testing.T) {
