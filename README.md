@@ -1807,7 +1807,6 @@ message Query {
 ## IsInitEnded
 ### Parameter
 ```sh
-{}
 ```
 ### Expected Output
 ```sh
