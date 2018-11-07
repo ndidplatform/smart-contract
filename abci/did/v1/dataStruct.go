@@ -748,3 +748,9 @@ type EndInitParam struct{}
 type SetLastBlockParam struct {
 	BlockHeight int64 `json:"block_height"`
 }
+
+type IsInitEndedParam struct{}
+
+type IsInitEndedResult struct {
+	InitEnded bool `json:"init_ended"`
+}

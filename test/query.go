@@ -858,3 +858,24 @@ func GetAccessorOwner(t *testing.T, param did.GetAccessorOwnerParam, expected st
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func IsInitEnded(t *testing.T, expected bool) {
+	fnName := "IsInitEnded"
+	var param did.IsInitEndedParam
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.IsInitEndedResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if actual := res.InitEnded; actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

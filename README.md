@@ -1803,3 +1803,15 @@ message Query {
   "node_id": "NsutHiOdeiAGSODKTNOF"
 }
 ```
+
+## IsInitEnded
+### Parameter
+```sh
+{}
+```
+### Expected Output
+```sh
+{
+  "init_ended": true
+}
+```

@@ -1797,3 +1797,24 @@ func (app *DIDApplication) getAccessorOwner(param string, height int64) types.Re
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.db.Version())
 }
+
+func (app *DIDApplication) isInitEnded(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("IsInitEnded, Parameter: %s", param)
+	var funcParam IsInitEndedParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+	}
+	var result IsInitEndedResult
+	result.InitEnded = false
+	initStateKey := "InitState"
+	_, value := app.state.db.Get(prefixKey([]byte(initStateKey)))
+	if string(value) != "false" {
+		result.InitEnded = true
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.db.Version())
+}
