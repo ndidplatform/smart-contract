@@ -76,7 +76,7 @@ var userID2 = RandStringRunes(20)
 
 func TestInitNDID(t *testing.T) {
 	InitNDID(t)
-	IsInitEnded(t, true)
+	IsInitEnded(t, false)
 	EndInit(t)
 }
 
