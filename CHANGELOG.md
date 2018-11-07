@@ -13,6 +13,8 @@ IMPROVEMENTS:
 
 - [Query] Add new function (`GetAccessorOwner`).
 - [Dependency] Update iavl version to 0.11.0.
+- [Query] Add `creation_chain_id` property to result of `GetRequestDetail`.
+- [DeliverTx] Add new function (`EndInit`) for NDID.
 
 ## 0.10.2 (October 29, 2018)
 
