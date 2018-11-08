@@ -27,8 +27,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	ndidMasterKeyFile, err := os.Open("migrate/key/ndid_master")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ndidMasterKeyFile.Close()
+	dataMaster, err := ioutil.ReadAll(ndidMasterKeyFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 	ndidPrivKey := utils.GetPrivateKeyFromString(string(data))
-	initNDID(ndidPrivKey)
+	ndidMasterPrivKey := utils.GetPrivateKeyFromString(string(dataMaster))
+	initNDID(ndidPrivKey, ndidMasterPrivKey)
 	// TODO read path backup file from env var
 	file, err := os.Open("migrate/data/data.txt")
 	if err != nil {
@@ -61,15 +71,19 @@ func main() {
 	endInit(ndidPrivKey)
 }
 
-func initNDID(ndidKey *rsa.PrivateKey) {
-	ndidpublicKeyBytes, err := utils.GeneratePublicKey(&ndidKey.PublicKey)
+func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
+	ndidPublicKeyBytes, err := utils.GeneratePublicKey(&ndidKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	ndidMasterPublicKeyBytes, err := utils.GeneratePublicKey(&ndidKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	var initNDIDparam did.InitNDIDParam
 	initNDIDparam.NodeID = "NDID"
-	initNDIDparam.PublicKey = string(ndidpublicKeyBytes)
-	initNDIDparam.MasterPublicKey = string(ndidpublicKeyBytes)
+	initNDIDparam.PublicKey = string(ndidPublicKeyBytes)
+	initNDIDparam.MasterPublicKey = string(ndidMasterPublicKeyBytes)
 	paramJSON, err := json.Marshal(initNDIDparam)
 	if err != nil {
 		fmt.Println("error:", err)

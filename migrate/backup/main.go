@@ -19,6 +19,9 @@ func main() {
 	fileName := "data"
 	deleteFile("migrate/data/" + fileName + ".txt")
 
+	validatorFileName := "validators"
+	deleteFile("migrate/data/" + validatorFileName + ".txt")
+
 	var dbDir = "DB1"
 	name := "didDB"
 	db := dbm.NewDB(name, "leveldb", dbDir)
@@ -27,6 +30,19 @@ func main() {
 	tree, _ := oldTree.GetImmutable(oldTree.Version())
 	_, ndidNodeID := tree.Get(prefixKey([]byte("MasterNDID")))
 	tree.Iterate(func(key []byte, value []byte) (stop bool) {
+		// Validator
+		if strings.Contains(string(key), "val:") {
+			var kv did.KeyValue
+			kv.Key = key
+			kv.Value = value
+			jsonStr, err := json.Marshal(kv)
+			if err != nil {
+				panic(err)
+			}
+			fWriteLn(validatorFileName, jsonStr)
+			return false
+		}
+
 		if strings.Contains(string(key), string(ndidNodeID)) {
 			return false
 		}
