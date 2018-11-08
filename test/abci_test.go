@@ -77,8 +77,28 @@ var userID2 = RandStringRunes(20)
 func TestInitNDID(t *testing.T) {
 	InitNDID(t)
 	IsInitEnded(t, false)
+	createRequestInInitState(t)
 	EndInit(t)
 	IsInitEnded(t, true)
+}
+
+func createRequestInInitState(t *testing.T) {
+	var datas []did.DataRequest
+	var data1 did.DataRequest
+	data1.ServiceID = serviceID1
+	data1.Count = 1
+	data1.RequestParamsHash = "hash"
+	datas = append(datas, data1)
+	var param did.Request
+	param.RequestID = requestID4.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	CreateRequestExpectLog(t, param, rpPrivK, RP1, "Chain is not initialized")
 }
 
 func TestSetLastBlock1(t *testing.T) {

@@ -107,5 +107,6 @@ const (
 	RoleIsNotAS                               uint32 = 80
 	RequestIsNotClosed                        uint32 = 81
 	ChainIsDisabled                           uint32 = 82
+	ChainIsNotInitialized                     uint32 = 83
 	UnknownError                              uint32 = 999
 )

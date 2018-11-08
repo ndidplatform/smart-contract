@@ -390,10 +390,10 @@ func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 	initStateKey := "InitState"
 	_, value := app.state.db.Get(prefixKey([]byte(initStateKey)))
 	if string(value) == "" {
-		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
 	if string(value) != "false" {
-		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
