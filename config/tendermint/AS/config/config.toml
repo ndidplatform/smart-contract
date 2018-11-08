@@ -100,7 +100,7 @@ upnp = false
 addr_book_file = "config/addrbook.json"
 
 # Set true for strict address routability rules
-addr_book_strict = true
+addr_book_strict = false
 
 # Time to wait before flushing messages out on the connection, in ms
 flush_throttle_timeout = 100
@@ -132,8 +132,8 @@ private_peer_ids = ""
 ##### mempool configuration options #####
 [mempool]
 
-recheck = true
-recheck_empty = true
+recheck = false
+recheck_empty = false
 broadcast = true
 wal_dir = "data/mempool.wal"
 
