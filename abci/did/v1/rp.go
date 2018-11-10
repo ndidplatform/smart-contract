@@ -26,8 +26,8 @@ import (
 	"encoding/json"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
@@ -39,6 +39,8 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// log chain ID
+	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
 	var request data.Request
 	// set request data
 	request.RequestId = funcParam.RequestID

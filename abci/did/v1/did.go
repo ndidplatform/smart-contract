@@ -103,7 +103,6 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 
 // Save the validators in the merkle tree
 func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
-	app.CurrentChain = req.ChainId
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
@@ -115,8 +114,9 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.logger.Infof("BeginBlock: %d", req.Header.Height)
+	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	app.CurrentBlock = req.Header.Height
+	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make([]types.Validator, 0)
 	return types.ResponseBeginBlock{}
