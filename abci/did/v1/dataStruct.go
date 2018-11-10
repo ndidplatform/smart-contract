@@ -312,9 +312,9 @@ type Report struct {
 	Data   string  `json:"data"`
 }
 
-type GetUsedTokenReportParam struct {
-	NodeID string `json:"node_id"`
-}
+// type GetUsedTokenReportParam struct {
+// 	NodeID string `json:"node_id"`
+// }
 
 type RequestIDParam struct {
 	RequestID string `json:"request_id"`
@@ -700,7 +700,7 @@ type Proxy struct {
 	Config      string `json:"config"`
 }
 
-type GetUsedTokenReportResult []Report
+// type GetUsedTokenReportResult []Report
 
 type GetNodeIDListParam struct {
 	Role string `json:"role"`

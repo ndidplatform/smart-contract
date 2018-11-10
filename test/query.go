@@ -369,32 +369,32 @@ func GetPriceFunc(t *testing.T, param did.GetPriceFuncParam, expected did.GetPri
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expectedString string) {
-	fnName := "GetUsedTokenReport"
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	// fmt.Println(string(resultString))
-	var res []did.Report
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected []did.Report
-	json.Unmarshal([]byte(expectedString), &expected)
-	if resultObj.Result.Response.Log == expectedString {
-		t.Logf("PASS: %s", fnName)
-		return
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expectedString string) {
+// 	fnName := "GetUsedTokenReport"
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// 	// fmt.Println(string(resultString))
+// 	var res []did.Report
+// 	err = json.Unmarshal(resultString, &res)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+// 	var expected []did.Report
+// 	json.Unmarshal([]byte(expectedString), &expected)
+// 	if resultObj.Result.Response.Log == expectedString {
+// 		t.Logf("PASS: %s", fnName)
+// 		return
+// 	}
+// 	if actual := res; !reflect.DeepEqual(actual, expected) {
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func after(value string, a string) string {
 	// Get substring after a string.

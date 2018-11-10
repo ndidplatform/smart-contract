@@ -72,9 +72,10 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 				result.Log = err.Error()
 				return result
 			}
+			// FIXME: Need a better way to store report or remove it in later release
 			// Write burn token report
 			// only have result.Data in some method
-			writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
+			// writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
 		}
 	}
 	return result

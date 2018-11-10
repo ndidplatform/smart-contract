@@ -25,7 +25,8 @@ package did
 import (
 	"encoding/json"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -185,7 +186,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set chain_id
 	request.ChainId = app.CurrentChain
 	key := "Request" + "|" + request.RequestId
-	value, err := proto.Marshal(&request)
+	value, err := utils.DeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -248,7 +249,7 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 		}
 	}
 	request.Closed = true
-	value, err = proto.Marshal(&request)
+	value, err = utils.DeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -307,7 +308,7 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 		}
 	}
 	request.TimedOut = true
-	value, err = proto.Marshal(&request)
+	value, err = utils.DeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -368,7 +369,7 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
 		}
 	}
-	value, err = proto.Marshal(&request)
+	value, err = utils.DeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

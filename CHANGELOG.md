@@ -1,5 +1,13 @@
 # Changelog
 
+## TBD - 0.12.0-rc1
+
+BREAKING CHANGES:
+
+- Use deterministic Protobuf marshalling.
+- Remove Tx price history recording on DeliverTx since it causes performance issue when there are a lot of stored token usage records.
+- Remove `GetUsedTokenReport` function.
+
 ## 0.11.0 (November 8, 2018)
 
 BREAKING CHANGES:

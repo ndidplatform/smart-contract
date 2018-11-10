@@ -750,29 +750,29 @@ func TestNDIDGetPrice(t *testing.T) {
 	GetPriceFunc(t, param, expected)
 }
 
-func TestReportGetUsedTokenRP(t *testing.T) {
-	expectedString := `[{"method":"CreateRequest","price":1,"data":"` + requestID1.String() + `"},{"method":"SetDataReceived","price":1,"data":"` + requestID1.String() + `"}]`
-	var param = did.GetUsedTokenReportParam{
-		RP1,
-	}
-	GetUsedTokenReport(t, param, expectedString)
-}
+// func TestReportGetUsedTokenRP(t *testing.T) {
+// 	expectedString := `[{"method":"CreateRequest","price":1,"data":"` + requestID1.String() + `"},{"method":"SetDataReceived","price":1,"data":"` + requestID1.String() + `"}]`
+// 	var param = did.GetUsedTokenReportParam{
+// 		RP1,
+// 	}
+// 	GetUsedTokenReport(t, param, expectedString)
+// }
 
-func TestReportGetUsedTokenIdP(t *testing.T) {
-	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
-	var param = did.GetUsedTokenReportParam{
-		IdP1,
-	}
-	GetUsedTokenReport(t, param, expectedString)
-}
+// func TestReportGetUsedTokenIdP(t *testing.T) {
+// 	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
+// 	var param = did.GetUsedTokenReportParam{
+// 		IdP1,
+// 	}
+// 	GetUsedTokenReport(t, param, expectedString)
+// }
 
-func TestReportGetUsedTokenAS(t *testing.T) {
-	var param = did.GetUsedTokenReportParam{
-		AS1,
-	}
-	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
-	GetUsedTokenReport(t, param, expectedString)
-}
+// func TestReportGetUsedTokenAS(t *testing.T) {
+// 	var param = did.GetUsedTokenReportParam{
+// 		AS1,
+// 	}
+// 	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
+// 	GetUsedTokenReport(t, param, expectedString)
+// }
 
 func TestQueryGetRequestDetail1(t *testing.T) {
 	var param = did.GetRequestParam{
@@ -2134,13 +2134,13 @@ func TestQueryGetNodeTokenInvalid(t *testing.T) {
 	GetNodeTokenExpectString(t, param, expected)
 }
 
-func TestReportGetUsedTokenInvalid(t *testing.T) {
-	var param = did.GetUsedTokenReportParam{
-		"RP1-Invalid",
-	}
-	expected := "not found"
-	GetUsedTokenReport(t, param, expected)
-}
+// func TestReportGetUsedTokenInvalid(t *testing.T) {
+// 	var param = did.GetUsedTokenReportParam{
+// 		"RP1-Invalid",
+// 	}
+// 	expected := "not found"
+// 	GetUsedTokenReport(t, param, expected)
+// }
 
 func TestQueryGetServiceDetailInvalid(t *testing.T) {
 	var param = did.GetServiceDetailParam{

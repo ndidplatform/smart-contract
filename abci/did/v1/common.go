@@ -26,7 +26,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -54,7 +55,8 @@ func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.Res
 		msqAddress = append(msqAddress, &msq)
 	}
 	nodeDetail.Mq = msqAddress
-	nodeDetailByte, err := proto.Marshal(&nodeDetail)
+
+	nodeDetailByte, err := utils.DeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -626,7 +628,7 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	if funcParam.PublicKey != "" {
 		nodeDetail.PublicKey = funcParam.PublicKey
 	}
-	nodeDetailValue, err := proto.Marshal(&nodeDetail)
+	nodeDetailValue, err := utils.DeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

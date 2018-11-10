@@ -25,7 +25,8 @@ package did
 import (
 	"encoding/json"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -166,7 +167,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 
-	requestJSON, err = proto.Marshal(&request)
+	requestJSON, err = utils.DeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -240,7 +241,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	newService.Active = true
 	services.Services = append(services.Services, &newService)
 
-	provideServiceJSON, err := proto.Marshal(&services)
+	provideServiceJSON, err := utils.DeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -270,7 +271,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.ServiceId = funcParam.ServiceID
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
-		value, err := proto.Marshal(&nodes)
+		value, err := utils.DeterministicMarshal(&nodes)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -284,7 +285,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.ServiceId = funcParam.ServiceID
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
-		value, err := proto.Marshal(&nodes)
+		value, err := utils.DeterministicMarshal(&nodes)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -362,11 +363,11 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 			break
 		}
 	}
-	provideServiceJSON, err := proto.Marshal(&services)
+	provideServiceJSON, err := utils.DeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceDestinationJSON, err := proto.Marshal(&nodes)
+	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -432,12 +433,12 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 			break
 		}
 	}
-	provideServiceJSON, err := proto.Marshal(&services)
+	provideServiceJSON, err := utils.DeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := proto.Marshal(&nodes)
+	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -503,12 +504,12 @@ func (app *DIDApplication) enableServiceDestination(param string, nodeID string)
 			break
 		}
 	}
-	provideServiceJSON, err := proto.Marshal(&services)
+	provideServiceJSON, err := utils.DeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := proto.Marshal(&nodes)
+	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

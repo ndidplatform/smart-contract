@@ -61,8 +61,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodeToken(param, height)
 	case "GetPriceFunc":
 		return app.getPriceFunc(param, height)
-	case "GetUsedTokenReport":
-		return app.getUsedTokenReport(param, height)
+	// case "GetUsedTokenReport":
+	// 	return app.getUsedTokenReport(param, height)
 	case "GetServiceDetail":
 		return app.getServiceDetail(param, height)
 	case "GetNamespaceList":
