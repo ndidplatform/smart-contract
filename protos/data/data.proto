@@ -174,3 +174,7 @@ message AccessorInGroup {
 message Token {
   double amount = 1;
 }
+
+message TokenPrice {
+  double price = 1;
+}

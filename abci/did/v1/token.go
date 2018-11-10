@@ -25,32 +25,47 @@ package did
 import (
 	"encoding/json"
 	"errors"
-	"strconv"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/tendermint/tendermint/abci/types"
+
+	data "github.com/ndidplatform/smart-contract/protos/data"
 )
 
 func (app *DIDApplication) getTokenPriceByFunc(fnName string, height int64) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+	_, value := app.state.db.Get(prefixKey([]byte(key)))
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
 	}
-	s, _ := strconv.ParseFloat(string(value), 64)
-	return s
+	var tokenPrice data.TokenPrice
+	err := proto.Unmarshal(value, &tokenPrice)
+	if err != nil {
+		return 1.0
+	}
+	return tokenPrice.Price
 }
 
-func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) {
+func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) error {
 	key := "TokenPriceFunc" + "|" + fnName
-	value := strconv.FormatFloat(price, 'f', -1, 64)
+	var tokenPrice data.TokenPrice
+	tokenPrice.Price = price
+	value, err := utils.ProtoDeterministicMarshal(&tokenPrice)
+	if err != nil {
+		return err
+	}
 	app.SetStateDB([]byte(key), []byte(value))
+	return nil
 }
 
 func (app *DIDApplication) createTokenAccount(nodeID string) {
 	key := "Token" + "|" + nodeID
-	value := strconv.FormatFloat(0, 'f', -1, 64)
+	var token data.Token
+	token.Amount = 0
+	value, _ := utils.ProtoDeterministicMarshal(&token)
 	app.SetStateDB([]byte(key), []byte(value))
 }
 
@@ -60,8 +75,17 @@ func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	if value == nil {
 		return errors.New("token account not found")
 	}
-	valueToken := strconv.FormatFloat(amount, 'f', -1, 64)
-	app.SetStateDB([]byte(key), []byte(valueToken))
+	var token data.Token
+	err := proto.Unmarshal(value, &token)
+	if err != nil {
+		return errors.New("token account not found")
+	}
+	token.Amount = amount
+	value, err = utils.ProtoDeterministicMarshal(&token)
+	if err != nil {
+		return errors.New("token account not found")
+	}
+	app.SetStateDB([]byte(key), []byte(value))
 	return nil
 }
 
@@ -72,7 +96,10 @@ func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	app.setTokenPriceByFunc(funcParam.Func, funcParam.Price)
+	err = app.setTokenPriceByFunc(funcParam.Func, funcParam.Price)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -97,17 +124,21 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	_, value := app.state.db.Get(prefixKey([]byte(key)))
-	if value != nil {
-		s, err := strconv.ParseFloat(string(value), 64)
-		if err != nil {
-			return err
-		}
-		s = s + amount
-		value := strconv.FormatFloat(s, 'f', -1, 64)
-		app.SetStateDB([]byte(key), []byte(value))
-		return nil
+	if value == nil {
+		return errors.New("token account not found")
 	}
-	return errors.New("token account not found")
+	var token data.Token
+	err := proto.Unmarshal(value, &token)
+	if err != nil {
+		return errors.New("token account not found")
+	}
+	token.Amount = token.Amount + amount
+	value, err = utils.ProtoDeterministicMarshal(&token)
+	if err != nil {
+		return errors.New("token account not found")
+	}
+	app.SetStateDB([]byte(key), []byte(value))
+	return nil
 }
 
 func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
@@ -116,7 +147,8 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	if value == nil {
 		return false
 	}
-	_, err := strconv.ParseFloat(string(value), 64)
+	var token data.Token
+	err := proto.Unmarshal(value, &token)
 	if err != nil {
 		return false
 	}
@@ -129,16 +161,17 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 	if value == nil {
 		return errors.New("token account not found")
 	}
-	s, err := strconv.ParseFloat(string(value), 64)
+	var token data.Token
+	err := proto.Unmarshal(value, &token)
 	if err != nil {
-		return err
+		return errors.New("token account not found")
 	}
-	if s-amount < 0 {
-		return errors.New("token not enough")
+	token.Amount = token.Amount - amount
+	value, err = utils.ProtoDeterministicMarshal(&token)
+	if err != nil {
+		return errors.New("token account not found")
 	}
-	s = s - amount
-	valueToken := strconv.FormatFloat(s, 'f', -1, 64)
-	app.SetStateDB([]byte(key), []byte(valueToken))
+	app.SetStateDB([]byte(key), []byte(value))
 	return nil
 }
 
@@ -148,8 +181,12 @@ func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}
-	s, _ := strconv.ParseFloat(string(value), 64)
-	return s, nil
+	var token data.Token
+	err := proto.Unmarshal(value, &token)
+	if err != nil {
+		return 0, errors.New("token account not found")
+	}
+	return token.Amount, nil
 }
 
 func (app *DIDApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
