@@ -26,7 +26,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func DeterministicMarshal(m proto.Message) ([]byte, error) {
+func ProtoDeterministicMarshal(m proto.Message) ([]byte, error) {
 	var b proto.Buffer
 	b.SetDeterministic(true)
 	if err := b.Marshal(m); err != nil {

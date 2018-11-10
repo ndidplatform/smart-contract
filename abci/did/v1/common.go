@@ -56,7 +56,7 @@ func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.Res
 	}
 	nodeDetail.Mq = msqAddress
 
-	nodeDetailByte, err := utils.DeterministicMarshal(&nodeDetail)
+	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -628,7 +628,7 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	if funcParam.PublicKey != "" {
 		nodeDetail.PublicKey = funcParam.PublicKey
 	}
-	nodeDetailValue, err := utils.DeterministicMarshal(&nodeDetail)
+	nodeDetailValue, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

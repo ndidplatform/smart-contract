@@ -167,7 +167,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 
-	requestJSON, err = utils.DeterministicMarshal(&request)
+	requestJSON, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -241,7 +241,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	newService.Active = true
 	services.Services = append(services.Services, &newService)
 
-	provideServiceJSON, err := utils.DeterministicMarshal(&services)
+	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -271,7 +271,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.ServiceId = funcParam.ServiceID
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
-		value, err := utils.DeterministicMarshal(&nodes)
+		value, err := utils.ProtoDeterministicMarshal(&nodes)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -285,7 +285,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.ServiceId = funcParam.ServiceID
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
-		value, err := utils.DeterministicMarshal(&nodes)
+		value, err := utils.ProtoDeterministicMarshal(&nodes)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -363,11 +363,11 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 			break
 		}
 	}
-	provideServiceJSON, err := utils.DeterministicMarshal(&services)
+	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
+	serviceDestinationJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -433,12 +433,12 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 			break
 		}
 	}
-	provideServiceJSON, err := utils.DeterministicMarshal(&services)
+	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
+	serviceDestinationJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -504,12 +504,12 @@ func (app *DIDApplication) enableServiceDestination(param string, nodeID string)
 			break
 		}
 	}
-	provideServiceJSON, err := utils.DeterministicMarshal(&services)
+	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := utils.DeterministicMarshal(&nodes)
+	serviceDestinationJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

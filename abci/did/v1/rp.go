@@ -186,7 +186,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set chain_id
 	request.ChainId = app.CurrentChain
 	key := "Request" + "|" + request.RequestId
-	value, err := utils.DeterministicMarshal(&request)
+	value, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -249,7 +249,7 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 		}
 	}
 	request.Closed = true
-	value, err = utils.DeterministicMarshal(&request)
+	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -308,7 +308,7 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 		}
 	}
 	request.TimedOut = true
-	value, err = utils.DeterministicMarshal(&request)
+	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -369,7 +369,7 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
 		}
 	}
-	value, err = utils.DeterministicMarshal(&request)
+	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

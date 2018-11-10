@@ -47,7 +47,7 @@ import (
 // 			return err
 // 		}
 // 		reports.Reports = append(reports.Reports, &newReport)
-// 		value, err := utils.DeterministicMarshal(&reports)
+// 		value, err := utils.ProtoDeterministicMarshal(&reports)
 // 		if err != nil {
 // 			return err
 // 		}
@@ -55,7 +55,7 @@ import (
 // 	} else {
 // 		var reports pbData.ReportList
 // 		reports.Reports = append(reports.Reports, &newReport)
-// 		value, err := utils.DeterministicMarshal(&reports)
+// 		value, err := utils.ProtoDeterministicMarshal(&reports)
 // 		if err != nil {
 // 			return err
 // 		}
