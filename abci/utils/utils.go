@@ -30,7 +30,11 @@ func DeterministicMarshal(m proto.Message) ([]byte, error) {
 	var b proto.Buffer
 	b.SetDeterministic(true)
 	if err := b.Marshal(m); err != nil {
-			return nil, err
+		return nil, err
 	}
-	return b.Bytes(), nil
+	retBytes := b.Bytes()
+	if (retBytes == nil) {
+		retBytes = make([]byte, 0)
+	}
+	return retBytes, nil
 }
