@@ -170,3 +170,7 @@ message AllList {
 message AccessorInGroup {
   repeated string accessors = 1;
 }
+
+message Token {
+  double amount = 1;
+}
