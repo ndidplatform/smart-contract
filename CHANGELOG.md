@@ -5,6 +5,7 @@
 BREAKING CHANGES:
 
 - Use deterministic Protobuf marshalling.
+- Use Protobuf to store node's token instead of string.
 - Remove Tx price history recording on DeliverTx since it causes performance issue when there are a lot of stored token usage records.
 - Remove `GetUsedTokenReport` function.
 - [DeliverTx] Check node ID is valid and role is `AS` (`RegisterServiceDestinationByNDID`, `EnableServiceDestinationByNDID` and `DisableServiceDestinationByNDID`).
