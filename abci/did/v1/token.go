@@ -166,6 +166,9 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 	if err != nil {
 		return errors.New("token account not found")
 	}
+	if amount > token.Amount {
+		return errors.New("token not enough")
+	}
 	token.Amount = token.Amount - amount
 	value, err = utils.ProtoDeterministicMarshal(&token)
 	if err != nil {
