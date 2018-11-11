@@ -1,17 +1,12 @@
 # Changelog
 
-## TBD - 0.12.0-rc1
+## 0.11.1 (November 11, 2018)
 
 BREAKING CHANGES:
 
 - Use deterministic Protobuf marshalling.
 - Remove Tx price history recording on DeliverTx since it causes performance issue when there are a lot of stored token usage records.
 - Remove `GetUsedTokenReport` function.
-
-## 0.11.0 (November 8, 2018)
-
-BREAKING CHANGES:
-
 - [DeliverTx] Check node ID is valid and role is `AS` (`RegisterServiceDestinationByNDID`, `EnableServiceDestinationByNDID` and `DisableServiceDestinationByNDID`).
 - [DeliverTx] Add new functions (`RevokeAccessorMethod`).
 - [DeliverTx] Check request is closed with valid ial, proof and signature (`AddAccessorMethod`).
