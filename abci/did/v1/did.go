@@ -28,7 +28,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
@@ -59,6 +59,7 @@ type DIDApplication struct {
 	logger       *logrus.Entry
 	Version      string
 	CurrentBlock int64
+	CurrentChain string
 }
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
@@ -70,7 +71,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	}()
 	var state State
 	state.db = tree
-	ABCIversion := "0.10.2" // Hard code set version
+	ABCIversion := "0.11.2" // Hard code set version
 	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
 		state:   state,
@@ -81,6 +82,10 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
 	app.state.db.Set(prefixKey(key), value)
+}
+
+func (app *DIDApplication) SetStateDBWithOutPrefix(key, value []byte) {
+	app.state.db.Set(key, value)
 }
 
 func (app *DIDApplication) DeleteStateDB(key []byte) {
@@ -109,8 +114,9 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.logger.Infof("BeginBlock: %d", req.Header.Height)
+	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	app.CurrentBlock = req.Header.Height
+	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
 	return types.ResponseBeginBlock{}

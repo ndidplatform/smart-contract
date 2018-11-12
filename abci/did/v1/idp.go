@@ -25,7 +25,8 @@ package did
 import (
 	"encoding/json"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -45,7 +46,7 @@ func (app *DIDApplication) registerAccessor(param string, nodeID string) types.R
 	accessor.AccessorGroupId = funcParam.AccessorGroupID
 	accessor.Active = true
 	accessor.Owner = nodeID
-	accessorJSON, err := proto.Marshal(&accessor)
+	accessorJSON, err := utils.ProtoDeterministicMarshal(&accessor)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -65,7 +66,7 @@ func (app *DIDApplication) registerAccessor(param string, nodeID string) types.R
 	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
 	var accessorInGroup data.AccessorInGroup
 	accessorInGroup.Accessors = append(accessorInGroup.Accessors, funcParam.AccessorID)
-	accessorInGroupProtobuf, err := proto.Marshal(&accessorInGroup)
+	accessorInGroupProtobuf, err := utils.ProtoDeterministicMarshal(&accessorInGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -159,7 +160,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	accessor.AccessorGroupId = funcParam.AccessorGroupID
 	accessor.Active = true
 	accessor.Owner = nodeID
-	accessorJSON, err := proto.Marshal(&accessor)
+	accessorJSON, err := utils.ProtoDeterministicMarshal(&accessor)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -172,11 +173,11 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	accessors.Accessors = append(accessors.Accessors, funcParam.AccessorID)
-	accessorInGroupProtobuf, err := proto.Marshal(&accessors)
+	accessorInGroupProtobuf, err := utils.ProtoDeterministicMarshal(&accessors)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	requestProtobuf, err := proto.Marshal(&request)
+	requestProtobuf, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -261,7 +262,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			}
 			if chkDup == false {
 				nodes.Nodes = append(nodes.Nodes, &newNode)
-				value, err := proto.Marshal(&nodes)
+				value, err := utils.ProtoDeterministicMarshal(&nodes)
 				if err != nil {
 					return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 				}
@@ -280,7 +281,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 				newNode.TimeoutBlock = 0
 			}
 			nodes.Nodes = append(nodes.Nodes, &newNode)
-			value, err := proto.Marshal(&nodes)
+			value, err := utils.ProtoDeterministicMarshal(&nodes)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 			}
@@ -389,7 +390,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 	}
 	request.ResponseList = append(request.ResponseList, &response)
-	value, err = proto.Marshal(&request)
+	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -437,7 +438,7 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 			}
 		}
 	}
-	msqDesJSON, err := proto.Marshal(&msqDes)
+	msqDesJSON, err := utils.ProtoDeterministicMarshal(&msqDes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -517,7 +518,7 @@ func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID str
 			break
 		}
 	}
-	msqDesJSON, err := proto.Marshal(&nodes)
+	msqDesJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -630,7 +631,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 		}
 		// Set disable
 		accessor.Active = false
-		accessorProtobuf, err := proto.Marshal(&accessor)
+		accessorProtobuf, err := utils.ProtoDeterministicMarshal(&accessor)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -649,7 +650,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 				accessors.Accessors = accessors.Accessors[:len(accessors.Accessors)-1]
 			}
 		}
-		accessorInGroupProtobuf, err := proto.Marshal(&accessors)
+		accessorInGroupProtobuf, err := utils.ProtoDeterministicMarshal(&accessors)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -662,7 +663,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 		revokedAccessorInGroup.Accessors = append(revokedAccessorInGroup.Accessors, accessorID)
-		revokedAccessorInGroupProtobuf, err := proto.Marshal(&revokedAccessorInGroup)
+		revokedAccessorInGroupProtobuf, err := utils.ProtoDeterministicMarshal(&revokedAccessorInGroup)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -670,7 +671,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 		app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 		app.SetStateDB([]byte(revokedAccessorInGroupKey), []byte(revokedAccessorInGroupProtobuf))
 	}
-	requestProtobuf, err := proto.Marshal(&request)
+	requestProtobuf, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}

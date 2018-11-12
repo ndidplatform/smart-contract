@@ -27,7 +27,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -58,6 +59,8 @@ var isNDIDMethod = map[string]bool{
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
+	"SetInitData":                      true,
+	"EndInit":                          true,
 	"SetLastBlock":                     true,
 }
 
@@ -74,14 +77,16 @@ func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseD
 	nodeDetail.NodeName = "NDID"
 	nodeDetail.Role = "NDID"
 	nodeDetail.Active = true
-	nodeDetailByte, err := proto.Marshal(&nodeDetail)
+	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	masterNDIDKey := "MasterNDID"
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	initStateKey := "InitState"
 	app.SetStateDB([]byte(masterNDIDKey), []byte(nodeID))
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
+	app.SetStateDB([]byte(initStateKey), []byte("true"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -132,7 +137,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 			}
 		}
 		idpsList.NodeId = append(idpsList.NodeId, funcParam.NodeID)
-		idpsListByte, err := proto.Marshal(&idpsList)
+		idpsListByte, err := utils.ProtoDeterministicMarshal(&idpsList)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -150,7 +155,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 			}
 		}
 		rpsList.NodeId = append(rpsList.NodeId, funcParam.NodeID)
-		rpsListByte, err := proto.Marshal(&rpsList)
+		rpsListByte, err := utils.ProtoDeterministicMarshal(&rpsList)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -168,7 +173,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 			}
 		}
 		asList.NodeId = append(asList.NodeId, funcParam.NodeID)
-		asListByte, err := proto.Marshal(&asList)
+		asListByte, err := utils.ProtoDeterministicMarshal(&asList)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
@@ -184,12 +189,12 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 		}
 	}
 	allList.NodeId = append(allList.NodeId, funcParam.NodeID)
-	allListByte, err := proto.Marshal(&allList)
+	allListByte, err := utils.ProtoDeterministicMarshal(&allList)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(allKey), []byte(allListByte))
-	nodeDetailByte, err := proto.Marshal(&nodeDetail)
+	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -228,7 +233,7 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 	// set active flag
 	newNamespace.Active = true
 	namespaces.Namespaces = append(namespaces.Namespaces, &newNamespace)
-	value, err := proto.Marshal(&namespaces)
+	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -259,7 +264,7 @@ func (app *DIDApplication) disableNamespace(param string, nodeID string) types.R
 			break
 		}
 	}
-	value, err := proto.Marshal(&namespaces)
+	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -286,7 +291,7 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	service.Active = true
 	service.DataSchema = funcParam.DataSchema
 	service.DataSchemaVersion = funcParam.DataSchemaVersion
-	serviceJSON, err := proto.Marshal(&service)
+	serviceJSON, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -311,7 +316,7 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	newService.ServiceName = funcParam.ServiceName
 	newService.Active = true
 	services.Services = append(services.Services, &newService)
-	allServiceJSON, err := proto.Marshal(&services)
+	allServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -355,11 +360,11 @@ func (app *DIDApplication) disableService(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	service.Active = false
-	allServiceJSON, err := proto.Marshal(&services)
+	allServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceJSON, err := proto.Marshal(&service)
+	serviceJSON, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -400,7 +405,7 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 			node.MaxAal = funcParam.MaxAal
 		}
 	}
-	nodeDetailJSON, err := proto.Marshal(&node)
+	nodeDetailJSON, err := utils.ProtoDeterministicMarshal(&node)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -453,12 +458,12 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 			}
 		}
 	}
-	serviceJSON, err := proto.Marshal(&service)
+	serviceJSON, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	allServiceJSON, err := proto.Marshal(&services)
+	allServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -503,7 +508,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
 	var approveService data.ApproveService
 	approveService.Active = true
-	approveServiceJSON, err := proto.Marshal(&approveService)
+	approveServiceJSON, err := utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -529,7 +534,7 @@ func (app *DIDApplication) disableNode(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetail.Active = false
-	nodeDetailValue, err = proto.Marshal(&nodeDetail)
+	nodeDetailValue, err = utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -581,7 +586,7 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = false
-	approveServiceJSON, err = proto.Marshal(&approveService)
+	approveServiceJSON, err = utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -607,7 +612,7 @@ func (app *DIDApplication) enableNode(param string, nodeID string) types.Respons
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetail.Active = true
-	nodeDetailValue, err = proto.Marshal(&nodeDetail)
+	nodeDetailValue, err = utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -659,7 +664,7 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = true
-	approveServiceJSON, err = proto.Marshal(&approveService)
+	approveServiceJSON, err = utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -690,7 +695,7 @@ func (app *DIDApplication) enableNamespace(param string, nodeID string) types.Re
 			break
 		}
 	}
-	value, err := proto.Marshal(&namespaces)
+	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -730,11 +735,11 @@ func (app *DIDApplication) enableService(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	service.Active = true
-	allServiceJSON, err := proto.Marshal(&services)
+	allServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceJSON, err := proto.Marshal(&service)
+	serviceJSON, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -757,7 +762,7 @@ func (app *DIDApplication) setTimeOutBlockRegisterIdentity(param string, nodeID 
 	if timeOut.TimeOutBlock <= 0 {
 		return app.ReturnDeliverTxLog(code.TimeOutBlockIsMustGreaterThanZero, "Time out block is must greater than 0", "")
 	}
-	value, err := proto.Marshal(&timeOut)
+	value, err := utils.ProtoDeterministicMarshal(&timeOut)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -806,12 +811,12 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	var proxy data.Proxy
 	proxy.ProxyNodeId = funcParam.ProxyNodeID
 	proxy.Config = funcParam.Config
-	proxyJSON, err := proto.Marshal(&proxy)
+	proxyJSON, err := utils.ProtoDeterministicMarshal(&proxy)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	nodes.Nodes = append(nodes.Nodes, funcParam.NodeID)
-	behindProxyNodeJSON, err := proto.Marshal(&nodes)
+	behindProxyNodeJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -824,7 +829,7 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	}
 	msqAddres := make([]*data.MQ, 0)
 	nodeDetail.Mq = msqAddres
-	nodeDetailByte, err := proto.Marshal(&nodeDetail)
+	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -903,16 +908,16 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 	if funcParam.Config != "" {
 		proxy.Config = funcParam.Config
 	}
-	proxyJSON, err := proto.Marshal(&proxy)
+	proxyJSON, err := utils.ProtoDeterministicMarshal(&proxy)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	proxyValue = proxyJSON
-	behindProxyNodeJSON, err := proto.Marshal(&nodes)
+	behindProxyNodeJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	newBehindProxyNodeJSON, err := proto.Marshal(&newProxyNodes)
+	newBehindProxyNodeJSON, err := utils.ProtoDeterministicMarshal(&newProxyNodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -969,7 +974,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 			}
 		}
 	}
-	behindProxyNodeJSON, err := proto.Marshal(&nodes)
+	behindProxyNodeJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
@@ -993,6 +998,34 @@ func (app *DIDApplication) setLastBlock(param string, nodeID string) types.Respo
 	if funcParam.BlockHeight < -1 {
 		lastBlockValue = app.CurrentBlock
 	}
+	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.CurrentBlock {
+		lastBlockValue = app.CurrentBlock
+	}
 	app.SetStateDB([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetInitData, Parameter: %s", param)
+	var funcParam SetInitDataParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	for _, kv := range funcParam.KVList {
+		app.SetStateDBWithOutPrefix(kv.Key, kv.Value)
+	}
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("EndInit, Parameter: %s", param)
+	var funcParam EndInitParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	initStateKey := "InitState"
+	app.SetStateDB([]byte(initStateKey), []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

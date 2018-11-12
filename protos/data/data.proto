@@ -76,6 +76,7 @@ message Request {
   int64 mode = 14;
   int64 use_count = 15;
   int64 creation_block_height = 16;
+  string chain_id = 17;
 }
 
 message DataRequest {
@@ -168,4 +169,12 @@ message AllList {
 
 message AccessorInGroup {
   repeated string accessors = 1;
+}
+
+message Token {
+  double amount = 1;
+}
+
+message TokenPrice {
+  double price = 1;
 }

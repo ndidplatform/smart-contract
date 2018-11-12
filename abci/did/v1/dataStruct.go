@@ -165,6 +165,7 @@ type GetRequestDetailResult struct {
 	Mode                int           `json:"mode"`
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`
+	CreationChainID     string        `json:"creation_chain_id"`
 }
 
 type SignDataParam struct {
@@ -311,9 +312,9 @@ type Report struct {
 	Data   string  `json:"data"`
 }
 
-type GetUsedTokenReportParam struct {
-	NodeID string `json:"node_id"`
-}
+// type GetUsedTokenReportParam struct {
+// 	NodeID string `json:"node_id"`
+// }
 
 type RequestIDParam struct {
 	RequestID string `json:"request_id"`
@@ -699,7 +700,7 @@ type Proxy struct {
 	Config      string `json:"config"`
 }
 
-type GetUsedTokenReportResult []Report
+// type GetUsedTokenReportResult []Report
 
 type GetNodeIDListParam struct {
 	Role string `json:"role"`
@@ -733,6 +734,23 @@ type GetAccessorOwnerResult struct {
 	NodeID string `json:"node_id"`
 }
 
+type KeyValue struct {
+	Key   []byte `json:"key"`
+	Value []byte `json:"value"`
+}
+
+type SetInitDataParam struct {
+	KVList []KeyValue `json:"kv_list"`
+}
+
+type EndInitParam struct{}
+
 type SetLastBlockParam struct {
 	BlockHeight int64 `json:"block_height"`
+}
+
+type IsInitEndedParam struct{}
+
+type IsInitEndedResult struct {
+	InitEnded bool `json:"init_ended"`
 }

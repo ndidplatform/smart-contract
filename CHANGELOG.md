@@ -1,9 +1,23 @@
 # Changelog
 
-## TBD (Reset chain required)
+## 0.11.2 (November 12, 2018)
+
+IMPROVEMENTS:
+
+- [Docker] Add set config `recheck` and `recheck_empty` to false to start script.
+
+BUG FIXES:
+
+- [CheckTx] Add previously removed (in v0.11.1) transaction checking.
+
+## 0.11.1 (November 11, 2018)
 
 BREAKING CHANGES:
 
+- Use deterministic Protobuf marshalling.
+- Use Protobuf to store node's token instead of string.
+- Remove Tx price history recording on DeliverTx since it causes performance issue when there are a lot of stored token usage records.
+- Remove `GetUsedTokenReport` function.
 - [DeliverTx] Check node ID is valid and role is `AS` (`RegisterServiceDestinationByNDID`, `EnableServiceDestinationByNDID` and `DisableServiceDestinationByNDID`).
 - [DeliverTx] Add new functions (`RevokeAccessorMethod`).
 - [DeliverTx] Check request is closed with valid ial, proof and signature (`AddAccessorMethod`).
@@ -13,6 +27,8 @@ IMPROVEMENTS:
 
 - [Query] Add new function (`GetAccessorOwner`).
 - [Dependency] Update iavl version to 0.11.0.
+- [Query] Add `creation_chain_id` property to result of `GetRequestDetail`.
+- [DeliverTx] Add new function (`EndInit`) for NDID.
 
 ## 0.10.2 (October 29, 2018)
 

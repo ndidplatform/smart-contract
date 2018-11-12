@@ -5,8 +5,6 @@
 
 *.swp
 
-main.go
-
 # localDB
 localDB/
 vendor/
@@ -18,3 +16,6 @@ config/tendermint/AS/data/
 config/tendermint/IdP/config/*
 config/tendermint/RP/config/*
 config/tendermint/AS/config/*
+
+#
+data/

@@ -369,32 +369,32 @@ func GetPriceFunc(t *testing.T, param did.GetPriceFuncParam, expected did.GetPri
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expectedString string) {
-	fnName := "GetUsedTokenReport"
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	// fmt.Println(string(resultString))
-	var res []did.Report
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	var expected []did.Report
-	json.Unmarshal([]byte(expectedString), &expected)
-	if resultObj.Result.Response.Log == expectedString {
-		t.Logf("PASS: %s", fnName)
-		return
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
+// func GetUsedTokenReport(t *testing.T, param did.GetUsedTokenReportParam, expectedString string) {
+// 	fnName := "GetUsedTokenReport"
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// 	// fmt.Println(string(resultString))
+// 	var res []did.Report
+// 	err = json.Unmarshal(resultString, &res)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+// 	var expected []did.Report
+// 	json.Unmarshal([]byte(expectedString), &expected)
+// 	if resultObj.Result.Response.Log == expectedString {
+// 		t.Logf("PASS: %s", fnName)
+// 		return
+// 	}
+// 	if actual := res; !reflect.DeepEqual(actual, expected) {
+// 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+// 	}
+// 	t.Logf("PASS: %s", fnName)
+// }
 
 func after(value string, a string) string {
 	// Get substring after a string.
@@ -407,6 +407,15 @@ func after(value string, a string) string {
 		return ""
 	}
 	return value[adjustedPos:len(value)]
+}
+
+func before(value string, a string) string {
+	// Get substring before a string.
+	pos := strings.Index(value, a)
+	if pos == -1 {
+		return ""
+	}
+	return value[0:pos]
 }
 
 func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) {
@@ -423,7 +432,11 @@ func GetRequestDetail(t *testing.T, param did.GetRequestParam, expected string) 
 		return
 	}
 	oldBlockNumber := after(string(expected), `"creation_block_height":`)
+	oldBlockNumber = before(string(oldBlockNumber), `,"creation_chain_id":`)
 	newBlockNumber := after(string(resultString), `"creation_block_height":`)
+	newBlockNumber = before(string(newBlockNumber), `,"creation_chain_id":`)
+	oldBlockNumber = ":" + oldBlockNumber
+	newBlockNumber = ":" + newBlockNumber
 	expected = strings.Replace(expected, oldBlockNumber, newBlockNumber, -1)
 	if actual := string(resultString); actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
@@ -841,6 +854,27 @@ func GetAccessorOwner(t *testing.T, param did.GetAccessorOwnerParam, expected st
 		return
 	}
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func IsInitEnded(t *testing.T, expected bool) {
+	fnName := "IsInitEnded"
+	var param did.IsInitEndedParam
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	var res did.IsInitEndedResult
+	err = json.Unmarshal(resultString, &res)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if actual := res.InitEnded; actual != expected {
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)

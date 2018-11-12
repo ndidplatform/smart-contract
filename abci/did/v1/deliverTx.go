@@ -74,9 +74,10 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 				result.Log = err.Error()
 				return result
 			}
+			// FIXME: Need a better way to store report or remove it in later release
 			// Write burn token report
 			// only have result.Data in some method
-			writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
+			// writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
 		}
 	}
 	return result
@@ -170,6 +171,10 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.removeNodeFromProxyNode(param, nodeID)
 	case "RevokeAccessorMethod":
 		return app.revokeAccessorMethod(param, nodeID)
+	case "SetInitData":
+		return app.SetInitData(param, nodeID)
+	case "EndInit":
+		return app.EndInit(param, nodeID)
 	case "SetLastBlock":
 		return app.setLastBlock(param, nodeID)
 	default:

@@ -35,7 +35,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
@@ -85,6 +85,8 @@ var IsMethod = map[string]bool{
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
 	"RevokeAccessorMethod":             true,
+	"SetInitData":                      true,
+	"EndInit":                          true,
 	"SetLastBlock":                     true,
 }
 
@@ -384,6 +386,27 @@ var IsMasterKeyMethod = map[string]bool{
 	"UpdateNode": true,
 }
 
+func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
+	initStateKey := "InitState"
+	_, value := app.state.db.Get(prefixKey([]byte(initStateKey)))
+	if string(value) == "" {
+		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
+	}
+	if string(value) != "false" {
+		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
+	}
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
+	initStateKey := "InitState"
+	_, value := app.state.db.Get(prefixKey([]byte(initStateKey)))
+	if string(value) != "true" {
+		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+	}
+	return ReturnCheckTx(code.OK, "")
+}
+
 func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
 	lastBlockKey := "lastBlock"
 	_, value := app.state.db.Get(prefixKey([]byte(lastBlockKey)))
@@ -409,6 +432,19 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 	// ---- Check current block <= last block ----
 	if method != "SetLastBlock" {
 		result := app.checkLastBlock()
+		if result.Code != code.OK {
+			return result
+		}
+	}
+
+	// ---- Check can set init data ----
+	if method == "SetInitData" {
+		return app.checkCanSetInitData()
+	}
+
+	// ---- Check is in init state ----
+	if method != "InitNDID" && method != "EndInit" {
+		result := app.checkCanCreateTx()
 		if result.Code != code.OK {
 			return result
 		}
@@ -540,6 +576,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"AddNodeToProxyNode",
 		"UpdateNodeProxyNode",
 		"RemoveNodeFromProxyNode",
+		"SetInitData",
+		"EndInit",
 		"SetLastBlock":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
