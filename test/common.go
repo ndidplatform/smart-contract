@@ -111,8 +111,8 @@ func CreateRequestExpectLog(t *testing.T, param did.Request, priveKFile string, 
 	signature, err := rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, byteNodeID)
 	resultObj, _ := result.(ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
-		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.DeliverTx.Log)
+	if actual := resultObj.Result.CheckTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
