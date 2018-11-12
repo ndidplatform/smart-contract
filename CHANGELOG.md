@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.2 (November 12, 2018)
+
+BUG FIXES:
+
+- [CheckTx] Add previously removed (in v0.11.1) transaction checking.
+
 ## 0.11.1 (November 11, 2018)
 
 BREAKING CHANGES:
