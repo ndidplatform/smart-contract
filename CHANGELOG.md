@@ -2,6 +2,10 @@
 
 ## 0.11.2 (November 12, 2018)
 
+IMPROVEMENTS:
+
+- [Docker] Add set config `recheck` and `recheck_empty` to false to start script.
+
 BUG FIXES:
 
 - [CheckTx] Add previously removed (in v0.11.1) transaction checking.
