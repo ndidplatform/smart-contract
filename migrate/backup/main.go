@@ -27,7 +27,7 @@ func main() {
 	// Delete backup file
 	deleteFile("migrate/data/" + backupDataFileName + ".txt")
 	deleteFile("migrate/data/" + backupValidatorFileName + ".txt")
-	os.Remove("Backup_DB")
+	os.Remove(backupDBFile)
 
 	// Copy stateDB dir
 	copyDir(dbFile, backupDBFile)
