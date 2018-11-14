@@ -20,8 +20,8 @@ var (
 
 func main() {
 	// Variable
-	dbDir := getEnv("DB_FILE", "DB1")
-	dbName := getEnv("DB_NAME", "didDB")
+	dbDir := getEnv("DB_NAME", "DB1")
+	dbName := "didDB"
 	backupDbDir := getEnv("BACKUP_DB_FILE", "Backup_DB")
 	backupDataFileName := getEnv("BACKUP_DATA_FILE", "data")
 	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
