@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- [DeliverTx] Add `chain_history_info` property to parameters of `InitNDID`.
+
 ## 0.11.2 (November 12, 2018)
 
 IMPROVEMENTS:
