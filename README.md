@@ -152,7 +152,60 @@ docker-compose -f docker/docker-compose.yml up
 
 3.  When running IDP node and RP node on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
-## Technical details to connect with `api`
+## Migrate Chain
+
+1.  Run backup script
+
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/backup/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `BLOCK_NUMBER` : Backup block number
+    - `DB_DIR` : Source directory path for copy stateDB
+    - `DB_NAME` : Name of state DB in directory path
+    - `BACKUP_DB_DIR` : Destination directory path for copy stateDB
+    - `BACKUP_DATA_FILE` : File path for save data
+    - `BACKUP_VALIDATORS_FILE` : File path for save validators data
+    - `CHAIN_HISTORY_FILE` : File path for save chain history data
+
+2.  Run restore script 
+    
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/restore/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `NDID_ID` : NDID ID
+    - `BACKUP_DATA_FILE` : File path for save data
+    - `CHAIN_HISTORY_FILE` : File path for save chain history data
+
+3.  Run restore validators script (Not required)
+
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/restoreValidators/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `NDID_ID` : NDID ID
+    - `BACKUP_VALIDATORS_FILE` : File path for save validators data
+
+# Technical details to connect with `api`
 
 # Broadcast tx format (Protobuf)
 ```
