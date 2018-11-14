@@ -38,10 +38,11 @@ func main() {
 	latestBlockHeight := resStatus.Result.SyncInfo.LatestBlockHeight
 	latestBlockHash := resStatus.Result.SyncInfo.LatestBlockHash
 	latestAppHash := resStatus.Result.SyncInfo.LatestAppHash
-	fmt.Println(chainID)
-	fmt.Println(latestBlockHeight)
-	fmt.Println(latestBlockHash)
-	fmt.Println(latestAppHash)
+	fmt.Println("--- Current chain info ---")
+	fmt.Println("Chain ID: " + chainID)
+	fmt.Println("Latest Block Height: " + latestBlockHeight)
+	fmt.Println("Latest Block Hash: " + latestBlockHash)
+	fmt.Println("Latest App Hash: " + latestAppHash)
 
 	// Copy stateDB dir
 	copyDir(dbFile, backupDBFile)
