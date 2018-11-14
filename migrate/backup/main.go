@@ -20,9 +20,9 @@ var (
 
 func main() {
 	// Variable
-	dbFile := getEnv("DB_FILE", "DB1")
+	dbDir := getEnv("DB_FILE", "DB1")
 	dbName := getEnv("DB_NAME", "didDB")
-	backupDBFile := getEnv("BACKUP_DB_FILE", "Backup_DB")
+	backupDbDir := getEnv("BACKUP_DB_FILE", "Backup_DB")
 	backupDataFileName := getEnv("BACKUP_DATA_FILE", "data")
 	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
 	chainHistoryFileName := getEnv("CHAIN_HISTORY_FILE", "chain_history")
@@ -31,7 +31,7 @@ func main() {
 	// Delete backup file
 	deleteFile("migrate/data/" + backupDataFileName + ".txt")
 	deleteFile("migrate/data/" + backupValidatorFileName + ".txt")
-	os.Remove(backupDBFile)
+	os.Remove(backupDbDir)
 	deleteFile("migrate/data/" + chainHistoryFileName + ".txt")
 
 	// Save previous chain info
@@ -55,10 +55,10 @@ func main() {
 	fmt.Println("Latest App Hash: " + latestAppHash)
 
 	// Copy stateDB dir
-	copyDir(dbFile, backupDBFile)
+	copyDir(dbDir, backupDbDir)
 
 	// Save kv from backup DB
-	db := dbm.NewDB(dbName, "leveldb", backupDBFile)
+	db := dbm.NewDB(dbName, "leveldb", backupDbDir)
 	oldTree := iavl.NewMutableTree(db, 0)
 	oldTree.Load()
 	tree, _ := oldTree.GetImmutable(backupBlockNumber)
