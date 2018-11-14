@@ -58,6 +58,7 @@ var requestID2 = uuid.NewV4()
 var requestID3 = uuid.NewV4()
 var requestID4 = uuid.NewV4()
 var requestID5 = uuid.NewV4()
+var requestID6 = uuid.NewV4()
 var namespaceID1 = RandStringRunes(20)
 var namespaceID2 = RandStringRunes(20)
 var accessorID1 = uuid.NewV4()
@@ -620,12 +621,40 @@ func TestRPCreateRequest(t *testing.T) {
 	CreateRequest(t, param, rpPrivK, RP1)
 }
 
+func TestCreateRequestWithDuplicateNonce(t *testing.T) {
+	var datas []did.DataRequest
+	var data1 did.DataRequest
+	data1.ServiceID = serviceID1
+	data1.Count = 1
+	data1.RequestParamsHash = "hash"
+	datas = append(datas, data1)
+	var param did.Request
+	param.RequestID = requestID6.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	var param2 did.Request
+	param2.RequestID = requestID6.String()
+	param2.MinIdp = 1
+	param2.MinIal = 3
+	param2.MinAal = 3
+	param2.Timeout = 259200
+	param2.DataRequestList = datas
+	param2.MessageHash = "hashhashhashhashhashhash"
+	param2.Mode = 3
+	CreateRequestWithDuplicateNonce(t, param, param2, rpPrivK, RP1, "success")
+}
+
 func TestQueryGetNodeTokenRPAfterCreatRequest(t *testing.T) {
 	var param = did.GetNodeTokenParam{
 		RP1,
 	}
 	var expected = did.GetNodeTokenResult{
-		99.0,
+		98.0,
 	}
 	GetNodeToken(t, param, expected)
 }
