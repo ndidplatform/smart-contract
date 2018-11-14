@@ -117,6 +117,21 @@ func main() {
 		fWriteLn(backupDataFileName, jsonStr)
 		return false
 	})
+	// If key do not have "ChainHistoryInfo" key, create file
+	if !tree.Has([]byte("ChainHistoryInfo")) {
+		var chainHistory ChainHistory
+		var prevChain ChainHistoryDetail
+		prevChain.ChainID = chainID
+		prevChain.LatestBlockHeight = latestBlockHeight
+		prevChain.LatestBlockHash = latestBlockHash
+		prevChain.LatestAppHash = latestAppHash
+		chainHistory.Chains = append(chainHistory.Chains, prevChain)
+		chainHistoryStr, err := json.Marshal(chainHistory)
+		if err != nil {
+			panic(err)
+		}
+		fWriteLn(chainHistoryFileName, chainHistoryStr)
+	}
 }
 
 func copyDir(source string, dest string) (err error) {
