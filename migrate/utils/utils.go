@@ -33,6 +33,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -186,4 +187,159 @@ type ResponseStatus struct {
 			VotingPower string `json:"voting_power"`
 		} `json:"validator_info"`
 	} `json:"result"`
+}
+
+func GetTendermintStatus() ResponseStatus {
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
+	if err != nil {
+		panic(err)
+	}
+	URL.Path += "/status"
+	parameters := url.Values{}
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	var body ResponseStatus
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}
+
+type BlockResult struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      string `json:"id"`
+	Result  struct {
+		BlockMeta struct {
+			BlockID struct {
+				Hash  string `json:"hash"`
+				Parts struct {
+					Total string `json:"total"`
+					Hash  string `json:"hash"`
+				} `json:"parts"`
+			} `json:"block_id"`
+			Header struct {
+				ChainID     string    `json:"chain_id"`
+				Height      string    `json:"height"`
+				Time        time.Time `json:"time"`
+				NumTxs      string    `json:"num_txs"`
+				LastBlockID struct {
+					Hash  string `json:"hash"`
+					Parts struct {
+						Total string `json:"total"`
+						Hash  string `json:"hash"`
+					} `json:"parts"`
+				} `json:"last_block_id"`
+				TotalTxs        string `json:"total_txs"`
+				LastCommitHash  string `json:"last_commit_hash"`
+				DataHash        string `json:"data_hash"`
+				ValidatorsHash  string `json:"validators_hash"`
+				ConsensusHash   string `json:"consensus_hash"`
+				AppHash         string `json:"app_hash"`
+				LastResultsHash string `json:"last_results_hash"`
+				EvidenceHash    string `json:"evidence_hash"`
+			} `json:"header"`
+		} `json:"block_meta"`
+		Block struct {
+			Header struct {
+				ChainID     string    `json:"chain_id"`
+				Height      string    `json:"height"`
+				Time        time.Time `json:"time"`
+				NumTxs      string    `json:"num_txs"`
+				LastBlockID struct {
+					Hash  string `json:"hash"`
+					Parts struct {
+						Total string `json:"total"`
+						Hash  string `json:"hash"`
+					} `json:"parts"`
+				} `json:"last_block_id"`
+				TotalTxs        string `json:"total_txs"`
+				LastCommitHash  string `json:"last_commit_hash"`
+				DataHash        string `json:"data_hash"`
+				ValidatorsHash  string `json:"validators_hash"`
+				ConsensusHash   string `json:"consensus_hash"`
+				AppHash         string `json:"app_hash"`
+				LastResultsHash string `json:"last_results_hash"`
+				EvidenceHash    string `json:"evidence_hash"`
+			} `json:"header"`
+			Data struct {
+				Txs interface{} `json:"txs"`
+			} `json:"data"`
+			Evidence struct {
+				Evidence interface{} `json:"evidence"`
+			} `json:"evidence"`
+			LastCommit struct {
+				BlockID struct {
+					Hash  string `json:"hash"`
+					Parts struct {
+						Total string `json:"total"`
+						Hash  string `json:"hash"`
+					} `json:"parts"`
+				} `json:"block_id"`
+				Precommits []struct {
+					ValidatorAddress string    `json:"validator_address"`
+					ValidatorIndex   string    `json:"validator_index"`
+					Height           string    `json:"height"`
+					Round            string    `json:"round"`
+					Timestamp        time.Time `json:"timestamp"`
+					Type             int       `json:"type"`
+					BlockID          struct {
+						Hash  string `json:"hash"`
+						Parts struct {
+							Total string `json:"total"`
+							Hash  string `json:"hash"`
+						} `json:"parts"`
+					} `json:"block_id"`
+					Signature struct {
+						Type  string `json:"type"`
+						Value string `json:"value"`
+					} `json:"signature"`
+				} `json:"precommits"`
+			} `json:"last_commit"`
+		} `json:"block"`
+	} `json:"result"`
+}
+
+func GetBlockStatus(height int64) BlockResult {
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
+	if err != nil {
+		panic(err)
+	}
+	URL.Path += "/block"
+	parameters := url.Values{}
+	parameters.Add("height", strconv.FormatInt(height, 10))
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	var body BlockResult
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
 }

@@ -105,6 +105,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getAccessorOwner(param, height)
 	case "IsInitEnded":
 		return app.isInitEnded(param, height)
+	case "GetChainHistory":
+		return app.getChainHistory(param, height)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

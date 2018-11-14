@@ -879,3 +879,13 @@ func IsInitEnded(t *testing.T, expected bool) {
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func GetChainHistory(t *testing.T) {
+	fnName := "GetChainHistory"
+	paramJSON := []byte("")
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	fmt.Printf("Chain history (JSON): %s\n", resultString)
+	t.Logf("PASS: %s", fnName)
+}

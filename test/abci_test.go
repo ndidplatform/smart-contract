@@ -2725,3 +2725,7 @@ func TestDisableAllNode(t *testing.T) {
 		DisableNode(t, param)
 	}
 }
+
+func TestGetChainHistory(t *testing.T) {
+	GetChainHistory(t)
+}

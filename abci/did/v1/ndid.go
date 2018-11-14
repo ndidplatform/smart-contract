@@ -28,8 +28,8 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
@@ -84,9 +84,11 @@ func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseD
 	masterNDIDKey := "MasterNDID"
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	initStateKey := "InitState"
+	chainHistoryInfoKey := "ChainHistoryInfo"
 	app.SetStateDB([]byte(masterNDIDKey), []byte(nodeID))
 	app.SetStateDB([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.SetStateDB([]byte(initStateKey), []byte("true"))
+	app.SetStateDB([]byte(chainHistoryInfoKey), []byte(funcParam.ChainHistoryInfo))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
