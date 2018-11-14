@@ -22,7 +22,7 @@ import (
 
 func main() {
 	// Variable
-	ndidID := getEnv("NDID_ID", "NDID")
+	ndidID := getEnv("NDID_NODE_ID", "NDID")
 	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
 	ndidKeyFile, err := os.Open("migrate/key/ndid")
 	if err != nil {

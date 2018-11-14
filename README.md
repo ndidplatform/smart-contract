@@ -185,7 +185,7 @@ docker-compose -f docker/docker-compose.yml up
 
     **Environment variable options**
  
-    - `NDID_ID` : NDID ID
+    - `NDID_NODE_ID` : NDID node id
     - `BACKUP_DATA_FILE` : File path for save data
     - `CHAIN_HISTORY_FILE` : File path for save chain history data
 
@@ -201,7 +201,7 @@ docker-compose -f docker/docker-compose.yml up
 
     **Environment variable options**
  
-    - `NDID_ID` : NDID ID
+    - `NDID_NODE_ID` : NDID node id
     - `BACKUP_VALIDATORS_FILE` : File path for save validators data
 
 # Technical details to connect with `api`
