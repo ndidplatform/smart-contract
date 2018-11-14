@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -15,16 +17,23 @@ var (
 )
 
 func main() {
+	// Variable
+	dbFile := "DB1"
+	dbName := "didDB"
+	backupDBFile := "Backup_DB"
+	backupDataFileName := "data"
+	backupValidatorFileName := "validators"
+
 	// Delete backup file
-	fileName := "data"
-	deleteFile("migrate/data/" + fileName + ".txt")
+	deleteFile("migrate/data/" + backupDataFileName + ".txt")
+	deleteFile("migrate/data/" + backupValidatorFileName + ".txt")
+	os.Remove("Backup_DB")
 
-	validatorFileName := "validators"
-	deleteFile("migrate/data/" + validatorFileName + ".txt")
+	// Copy stateDB dir
+	copyDir(dbFile, backupDBFile)
 
-	var dbDir = "DB1"
-	name := "didDB"
-	db := dbm.NewDB(name, "leveldb", dbDir)
+	// Save kv from backup DB
+	db := dbm.NewDB(dbName, "leveldb", backupDBFile)
 	oldTree := iavl.NewMutableTree(db, 0)
 	oldTree.Load()
 	tree, _ := oldTree.GetImmutable(oldTree.Version())
@@ -39,7 +48,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			fWriteLn(validatorFileName, jsonStr)
+			fWriteLn(backupValidatorFileName, jsonStr)
 			return false
 		}
 
@@ -59,9 +68,60 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fWriteLn(fileName, jsonStr)
+		fWriteLn(backupDataFileName, jsonStr)
 		return false
 	})
+}
+
+func copyDir(source string, dest string) (err error) {
+	sourceinfo, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(dest, sourceinfo.Mode())
+	if err != nil {
+		return err
+	}
+	directory, _ := os.Open(source)
+	objects, err := directory.Readdir(-1)
+	for _, obj := range objects {
+		sourcefilepointer := source + "/" + obj.Name()
+		destinationfilepointer := dest + "/" + obj.Name()
+		if obj.IsDir() {
+			err = copyDir(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			err = copyFile(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return
+}
+
+func copyFile(source string, dest string) (err error) {
+	sourcefile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer sourcefile.Close()
+	destfile, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer destfile.Close()
+	_, err = io.Copy(destfile, sourcefile)
+	if err == nil {
+		sourceinfo, err := os.Stat(source)
+		if err != nil {
+			err = os.Chmod(dest, sourceinfo.Mode())
+		}
+
+	}
+	return
 }
 
 func prefixKey(key []byte) []byte {
