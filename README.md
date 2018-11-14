@@ -167,8 +167,7 @@ docker-compose -f docker/docker-compose.yml up
     **Environment variable options**
  
     - `BLOCK_NUMBER` : Backup block number
-    - `DB_DIR` : Source directory path for copy stateDB
-    - `DB_NAME` : Name of state DB in directory path
+    - `DB_NAME` : Source directory path for copy stateDB
     - `BACKUP_DB_DIR` : Destination directory path for copy stateDB
     - `BACKUP_DATA_FILE` : File path for save data
     - `BACKUP_VALIDATORS_FILE` : File path for save validators data
