@@ -19,7 +19,8 @@ import (
 
 func main() {
 	// Variable
-	backupDataFileName := "data"
+	ndidID := getEnv("NDID_ID", "NDID")
+	backupDataFileName := getEnv("BACKUP_DATA_FILE", "data")
 	ndidKeyFile, err := os.Open("migrate/key/ndid")
 	if err != nil {
 		log.Fatal(err)
@@ -40,8 +41,7 @@ func main() {
 	}
 	ndidPrivKey := utils.GetPrivateKeyFromString(string(data))
 	ndidMasterPrivKey := utils.GetPrivateKeyFromString(string(dataMaster))
-	initNDID(ndidPrivKey, ndidMasterPrivKey)
-	// TODO read path backup file from env var
+	initNDID(ndidPrivKey, ndidMasterPrivKey, ndidID)
 	file, err := os.Open("migrate/data/" + backupDataFileName + ".txt")
 	if err != nil {
 		log.Fatal(err)
@@ -62,20 +62,20 @@ func main() {
 		param.KVList = append(param.KVList, kv)
 		count++
 		if count == maximum {
-			setInitData(param, ndidPrivKey)
+			setInitData(param, ndidPrivKey, ndidID)
 			count = 0
 			param.KVList = make([]did.KeyValue, 0)
 		}
 	}
 	if count > 0 {
-		setInitData(param, ndidPrivKey)
+		setInitData(param, ndidPrivKey, ndidID)
 	}
-	endInit(ndidPrivKey)
+	endInit(ndidPrivKey, ndidID)
 }
 
-func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
+func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey, ndidID string) {
 	// Variable
-	chainHistoryFileName := "chain_history"
+	chainHistoryFileName := getEnv("CHAIN_HISTORY_FILE", "chain_history")
 	chainHistoryData, err := ioutil.ReadFile("migrate/data/" + chainHistoryFileName + ".txt")
 	if err != nil {
 		log.Fatal(err)
@@ -89,7 +89,7 @@ func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
 		log.Fatal(err.Error())
 	}
 	var initNDIDparam did.InitNDIDParam
-	initNDIDparam.NodeID = "NDID"
+	initNDIDparam.NodeID = ndidID
 	initNDIDparam.PublicKey = string(ndidPublicKeyBytes)
 	initNDIDparam.MasterPublicKey = string(ndidMasterPublicKeyBytes)
 	initNDIDparam.ChainHistoryInfo = string(chainHistoryData)
@@ -112,7 +112,7 @@ func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
 	fmt.Println(resultObj.Result.DeliverTx.Log)
 }
 
-func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey) {
+func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey, ndidID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -127,19 +127,19 @@ func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte("NDID"))
+	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidID))
 	resultObj, _ := result.(utils.ResponseTx)
 	fmt.Println(resultObj.Result.DeliverTx.Log)
 }
 
-func endInit(ndidKey *rsa.PrivateKey) {
+func endInit(ndidKey *rsa.PrivateKey, ndidID string) {
 	var param did.EndInitParam
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	fnName := "EndInit"
-	nodeID := "NDID"
+	nodeID := ndidID
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
@@ -152,4 +152,12 @@ func endInit(ndidKey *rsa.PrivateKey) {
 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	fmt.Println(resultObj.Result.DeliverTx.Log)
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
 }

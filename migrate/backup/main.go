@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
@@ -19,12 +20,13 @@ var (
 
 func main() {
 	// Variable
-	dbFile := "DB1"
-	dbName := "didDB"
-	backupDBFile := "Backup_DB"
-	backupDataFileName := "data"
-	backupValidatorFileName := "validators"
-	chainHistoryFileName := "chain_history"
+	dbFile := getEnv("DB_FILE", "DB1")
+	dbName := getEnv("DB_NAME", "didDB")
+	backupDBFile := getEnv("BACKUP_DB_FILE", "Backup_DB")
+	backupDataFileName := getEnv("BACKUP_DATA_FILE", "data")
+	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
+	chainHistoryFileName := getEnv("CHAIN_HISTORY_FILE", "chain_history")
+	backupBlockNumberStr := getEnv("BLOCK_NUMBER", "")
 
 	// Delete backup file
 	deleteFile("migrate/data/" + backupDataFileName + ".txt")
@@ -34,11 +36,19 @@ func main() {
 
 	// Save previous chain info
 	resStatus := utils.GetTendermintStatus()
-	chainID := resStatus.Result.NodeInfo.Network
-	latestBlockHeight := resStatus.Result.SyncInfo.LatestBlockHeight
-	latestBlockHash := resStatus.Result.SyncInfo.LatestBlockHash
-	latestAppHash := resStatus.Result.SyncInfo.LatestAppHash
-	fmt.Println("--- Current chain info ---")
+	if backupBlockNumberStr == "" {
+		backupBlockNumberStr = resStatus.Result.SyncInfo.LatestBlockHeight
+	}
+	backupBlockNumber, err := strconv.ParseInt(backupBlockNumberStr, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	blockStatus := utils.GetBlockStatus(backupBlockNumber)
+	chainID := blockStatus.Result.Block.Header.ChainID
+	latestBlockHeight := blockStatus.Result.Block.Header.Height
+	latestBlockHash := blockStatus.Result.BlockMeta.BlockID.Hash
+	latestAppHash := blockStatus.Result.Block.Header.AppHash
+	fmt.Printf("--- Chain info at block: %s ---\n", backupBlockNumberStr)
 	fmt.Println("Chain ID: " + chainID)
 	fmt.Println("Latest Block Height: " + latestBlockHeight)
 	fmt.Println("Latest Block Hash: " + latestBlockHash)
@@ -51,7 +61,7 @@ func main() {
 	db := dbm.NewDB(dbName, "leveldb", backupDBFile)
 	oldTree := iavl.NewMutableTree(db, 0)
 	oldTree.Load()
-	tree, _ := oldTree.GetImmutable(oldTree.Version())
+	tree, _ := oldTree.GetImmutable(backupBlockNumber)
 	_, ndidNodeID := tree.Get(prefixKey([]byte("MasterNDID")))
 	tree.Iterate(func(key []byte, value []byte) (stop bool) {
 		// Validator
@@ -210,4 +220,12 @@ type ChainHistoryDetail struct {
 
 type ChainHistory struct {
 	Chains []ChainHistoryDetail `json:"chains"`
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
 }

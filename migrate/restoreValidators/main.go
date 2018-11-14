@@ -21,6 +21,8 @@ import (
 )
 
 func main() {
+	// Variable
+	ndidID := getEnv("NDID_ID", "NDID")
 	ndidKeyFile, err := os.Open("migrate/key/ndid")
 	if err != nil {
 		log.Fatal(err)
@@ -55,12 +57,11 @@ func main() {
 		var param did.SetValidatorParam
 		param.PublicKey = publicKey
 		param.Power = validator.Power
-		SetValidator(param, ndidPrivKey)
+		SetValidator(param, ndidPrivKey, ndidID)
 	}
 }
 
-func SetValidator(param did.SetValidatorParam, ndidKey *rsa.PrivateKey) {
-	ndidNodeID := "NDID"
+func SetValidator(param did.SetValidatorParam, ndidKey *rsa.PrivateKey, ndidID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -75,13 +76,12 @@ func SetValidator(param did.SetValidatorParam, ndidKey *rsa.PrivateKey) {
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidNodeID))
+	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidID))
 	resultObj, _ := result.(utils.ResponseTx)
 	fmt.Println(resultObj.Result.DeliverTx.Log)
 }
 
 func after(value string, a string) string {
-	// Get substring after a string.
 	pos := strings.LastIndex(value, a)
 	if pos == -1 {
 		return ""
@@ -93,72 +93,10 @@ func after(value string, a string) string {
 	return value[adjustedPos:len(value)]
 }
 
-// func initNDID(ndidKey *rsa.PrivateKey) {
-// 	ndidpublicKeyBytes, err := utils.GeneratePublicKey(&ndidKey.PublicKey)
-// 	if err != nil {
-// 		log.Fatal(err.Error())
-// 	}
-// 	var initNDIDparam did.InitNDIDParam
-// 	initNDIDparam.NodeID = "NDID"
-// 	initNDIDparam.PublicKey = string(ndidpublicKeyBytes)
-// 	initNDIDparam.MasterPublicKey = string(ndidpublicKeyBytes)
-// 	paramJSON, err := json.Marshal(initNDIDparam)
-// 	if err != nil {
-// 		fmt.Println("error:", err)
-// 	}
-// 	fnName := "InitNDID"
-// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-// 	tempPSSmessage := append([]byte(fnName), paramJSON...)
-// 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
-// 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
-// 	newhash := crypto.SHA256
-// 	pssh := newhash.New()
-// 	pssh.Write(PSSmessage)
-// 	hashed := pssh.Sum(nil)
-// 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-// 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(initNDIDparam.NodeID))
-// 	resultObj, _ := result.(utils.ResponseTx)
-// 	fmt.Println(resultObj.Result.DeliverTx.Log)
-// }
-
-// func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey) {
-// 	paramJSON, err := json.Marshal(param)
-// 	if err != nil {
-// 		fmt.Println("error:", err)
-// 	}
-// 	fnName := "SetInitData"
-// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-// 	tempPSSmessage := append([]byte(fnName), paramJSON...)
-// 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
-// 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
-// 	newhash := crypto.SHA256
-// 	pssh := newhash.New()
-// 	pssh.Write(PSSmessage)
-// 	hashed := pssh.Sum(nil)
-// 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-// 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte("NDID"))
-// 	resultObj, _ := result.(utils.ResponseTx)
-// 	fmt.Println(resultObj.Result.DeliverTx.Log)
-// }
-
-// func endInit(ndidKey *rsa.PrivateKey) {
-// 	var param did.EndInitParam
-// 	paramJSON, err := json.Marshal(param)
-// 	if err != nil {
-// 		fmt.Println("error:", err)
-// 	}
-// 	fnName := "EndInit"
-// 	nodeID := "NDID"
-// 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-// 	tempPSSmessage := append([]byte(fnName), paramJSON...)
-// 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
-// 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
-// 	newhash := crypto.SHA256
-// 	pssh := newhash.New()
-// 	pssh.Write(PSSmessage)
-// 	hashed := pssh.Sum(nil)
-// 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
-// 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
-// 	resultObj, _ := result.(utils.ResponseTx)
-// 	fmt.Println(resultObj.Result.DeliverTx.Log)
-// }
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = defaultValue
+	}
+	return value
+}
