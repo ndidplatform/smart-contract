@@ -23,6 +23,7 @@ import (
 func main() {
 	// Variable
 	ndidID := getEnv("NDID_ID", "NDID")
+	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
 	ndidKeyFile, err := os.Open("migrate/key/ndid")
 	if err != nil {
 		log.Fatal(err)
@@ -33,8 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 	ndidPrivKey := utils.GetPrivateKeyFromString(string(data))
-	// // TODO read path backup file from env var
-	file, err := os.Open("migrate/data/validators.txt")
+	file, err := os.Open("migrate/data/" + backupValidatorFileName + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}
