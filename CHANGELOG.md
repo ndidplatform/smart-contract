@@ -5,6 +5,7 @@
 IMPROVEMENTS:
 
 - [DeliverTx] Add `chain_history_info` property to parameters of `InitNDID`.
+- [Query] Add new function (`GetChainHistory`).
 
 ## 0.11.2 (November 12, 2018)
 
