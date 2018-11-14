@@ -187,3 +187,33 @@ type ResponseStatus struct {
 		} `json:"validator_info"`
 	} `json:"result"`
 }
+
+func GetTendermintStatus() ResponseStatus {
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
+	if err != nil {
+		panic(err)
+	}
+	URL.Path += "/status"
+	parameters := url.Values{}
+	URL.RawQuery = parameters.Encode()
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	var body ResponseStatus
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body
+}

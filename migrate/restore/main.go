@@ -18,6 +18,8 @@ import (
 )
 
 func main() {
+	// Variable
+	backupDataFileName := "data"
 	ndidKeyFile, err := os.Open("migrate/key/ndid")
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +42,7 @@ func main() {
 	ndidMasterPrivKey := utils.GetPrivateKeyFromString(string(dataMaster))
 	initNDID(ndidPrivKey, ndidMasterPrivKey)
 	// TODO read path backup file from env var
-	file, err := os.Open("migrate/data/data.txt")
+	file, err := os.Open("migrate/data/" + backupDataFileName + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,6 +74,12 @@ func main() {
 }
 
 func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
+	// Variable
+	chainHistoryFileName := "chain_history"
+	chainHistoryData, err := ioutil.ReadFile("migrate/data/" + chainHistoryFileName + ".txt")
+	if err != nil {
+		log.Fatal(err)
+	}
 	ndidPublicKeyBytes, err := utils.GeneratePublicKey(&ndidKey.PublicKey)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -84,6 +92,7 @@ func initNDID(ndidKey *rsa.PrivateKey, ndidMasterKey *rsa.PrivateKey) {
 	initNDIDparam.NodeID = "NDID"
 	initNDIDparam.PublicKey = string(ndidPublicKeyBytes)
 	initNDIDparam.MasterPublicKey = string(ndidMasterPublicKeyBytes)
+	initNDIDparam.ChainHistoryInfo = string(chainHistoryData)
 	paramJSON, err := json.Marshal(initNDIDparam)
 	if err != nil {
 		fmt.Println("error:", err)

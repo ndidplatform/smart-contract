@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
+	"github.com/ndidplatform/smart-contract/migrate/utils"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
@@ -23,11 +24,24 @@ func main() {
 	backupDBFile := "Backup_DB"
 	backupDataFileName := "data"
 	backupValidatorFileName := "validators"
+	chainHistoryFileName := "chain_history"
 
 	// Delete backup file
 	deleteFile("migrate/data/" + backupDataFileName + ".txt")
 	deleteFile("migrate/data/" + backupValidatorFileName + ".txt")
 	os.Remove(backupDBFile)
+	deleteFile("migrate/data/" + chainHistoryFileName + ".txt")
+
+	// Save previous chain info
+	resStatus := utils.GetTendermintStatus()
+	chainID := resStatus.Result.NodeInfo.Network
+	latestBlockHeight := resStatus.Result.SyncInfo.LatestBlockHeight
+	latestBlockHash := resStatus.Result.SyncInfo.LatestBlockHash
+	latestAppHash := resStatus.Result.SyncInfo.LatestAppHash
+	fmt.Println(chainID)
+	fmt.Println(latestBlockHeight)
+	fmt.Println(latestBlockHash)
+	fmt.Println(latestAppHash)
 
 	// Copy stateDB dir
 	copyDir(dbFile, backupDBFile)
@@ -51,7 +65,28 @@ func main() {
 			fWriteLn(backupValidatorFileName, jsonStr)
 			return false
 		}
-
+		// Chain history info
+		if strings.Contains(string(key), "ChainHistoryInfo") {
+			var chainHistory ChainHistory
+			if string(value) != "" {
+				err := json.Unmarshal([]byte(value), &chainHistory)
+				if err != nil {
+					panic(err)
+				}
+			}
+			var prevChain ChainHistoryDetail
+			prevChain.ChainID = chainID
+			prevChain.LatestBlockHeight = latestBlockHeight
+			prevChain.LatestBlockHash = latestBlockHash
+			prevChain.LatestAppHash = latestAppHash
+			chainHistory.Chains = append(chainHistory.Chains, prevChain)
+			chainHistoryStr, err := json.Marshal(chainHistory)
+			if err != nil {
+				panic(err)
+			}
+			fWriteLn(chainHistoryFileName, chainHistoryStr)
+			return false
+		}
 		if strings.Contains(string(key), string(ndidNodeID)) {
 			return false
 		}
@@ -163,4 +198,15 @@ func deleteFile(dir string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+type ChainHistoryDetail struct {
+	ChainID           string `json:"chain_id"`
+	LatestBlockHash   string `json:"latest_block_hash"`
+	LatestAppHash     string `json:"latest_app_hash"`
+	LatestBlockHeight string `json:"latest_block_height"`
+}
+
+type ChainHistory struct {
+	Chains []ChainHistoryDetail `json:"chains"`
 }
