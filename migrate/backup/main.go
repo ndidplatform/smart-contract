@@ -118,7 +118,7 @@ func main() {
 		return false
 	})
 	// If key do not have "ChainHistoryInfo" key, create file
-	if !tree.Has([]byte("ChainHistoryInfo")) {
+	if !tree.Has(prefixKey([]byte("ChainHistoryInfo"))) {
 		var chainHistory ChainHistory
 		var prevChain ChainHistoryDetail
 		prevChain.ChainID = chainID
