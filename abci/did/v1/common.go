@@ -27,8 +27,8 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
@@ -1814,4 +1814,11 @@ func (app *DIDApplication) isInitEnded(param string, height int64) types.Respons
 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.db.Version())
+}
+
+func (app *DIDApplication) getChainHistory(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetChainHistory, Parameter: %s", param)
+	chainHistoryInfoKey := "ChainHistoryInfo"
+	_, value := app.state.db.Get(prefixKey([]byte(chainHistoryInfoKey)))
+	return app.ReturnQuery(value, "success", app.state.db.Version())
 }

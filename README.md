@@ -152,7 +152,59 @@ docker-compose -f docker/docker-compose.yml up
 
 3.  When running IDP node and RP node on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
-## Technical details to connect with `api`
+## Migrate Chain
+
+1.  Run backup script
+
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/backup/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `BLOCK_NUMBER` : Backup block number
+    - `DB_NAME` : Source directory path for copy stateDB
+    - `BACKUP_DB_DIR` : Destination directory path for copy stateDB
+    - `BACKUP_DATA_FILE` : File path for save data
+    - `BACKUP_VALIDATORS_FILE` : File path for save validators data
+    - `CHAIN_HISTORY_FILE` : File path for save chain history data
+
+2.  Run restore script 
+    
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/restore/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `NDID_NODE_ID` : NDID node id
+    - `BACKUP_DATA_FILE` : File path for save data
+    - `CHAIN_HISTORY_FILE` : File path for save chain history data
+
+3.  Run restore validators script (Not required)
+
+    ```sh
+    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+    ```
+
+    ```sh
+    go run migrate/restoreValidators/main.go
+    ```
+
+    **Environment variable options**
+ 
+    - `NDID_NODE_ID` : NDID node id
+    - `BACKUP_VALIDATORS_FILE` : File path for save validators data
+
+# Technical details to connect with `api`
 
 # Broadcast tx format (Protobuf)
 ```
@@ -648,9 +700,10 @@ message Query {
 ### Parameter
 ```sh
 {
-  "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA30i6deo6vqxPdoxA9pUp\\nuBag/cVwEVWO8dds5QDfu/z957zxXUCYRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa\\n/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5pxK/+olBzfzLMDEOwFRbnYtPtbWozfvce\\nq77fEReTUdBGRLak7twxLrRPNzIu/Gqvn5AR8urXyF4r143CgReGkXTTmOvHpHu9\\n8kCQSINFuwBB98RLFuWdVwkrHyzaGnymQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G\\n0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTkLb9t27DpW9G+DXryq+Pnl5c+z7es/7T3\\n4QIDAQAB\\n-----END PUBLIC KEY-----\\n",
   "node_id": "NDID",
-  "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA30i6deo6vqxPdoxA9pUp\\nuBag/cVwEVWO8dds5QDfu/z957zxXUCYRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa\\n/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5pxK/+olBzfzLMDEOwFRbnYtPtbWozfvce\\nq77fEReTUdBGRLak7twxLrRPNzIu/Gqvn5AR8urXyF4r143CgReGkXTTmOvHpHu9\\n8kCQSINFuwBB98RLFuWdVwkrHyzaGnymQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G\\n0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTkLb9t27DpW9G+DXryq+Pnl5c+z7es/7T3\\n4QIDAQAB\\n-----END PUBLIC KEY-----\\n"
+  "public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA30i6deo6vqxPdoxA9pUp\nuBag/cVwEVWO8dds5QDfu/z957zxXUCYRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa\n/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5pxK/+olBzfzLMDEOwFRbnYtPtbWozfvce\nq77fEReTUdBGRLak7twxLrRPNzIu/Gqvn5AR8urXyF4r143CgReGkXTTmOvHpHu9\n8kCQSINFuwBB98RLFuWdVwkrHyzaGnymQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G\n0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTkLb9t27DpW9G+DXryq+Pnl5c+z7es/7T3\n4QIDAQAB\n-----END PUBLIC KEY-----\n",
+  "master_public_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA30i6deo6vqxPdoxA9pUp\nuBag/cVwEVWO8dds5QDfu/z957zxXUCYRxaiRWGAbOta4K5/7cxlsqI8fCvoSyAa\n/B7GTSc3vivK/GWUFP+sQ/Mj6C/fgw5pxK/+olBzfzLMDEOwFRbnYtPtbWozfvce\nq77fEReTUdBGRLak7twxLrRPNzIu/Gqvn5AR8urXyF4r143CgReGkXTTmOvHpHu9\n8kCQSINFuwBB98RLFuWdVwkrHyzaGnymQu+0OR1Z+1MDIQ9WlViD1iaJhYKA6a0G\n0O4Nns6ISPYSh7W7fI31gWTgHUZN5iTkLb9t27DpW9G+DXryq+Pnl5c+z7es/7T3\n4QIDAQAB\n-----END PUBLIC KEY-----\n",
+  "chain_history_info": "{\"chains\":[{\"chain_id\":\"test-chain-NDID\",\"latest_block_hash\":\"39DAE266185B54C62A6932445021FEB641E5D5DB\",\"latest_app_hash\":\"588C2F4A1B236281565C301EEA9BA863CF5F3E28\",\"latest_block_height\":\"164\"},{\"chain_id\":\"test-chain-NDID\",\"latest_block_hash\":\"E25104B14BD7BB48734BDB1E7EAF5E494318C4C3\",\"latest_app_hash\":\"632990575BFC06B7CE5C57D0D0AD9AEA3DBBB230\",\"latest_block_height\":\"174\"}]}\r\n"
 }
 ```
 ### Expected Output
@@ -1812,5 +1865,29 @@ message Query {
 ```sh
 {
   "init_ended": true
+}
+```
+
+## GetChainHistory
+### Parameter
+```sh
+```
+### Expected Output
+```sh
+{
+  "chains": [
+    {
+      "chain_id": "test-chain-NDID",
+      "latest_block_hash": "39DAE266185B54C62A6932445021FEB641E5D5DB",
+      "latest_app_hash": "588C2F4A1B236281565C301EEA9BA863CF5F3E28",
+      "latest_block_height": "164"
+    },
+    {
+      "chain_id": "test-chain-NDID",
+      "latest_block_hash": "E25104B14BD7BB48734BDB1E7EAF5E494318C4C3",
+      "latest_app_hash": "632990575BFC06B7CE5C57D0D0AD9AEA3DBBB230",
+      "latest_block_height": "174"
+    }
+  ]
 }
 ```

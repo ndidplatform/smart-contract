@@ -108,5 +108,6 @@ const (
 	RequestIsNotClosed                        uint32 = 81
 	ChainIsDisabled                           uint32 = 82
 	ChainIsNotInitialized                     uint32 = 83
+	DuplicateNonce                            uint32 = 84
 	UnknownError                              uint32 = 999
 )

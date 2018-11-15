@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.0 (November 15, 2018)
+
+IMPROVEMENTS:
+
+- [DeliverTx] Add `chain_history_info` property to parameters of `InitNDID`.
+- [Query] Add new function (`GetChainHistory`).
+
+SECURITY FIXES:
+
+- [CheckTx] Check duplicate `nonce` in every transactions.
+
 ## 0.11.2 (November 12, 2018)
 
 IMPROVEMENTS:

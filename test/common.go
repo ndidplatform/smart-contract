@@ -172,3 +172,46 @@ func UpdateNode(t *testing.T, param did.UpdateNodeParam, masterPriveKFile string
 	}
 	t.Logf("PASS: %s", fnName)
 }
+
+func CreateRequestWithDuplicateNonce(t *testing.T, param1 did.Request, param2 did.Request, priveKFile string, nodeID string, expected string) {
+	privKey := getPrivateKeyFromString(priveKFile)
+	byteNodeID := []byte(nodeID)
+	paramJSON, err := json.Marshal(param1)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	fnName := "CreateRequest"
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, byteNodeID)
+	resultObj, _ := result.(ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.DeliverTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+
+	paramJSON2, err := json.Marshal(param2)
+	tempPSSmessage = append([]byte(fnName), paramJSON2...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage = []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	newhash = crypto.SHA256
+	pssh = newhash.New()
+	pssh.Write(PSSmessage)
+	hashed = pssh.Sum(nil)
+	signature, err = rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
+	result, _ = callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, byteNodeID)
+	resultObj, _ = result.(ResponseTx)
+	if actual := resultObj.Result.CheckTx.Log; actual != "Duplicate nonce" {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}

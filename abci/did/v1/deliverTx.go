@@ -78,6 +78,9 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 			// Write burn token report
 			// only have result.Data in some method
 			// writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
+
+			// Set used nonce to stateDB
+			app.SetStateDB([]byte(nonce), []byte("1"))
 		}
 	}
 	return result
