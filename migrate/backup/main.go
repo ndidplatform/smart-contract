@@ -107,6 +107,10 @@ func main() {
 		if strings.Contains(string(key), "InitState") {
 			return false
 		}
+		// If key is last block key, not save to backup file
+		if strings.Contains(string(key), "lastBlock") {
+			return false
+		}
 		var kv did.KeyValue
 		kv.Key = key
 		kv.Value = value
