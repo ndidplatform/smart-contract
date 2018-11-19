@@ -1,5 +1,15 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Change version of Tendermint to v0.26.3
+
+IMPROVEMENTS:
+
+- [Docker] Add set config `recheck` to true to start script. (Fix transactions stuck in mempool until more Tx is broadcasted in some cases when there are multiple validator nodes.)
+
 ## 0.12.0 (November 15, 2018)
 
 IMPROVEMENTS:
