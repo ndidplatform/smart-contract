@@ -60,7 +60,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
 - `DB_NAME`: Directory path for persistence data files [Default: `__dirname/DID` (`DID` directory in repository's directory)]
 - `LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
-- `LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` and `file` [Default: `console`]
+- `LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file path` (eg. `ABCI.log`) [Default: `console`]
 
 ### Run IdP node
 
