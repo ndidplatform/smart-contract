@@ -12,7 +12,7 @@ import (
 	"github.com/ndidplatform/smart-contract/migrate/utils"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
-	"github.com/syndtr/goleveldb/leveldb/opt"
+	// "github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 var (
@@ -57,11 +57,7 @@ func main() {
 	fmt.Println("Latest App Hash: " + latestAppHash)
 
 	// Save kv from backup DB
-	db, err := dbm.NewGoLevelDBWithOpts(dbName, dbDir, &opt.Options{ReadOnly: true})
-	if err != nil {
-		fmt.Println("Error loading DB")
-		panic(err)
-	}
+	db := dbm.NewDB(dbName, "leveldb", dbDir)
 	oldTree := iavl.NewMutableTree(db, 0)
 	oldTree.LoadVersion(backupBlockNumber)
 	tree, _ := oldTree.GetImmutable(backupBlockNumber)
