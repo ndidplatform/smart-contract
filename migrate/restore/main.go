@@ -47,8 +47,12 @@ func main() {
 		log.Fatal(err)
 	}
 	defer file.Close()
-	maximum := 20
+
+	maximumBytes := 100000
+	size := 0
 	count := 0
+	nTx := 0
+
 	var param did.SetInitDataParam
 	param.KVList = make([]did.KeyValue, 0)
 	scanner := bufio.NewScanner(file)
@@ -61,9 +65,16 @@ func main() {
 		}
 		param.KVList = append(param.KVList, kv)
 		count++
-		if count == maximum {
+		size += len(kv.Key) + len(kv.Value)
+		nTx++
+		if size > maximumBytes {
 			setInitData(param, ndidPrivKey, ndidID)
+			fmt.Print("Number of kv in param: ")
+			fmt.Println(count)
+			fmt.Print("Total number of kv: ")
+			fmt.Println(nTx)
 			count = 0
+			size = 0
 			param.KVList = make([]did.KeyValue, 0)
 		}
 	}
@@ -129,6 +140,7 @@ func setInitData(param did.SetInitDataParam, ndidKey *rsa.PrivateKey, ndidID str
 	signature, err := rsa.SignPKCS1v15(rand.Reader, ndidKey, newhash, hashed)
 	result, _ := utils.CallTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(ndidID))
 	resultObj, _ := result.(utils.ResponseTx)
+	// fmt.Println(resultObj)
 	fmt.Println(resultObj.Result.DeliverTx.Log)
 }
 
