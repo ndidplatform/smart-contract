@@ -4,6 +4,13 @@ TMHOME=${TMHOME:-/tendermint}
 TM_RPC_PORT=${TM_RPC_PORT:-45000}
 TM_P2P_PORT=${TM_P2P_PORT:-47000}
 ABCI_PORT=${ABCI_PORT:-46000}
+DEV_ENV=${DEV_ENV:-false}
+
+if [ "${DEV_ENV}" == "true" ]; then 
+  ADDR_BOOK_STRICT=false
+else 
+  ADDR_BOOK_STRICT=true
+fi
 
 if [ -z "${SEED_RPC_PORT}" ]; then SEED_RPC_PORT=$TM_RPC_PORT; fi
 
@@ -59,7 +66,13 @@ tendermint_set_create_empty_block_interval() {
 
 tendermint_set_mempool_recheck() {
   sed -i -E "s/recheck = (true|false)/recheck = ${1}/" ${TMHOME}/config/config.toml
-  sed -i -E "s/recheck_empty = (true|false)/recheck_empty = ${1}/" ${TMHOME}/config/config.toml
+}
+
+tendermint_set_config_for_prod() {
+  sed -i -E "s/flush_throttle_timeout = .*$/flush_throttle_timeout = \\\"10ms\\\"/" ${TMHOME}/config/config.toml
+  sed -i -E "s/max_packet_msg_payload_size = .*$/max_packet_msg_payload_size = 10240/" ${TMHOME}/config/config.toml # 10KB
+  sed -i -E "s/send_rate = .*$/send_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
+  sed -i -E "s/recv_rate = .*$/recv_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
 }
 
 TYPE=${1}
@@ -69,20 +82,22 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
-      tendermint_set_addr_book_strict false
+      tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
       tendermint_set_mempool_recheck true
+      if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
 
       tendermint_init
-      tendermint_set_addr_book_strict false
+      tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
       tendermint_set_mempool_recheck true
+      if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       until tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${SEED_RPC_PORT}; do sleep 1; done
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
