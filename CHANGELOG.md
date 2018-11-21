@@ -9,6 +9,11 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
 - [Docker] Add set config `recheck` to true to start script. (Fix transactions stuck in mempool until more Tx is broadcasted in some cases when there are multiple validator nodes.)
+- [Info] Add app protocol version.
+
+BUG FIXES:
+
+- [Migrate script] Filter out `setLastBlock` key.
 
 ## 0.12.0 (November 15, 2018)
 
