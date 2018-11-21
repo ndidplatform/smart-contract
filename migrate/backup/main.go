@@ -42,6 +42,7 @@ func main() {
 	}
 	backupBlockNumber, err := strconv.ParseInt(backupBlockNumberStr, 10, 64)
 	if err != nil {
+		fmt.Errorf("Error parsing block number from Tendermint status")
 		panic(err)
 	}
 	blockStatus := utils.GetBlockStatus(backupBlockNumber)
@@ -58,6 +59,7 @@ func main() {
 	// Save kv from backup DB
 	db, err := dbm.NewGoLevelDBWithOpts(dbName, dbDir, &opt.Options{ReadOnly: true})
 	if err != nil {
+		fmt.Println("Error loading DB")
 		panic(err)
 	}
 	oldTree := iavl.NewMutableTree(db, 0)
@@ -72,6 +74,7 @@ func main() {
 			kv.Value = value
 			jsonStr, err := json.Marshal(kv)
 			if err != nil {
+				fmt.Println("Error marshalling JSON (val:)")
 				panic(err)
 			}
 			fWriteLn(backupValidatorFileName, jsonStr)
@@ -83,6 +86,7 @@ func main() {
 			if string(value) != "" {
 				err := json.Unmarshal([]byte(value), &chainHistory)
 				if err != nil {
+					fmt.Println("Error unmarshalling chain history JSON")
 					panic(err)
 				}
 			}
@@ -94,6 +98,7 @@ func main() {
 			chainHistory.Chains = append(chainHistory.Chains, prevChain)
 			chainHistoryStr, err := json.Marshal(chainHistory)
 			if err != nil {
+				fmt.Println("Error marshalling chain history JSON")
 				panic(err)
 			}
 			fWriteLn(chainHistoryFileName, chainHistoryStr)
@@ -117,6 +122,7 @@ func main() {
 		kv.Value = value
 		jsonStr, err := json.Marshal(kv)
 		if err != nil {
+			fmt.Println("Error marshalling JSON")
 			panic(err)
 		}
 		fWriteLn(backupDataFileName, jsonStr)
@@ -133,6 +139,7 @@ func main() {
 		chainHistory.Chains = append(chainHistory.Chains, prevChain)
 		chainHistoryStr, err := json.Marshal(chainHistory)
 		if err != nil {
+			fmt.Println("Error marshalling chain history JSON")
 			panic(err)
 		}
 		fWriteLn(chainHistoryFileName, chainHistoryStr)
