@@ -97,6 +97,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.db.Version()
 	res.LastBlockAppHash = app.state.db.Hash()
+	res.AppVersion = 1
 	app.CurrentBlock = app.state.db.Version()
 	return res
 }
