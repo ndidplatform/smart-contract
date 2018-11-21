@@ -12,6 +12,7 @@ import (
 	"github.com/ndidplatform/smart-contract/migrate/utils"
 	"github.com/tendermint/iavl"
 	dbm "github.com/tendermint/tendermint/libs/db"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
 var (
@@ -22,7 +23,7 @@ func main() {
 	// Variable
 	dbDir := getEnv("DB_NAME", "DB1")
 	dbName := "didDB"
-	backupDbDir := getEnv("BACKUP_DB_FILE", "Backup_DB")
+	// backupDbDir := getEnv("BACKUP_DB_FILE", "Backup_DB")
 	backupDataFileName := getEnv("BACKUP_DATA_FILE", "data")
 	backupValidatorFileName := getEnv("BACKUP_VALIDATORS_FILE", "validators")
 	chainHistoryFileName := getEnv("CHAIN_HISTORY_FILE", "chain_history")
@@ -31,7 +32,7 @@ func main() {
 	// Delete backup file
 	deleteFile("migrate/data/" + backupDataFileName + ".txt")
 	deleteFile("migrate/data/" + backupValidatorFileName + ".txt")
-	os.Remove(backupDbDir)
+	// os.Remove(backupDbDir)
 	deleteFile("migrate/data/" + chainHistoryFileName + ".txt")
 
 	// Save previous chain info
@@ -54,11 +55,11 @@ func main() {
 	fmt.Println("Latest Block Hash: " + latestBlockHash)
 	fmt.Println("Latest App Hash: " + latestAppHash)
 
-	// Copy stateDB dir
-	copyDir(dbDir, backupDbDir)
-
 	// Save kv from backup DB
-	db := dbm.NewDB(dbName, "leveldb", backupDbDir)
+	db, err := dbm.NewGoLevelDBWithOpts(dbName, dbDir, &opt.Options{ReadOnly: true})
+	if err != nil {
+		panic(err)
+	}
 	oldTree := iavl.NewMutableTree(db, 0)
 	oldTree.Load()
 	tree, _ := oldTree.GetImmutable(backupBlockNumber)
