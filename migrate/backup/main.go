@@ -63,7 +63,7 @@ func main() {
 		panic(err)
 	}
 	oldTree := iavl.NewMutableTree(db, 0)
-	oldTree.Load()
+	oldTree.LoadVersion(backupBlockNumber)
 	tree, _ := oldTree.GetImmutable(backupBlockNumber)
 	_, ndidNodeID := tree.Get(prefixKey([]byte("MasterNDID")))
 	tree.Iterate(func(key []byte, value []byte) (stop bool) {
