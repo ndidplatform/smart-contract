@@ -43,6 +43,8 @@ import (
 )
 
 var tendermintAddr = getEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
+var tendermintAddr2 = getEnv("TENDERMINT_ADDRESS", "http://localhost:45001")
+var tendermintAddr3 = getEnv("TENDERMINT_ADDRESS", "http://localhost:45002")
 
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
@@ -179,12 +181,21 @@ func queryTendermint(fnName []byte, param []byte) (interface{}, error) {
 	return body, nil
 }
 
-func getValidatorPubkey() string {
+func getValidatorPubkey(n int) string {
 	var URL *url.URL
-	URL, err := url.Parse(tendermintAddr)
+	tmAddr := ""
+	if n == 1 {
+		tmAddr = tendermintAddr
+	} else if n == 2 {
+		tmAddr = tendermintAddr2
+	} else {
+		tmAddr = tendermintAddr3
+	}
+	URL, err := url.Parse(tmAddr)
 	if err != nil {
 		panic("boom")
 	}
+
 	URL.Path += "/status"
 	parameters := url.Values{}
 	URL.RawQuery = parameters.Encode()

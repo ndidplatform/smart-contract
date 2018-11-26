@@ -1251,8 +1251,22 @@ func TestIdPUpdateNode(t *testing.T) {
 
 func TestSetValidator(t *testing.T) {
 	var param did.SetValidatorParam
-	param.PublicKey = getValidatorPubkey()
+	param.PublicKey = getValidatorPubkey(1)
 	param.Power = 100
+	SetValidator(t, param)
+}
+
+func TestSetValidator2(t *testing.T) {
+	var param did.SetValidatorParam
+	param.PublicKey = getValidatorPubkey(2)
+	param.Power = 1
+	SetValidator(t, param)
+}
+
+func TestSetValidator3(t *testing.T) {
+	var param did.SetValidatorParam
+	param.PublicKey = getValidatorPubkey(3)
+	param.Power = 1
 	SetValidator(t, param)
 }
 
@@ -2729,3 +2743,10 @@ func TestDisableAllNode(t *testing.T) {
 func TestGetChainHistory(t *testing.T) {
 	GetChainHistory(t)
 }
+
+// func TestSetValidator0(t *testing.T) {
+// 	var param did.SetValidatorParam
+// 	param.PublicKey = getValidatorPubkey(3)
+// 	param.Power = 0
+// 	SetValidator(t, param)
+// }
