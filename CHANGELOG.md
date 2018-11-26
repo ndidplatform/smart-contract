@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BUG FIXES:
+
+- [DeliverTx] Return invalid error when set non existent validator (`SetValidator`)
+
 ## 0.13.0 (November 21, 2018)
 
 BREAKING CHANGES:
