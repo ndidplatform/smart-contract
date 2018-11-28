@@ -35,6 +35,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -43,7 +44,8 @@ var (
 )
 
 type State struct {
-	db *iavl.MutableTree
+	db        *iavl.MutableTree
+	checkTxDB dbm.DB
 }
 
 func prefixKey(key []byte) []byte {
@@ -62,7 +64,7 @@ type DIDApplication struct {
 	CurrentChain string
 }
 
-func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
+func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree, checkTxDB dbm.DB) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -71,6 +73,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	}()
 	var state State
 	state.db = tree
+	state.checkTxDB = checkTxDB
 	ABCIversion := "0.13.0" // Hard code set version
 	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
@@ -180,6 +183,15 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	nonce := txObj.Nonce
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
+
+	// Check duplicate nonce is checkTx stateDB
+	if app.state.checkTxDB.Get(nonce) == nil {
+		app.state.checkTxDB.Set(nonce, []byte("1"))
+	} else {
+		res.Code = code.DuplicateNonce
+		res.Log = "Duplicate Nonce"
+		return res
+	}
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
