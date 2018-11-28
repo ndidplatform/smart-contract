@@ -189,7 +189,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		app.state.checkTxDB.Set(nonce, []byte("1"))
 	} else {
 		res.Code = code.DuplicateNonce
-		res.Log = "Duplicate Nonce"
+		res.Log = "Duplicate nonce"
 		return res
 	}
 
