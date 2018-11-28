@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- [Docker] Update Tendermint version to v0.26.4
+
 ## 0.13.0 (November 21, 2018)
 
 BREAKING CHANGES:
