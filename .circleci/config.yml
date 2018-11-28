@@ -70,6 +70,34 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push $REPO_NAME/abci:$DOCKER_TAG
             docker push $REPO_NAME/tendermint:$DOCKER_TAG
+  push_dev_to_docker_hub:
+    docker:
+      - image: circleci/node:carbon
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build docker images
+          command: |
+            cd docker
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG_DEV:-development}
+            ./build.sh
+      - run:
+          name: Push to docker hub
+          command: |
+            if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
+            then
+              echo "Missing required environment variables"
+              echo "- DOCKER_USER"
+              echo "- DOCKER_PASS"
+              exit 1
+            fi
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG_DEV:-development}
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push $REPO_NAME/abci:$DOCKER_TAG
+            docker push $REPO_NAME/tendermint:$DOCKER_TAG
 workflows:
   version: 2
   build_and_deploy:
@@ -79,5 +107,11 @@ workflows:
           filters:
             branches:
               only: master
+          requires:
+            - build
+      - push_dev_to_docker_hub:
+          filters:
+            branches:
+              only: development
           requires:
             - build
