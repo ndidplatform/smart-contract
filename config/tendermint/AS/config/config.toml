@@ -22,7 +22,7 @@ db_backend = "leveldb"
 db_dir = "data"
 
 # Output level for logging, including package level options
-log_level = "main:info,state:info,*:error"
+log_level = "*:info"
 
 ##### additional base config options #####
 
@@ -117,16 +117,16 @@ max_num_inbound_peers = 40
 max_num_outbound_peers = 10
 
 # Time to wait before flushing messages out on the connection
-flush_throttle_timeout = "100ms"
+flush_throttle_timeout = "10ms"
 
 # Maximum size of a message packet payload, in bytes
-max_packet_msg_payload_size = 1024
+max_packet_msg_payload_size = 10240
 
 # Rate at which packets can be sent, in bytes/second
-send_rate = 5120000
+send_rate = 20971520
 
 # Rate at which packets can be received, in bytes/second
-recv_rate = 5120000
+recv_rate = 20971520
 
 # Set true to enable the peer-exchange reactor
 pex = true
