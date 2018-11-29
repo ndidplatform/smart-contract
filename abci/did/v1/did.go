@@ -23,11 +23,11 @@
 package did
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
-	"encoding/base64"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
