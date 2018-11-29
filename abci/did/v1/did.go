@@ -27,6 +27,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"encoding/base64"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -56,15 +57,16 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state        State
-	ValUpdates   []types.ValidatorUpdate
-	logger       *logrus.Entry
-	Version      string
-	CurrentBlock int64
-	CurrentChain string
+	state            State
+	checkTxTempState map[string][]byte
+	ValUpdates       []types.ValidatorUpdate
+	logger           *logrus.Entry
+	Version          string
+	CurrentBlock     int64
+	CurrentChain     string
 }
 
-func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree, checkTxDB dbm.DB) *DIDApplication {
+func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -73,13 +75,14 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree, checkTxDB d
 	}()
 	var state State
 	state.db = tree
-	state.checkTxDB = checkTxDB
+
 	ABCIversion := "0.13.0" // Hard code set version
 	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
-		state:   state,
-		logger:  logger,
-		Version: ABCIversion,
+		state:            state,
+		checkTxTempState: make(map[string][]byte),
+		logger:           logger,
+		Version:          ABCIversion,
 	}
 }
 
@@ -184,9 +187,10 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	// Check duplicate nonce is checkTx stateDB
-	if app.state.checkTxDB.Get(nonce) == nil {
-		app.state.checkTxDB.Set(nonce, []byte("1"))
+	if app.checkTxTempState[nonceBase64] == nil {
+		app.checkTxTempState[nonceBase64] = []byte("1")
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
@@ -213,6 +217,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
+	app.checkTxTempState = make(map[string][]byte)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
