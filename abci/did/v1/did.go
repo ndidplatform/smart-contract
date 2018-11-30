@@ -238,9 +238,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
-	for key := range app.deliverTxResult {
-		delete(app.checkTxTempState, key)
-	}
+	app.checkTxTempState = make(map[string][]byte)
 	app.deliverTxResult = make(map[string]types.ResponseDeliverTx)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
