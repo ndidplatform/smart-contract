@@ -73,7 +73,6 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
 				result.Log = err.Error()
-				return result
 			}
 			// FIXME: Need a better way to store report or remove it in later release
 			// Write burn token report

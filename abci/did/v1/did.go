@@ -156,16 +156,16 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
-	// ---- Check duplicate nonce ----
-	nonceDup := app.isDuplicateNonce(nonce)
-	if nonceDup {
-		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
-	}
-
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	result, exist := app.deliverTxResult[nonceBase64]
 	if exist {
 		return result
+	}
+
+	// ---- Check duplicate nonce ----
+	nonceDup := app.isDuplicateNonce(nonce)
+	if nonceDup {
+		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
