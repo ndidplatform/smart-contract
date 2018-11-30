@@ -23,6 +23,7 @@
 package did
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"runtime"
@@ -35,6 +36,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -43,7 +45,8 @@ var (
 )
 
 type State struct {
-	db *iavl.MutableTree
+	db        *iavl.MutableTree
+	checkTxDB dbm.DB
 }
 
 func prefixKey(key []byte) []byte {
@@ -54,12 +57,14 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state        State
-	ValUpdates   []types.ValidatorUpdate
-	logger       *logrus.Entry
-	Version      string
-	CurrentBlock int64
-	CurrentChain string
+	state            State
+	checkTxTempState map[string][]byte
+	deliverTxResult  map[string]types.ResponseDeliverTx
+	ValUpdates       []types.ValidatorUpdate
+	logger           *logrus.Entry
+	Version          string
+	CurrentBlock     int64
+	CurrentChain     string
 }
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
@@ -71,12 +76,15 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	}()
 	var state State
 	state.db = tree
+
 	ABCIversion := "0.13.0" // Hard code set version
 	logger.Infof("Start ABCI version: %s", ABCIversion)
 	return &DIDApplication{
-		state:   state,
-		logger:  logger,
-		Version: ABCIversion,
+		state:            state,
+		checkTxTempState: make(map[string][]byte),
+		deliverTxResult:  make(map[string]types.ResponseDeliverTx),
+		logger:           logger,
+		Version:          ABCIversion,
 	}
 }
 
@@ -150,6 +158,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+	result, exist := app.deliverTxResult[nonceBase64]
+	if exist {
+		return result
+	}
+
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" {
@@ -181,6 +195,17 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+	// Check duplicate nonce in checkTx stateDB
+	_, exist := app.checkTxTempState[nonceBase64]
+	if !exist {
+		app.checkTxTempState[nonceBase64] = []byte("1")
+	} else {
+		res.Code = code.DuplicateNonce
+		res.Log = "Duplicate nonce"
+		return res
+	}
+
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
@@ -201,6 +226,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
+	app.checkTxTempState = make(map[string][]byte)
+	app.deliverTxResult = make(map[string]types.ResponseDeliverTx)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
