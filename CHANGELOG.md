@@ -1,10 +1,15 @@
 # Changelog
 
-## TBD
+## TBD (Reset chain required)
+
+IMPROVEMENTS:
+
+- [Docker] Update Tendermint version to v0.26.4
 
 BUG FIXES:
 
 - [DeliverTx] Return invalid error when set non existent validator (`SetValidator`)
+- [DeliverTx] Check request is not closed or timed out (`SetDataReceived`).
 
 ## 0.13.0 (November 21, 2018)
 
