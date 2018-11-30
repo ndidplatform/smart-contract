@@ -335,6 +335,17 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	// Check IsClosed
+	if request.Closed {
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
+	}
+
+	// Check IsTimedOut
+	if request.TimedOut {
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
+	}
+
 	// Check as_id is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {

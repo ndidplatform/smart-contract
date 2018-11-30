@@ -6,7 +6,7 @@ services:
     image: ndidplatform/tendermint:latest
     environment:
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
-      - DEV_ENV=true
+      - DEV_ENV=${DEV_ENV:-true}
     command: 
       - genesis
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
@@ -28,7 +28,7 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
-      - DEV_ENV=true
+      - DEV_ENV=${DEV_ENV:-true}
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
@@ -49,7 +49,7 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
-      - DEV_ENV=true
+      - DEV_ENV=${DEV_ENV:-true}
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
@@ -70,7 +70,7 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
-      - DEV_ENV=true
+      - DEV_ENV=${DEV_ENV:-true}
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
