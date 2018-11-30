@@ -188,7 +188,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	nodeID := txObj.NodeId
 
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	// Check duplicate nonce is checkTx stateDB
+	// Check duplicate nonce in checkTx stateDB
 	_, exist := app.checkTxTempState[nonceBase64]
 	if !exist {
 		app.checkTxTempState[nonceBase64] = []byte("1")
