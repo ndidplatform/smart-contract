@@ -50,9 +50,6 @@ func NewDIDApplicationInterface() *DIDApplicationInterface {
 	tree.Load()
 	tree.LoadVersion(tree.Version())
 
-	// checkTxDb.Set([]byte("test"), []byte("1111"))
-	// fmt.Println(checkTxDb.Get([]byte("test")))
-
 	return &DIDApplicationInterface{
 		appV1: didV1.NewDIDApplication(logger, tree),
 		// appV2: didV2.NewDIDApplication(logger, tree),

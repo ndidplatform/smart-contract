@@ -36,7 +36,6 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
-	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -45,8 +44,7 @@ var (
 )
 
 type State struct {
-	db        *iavl.MutableTree
-	checkTxDB dbm.DB
+	db *iavl.MutableTree
 }
 
 func prefixKey(key []byte) []byte {
