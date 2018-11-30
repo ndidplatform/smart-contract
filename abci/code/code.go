@@ -109,5 +109,6 @@ const (
 	ChainIsDisabled                           uint32 = 82
 	ChainIsNotInitialized                     uint32 = 83
 	DuplicateNonce                            uint32 = 84
+	NotExistValidator                         uint32 = 85
 	UnknownError                              uint32 = 999
 )
