@@ -450,11 +450,11 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		}
 	}
 
-	// ---- Check duplicate nonce ----
-	nonceDupResult := app.checkDuplicateNonce(nonce)
-	if nonceDupResult.Code != code.OK {
-		return nonceDupResult
-	}
+	// // ---- Check duplicate nonce ----
+	// nonceDupResult := app.checkDuplicateNonce(nonce)
+	// if nonceDupResult.Code != code.OK {
+	// 	return nonceDupResult
+	// }
 
 	var publicKey string
 	if method == "InitNDID" {
@@ -641,10 +641,10 @@ func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) checkDuplicateNonce(nonce []byte) types.ResponseCheckTx {
+func (app *DIDApplication) isDuplicateNonce(nonce []byte) bool {
 	_, value := app.state.db.Get(prefixKey(nonce))
 	if string(value) == "1" {
-		return ReturnCheckTx(code.DuplicateNonce, "Duplicate nonce")
+		return true
 	}
-	return ReturnCheckTx(code.OK, "")
+	return false
 }

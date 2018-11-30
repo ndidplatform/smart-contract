@@ -156,6 +156,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	// ---- Check duplicate nonce ----
+	nonceDup := app.isDuplicateNonce(nonce)
+	if nonceDup {
+		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
+	}
+
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	result, exist := app.deliverTxResult[nonceBase64]
 	if exist {
@@ -193,6 +199,14 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	// ---- Check duplicate nonce ----
+	nonceDup := app.isDuplicateNonce(nonce)
+	if nonceDup {
+		res.Code = code.DuplicateNonce
+		res.Log = "Duplicate nonce"
+		return res
+	}
+
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	// Check duplicate nonce in checkTx stateDB
 	_, exist := app.checkTxTempState[nonceBase64]
@@ -224,7 +238,9 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
-	app.checkTxTempState = make(map[string][]byte)
+	for key := range app.deliverTxResult {
+		delete(app.checkTxTempState, key)
+	}
 	app.deliverTxResult = make(map[string]types.ResponseDeliverTx)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }

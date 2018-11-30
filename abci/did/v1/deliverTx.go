@@ -79,11 +79,14 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 			// Write burn token report
 			// only have result.Data in some method
 			// writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
-
-			// Set used nonce to stateDB
-			app.SetStateDB([]byte(nonce), []byte("1"))
 		}
 	}
+
+	// Set used nonce to stateDB
+	app.SetStateDB([]byte(nonce), []byte("1"))
+
+	// nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+
 	// Save processed DeliverTx results in case Tendermint (client) disconnects
 	// (caused by process stopped/killed) from ABCI server in the middle of
 	// processing DeliverTxs in a block so that ABCI server can return a result
