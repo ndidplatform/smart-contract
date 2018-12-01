@@ -29,11 +29,12 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     cd $GOPATH/src/github.com/tendermint
     git clone https://github.com/tendermint/tendermint.git
     cd tendermint
-    git checkout v0.26.3
+    git checkout v0.26.4
     dep ensure
     make get_tools
     make get_vendor_deps
-    make install
+    # Install Tendermint
+    CGO_ENABLED=1 go install -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "tendermint gcc" ./cmd/tendermint/
     ```
 
 ## Setup
@@ -69,7 +70,9 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    DB_NAME=IdP_DB go run abci/server.go tcp://127.0.0.1:46000
+    mkdir -p IdP_DB
+
+    CGO_ENABLED=1 DB_NAME=IdP_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46000
     ```
 
 2.  Run tendermint
@@ -87,7 +90,9 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    DB_NAME=RP_DB go run abci/server.go tcp://127.0.0.1:46001
+    mkdir -p RP_DB
+
+    CGO_ENABLED=1 DB_NAME=RP_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
@@ -105,7 +110,9 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
-    DB_NAME=AS_DB go run abci/server.go tcp://127.0.0.1:46002
+    mkdir -p AS_DB
+
+    CGO_ENABLED=1 DB_NAME=AS_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint
