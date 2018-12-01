@@ -42,7 +42,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
       rm -f v1.20.tar.gz
     ```
 
-  * OSX (Homebrew)
+  * macOS (Homebrew)
 
     ```sh
     brew install snappy
