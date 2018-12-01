@@ -45,7 +45,7 @@ func NewDIDApplicationInterface() *DIDApplicationInterface {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
 	var dbDir = getEnv("DB_NAME", "DID")
 	name := "didDB"
-	db := dbm.NewDB(name, "leveldb", dbDir)
+	db := dbm.NewDB(name, "cleveldb", dbDir)
 	tree := iavl.NewMutableTree(db, 0)
 	tree.Load()
 
