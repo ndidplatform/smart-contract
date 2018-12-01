@@ -100,7 +100,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p IdP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46000
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46000
     ```
 
 2.  Run tendermint
@@ -120,7 +120,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p RP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46001
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
@@ -140,7 +140,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p AS_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46002
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags "'tendermint' gcc" abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint
