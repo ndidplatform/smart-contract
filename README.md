@@ -21,7 +21,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   * [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   * Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-* LevelDB version >= 1.7 with snappy support
+* LevelDB version >= 1.7 and snappy
 
   * Ubuntu (Ref: https://tendermint.com/docs/introduction/install.html#compile-with-cleveldb-support)
 
