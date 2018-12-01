@@ -49,7 +49,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     brew install leveldb
     ```
 
-* Tendermint 0.26.3
+* Tendermint 0.26.4
 
     ```sh
     go get -u github.com/golang/dep/cmd/dep
