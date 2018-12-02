@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine as builder
+FROM golang:1.11-alpine3.8 as builder
 
 # This is the release of dep to pull in.
 ENV DEP_VERSION v0.4.1
@@ -49,7 +49,7 @@ RUN go install \
     ./cmd/tendermint/
 
 
-FROM alpine:3.7
+FROM alpine:3.8
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 
 # Tendermint will be looking for genesis file in /tendermint (unless you change
