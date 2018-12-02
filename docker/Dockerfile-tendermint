@@ -1,18 +1,52 @@
-FROM alpine:3.7 as build
+FROM golang:1.11-alpine as builder
 
-# This is the release of tendermint to pull in.
-ENV TM_DOWNLOAD_PATH 0.26.4
+# This is the release of dep to pull in.
+ENV DEP_VERSION v0.4.1
+ENV DEP_SHA256SUM 31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
+
 ENV TM_VERSION 0.26.4
-ENV TM_SHA256SUM 442d0056f6ef3899f4731b4e6dba0cce14b5713fea8e0f3e8b956ddaff076e3c
 
+# Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
+        g++ \
+        gcc \
+        make \
+        git \
         openssl \
-        && \
-    wget -qO /tmp/tendermint.zip https://github.com/tendermint/tendermint/releases/download/v${TM_DOWNLOAD_PATH}/tendermint_${TM_VERSION}_linux_amd64.zip && \
-    echo "${TM_SHA256SUM}  /tmp/tendermint.zip" | sha256sum -c && \
-    unzip -d /usr/bin /tmp/tendermint.zip && \
-    rm -f tendermint.zip && \
-    apk del .build-deps
+        snappy-dev
+
+# Install LevelDB
+WORKDIR /
+RUN wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+    tar -zxvf v1.20.tar.gz && \
+    cd leveldb-1.20/ && \
+    make
+RUN cp -r /leveldb-1.20/out-static/lib* /leveldb-1.20/out-shared/lib* /usr/local/lib/ && \
+    mkdir -p /usr/local/include/leveldb && \
+    cp -r /leveldb-1.20/include/leveldb /usr/local/include/ && \
+    ldconfig /usr/local/lib && \
+    rm -f /v1.20.tar.gz
+
+# Install dep
+RUN wget -qO /usr/local/bin/dep https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64 && \
+    echo "${DEP_SHA256SUM}  /usr/local/bin/dep" | sha256sum -c && \
+    chmod +x /usr/local/bin/dep
+
+# Install Tendermint
+RUN mkdir -p $GOPATH/src/github.com/tendermint
+
+WORKDIR $GOPATH/src/github.com/tendermint
+RUN git clone https://github.com/tendermint/tendermint.git
+
+WORKDIR $GOPATH/src/github.com/tendermint/tendermint
+RUN git checkout v$TM_VERSION
+RUN make get_vendor_deps
+ENV CGO_ENABLED=1
+ENV CGO_LDFLAGS="-lsnappy"
+RUN go install \
+    -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" \
+    -tags "tendermint gcc" \
+    ./cmd/tendermint/
 
 
 FROM alpine:3.7
@@ -28,14 +62,18 @@ ENV TMHOME /tendermint
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
 
-COPY --from=build /var/cache/apk /var/cache/apk
+COPY --from=builder /var/cache/apk /var/cache/apk
 
 # jq and curl used for extracting `pub_key` from private validator while
 # deploying tendermint with Kubernetes. It is nice to have bash so the users
 # could execute bash commands.
-RUN apk update && apk add --no-cache bash curl jq && rm -rf /var/cache/apk
+# Install snappy lib used by LevelDB
+RUN apk update && apk add --no-cache bash curl jq snappy-dev && rm -rf /var/cache/apk
 
-COPY --from=build /usr/bin/tendermint /usr/bin/tendermint
+# Copy compiled LevelDB lib
+COPY --from=builder /usr/local/lib /usr/local/lib
+
+COPY --from=builder /go/bin/tendermint /usr/bin/tendermint
 COPY docker/start-node.sh /usr/bin/
 RUN mkdir -p ${TMHOME}
 

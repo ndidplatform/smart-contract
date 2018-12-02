@@ -1,12 +1,33 @@
-FROM golang:1.10 as builder
+FROM golang:1.11-alpine as builder
 
 # This is the release of dep to pull in.
 ENV DEP_VERSION v0.4.1
 ENV DEP_SHA256SUM 31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
 
-ENV CGO_ENABLED=0
-RUN curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64 && \
-    echo "${DEP_SHA256SUM} /usr/local/bin/dep" | sha256sum -c && \
+# Install tools and snappy lib
+RUN apk update && apk add --no-cache --virtual .build-deps \
+        g++ \
+        gcc \
+        make \
+        git \
+        openssl \
+        snappy-dev
+
+# Install LevelDB
+WORKDIR /
+RUN wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+    tar -zxvf v1.20.tar.gz && \
+    cd leveldb-1.20/ && \
+    make
+RUN cp -r /leveldb-1.20/out-static/lib* /leveldb-1.20/out-shared/lib* /usr/local/lib/ && \
+    mkdir -p /usr/local/include/leveldb && \
+    cp -r /leveldb-1.20/include/leveldb /usr/local/include/ && \
+    ldconfig /usr/local/lib && \
+    rm -f /v1.20.tar.gz
+
+# Install dep
+RUN wget -qO /usr/local/bin/dep https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64 && \
+    echo "${DEP_SHA256SUM}  /usr/local/bin/dep" | sha256sum -c && \
     chmod +x /usr/local/bin/dep
 
 COPY Gopkg.toml Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/
@@ -17,7 +38,10 @@ COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
 
 WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
-RUN go install
+ENV CGO_ENABLED=1
+ENV CGO_LDFLAGS="-lsnappy"
+RUN go install \
+    -tags "gcc"
 
 
 FROM alpine:3.7
@@ -27,6 +51,14 @@ ENV DB_NAME=/DID
 
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
+
+COPY --from=builder /var/cache/apk /var/cache/apk
+
+# Install snappy lib used by LevelDB
+RUN apk update && apk add --no-cache snappy-dev && rm -rf /var/cache/apk
+
+# Copy compiled LevelDB lib
+COPY --from=builder /usr/local/lib /usr/local/lib
 
 COPY --from=builder /go/bin/abci /usr/bin/abci-server
 RUN mkdir -p ${DB_NAME}

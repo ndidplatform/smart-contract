@@ -52,6 +52,10 @@ tendermint_wait_for_sync_complete() {
   done
 }
 
+tendermint_set_db_backend_cleveldb() {
+  sed -i -E "s/db_backend = .*$/db_backend = \\\"cleveldb\\\"/" ${TMHOME}/config/config.toml
+}
+
 tendermint_set_addr_book_strict() {
   sed -i -E "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${TMHOME}/config/config.toml
 }
@@ -82,6 +86,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
+      tendermint_set_db_backend_cleveldb
       tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
@@ -93,6 +98,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
 
       tendermint_init
+      tendermint_set_db_backend_cleveldb
       tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
