@@ -41,6 +41,7 @@ WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go install \
+    -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
     -tags "gcc"
 
 
@@ -68,4 +69,5 @@ RUN chown -R nobody:nogroup /usr/bin/abci-server ${DB_NAME}
 RUN chmod -R 740 /usr/bin/abci-server ${DB_NAME}
 
 USER nobody
-ENTRYPOINT [ "abci-server" ]
+ENTRYPOINT ["start-node.sh"]
+STOPSIGNAL SIGTERM

@@ -2,7 +2,7 @@
 
 # NDID Smart Contract
 
-tendermint ABCI app
+Tendermint bundled with ABCI app
 
 ## Note
 
@@ -49,22 +49,6 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     brew install leveldb
     ```
 
-* Tendermint 0.26.4
-
-    ```sh
-    go get -u github.com/golang/dep/cmd/dep
-    mkdir -p $GOPATH/src/github.com/tendermint
-    cd $GOPATH/src/github.com/tendermint
-    git clone https://github.com/tendermint/tendermint.git
-    cd tendermint
-    git checkout v0.26.4
-    dep ensure
-    make get_tools
-    make get_vendor_deps
-    # Install Tendermint
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go install -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "tendermint gcc" ./cmd/tendermint/
-    ```
-
 ## Setup
 
 1.  Create a directory for the project
@@ -93,62 +77,38 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
 ### Run IdP node
 
-1.  Run ABCI server
+1.  Run a server
 
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     mkdir -p IdP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
-    ```
-
-2.  Run tendermint
-
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
-
-    tendermint --home ./config/tendermint/IdP unsafe_reset_all && tendermint --home ./config/tendermint/IdP node
+    go run abci/server.go --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/IdP node
     ```
 
 ### Run RP node
 
-1.  Run ABCI server
+1.  Run a server
 
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     mkdir -p RP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46001
-    ```
-
-2.  Run tendermint
-
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
-
-    tendermint --home ./config/tendermint/RP unsafe_reset_all && tendermint --home ./config/tendermint/RP node
+    go run abci/server.go --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/RP node
     ```
     
 ### Run AS node
 
-1.  Run ABCI server
+1.  Run a server
 
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
 
     mkdir -p AS_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46002
-    ```
-
-2.  Run tendermint
-
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
-
-    tendermint --home ./config/tendermint/AS unsafe_reset_all && tendermint --home ./config/tendermint/AS node
+    go run abci/server.go --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/AS node
     ```
 
 ## Run in Docker

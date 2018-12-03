@@ -25,19 +25,38 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
+	// "strings"
+
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
+	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/log"
+	nm "github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proxy"
+
+	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/sirupsen/logrus"
-	server "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tdmLog "github.com/tendermint/tendermint/libs/log"
+	"github.com/ndidplatform/smart-contract/abci/version"
 )
 
 type loggerWriter struct{}
 
-var log *logrus.Entry
+// var mainLogger *logrus.Entry
+
+var abciVersionCmd = &cobra.Command{
+	Use:   "abci_app_version",
+	Short: "Show DID ABCI app version info",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(version.Version)
+	},
+}
 
 func init() {
 	// Set default logrus
@@ -67,70 +86,101 @@ func init() {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.FullTimestamp = true
 	logrus.SetFormatter(customFormatter)
-	log = logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	// mainLogger = logrus.WithFields(logrus.Fields{"module": "abci-app"})
 }
 
 func main() {
-	runABCIServer(os.Args)
+	rootCmd := cmd.RootCmd
+	rootCmd.AddCommand(
+		cmd.GenValidatorCmd,
+		cmd.InitFilesCmd,
+		cmd.ProbeUpnpCmd,
+		cmd.LiteCmd,
+		cmd.ReplayCmd,
+		cmd.ReplayConsoleCmd,
+		cmd.ResetAllCmd,
+		cmd.ResetPrivValidatorCmd,
+		cmd.ShowValidatorCmd,
+		cmd.TestnetFilesCmd,
+		cmd.ShowNodeIDCmd,
+		cmd.GenNodeKeyCmd,
+		cmd.VersionCmd,
+		abciVersionCmd)
+
+	// NOTE:
+	// Users wishing to:
+	//	* Use an external signer for their validators
+	//	* Supply an in-proc abci app
+	//	* Supply a genesis doc file from another source
+	//	* Provide their own DB implementation
+	// can copy this file and use something other than the
+	// DefaultNewNode function
+	nodeFunc := newDIDNode
+
+	// Create & start node
+	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
+
+	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", cfg.DefaultTendermintDir)))
+	if err := cmd.Execute(); err != nil {
+		panic(err)
+	}
 }
 
-func runABCIServer(args []string) {
-	address := args[1]
-
+func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app types.Application
 	app = did.NewDIDApplicationInterface()
 
-	writer := newLoggerWriter()
-	logger := tdmLog.NewTMLogger(tdmLog.NewSyncWriter(writer))
+	// writer := newLoggerWriter()
+	// logger := log.NewTMLogger(log.NewSyncWriter(writer))
 
-	// Start the listener
-	srv, err := server.NewServer(address, "socket", app)
+	// Generate node PrivKey
+	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
-	srv.SetLogger(logger.With("module", "abci-server"))
-	if err := srv.Start(); err != nil {
-		fmt.Println(err.Error())
-	}
-
-	// Wait forever
-	cmn.TrapSignal(func() {
-		srv.Stop()
-	})
+	return nm.NewNode(config,
+		privval.LoadOrGenFilePV(config.PrivValidatorFile()),
+		nodeKey,
+		proxy.NewLocalClientCreator(app),
+		nm.DefaultGenesisDocProviderFunc(config),
+		nm.DefaultDBProvider,
+		nm.DefaultMetricsProvider(config.Instrumentation),
+		logger.With("module", "node"),
+	)
 }
 
-func newLoggerWriter() *loggerWriter {
-	return &loggerWriter{}
-}
+// func newLoggerWriter() *loggerWriter {
+// 	return &loggerWriter{}
+// }
 
-func (w *loggerWriter) Write(p []byte) (int, error) {
-	allMsg := strings.Fields(string(p))
-	charType := allMsg[0][0]
+// func (w *loggerWriter) Write(p []byte) (int, error) {
+// 	allMsg := strings.Fields(string(p))
+// 	charType := allMsg[0][0]
 
-	keyValues := make(map[string]interface{})
-	newMsg := ""
+// 	keyValues := make(map[string]interface{})
+// 	newMsg := ""
 
-	for index, msg := range allMsg {
-		if index > 0 {
-			if strings.Contains(msg, "=") {
-				kv := strings.Split(msg, "=")
-				keyValues[kv[0]] = kv[1]
-			} else {
-				newMsg += msg + " "
-			}
-		}
-	}
+// 	for index, msg := range allMsg {
+// 		if index > 0 {
+// 			if strings.Contains(msg, "=") {
+// 				kv := strings.Split(msg, "=")
+// 				keyValues[kv[0]] = kv[1]
+// 			} else {
+// 				newMsg += msg + " "
+// 			}
+// 		}
+// 	}
 
-	switch string(charType) {
-	case "D":
-		log.WithFields(keyValues).Debug(newMsg)
-	case "E":
-		log.WithFields(keyValues).Error(newMsg)
-	default:
-		log.WithFields(keyValues).Info(newMsg)
-	}
-	return 0, nil
-}
+// 	switch string(charType) {
+// 	case "D":
+// 		mainLogger.WithFields(keyValues).Debug(newMsg)
+// 	case "E":
+// 		mainLogger.WithFields(keyValues).Error(newMsg)
+// 	default:
+// 		mainLogger.WithFields(keyValues).Info(newMsg)
+// 	}
+// 	return 0, nil
+// }
 
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)

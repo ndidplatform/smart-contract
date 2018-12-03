@@ -8,11 +8,11 @@
 
 [[constraint]]
   name = "github.com/tendermint/iavl"
-  version = "0.11.0"
+  version = "=v0.11.1"
 
-[[override]]
+[[constraint]]
   name = "github.com/tendermint/tendermint"
-  version = "0.26.4"
+  version = "v0.26.4"
 
 [prune]
   go-tests = true

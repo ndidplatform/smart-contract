@@ -1,18 +1,10 @@
 version: '3.3'
 services:
-  tendermint:
-    build: 
-      context: ../
-      dockerfile: docker/Dockerfile-tendermint
-      labels:
-        build.commit: ${BUILD_COMMIT}
-        build.date: ${BUILD_DATE}
-    image: ${REPO_NAME:-ndidplatform}/tendermint:${DOCKER_TAG:-latest}
-  abci:
+  tendermint_abci_did:
     build:
       context: ../
-      dockerfile: docker/Dockerfile-abci
+      dockerfile: docker/Dockerfile
       labels:
         build.commit: ${BUILD_COMMIT}
         build.date: ${BUILD_DATE}
-    image: ${REPO_NAME:-ndidplatform}/abci:${DOCKER_TAG:-latest}
+    image: ${REPO_NAME:-ndidplatform}/tendermint_abci_did:${DOCKER_TAG:-latest}

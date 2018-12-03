@@ -31,6 +31,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
@@ -55,14 +56,15 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state            State
-	checkTxTempState map[string][]byte
-	deliverTxResult  map[string]types.ResponseDeliverTx
-	ValUpdates       []types.ValidatorUpdate
-	logger           *logrus.Entry
-	Version          string
-	CurrentBlock     int64
-	CurrentChain     string
+	state              State
+	checkTxTempState   map[string][]byte
+	deliverTxResult    map[string]types.ResponseDeliverTx
+	ValUpdates         []types.ValidatorUpdate
+	logger             *logrus.Entry
+	Version            string
+	AppProtocolVersion uint64
+	CurrentBlock       int64
+	CurrentChain       string
 }
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
@@ -75,14 +77,16 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	var state State
 	state.db = tree
 
-	ABCIversion := "0.13.0" // Hard code set version
-	logger.Infof("Start ABCI version: %s", ABCIversion)
+	ABCIVersion := version.Version
+	ABCIProtocolVersion := version.AppProtocolVersion
+	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:            state,
-		checkTxTempState: make(map[string][]byte),
-		deliverTxResult:  make(map[string]types.ResponseDeliverTx),
-		logger:           logger,
-		Version:          ABCIversion,
+		state:              state,
+		checkTxTempState:   make(map[string][]byte),
+		deliverTxResult:    make(map[string]types.ResponseDeliverTx),
+		logger:             logger,
+		Version:            ABCIVersion,
+		AppProtocolVersion: ABCIProtocolVersion,
 	}
 }
 
@@ -103,7 +107,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.db.Version()
 	res.LastBlockAppHash = app.state.db.Hash()
-	res.AppVersion = 1
+	res.AppVersion = app.AppProtocolVersion
 	app.CurrentBlock = app.state.db.Version()
 	return res
 }
