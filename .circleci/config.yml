@@ -73,8 +73,7 @@ jobs:
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push $REPO_NAME/abci:$DOCKER_TAG
-            docker push $REPO_NAME/tendermint:$DOCKER_TAG
+            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
       - image: circleci/node:carbon
