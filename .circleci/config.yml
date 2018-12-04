@@ -33,11 +33,12 @@ jobs:
       - run:
           name: Start Tendermint with ABCI
           command: |
+            go run abci/server.go --home ./config/tendermint/IdP unsafe_reset_all
             CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB \
             go run \
             -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
             -tags "gcc" \
-            abci/server.go
+            abci/server.go --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 15
