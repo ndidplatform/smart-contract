@@ -2,44 +2,62 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     working_directory: /go/src/github.com/ndidplatform/smart-contract
     steps:
       - checkout
       - run:
-          name: Install Tendermint 0.26.0
+          name: Install tools and snappy
+          command: |
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+                    g++ \
+                    gcc \
+                    make \
+                    git \
+                    libsnappy-dev
+      - run:
+          name: Install LevelDB
+          command: |
+            wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+            tar -zxvf v1.20.tar.gz && \
+            cd leveldb-1.20/ && \
+            make
+            sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
+            sudo mkdir -p /usr/local/include/leveldb && \
+            sudo cp -r include/leveldb /usr/local/include/ && \
+            sudo ldconfig /usr/local/lib
+      - run:
+          name: Install Tendermint 0.26.4
           command: |
             go get -u github.com/golang/dep/cmd/dep
             mkdir -p /go/src/github.com/tendermint
             cd /go/src/github.com/tendermint
             git clone https://github.com/tendermint/tendermint.git
             cd tendermint
-            git checkout v0.26.0
+            git checkout v0.26.4
             make get_vendor_deps
-            make install
+            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go install -ldflags "-X github.com/tendermint/tendermint/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "tendermint gcc" ./cmd/tendermint/
       - run:
-          name: Setup Smartcontract
+          name: Setup Smart Contract
           command: |
-            go get github.com/tendermint/tmlibs/common
             dep ensure
       - run:
           name: Start ABCI
           command: |
-            DB_NAME=IdP_DB go run abci/server.go tcp://127.0.0.1:46000
+            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
           background: true
 
       - run:
           name: Start Tendermint
           command: |
             tendermint --home ./config/tendermint/IdP unsafe_reset_all
-            tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+            tendermint --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 15
       - run:
           name: Test ABCI
           command: |
-            dep ensure
             cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
