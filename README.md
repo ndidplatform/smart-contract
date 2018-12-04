@@ -84,7 +84,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p IdP_DB
 
-    go run abci/server.go --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/IdP node
+    go run ./abci --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags "gcc" ./abci --home ./config/tendermint/IdP node
     ```
 
 ### Run RP node
@@ -96,7 +96,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p RP_DB
 
-    go run abci/server.go --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/RP node
+    go run ./abci --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags "gcc" ./abci --home ./config/tendermint/RP node
     ```
     
 ### Run AS node
@@ -108,7 +108,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p AS_DB
 
-    go run abci/server.go --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags "gcc" abci/server.go --home ./config/tendermint/AS node
+    go run ./abci --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags "gcc" ./abci --home ./config/tendermint/AS node
     ```
 
 ## Run in Docker
