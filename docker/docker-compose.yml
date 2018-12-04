@@ -10,7 +10,6 @@ services:
       - genesis
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-ndid:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -29,7 +28,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-idp:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -48,7 +46,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-rp:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -67,7 +64,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-as:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
