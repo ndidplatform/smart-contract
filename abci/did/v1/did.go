@@ -58,7 +58,6 @@ type DIDApplication struct {
 	types.BaseApplication
 	state              State
 	checkTxTempState   map[string][]byte
-	deliverTxResult    map[string]types.ResponseDeliverTx
 	ValUpdates         []types.ValidatorUpdate
 	logger             *logrus.Entry
 	Version            string
@@ -83,7 +82,6 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	return &DIDApplication{
 		state:              state,
 		checkTxTempState:   make(map[string][]byte),
-		deliverTxResult:    make(map[string]types.ResponseDeliverTx),
 		logger:             logger,
 		Version:            ABCIVersion,
 		AppProtocolVersion: ABCIProtocolVersion,
@@ -159,12 +157,6 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	nonce := txObj.Nonce
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
-
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	result, exist := app.deliverTxResult[nonceBase64]
-	if exist {
-		return result
-	}
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
@@ -243,7 +235,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	app.checkTxTempState = make(map[string][]byte)
-	app.deliverTxResult = make(map[string]types.ResponseDeliverTx)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
