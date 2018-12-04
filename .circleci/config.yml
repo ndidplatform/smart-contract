@@ -9,7 +9,7 @@ jobs:
       - run:
           name: Install tools and snappy
           command: |
-            apt-get update && apt-get install -y --no-install-recommends \
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends \
                     g++ \
                     gcc \
                     make \
@@ -18,15 +18,14 @@ jobs:
       - run:
           name: Install LevelDB
           command: |
-            wget -qO /v1.20.tar.gz https://github.com/google/leveldb/archive/v1.20.tar.gz && \
-            tar -zxvf /v1.20.tar.gz && \
-            cd /leveldb-1.20/ && \
+            wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+            tar -zxvf v1.20.tar.gz && \
+            cd leveldb-1.20/ && \
             make
-            cp -r /leveldb-1.20/out-static/lib* /leveldb-1.20/out-shared/lib* /usr/local/lib/ && \
-            mkdir -p /usr/local/include/leveldb && \
-            cp -r /leveldb-1.20/include/leveldb /usr/local/include/ && \
-            ldconfig /usr/local/lib && \
-            rm -f /v1.20.tar.gz
+            sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
+            sudo mkdir -p /usr/local/include/leveldb && \
+            sudo cp -r include/leveldb /usr/local/include/ && \
+            sudo ldconfig /usr/local/lib
       - run:
           name: Install Tendermint 0.26.4
           command: |
@@ -52,14 +51,13 @@ jobs:
           name: Start Tendermint
           command: |
             tendermint --home ./config/tendermint/IdP unsafe_reset_all
-            tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+            tendermint --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 15
       - run:
           name: Test ABCI
           command: |
-            dep ensure
             cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
