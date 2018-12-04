@@ -36,7 +36,8 @@ jobs:
             CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB \
             go run \
             -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
-            -tags "gcc"
+            -tags "gcc" \
+            abci/server.go
           background: true
 
       - run: sleep 15
