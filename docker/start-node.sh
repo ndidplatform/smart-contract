@@ -24,12 +24,12 @@ usage() {
 
 tendermint_init() {
   echo "Initializing tendermint..."
-  tendermint init --home=${TMHOME}
+  did-tendermint init --home=${TMHOME}
 }
 
 tendermint_reset() {
   echo "Resetting tendermint..."
-  tendermint --home=${TMHOME} unsafe_reset_all
+  did-tendermint --home=${TMHOME} unsafe_reset_all
 }
 
 tendermint_get_genesis_from_seed() {
@@ -92,7 +92,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       tendermint_set_create_empty_block_interval 0
       tendermint_set_mempool_recheck true
       if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
-      tendermint node --moniker=${HOSTNAME} $@
+      did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
@@ -107,7 +107,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       until tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${SEED_RPC_PORT}; do sleep 1; done
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
-      tendermint node --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
+      did-tendermint node --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
     reset)
       tendermint_reset
@@ -121,11 +121,11 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
 else
   case ${TYPE} in
     genesis) 
-      tendermint node --moniker=${HOSTNAME} $@
+      did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary)
       until SEED_ID=$(tendermint_get_id_from_seed); do sleep 1; done
-      tendermint node --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
+      did-tendermint node --moniker=${HOSTNAME} --p2p.seeds=${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT} $@
       ;;
     reset)
       tendermint_reset

@@ -36,6 +36,7 @@ RUN dep ensure --vendor-only
 
 COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
+COPY .git $GOPATH/src/github.com/ndidplatform/smart-contract/.git
 
 WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 ENV CGO_ENABLED=1
@@ -50,23 +51,34 @@ LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
 ENV DB_NAME=/DID
 
+# Tendermint will be looking for genesis file in /tendermint (unless you change
+# `genesis_file` in config.toml). You can put your config.toml and private
+# validator file into /tendermint.
+#
+# The /tendermint/data dir is used by tendermint to store state.
+ENV TMHOME /tendermint
+
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
 
 COPY --from=builder /var/cache/apk /var/cache/apk
 
+# jq and curl used for extracting `pub_key` from private validator while
+# deploying tendermint with Kubernetes. It is nice to have bash so the users
+# could execute bash commands.
 # Install snappy lib used by LevelDB
-RUN apk update && apk add --no-cache snappy-dev && rm -rf /var/cache/apk
+RUN apk update && apk add --no-cache bash curl jq snappy-dev && rm -rf /var/cache/apk
 
 # Copy compiled LevelDB lib
 COPY --from=builder /usr/local/lib /usr/local/lib
 
-COPY --from=builder /go/bin/abci /usr/bin/abci-server
-RUN mkdir -p ${DB_NAME}
+COPY --from=builder /go/bin/abci /usr/bin/did-tendermint
+COPY docker/start-node.sh /usr/bin/
+RUN mkdir -p ${DB_NAME} ${TMHOME}
 
 # Change owner to nobodoy:nogroup and permission to 640
-RUN chown -R nobody:nogroup /usr/bin/abci-server ${DB_NAME}
-RUN chmod -R 740 /usr/bin/abci-server ${DB_NAME}
+RUN chown -R nobody:nogroup /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${DB_NAME}
+RUN chmod -R 740 /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${DB_NAME}
 
 USER nobody
 ENTRYPOINT ["start-node.sh"]
