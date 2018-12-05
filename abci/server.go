@@ -47,8 +47,6 @@ import (
 
 type loggerWriter struct{}
 
-// var mainLogger *logrus.Entry
-
 const (
 	fileDatetimeFormat = "01-02-2006_15:04:05"
 	logTargetConsole   = "console"
@@ -93,6 +91,7 @@ func init() {
 	// mainLogger = logrus.WithFields(logrus.Fields{"module": "abci-app"})
 }
 
+// Ref: github.com/tendermint/tendermint/cmd/tendermint/main.go
 func main() {
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
@@ -130,12 +129,10 @@ func main() {
 	}
 }
 
+// Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
 func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app types.Application
 	app = did.NewDIDApplicationInterface()
-
-	// writer := newLoggerWriter()
-	// logger := log.NewTMLogger(log.NewSyncWriter(writer))
 
 	// Generate node PrivKey
 	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
@@ -152,39 +149,6 @@ func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 		logger.With("module", "node"),
 	)
 }
-
-// func newLoggerWriter() *loggerWriter {
-// 	return &loggerWriter{}
-// }
-
-// func (w *loggerWriter) Write(p []byte) (int, error) {
-// 	allMsg := strings.Fields(string(p))
-// 	charType := allMsg[0][0]
-
-// 	keyValues := make(map[string]interface{})
-// 	newMsg := ""
-
-// 	for index, msg := range allMsg {
-// 		if index > 0 {
-// 			if strings.Contains(msg, "=") {
-// 				kv := strings.Split(msg, "=")
-// 				keyValues[kv[0]] = kv[1]
-// 			} else {
-// 				newMsg += msg + " "
-// 			}
-// 		}
-// 	}
-
-// 	switch string(charType) {
-// 	case "D":
-// 		mainLogger.WithFields(keyValues).Debug(newMsg)
-// 	case "E":
-// 		mainLogger.WithFields(keyValues).Error(newMsg)
-// 	default:
-// 		mainLogger.WithFields(keyValues).Info(newMsg)
-// 	}
-// 	return 0, nil
-// }
 
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)

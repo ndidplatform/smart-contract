@@ -24,18 +24,8 @@ package main
 
 import (
 	"fmt"
-	// "os"
-	// "strconv"
-	// "time"
 
 	"github.com/spf13/cobra"
-	// "github.com/spf13/viper"
-
-	// "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	// cfg "github.com/tendermint/tendermint/config"
-	// tmflags "github.com/tendermint/tendermint/libs/cli/flags"
-	// "github.com/tendermint/tendermint/libs/log"
-	// "github.com/tendermint/tmlibs/cli"
 
 	"github.com/ndidplatform/smart-contract/abci/version"
 )
@@ -47,48 +37,3 @@ var abciVersionCmd = &cobra.Command{
 		fmt.Println(version.Version)
 	},
 }
-
-// func customTMRootCmdPersistentPreRunE(cmd *cobra.Command, args []string) (err error) {
-// 	if cmd.Name() == commands.VersionCmd.Name() {
-// 		return nil
-// 	}
-// 	config, err := commands.ParseConfig()
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	var logTarget = getEnv("TENDERMINT_LOG_TARGET", logTargetConsole)
-// 	var logger log.Logger
-
-// 	if logTarget == logTargetConsole {
-// 		if config.LogFormat == cfg.LogFormatJSON {
-// 			logger = log.NewTMJSONLogger(log.NewSyncWriter(os.Stdout))
-// 		} else {
-// 			logger = log.NewTMLogger(log.NewSyncWriter(os.Stdout))
-// 		}
-// 	} else if logTarget == logTargetFile {
-// 		currentTime := time.Now()
-// 		currentTimeStr := currentTime.Format(fileDatetimeFormat)
-
-// 		var logFilePath = getEnv("TENDERMINT_LOG_FILE_PATH", "./tm-"+strconv.Itoa(os.Getpid())+"-"+currentTimeStr+".log")
-// 		logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
-
-// 		if config.LogFormat == cfg.LogFormatJSON {
-// 			logger = log.NewTMJSONLogger(log.NewSyncWriter(logFile))
-// 		} else {
-// 			logger = log.NewTMLogger(log.NewSyncWriter(logFile))
-// 		}
-// 	} else {
-// 		panic(fmt.Errorf("Unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
-// 	}
-
-// 	logger, err = tmflags.ParseLogLevel(config.LogLevel, logger, cfg.DefaultLogLevel())
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if viper.GetBool(cli.TraceFlag) {
-// 		logger = log.NewTracingLogger(logger)
-// 	}
-// 	logger = logger.With("module", "main")
-// 	return nil
-// }
