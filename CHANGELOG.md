@@ -4,9 +4,15 @@
 
 IMPROVEMENTS:
 
-- [Docker] Update Tendermint version to v0.26.4
-- [Docker] Build Tendermint and ABCI app server images with cleveldb support.
+- Bundle ABCI app (proxy app) with Tendermint into single process.
 - Use cleveldb instead of goleveldb.
+- Update Tendermint version to v0.26.4.
+- Change environment variable names and behavior
+  - `DB_NAME` changed to `ABCI_DB_DIR_PATH`.
+  - `LOG_LEVEL` changed to `ABCI_LOG_LEVEL`.
+  - `LOG_TARGET` changed to `ABCI_LOG_TARGET` and accepts only either `console` or `file`.
+  - New variable `ABCI_LOG_FILE_PATH` for specifying log file path when `ABCI_LOG_TARGET` is set to `file`.
+- [Docker] Build Tendermint bundled with ABCI app (proxy app) image with cleveldb support.
 
 BUG FIXES:
 
