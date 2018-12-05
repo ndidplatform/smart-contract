@@ -34,7 +34,7 @@ jobs:
           name: Start Tendermint with ABCI
           command: |
             go run abci/server.go --home ./config/tendermint/IdP unsafe_reset_all
-            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB \
+            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB \
             go run \
             -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
             -tags "gcc" \

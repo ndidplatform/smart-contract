@@ -49,7 +49,7 @@ RUN go install \
 FROM alpine:3.8
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
-ENV DB_NAME=/DID
+ENV ABCI_DB_DIR_PATH=/DID
 
 # Tendermint will be looking for genesis file in /tendermint (unless you change
 # `genesis_file` in config.toml). You can put your config.toml and private
@@ -74,11 +74,11 @@ COPY --from=builder /usr/local/lib /usr/local/lib
 
 COPY --from=builder /go/bin/abci /usr/bin/did-tendermint
 COPY docker/start-node.sh /usr/bin/
-RUN mkdir -p ${DB_NAME} ${TMHOME}
+RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
 
 # Change owner to nobodoy:nogroup and permission to 640
-RUN chown -R nobody:nogroup /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${DB_NAME}
-RUN chmod -R 740 /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${DB_NAME}
+RUN chown -R nobody:nogroup /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
+RUN chmod -R 740 /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
 
 USER nobody
 ENTRYPOINT ["start-node.sh"]

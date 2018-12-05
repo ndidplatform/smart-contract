@@ -26,10 +26,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	// "strings"
+	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
@@ -43,32 +43,36 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/ndidplatform/smart-contract/abci/version"
 )
 
 type loggerWriter struct{}
 
 // var mainLogger *logrus.Entry
 
-var abciVersionCmd = &cobra.Command{
-	Use:   "abci_app_version",
-	Short: "Show DID ABCI app version info",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(version.Version)
-	},
-}
+const (
+	fileDatetimeFormat = "01-02-2006_15:04:05"
+	logTargetConsole   = "console"
+	logTargetFile      = "file"
+)
 
 func init() {
 	// Set default logrus
 
-	var logLevel = getEnv("LOG_LEVEL", "debug")
-	var logTarget = getEnv("LOG_TARGET", "console")
+	var logLevel = getEnv("ABCI_LOG_LEVEL", "debug")
+	var logTarget = getEnv("ABCI_LOG_TARGET", logTargetConsole)
 
-	if logTarget != "console" {
-		logFile, _ := os.OpenFile(logTarget, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	currentTime := time.Now()
+	currentTimeStr := currentTime.Format(fileDatetimeFormat)
+
+	var logFilePath = getEnv("ABCI_LOG_FILE_PATH", "./abci-"+strconv.Itoa(os.Getpid())+"-"+currentTimeStr+".log")
+
+	if logTarget == logTargetConsole {
+		logrus.SetOutput(os.Stdout)
+	} else if logTarget == logTargetFile {
+		logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		logrus.SetOutput(logFile)
 	} else {
-		logrus.SetOutput(os.Stdout)
+		panic(fmt.Errorf("Unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
 	}
 
 	switch logLevel {
