@@ -48,7 +48,7 @@ import (
 type loggerWriter struct{}
 
 const (
-	fileDatetimeFormat = "01-02-2006_15:04:05"
+	fileDatetimeFormat = "02-01-2006_15-04-05"
 	logTargetConsole   = "console"
 	logTargetFile      = "file"
 )
