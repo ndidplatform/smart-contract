@@ -12,6 +12,7 @@ IMPROVEMENTS:
   - `LOG_LEVEL` changed to `ABCI_LOG_LEVEL`.
   - `LOG_TARGET` changed to `ABCI_LOG_TARGET` and accepts only either `console` or `file`.
   - New variable `ABCI_LOG_FILE_PATH` for specifying log file path when `ABCI_LOG_TARGET` is set to `file`.
+  - New variable `ABCI_DB_TYPE` for specifying database backend type to use. Options are the same as Tendermint's `db_backend` config. Default is `cleveldb`.
 - [Docker] Build Tendermint bundled with ABCI app (proxy app) image with cleveldb support.
 
 BUG FIXES:

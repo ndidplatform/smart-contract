@@ -72,6 +72,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 **Environment variable options**
 
 - `ABCI_DB_DIR_PATH`: Directory path for ABCI app persistence data files [Default: `./DID`]
+- `ABCI_DB_TYPE`: Database type (same options as Tendermint's `db_backend`) [Default: `cleveldb`]
 - `ABCI_LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
 - `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci.log`]
