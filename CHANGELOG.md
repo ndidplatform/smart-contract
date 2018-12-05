@@ -5,6 +5,8 @@
 IMPROVEMENTS:
 
 - [Docker] Update Tendermint version to v0.26.4
+- [Docker] Build Tendermint and ABCI app server images with cleveldb support.
+- Use cleveldb instead of goleveldb.
 
 BUG FIXES:
 
