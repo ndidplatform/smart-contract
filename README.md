@@ -4,26 +4,16 @@
 
 Tendermint bundled with ABCI app
 
-## Note
-
-Test this app with command below
-
-```sh
-cd test
-dep ensure
-TENDERMINT_ADDRESS=http://localhost:45000 go test -v
-```
-
 ## Prerequisites
 
-* Go version >= 1.9.2
+- Go version >= 1.9.2
 
-  * [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
-  * Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
+  - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
+  - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-* LevelDB version >= 1.7 and snappy
+- LevelDB version >= 1.7 and snappy
 
-  * Ubuntu (Ref: https://tendermint.com/docs/introduction/install.html#compile-with-cleveldb-support)
+  - Ubuntu (Ref: https://tendermint.com/docs/introduction/install.html#compile-with-cleveldb-support)
 
     ```sh
     sudo apt-get update
@@ -42,7 +32,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
       rm -f v1.20.tar.gz
     ```
 
-  * macOS (Homebrew)
+  - macOS (Homebrew)
 
     ```sh
     brew install snappy
@@ -58,6 +48,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
     ```
 
 2.  Clone the project
+
     ```sh
     git clone https://github.com/ndidplatform/smart-contract.git $GOPATH/src/github.com/ndidplatform/smart-contract
     ```
@@ -77,44 +68,60 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 - `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
 
-### Run IdP node
+## Build
 
-1.  Run a server
+```sh
+CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go build -tags "gcc" -o ./did-tendermint ./abci
+```
 
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+## Usage
 
-    mkdir -p IdP_DB
+```sh
+./did-tendermint --home $TENDERMINT_HOME_DIR node
+```
 
-    go run ./abci --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags "gcc" ./abci --home ./config/tendermint/IdP node
-    ```
+### Examples
 
-### Run RP node
+- Run IdP node
 
-1.  Run a server
+  ```sh
+  ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all && ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
+  ```
 
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+  or
 
-    mkdir -p RP_DB
+  ```sh
+  go run ./abci --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags "gcc" ./abci --home ./config/tendermint/IdP node
+  ```
 
-    go run ./abci --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=RP_DB go run -tags "gcc" ./abci --home ./config/tendermint/RP node
-    ```
-    
-### Run AS node
+- Run RP node
 
-1.  Run a server
+  ```sh
+  ./did-tendermint --home ./config/tendermint/RP unsafe_reset_all && ABCI_DB_DIR_PATH=RP_DB ./did-tendermint --home ./config/tendermint/RP node
+  ```
 
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
+  or
 
-    mkdir -p AS_DB
+  ```sh
+  go run ./abci --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=RP_DB go run -tags "gcc" ./abci --home ./config/tendermint/RP node
+  ```
 
-    go run ./abci --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=AS_DB go run -tags "gcc" ./abci --home ./config/tendermint/AS node
-    ```
+- Run AS node
+
+  ```sh
+  ./did-tendermint --home ./config/tendermint/AS unsafe_reset_all && ABCI_DB_DIR_PATH=AS_DB ./did-tendermint --home ./config/tendermint/AS node
+  ```
+
+  or
+
+  ```sh
+  go run ./abci --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=AS_DB go run -tags "gcc" ./abci --home ./config/tendermint/AS node
+  ```
 
 ## Run in Docker
+
 Required
+
 - Docker CE 17.06+ [Install docker](https://docs.docker.com/install/)
 - docker-compose 1.14.0+ [Install docker-compose](https://docs.docker.com/compose/install/)
 
@@ -132,9 +139,9 @@ docker-compose -f docker/docker-compose.yml up
 
 ### Note about docker
 
-* To run docker container without building image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/). 
-* To pull latest image from Dockerhub, run `docker pull ndidplatform/abci` and ``docker pull ndidplatform/tendermint``
-    
+- To run docker container without building image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/).
+- To pull latest image from Dockerhub, run `docker pull ndidplatform/abci` and `docker pull ndidplatform/tendermint`
+
 ## IMPORTANT NOTE
 
 1.  You must start IDP, RP and AS nodes in order to run the platform.
@@ -149,6 +156,16 @@ docker-compose -f docker/docker-compose.yml up
 
 3.  When running IDP node and RP node on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
 
+## Tests
+
+Test this app with the command below
+
+```sh
+cd test
+
+TENDERMINT_ADDRESS=http://localhost:45000 go test -v
+```
+
 ## Migrate Chain
 
 1.  Run backup script
@@ -162,7 +179,7 @@ docker-compose -f docker/docker-compose.yml up
     ```
 
     **Environment variable options**
- 
+
     - `BLOCK_NUMBER` : Backup block number
     - `DB_NAME` : Source directory path for copy stateDB
     - `BACKUP_DB_DIR` : Destination directory path for copy stateDB
@@ -170,8 +187,8 @@ docker-compose -f docker/docker-compose.yml up
     - `BACKUP_VALIDATORS_FILE` : File path for save validators data
     - `CHAIN_HISTORY_FILE` : File path for save chain history data
 
-2.  Run restore script 
-    
+2.  Run restore script
+
     ```sh
     cd $GOPATH/src/github.com/ndidplatform/smart-contract
     ```
@@ -181,7 +198,7 @@ docker-compose -f docker/docker-compose.yml up
     ```
 
     **Environment variable options**
- 
+
     - `NDID_NODE_ID` : NDID node id
     - `BACKUP_DATA_FILE` : File path for save data
     - `CHAIN_HISTORY_FILE` : File path for save chain history data
@@ -197,13 +214,14 @@ docker-compose -f docker/docker-compose.yml up
     ```
 
     **Environment variable options**
- 
+
     - `NDID_NODE_ID` : NDID node id
     - `BACKUP_VALIDATORS_FILE` : File path for save validators data
 
 # Technical details to connect with `api`
 
 # Broadcast tx format (Protobuf)
+
 ```
 message Tx {
   string method = 1;
@@ -215,6 +233,7 @@ message Tx {
 ```
 
 # Query format (Protobuf)
+
 ```
 message Query {
   string method = 1;
@@ -225,7 +244,9 @@ message Query {
 # Create transaction function
 
 ## AddAccessorMethod
+
 ### Parameter
+
 ```sh
 {
   "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815",
@@ -235,7 +256,9 @@ message Query {
   "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -250,14 +273,18 @@ message Query {
 ```
 
 ## AddNamespace
+
 ### Parameter
+
 ```sh
 {
   "description": "Citizen ID",
   "namespace": "WsvGOEjoFqvXsvcfFVWm"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -272,14 +299,18 @@ message Query {
 ```
 
 ## AddNodeToken
+
 ### Parameter
+
 ```sh
 {
   "amount": 222.22,
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -294,7 +325,9 @@ message Query {
 ```
 
 ## AddNodeToProxyNode
+
 ### Parameter
+
 ```sh
 {
   "config": "KEY_ON_PROXY",
@@ -302,7 +335,9 @@ message Query {
   "proxy_node_id": "KWipXqVCIprtsbBptmtB"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -317,7 +352,9 @@ message Query {
 ```
 
 ## AddService
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
@@ -326,7 +363,9 @@ message Query {
   "data_schema_version": "string"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -341,13 +380,17 @@ message Query {
 ```
 
 ## ClearRegisterIdentityTimeout
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -362,7 +405,9 @@ message Query {
 ```
 
 ## CloseRequest
+
 ### Parameter
+
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
@@ -376,7 +421,9 @@ message Query {
   ]
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -391,7 +438,9 @@ message Query {
 ```
 
 ## CreateIdpResponse
+
 ### Parameter
+
 ```sh
 {
   "aal": 3,
@@ -403,7 +452,9 @@ message Query {
   "status": "accept"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -418,7 +469,9 @@ message Query {
 ```
 
 ## CreateRequest
+
 ### Parameter
+
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
@@ -445,7 +498,9 @@ message Query {
   "purpose": "AddAccessor"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -460,14 +515,18 @@ message Query {
 ```
 
 ## DeclareIdentityProof
+
 ### Parameter
+
 ```sh
 {
   "identity_proof": "Magic",
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -482,13 +541,17 @@ message Query {
 ```
 
 ## DisableNamespace
+
 ### Parameter
+
 ```sh
 {
   "namespace": "SJsMIeJcerfZpBfXkJgU"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -503,13 +566,17 @@ message Query {
 ```
 
 ## DisableNode
+
 ### Parameter
+
 ```sh
 {
   "node_id": "sqldejLfsEObEFKmRfwz"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -524,13 +591,17 @@ message Query {
 ```
 
 ## DisableService
+
 ### Parameter
+
 ```sh
 {
   "service_id": "PAfvPhGmrzILDePeXsMm"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -545,13 +616,17 @@ message Query {
 ```
 
 ## DisableServiceDestination
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -566,14 +641,18 @@ message Query {
 ```
 
 ## DisableServiceDestinationByNDID
+
 ### Parameter
+
 ```sh
 {
   "node_id": "XckRuCmVliLThncSTnfG",
   "service_id": "qvyfrfJRsfaesnDsYHbH"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -588,13 +667,17 @@ message Query {
 ```
 
 ## EnableNamespace
+
 ### Parameter
+
 ```sh
 {
   "namespace": "SJsMIeJcerfZpBfXkJgU"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -609,13 +692,17 @@ message Query {
 ```
 
 ## EnableNode
+
 ### Parameter
+
 ```sh
 {
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -630,13 +717,17 @@ message Query {
 ```
 
 ## EnableService
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -651,13 +742,17 @@ message Query {
 ```
 
 ## EnableServiceDestination
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -672,14 +767,18 @@ message Query {
 ```
 
 ## EnableServiceDestinationByNDID
+
 ### Parameter
+
 ```sh
 {
   "node_id": "XckRuCmVliLThncSTnfG",
   "service_id": "qvyfrfJRsfaesnDsYHbH"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -694,7 +793,9 @@ message Query {
 ```
 
 ## InitNDID
+
 ### Parameter
+
 ```sh
 {
   "node_id": "NDID",
@@ -703,7 +804,9 @@ message Query {
   "chain_history_info": "{\"chains\":[{\"chain_id\":\"test-chain-NDID\",\"latest_block_hash\":\"39DAE266185B54C62A6932445021FEB641E5D5DB\",\"latest_app_hash\":\"588C2F4A1B236281565C301EEA9BA863CF5F3E28\",\"latest_block_height\":\"164\"},{\"chain_id\":\"test-chain-NDID\",\"latest_block_hash\":\"E25104B14BD7BB48734BDB1E7EAF5E494318C4C3\",\"latest_app_hash\":\"632990575BFC06B7CE5C57D0D0AD9AEA3DBBB230\",\"latest_block_height\":\"174\"}]}\r\n"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -718,14 +821,18 @@ message Query {
 ```
 
 ## ReduceNodeToken
+
 ### Parameter
+
 ```sh
 {
   "amount": 61.11,
   "node_id": "nfhwDGTTeRdMeXzAgLij"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -740,7 +847,9 @@ message Query {
 ```
 
 ## RegisterAccessor
+
 ### Parameter
+
 ```sh
 {
   "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815",
@@ -749,7 +858,9 @@ message Query {
   "accessor_type": "accessor_type"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -764,7 +875,9 @@ message Query {
 ```
 
 ## RegisterIdentity
+
 ### Parameter
+
 ```sh
 {
   "users": [
@@ -776,7 +889,9 @@ message Query {
   ]
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -791,7 +906,9 @@ message Query {
 ```
 
 ## RegisterNode
+
 ### Parameter
+
 ```sh
 {
   "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\\nDQIDAQAB\\n-----END PUBLIC KEY-----\\n",
@@ -803,7 +920,9 @@ message Query {
   "role": "IdP"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -818,7 +937,9 @@ message Query {
 ```
 
 ## RegisterServiceDestination
+
 ### Parameter
+
 ```sh
 {
   "min_aal": 1.2,
@@ -826,7 +947,9 @@ message Query {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -841,14 +964,18 @@ message Query {
 ```
 
 ## RegisterServiceDestinationByNDID
+
 ### Parameter
+
 ```sh
 {
   "node_id": "XckRuCmVliLThncSTnfG",
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -863,13 +990,17 @@ message Query {
 ```
 
 ## RemoveNodeFromProxyNode
+
 ### Parameter
+
 ```sh
 {
   "node_id": "BLUbbuoywxSirpxDIPgW"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -884,7 +1015,9 @@ message Query {
 ```
 
 ## SetDataReceived
+
 ### Parameter
+
 ```sh
 {
   "as_id": "XckRuCmVliLThncSTnfG",
@@ -892,7 +1025,9 @@ message Query {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -907,7 +1042,9 @@ message Query {
 ```
 
 ## SetMqAddresses
+
 ### Parameter
+
 ```sh
 {
   "addresses": [
@@ -918,7 +1055,9 @@ message Query {
   ]
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -933,14 +1072,18 @@ message Query {
 ```
 
 ## SetNodeToken
+
 ### Parameter
+
 ```sh
 {
   "amount": 100,
   "node_id": "nfhwDGTTeRdMeXzAgLij"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -955,14 +1098,18 @@ message Query {
 ```
 
 ## SetPriceFunc
+
 ### Parameter
+
 ```sh
 {
   "func": "CreateRequest",
   "price": 1
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -977,13 +1124,17 @@ message Query {
 ```
 
 ## SetTimeOutBlockRegisterIdentity
+
 ### Parameter
+
 ```sh
 {
   "time_out_block": 100
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -998,14 +1149,18 @@ message Query {
 ```
 
 ## SetValidator
+
 ### Parameter
+
 ```sh
 {
   "power": 100,
   "public_key": "qJ0HsJvzHz/CAEBMCpvqfIpMIktfOsN0kh5O3+d0bks="
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1020,7 +1175,9 @@ message Query {
 ```
 
 ## SignData
+
 ### Parameter
+
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
@@ -1028,7 +1185,9 @@ message Query {
   "signature": "sign(data,asKey)"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1043,7 +1202,9 @@ message Query {
 ```
 
 ## TimeOutRequest
+
 ### Parameter
+
 ```sh
 {
   "request_id": "04db0ddf-4d3f-4b40-93b0-af418ad8a2d7",
@@ -1057,7 +1218,9 @@ message Query {
   ]
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1072,14 +1235,18 @@ message Query {
 ```
 
 ## UpdateIdentity
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "ial": 2.2
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1094,14 +1261,18 @@ message Query {
 ```
 
 ## UpdateNode
+
 ### Parameter
+
 ```sh
 {
   "master_public_key": "",
   "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1116,7 +1287,9 @@ message Query {
 ```
 
 ## UpdateNodeByNDID
+
 ### Parameter
+
 ```sh
 {
   "max_aal": 2.4,
@@ -1125,7 +1298,9 @@ message Query {
   "node_name": ""
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1140,7 +1315,9 @@ message Query {
 ```
 
 ## UpdateNodeProxyNode
+
 ### Parameter
+
 ```sh
 {
   "config": "KEY_ON_PROXY",
@@ -1148,7 +1325,9 @@ message Query {
   "proxy_node_id": "LvFjFNAPnfEwPFGEEbdx"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1163,7 +1342,9 @@ message Query {
 ```
 
 ## UpdateService
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc",
@@ -1172,7 +1353,9 @@ message Query {
   "data_schema_version": "string"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1187,7 +1370,9 @@ message Query {
 ```
 
 ## UpdateServiceDestination
+
 ### Parameter
+
 ```sh
 {
   "min_aal": 1.5,
@@ -1195,7 +1380,9 @@ message Query {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1210,7 +1397,9 @@ message Query {
 ```
 
 ## RevokeAccessorMethod
+
 ### Parameter
+
 ```sh
 {
   "accessor_id_list": [
@@ -1219,7 +1408,9 @@ message Query {
   "request_id": "e7dcf1c2-eea7-4dc8-af75-724cf86454ef"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1234,13 +1425,17 @@ message Query {
 ```
 
 ## SetLastBlock
+
 ### Parameter
+
 ```sh
 {
   "block_height": 0
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "code": 0,
@@ -1257,13 +1452,17 @@ message Query {
 # Query function
 
 ## CheckExistingAccessorGroupID
+
 ### Parameter
+
 ```sh
 {
   "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "exist": true
@@ -1271,13 +1470,17 @@ message Query {
 ```
 
 ## CheckExistingAccessorID
+
 ### Parameter
+
 ```sh
 {
   "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "exist": true
@@ -1285,13 +1488,17 @@ message Query {
 ```
 
 ## CheckExistingIdentity
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "exist": true
@@ -1299,13 +1506,17 @@ message Query {
 ```
 
 ## GetAccessorGroupID
+
 ### Parameter
+
 ```sh
 {
   "accessor_id": "07938aa2-2aaf-4bb5-9ccd-33700581e870"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815"
@@ -1313,13 +1524,17 @@ message Query {
 ```
 
 ## GetAccessorKey
+
 ### Parameter
+
 ```sh
 {
   "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2\\nfID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8\\nW0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju\\nEFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM\\njNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD\\n9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0\\nYQIDAQAB\\n-----END PUBLIC KEY-----",
@@ -1328,14 +1543,18 @@ message Query {
 ```
 
 ## GetAsNodesByServiceId
+
 ### Parameter
+
 ```sh
 {
   "node_id_list": null,
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node": [
@@ -1350,14 +1569,18 @@ message Query {
 ```
 
 ## GetAsNodesInfoByServiceId
+
 ### Parameter
+
 ```sh
 {
   "node_id_list": null,
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node": [
@@ -1379,7 +1602,9 @@ message Query {
 ```
 
 ## GetDataSignature
+
 ### Parameter
+
 ```sh
 {
   "node_id": "XckRuCmVliLThncSTnfG",
@@ -1387,7 +1612,9 @@ message Query {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "signature": "sign(data,asKey)"
@@ -1395,14 +1622,18 @@ message Query {
 ```
 
 ## GetIdentityInfo
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "ial": 2.2
@@ -1410,14 +1641,18 @@ message Query {
 ```
 
 ## GetIdentityProof
+
 ### Parameter
+
 ```sh
 {
   "idp_id": "CuQfyyhjGcCAzKREzHmL",
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "identity_proof": "Magic"
@@ -1425,7 +1660,9 @@ message Query {
 ```
 
 ## GetIdpNodes
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
@@ -1434,7 +1671,9 @@ message Query {
   "node_id_list": null
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node": [
@@ -1449,7 +1688,9 @@ message Query {
 ```
 
 ## GetIdpNodesInfo
+
 ### Parameter
+
 ```sh
 {
   "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
@@ -1458,7 +1699,9 @@ message Query {
   "node_id_list": null
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node": [
@@ -1480,13 +1723,17 @@ message Query {
 ```
 
 ## GetMqAddresses
+
 ### Parameter
+
 ```sh
 {
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
+
 ### Expected Output
+
 ```sh
 [
   {
@@ -1497,10 +1744,15 @@ message Query {
 ```
 
 ## GetNamespaceList
+
 ### Parameter
+
 ```sh
+
 ```
+
 ### Expected Output
+
 ```sh
 [
   {
@@ -1517,13 +1769,17 @@ message Query {
 ```
 
 ## GetNodeIDList
+
 ### Parameter
+
 ```sh
 {
   "role": ""
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node_id_list": [
@@ -1541,13 +1797,17 @@ message Query {
 ```
 
 ## GetNodeInfo
+
 ### Parameter
+
 ```sh
 {
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\\nDQIDAQAB\\n-----END PUBLIC KEY-----\\n",
@@ -1566,13 +1826,17 @@ message Query {
 ```
 
 ## GetNodeMasterPublicKey
+
 ### Parameter
+
 ```sh
 {
   "node_id": "nfhwDGTTeRdMeXzAgLij"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\\nDQIDAQAB\\n-----END PUBLIC KEY-----\\n"
@@ -1580,13 +1844,17 @@ message Query {
 ```
 
 ## GetNodePublicKey
+
 ### Parameter
+
 ```sh
 {
   "node_id": "nfhwDGTTeRdMeXzAgLij"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwCB4UBzQcnd6GAzPgbt9\\nj2idW23qKZrsvldPNifmOPLfLlMusv4EcyJf4L42/aQbTn1rVSu1blGkuCK+oRlK\\nWmZEWh3xv9qrwCwov9Jme/KOE98zOMB10/xwnYotPadV0de80wGvKT7OlBlGulQR\\nRhhgENNCPSxdUlozrPhrzGstXDr9zTYQoR3UD/7Ntmew3mnXvKj/8+U48hw913Xn\\n6btBP3Uqg2OurXDGdrWciWgIMDEGyk65NOc8FOGa4AjYXzyi9TqOIfmysWhzKzU+\\nfLysZQo10DfznnQN3w9+pI+20j2zB6ggpL75RjZKYgHU49pbvjF/eOSTOg9o5HwX\\n0wIDAQAB\\n-----END PUBLIC KEY-----\\n"
@@ -1594,13 +1862,17 @@ message Query {
 ```
 
 ## GetNodesBehindProxyNode
+
 ### Parameter
+
 ```sh
 {
   "proxy_node_id": "KWipXqVCIprtsbBptmtB"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "nodes": [
@@ -1619,13 +1891,17 @@ message Query {
 ```
 
 ## GetNodeToken
+
 ### Parameter
+
 ```sh
 {
   "node_id": "nfhwDGTTeRdMeXzAgLij"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "amount": 50
@@ -1633,13 +1909,17 @@ message Query {
 ```
 
 ## GetPriceFunc
+
 ### Parameter
+
 ```sh
 {
   "func": "CreateRequest"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "price": 9.99
@@ -1647,13 +1927,17 @@ message Query {
 ```
 
 ## GetRequest
+
 ### Parameter
+
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "closed": true,
@@ -1664,13 +1948,17 @@ message Query {
 ```
 
 ## GetRequestDetail
+
 ### Parameter
+
 ```sh
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "closed": false,
@@ -1722,13 +2010,17 @@ message Query {
 ```
 
 ## GetServiceDetail
+
 ### Parameter
+
 ```sh
 {
   "service_id": "LlUXaAYeAoVDiQziKPMc"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "active": true,
@@ -1740,10 +2032,15 @@ message Query {
 ```
 
 ## GetServiceList
+
 ### Parameter
+
 ```sh
+
 ```
+
 ### Expected Output
+
 ```sh
 [
   {
@@ -1755,13 +2052,17 @@ message Query {
 ```
 
 ## GetServicesByAsID
+
 ### Parameter
+
 ```sh
 {
   "as_id": "XckRuCmVliLThncSTnfG"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "services": [
@@ -1791,13 +2092,17 @@ message Query {
 ```
 
 ## GetUsedTokenReport
+
 ### Parameter
+
 ```sh
 {
   "node_id": "XckRuCmVliLThncSTnfG"
 }
 ```
+
 ### Expected Output
+
 ```sh
 [
   {
@@ -1824,14 +2129,18 @@ message Query {
 ```
 
 ## GetAccessorsInAccessorGroup
+
 ### Parameter
+
 ```sh
 {
   "accessor_group_id": "b0dbc48f-9b72-42fa-904e-22c00c30d5e5",
   "idp_id": "xTkDRjpgwuIazfaCHAAM"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "accessor_list": [
@@ -1841,13 +2150,17 @@ message Query {
 ```
 
 ## GetAccessorOwner
+
 ### Parameter
+
 ```sh
 {
   "accessor_id": "11d10976-aede-4ba0-9f44-fc0c96db1f32"
 }
 ```
+
 ### Expected Output
+
 ```sh
 {
   "node_id": "NsutHiOdeiAGSODKTNOF"
@@ -1855,10 +2168,15 @@ message Query {
 ```
 
 ## IsInitEnded
+
 ### Parameter
+
 ```sh
+
 ```
+
 ### Expected Output
+
 ```sh
 {
   "init_ended": true
@@ -1866,10 +2184,15 @@ message Query {
 ```
 
 ## GetChainHistory
+
 ### Parameter
+
 ```sh
+
 ```
+
 ### Expected Output
+
 ```sh
 {
   "chains": [
