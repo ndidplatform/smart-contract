@@ -15,9 +15,13 @@ IMPROVEMENTS:
   - New variable `ABCI_DB_TYPE` for specifying database backend type to use. Options are the same as Tendermint's `db_backend` config. Default is `cleveldb`.
 - [Docker] Build Tendermint bundled with ABCI app (proxy app) image with cleveldb support.
 
+SECURITY FIXES:
+
+- [DeliverTx] Fix `nonce` does not get saved to state DB in every transactions.
+
 BUG FIXES:
 
-- [DeliverTx] Return invalid error when set non existent validator (`SetValidator`)
+- [DeliverTx] Return invalid error when set non existent validator (`SetValidator`).
 - [DeliverTx] Check request is not closed or timed out (`SetDataReceived`).
 
 ## 0.13.0 (November 21, 2018)
