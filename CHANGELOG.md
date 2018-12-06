@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD (Reset chain required)
+## 1.0.0 (November 7, 2018)
 
 IMPROVEMENTS:
 
