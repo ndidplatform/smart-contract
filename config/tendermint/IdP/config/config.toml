@@ -16,7 +16,7 @@ moniker = "IdP"
 fast_sync = true
 
 # Database backend: leveldb | memdb | cleveldb
-db_backend = "leveldb"
+db_backend = "cleveldb"
 
 # Database directory
 db_dir = "data"

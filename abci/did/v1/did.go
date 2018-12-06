@@ -31,6 +31,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
@@ -55,14 +56,14 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state            State
-	checkTxTempState map[string][]byte
-	deliverTxResult  map[string]types.ResponseDeliverTx
-	ValUpdates       []types.ValidatorUpdate
-	logger           *logrus.Entry
-	Version          string
-	CurrentBlock     int64
-	CurrentChain     string
+	state              State
+	checkTxTempState   map[string][]byte
+	ValUpdates         []types.ValidatorUpdate
+	logger             *logrus.Entry
+	Version            string
+	AppProtocolVersion uint64
+	CurrentBlock       int64
+	CurrentChain       string
 }
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
@@ -75,14 +76,15 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	var state State
 	state.db = tree
 
-	ABCIversion := "0.13.0" // Hard code set version
-	logger.Infof("Start ABCI version: %s", ABCIversion)
+	ABCIVersion := version.Version
+	ABCIProtocolVersion := version.AppProtocolVersion
+	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:            state,
-		checkTxTempState: make(map[string][]byte),
-		deliverTxResult:  make(map[string]types.ResponseDeliverTx),
-		logger:           logger,
-		Version:          ABCIversion,
+		state:              state,
+		checkTxTempState:   make(map[string][]byte),
+		logger:             logger,
+		Version:            ABCIVersion,
+		AppProtocolVersion: ABCIProtocolVersion,
 	}
 }
 
@@ -103,7 +105,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.db.Version()
 	res.LastBlockAppHash = app.state.db.Hash()
-	res.AppVersion = 1
+	res.AppVersion = app.AppProtocolVersion
 	app.CurrentBlock = app.state.db.Version()
 	return res
 }
@@ -155,12 +157,6 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	nonce := txObj.Nonce
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
-
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	result, exist := app.deliverTxResult[nonceBase64]
-	if exist {
-		return result
-	}
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
@@ -239,7 +235,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	app.checkTxTempState = make(map[string][]byte)
-	app.deliverTxResult = make(map[string]types.ResponseDeliverTx)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 

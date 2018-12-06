@@ -3,7 +3,7 @@ services:
 
   # genesis node
   tm-ndid:
-    image: ndidplatform/tendermint:latest
+    image: ndidplatform/did-tendermint:latest
     environment:
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
       - DEV_ENV=${DEV_ENV:-true}
@@ -11,7 +11,6 @@ services:
       - genesis
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-ndid:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -19,12 +18,10 @@ services:
       - 47000:${TM_P2P_PORT:-47000}
     networks:
       - ndidplatform
-    depends_on:
-      - abci-ndid
 
   # secondary nodes
   tm-idp:
-    image: ndidplatform/tendermint:latest
+    image: ndidplatform/did-tendermint:latest
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
@@ -33,7 +30,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-idp:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -43,9 +39,8 @@ services:
       - ndidplatform
     depends_on:
       - tm-ndid
-      - abci-idp
   tm-rp:
-    image: ndidplatform/tendermint:latest
+    image: ndidplatform/did-tendermint:latest
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
@@ -54,7 +49,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-rp:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -64,9 +58,8 @@ services:
       - ndidplatform
     depends_on:
       - tm-ndid
-      - abci-rp
   tm-as:
-    image: ndidplatform/tendermint:latest
+    image: ndidplatform/did-tendermint:latest
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
@@ -75,7 +68,6 @@ services:
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
-      - --proxy_app=tcp://abci-as:${ABCI_PORT:-46000}
     security_opt:
       - no-new-privileges
     ports:
@@ -85,37 +77,6 @@ services:
       - ndidplatform
     depends_on:
       - tm-ndid
-      - abci-as
-
-  # abci containers
-  abci-ndid:
-    image: ndidplatform/abci:latest
-    command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
-    security_opt:
-      - no-new-privileges
-    networks:
-      - ndidplatform  
-  abci-idp:
-    image: ndidplatform/abci:latest
-    command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
-    security_opt:
-      - no-new-privileges
-    networks:
-      - ndidplatform
-  abci-rp:
-    image: ndidplatform/abci:latest
-    command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
-    security_opt:
-      - no-new-privileges
-    networks:
-      - ndidplatform
-  abci-as:
-    image: ndidplatform/abci:latest
-    command: ["tcp://0.0.0.0:${ABCI_PORT:-46000}"]
-    security_opt:
-      - no-new-privileges
-    networks:
-      - ndidplatform
 
 networks:
   ndidplatform:

@@ -23,7 +23,6 @@
 package did
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -83,19 +82,6 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 
 	// Set used nonce to stateDB
 	app.SetStateDB([]byte(nonce), []byte("1"))
-
-	// nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-
-	// Save processed DeliverTx results in case Tendermint (client) disconnects
-	// (caused by process stopped/killed) from ABCI server in the middle of
-	// processing DeliverTxs in a block so that ABCI server can return a result
-	// without processing Tx again after Tendermint (client) is
-	// restarted and reconnected. This is because when Tendermint connects back
-	// (after it is restarted), it will send BeginBlock, DeliverTxs, EndBlock to
-	// ABCI server again.
-	// Solve invalid/mismatch AppHash, ResultHash issue after restarting Tendermint.
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	app.deliverTxResult[nonceBase64] = result
 	return result
 }
 

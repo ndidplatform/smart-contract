@@ -2,44 +2,49 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     working_directory: /go/src/github.com/ndidplatform/smart-contract
     steps:
       - checkout
       - run:
-          name: Install Tendermint 0.26.0
+          name: Install tools and snappy
           command: |
-            go get -u github.com/golang/dep/cmd/dep
-            mkdir -p /go/src/github.com/tendermint
-            cd /go/src/github.com/tendermint
-            git clone https://github.com/tendermint/tendermint.git
-            cd tendermint
-            git checkout v0.26.0
-            make get_vendor_deps
-            make install
+            sudo apt-get update && sudo apt-get install -y --no-install-recommends \
+                    g++ \
+                    gcc \
+                    make \
+                    git \
+                    libsnappy-dev
       - run:
-          name: Setup Smartcontract
+          name: Install LevelDB
           command: |
-            go get github.com/tendermint/tmlibs/common
+            wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+            tar -zxvf v1.20.tar.gz && \
+            cd leveldb-1.20/ && \
+            make
+            sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
+            sudo mkdir -p /usr/local/include/leveldb && \
+            sudo cp -r include/leveldb /usr/local/include/ && \
+            sudo ldconfig /usr/local/lib
+      - run:
+          name: Setup Smart Contract
+          command: |
             dep ensure
       - run:
-          name: Start ABCI
+          name: Start Tendermint with ABCI
           command: |
-            DB_NAME=IdP_DB go run abci/server.go tcp://127.0.0.1:46000
-          background: true
-
-      - run:
-          name: Start Tendermint
-          command: |
-            tendermint --home ./config/tendermint/IdP unsafe_reset_all
-            tendermint --home ./config/tendermint/IdP node --consensus.create_empty_blocks=false
+            go run ./abci --home ./config/tendermint/IdP unsafe_reset_all
+            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB \
+            go run \
+            -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
+            -tags "gcc" \
+            ./abci --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 15
       - run:
           name: Test ABCI
           command: |
-            dep ensure
             cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
@@ -68,8 +73,7 @@ jobs:
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push $REPO_NAME/abci:$DOCKER_TAG
-            docker push $REPO_NAME/tendermint:$DOCKER_TAG
+            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
       - image: circleci/node:carbon
@@ -96,8 +100,7 @@ jobs:
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG_DEV:-development}
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push $REPO_NAME/abci:$DOCKER_TAG
-            docker push $REPO_NAME/tendermint:$DOCKER_TAG
+            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
 workflows:
   version: 2
   build_and_deploy:

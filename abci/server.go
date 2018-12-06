@@ -25,31 +25,52 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/sirupsen/logrus"
+
+	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
+	cfg "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/log"
+	nm "github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proxy"
+
+	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
-	"github.com/sirupsen/logrus"
-	server "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	tdmLog "github.com/tendermint/tendermint/libs/log"
 )
 
 type loggerWriter struct{}
 
-var log *logrus.Entry
+const (
+	fileDatetimeFormat = "02-01-2006_15-04-05"
+	logTargetConsole   = "console"
+	logTargetFile      = "file"
+)
 
 func init() {
 	// Set default logrus
 
-	var logLevel = getEnv("LOG_LEVEL", "debug")
-	var logTarget = getEnv("LOG_TARGET", "console")
+	var logLevel = getEnv("ABCI_LOG_LEVEL", "debug")
+	var logTarget = getEnv("ABCI_LOG_TARGET", logTargetConsole)
 
-	if logTarget != "console" {
-		logFile, _ := os.OpenFile(logTarget, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	currentTime := time.Now()
+	currentTimeStr := currentTime.Format(fileDatetimeFormat)
+
+	var logFilePath = getEnv("ABCI_LOG_FILE_PATH", "./abci-"+strconv.Itoa(os.Getpid())+"-"+currentTimeStr+".log")
+
+	if logTarget == logTargetConsole {
+		logrus.SetOutput(os.Stdout)
+	} else if logTarget == logTargetFile {
+		logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		logrus.SetOutput(logFile)
 	} else {
-		logrus.SetOutput(os.Stdout)
+		panic(fmt.Errorf("Unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
 	}
 
 	switch logLevel {
@@ -67,69 +88,66 @@ func init() {
 	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	customFormatter.FullTimestamp = true
 	logrus.SetFormatter(customFormatter)
-	log = logrus.WithFields(logrus.Fields{"module": "abci-app"})
+	// mainLogger = logrus.WithFields(logrus.Fields{"module": "abci-app"})
 }
 
+// Ref: github.com/tendermint/tendermint/cmd/tendermint/main.go
 func main() {
-	runABCIServer(os.Args)
+	rootCmd := cmd.RootCmd
+	rootCmd.AddCommand(
+		cmd.GenValidatorCmd,
+		cmd.InitFilesCmd,
+		cmd.ProbeUpnpCmd,
+		cmd.LiteCmd,
+		cmd.ReplayCmd,
+		cmd.ReplayConsoleCmd,
+		cmd.ResetAllCmd,
+		cmd.ResetPrivValidatorCmd,
+		cmd.ShowValidatorCmd,
+		cmd.TestnetFilesCmd,
+		cmd.ShowNodeIDCmd,
+		cmd.GenNodeKeyCmd,
+		cmd.VersionCmd,
+		abciVersionCmd)
+
+	// NOTE:
+	// Users wishing to:
+	//	* Use an external signer for their validators
+	//	* Supply an in-proc abci app
+	//	* Supply a genesis doc file from another source
+	//	* Provide their own DB implementation
+	// can copy this file and use something other than the
+	// DefaultNewNode function
+	nodeFunc := newDIDNode
+
+	// Create & start node
+	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
+
+	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", cfg.DefaultTendermintDir)))
+	if err := cmd.Execute(); err != nil {
+		panic(err)
+	}
 }
 
-func runABCIServer(args []string) {
-	address := args[1]
-
+// Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
+func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app types.Application
 	app = did.NewDIDApplicationInterface()
 
-	writer := newLoggerWriter()
-	logger := tdmLog.NewTMLogger(tdmLog.NewSyncWriter(writer))
-
-	// Start the listener
-	srv, err := server.NewServer(address, "socket", app)
+	// Generate node PrivKey
+	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
-	srv.SetLogger(logger.With("module", "abci-server"))
-	if err := srv.Start(); err != nil {
-		fmt.Println(err.Error())
-	}
-
-	// Wait forever
-	cmn.TrapSignal(func() {
-		srv.Stop()
-	})
-}
-
-func newLoggerWriter() *loggerWriter {
-	return &loggerWriter{}
-}
-
-func (w *loggerWriter) Write(p []byte) (int, error) {
-	allMsg := strings.Fields(string(p))
-	charType := allMsg[0][0]
-
-	keyValues := make(map[string]interface{})
-	newMsg := ""
-
-	for index, msg := range allMsg {
-		if index > 0 {
-			if strings.Contains(msg, "=") {
-				kv := strings.Split(msg, "=")
-				keyValues[kv[0]] = kv[1]
-			} else {
-				newMsg += msg + " "
-			}
-		}
-	}
-
-	switch string(charType) {
-	case "D":
-		log.WithFields(keyValues).Debug(newMsg)
-	case "E":
-		log.WithFields(keyValues).Error(newMsg)
-	default:
-		log.WithFields(keyValues).Info(newMsg)
-	}
-	return 0, nil
+	return nm.NewNode(config,
+		privval.LoadOrGenFilePV(config.PrivValidatorFile()),
+		nodeKey,
+		proxy.NewLocalClientCreator(app),
+		nm.DefaultGenesisDocProviderFunc(config),
+		nm.DefaultDBProvider,
+		nm.DefaultMetricsProvider(config.Instrumentation),
+		logger.With("module", "node"),
+	)
 }
 
 func getEnv(key, defaultValue string) string {

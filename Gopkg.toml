@@ -6,13 +6,18 @@
   name = "github.com/sirupsen/logrus"
   version = "1.0.5"
 
-[[constraint]]
+[[override]]
   name = "github.com/tendermint/iavl"
-  version = "0.11.0"
+  version = "=v0.11.1"
 
 [[override]]
   name = "github.com/tendermint/tendermint"
-  version = "0.26.3"
+  version = "v0.26.4"
+
+[[override]]
+  name = "golang.org/x/crypto"
+  source = "https://github.com/tendermint/crypto"
+  revision = "3764759f34a542a3aef74d6b02e35be7ab893bba"
 
 [prune]
   go-tests = true

@@ -5,8 +5,15 @@
 
 *.swp
 
+build/
+
 # localDB
 localDB/
+IdP_DB/
+RP_DB/
+AS_DB/
+
+# dependencies
 vendor/
 
 # tendermint data

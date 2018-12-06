@@ -23,6 +23,7 @@
 package did
 
 import (
+	"fmt"
 	"os"
 
 	didV1 "github.com/ndidplatform/smart-contract/abci/did/v1"
@@ -30,6 +31,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
@@ -43,9 +45,15 @@ type DIDApplicationInterface struct {
 
 func NewDIDApplicationInterface() *DIDApplicationInterface {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
-	var dbDir = getEnv("DB_NAME", "DID")
+
+	var dbType = getEnv("ABCI_DB_TYPE", "cleveldb")
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+
+	if err := cmn.EnsureDir(dbDir, 0700); err != nil {
+		panic(fmt.Errorf("Could not create DB directory: %v", err.Error()))
+	}
 	name := "didDB"
-	db := dbm.NewDB(name, "leveldb", dbDir)
+	db := dbm.NewDB(name, dbm.DBBackendType(dbType), dbDir)
 	tree := iavl.NewMutableTree(db, 0)
 	tree.Load()
 
