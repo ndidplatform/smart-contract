@@ -44,7 +44,7 @@ jobs:
       - run:
           name: Start ABCI
           command: |
-            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
+            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
           background: true
 
       - run:

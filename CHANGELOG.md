@@ -4,9 +4,15 @@
 
 IMPROVEMENTS:
 
+- Use cleveldb instead of goleveldb.
+- Change environment variable names and behavior
+  - `DB_NAME` changed to `ABCI_DB_DIR_PATH`.
+  - `LOG_LEVEL` changed to `ABCI_LOG_LEVEL`.
+  - `LOG_TARGET` changed to `ABCI_LOG_TARGET` and accepts only either `console` or `file`.
+  - New variable `ABCI_LOG_FILE_PATH` for specifying log file path when `ABCI_LOG_TARGET` is set to `file`.
+  - New variable `ABCI_DB_TYPE` for specifying database backend type to use. Options are the same as Tendermint's `db_backend` config. Default is `cleveldb`.
 - [Docker] Update Tendermint version to v0.26.4
 - [Docker] Build Tendermint and ABCI app server images with cleveldb support.
-- Use cleveldb instead of goleveldb.
 
 BUG FIXES:
 

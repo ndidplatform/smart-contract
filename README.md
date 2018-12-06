@@ -87,9 +87,11 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
 **Environment variable options**
 
-- `DB_NAME`: Directory path for persistence data files [Default: `__dirname/DID` (`DID` directory in repository's directory)]
-- `LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
-- `LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file path` (eg. `ABCI.log`) [Default: `console`]
+- `ABCI_DB_DIR_PATH`: Directory path for ABCI app persistence data files [Default: `./DID`]
+- `ABCI_DB_TYPE`: Database type (same options as Tendermint's `db_backend`) [Default: `cleveldb`]
+- `ABCI_LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
+- `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
+- `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
 
 ### Run IdP node
 
@@ -100,7 +102,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p IdP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46000
     ```
 
 2.  Run tendermint
@@ -120,7 +122,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p RP_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=RP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46001
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=RP_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46001
     ```
 
 2.  Run tendermint
@@ -140,7 +142,7 @@ TENDERMINT_ADDRESS=http://localhost:45000 go test -v
 
     mkdir -p AS_DB
 
-    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" DB_NAME=AS_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46002
+    CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=AS_DB go run -tags 'gcc' abci/server.go tcp://127.0.0.1:46002
     ```
 
 2.  Run tendermint

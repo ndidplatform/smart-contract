@@ -41,13 +41,14 @@ WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go install \
+    -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
     -tags "gcc"
 
 
 FROM alpine:3.8
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
-ENV DB_NAME=/DID
+ENV ABCI_DB_DIR_PATH=/DID
 
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
@@ -61,11 +62,11 @@ RUN apk update && apk add --no-cache snappy-dev && rm -rf /var/cache/apk
 COPY --from=builder /usr/local/lib /usr/local/lib
 
 COPY --from=builder /go/bin/abci /usr/bin/abci-server
-RUN mkdir -p ${DB_NAME}
+RUN mkdir -p ${ABCI_DB_DIR_PATH}
 
 # Change owner to nobodoy:nogroup and permission to 640
-RUN chown -R nobody:nogroup /usr/bin/abci-server ${DB_NAME}
-RUN chmod -R 740 /usr/bin/abci-server ${DB_NAME}
+RUN chown -R nobody:nogroup /usr/bin/abci-server ${ABCI_DB_DIR_PATH}
+RUN chmod -R 740 /usr/bin/abci-server ${ABCI_DB_DIR_PATH}
 
 USER nobody
 ENTRYPOINT [ "abci-server" ]

@@ -25,7 +25,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
 	"github.com/sirupsen/logrus"
@@ -37,19 +39,32 @@ import (
 
 type loggerWriter struct{}
 
+const (
+	fileDatetimeFormat = "02-01-2006_15-04-05"
+	logTargetConsole   = "console"
+	logTargetFile      = "file"
+)
+
 var log *logrus.Entry
 
 func init() {
 	// Set default logrus
 
-	var logLevel = getEnv("LOG_LEVEL", "debug")
-	var logTarget = getEnv("LOG_TARGET", "console")
+	var logLevel = getEnv("ABCI_LOG_LEVEL", "debug")
+	var logTarget = getEnv("ABCI_LOG_TARGET", logTargetConsole)
 
-	if logTarget != "console" {
-		logFile, _ := os.OpenFile(logTarget, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
+	currentTime := time.Now()
+	currentTimeStr := currentTime.Format(fileDatetimeFormat)
+
+	var logFilePath = getEnv("ABCI_LOG_FILE_PATH", "./abci-"+strconv.Itoa(os.Getpid())+"-"+currentTimeStr+".log")
+
+	if logTarget == logTargetConsole {
+		logrus.SetOutput(os.Stdout)
+	} else if logTarget == logTargetFile {
+		logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		logrus.SetOutput(logFile)
 	} else {
-		logrus.SetOutput(os.Stdout)
+		panic(fmt.Errorf("Unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
 	}
 
 	switch logLevel {
