@@ -28,9 +28,11 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
@@ -124,16 +126,22 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	utils.WriteEventLogBeginBlock(dbDir, time.Now(), "start_BeginBlock", req.Header.Height, req.Header.NumTxs)
 	app.CurrentBlock = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
+	utils.WriteEventLogBeginBlock(dbDir, time.Now(), "stop_BeginBlock", req.Header.Height, req.Header.NumTxs)
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	utils.WriteEventLog(dbDir, time.Now(), "start_EndBlock")
 	app.logger.Infof("EndBlock: %d", req.Height)
+	utils.WriteEventLog(dbDir, time.Now(), "start_EndBlock")
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
@@ -158,9 +166,14 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+	utils.WriteEventLogTx(dbDir, time.Now(), "start_DeliverTx", method, nonceBase64)
+
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
+		utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -169,8 +182,10 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if method != "" {
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
+		utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
 		return result
 	}
+	utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -195,15 +210,19 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+	utils.WriteEventLogTx(dbDir, time.Now(), "start_CheckTx", method, nonceBase64)
+
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
+		utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
 		return res
 	}
 
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	// Check duplicate nonce in checkTx stateDB
 	_, exist := app.checkTxTempState[nonceBase64]
 	if !exist {
@@ -211,6 +230,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
+		utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
 		return res
 	}
 
@@ -220,21 +240,27 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		// Check has function in system
 		if IsMethod[method] {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
+			utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
+		utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
+	utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
 	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	utils.WriteEventLog(dbDir, time.Now(), "start_Commit")
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	app.checkTxTempState = make(map[string][]byte)
+	utils.WriteEventLog(dbDir, time.Now(), "end_Commit")
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
@@ -257,6 +283,9 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	method := query.Method
 	param := query.Params
 
+	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	utils.WriteEventLogQuery(dbDir, time.Now(), "start_Query", method)
+
 	app.logger.Infof("Query: %s", method)
 
 	height := reqQuery.Height
@@ -265,8 +294,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
+		utils.WriteEventLogQuery(dbDir, time.Now(), "end_Query", method)
 		return app.QueryRouter(method, param, height)
 	}
+	utils.WriteEventLogQuery(dbDir, time.Now(), "end_Query", method)
 	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
