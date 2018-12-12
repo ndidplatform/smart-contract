@@ -71,7 +71,7 @@ Tendermint bundled with ABCI app
 ## Build
 
 ```sh
-CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go build -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "gcc" -o ./did-tendermint ./abci
+CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go build -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "gcc" -o ./did-tendermint ./abci
 ```
 
 ## Usage
