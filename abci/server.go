@@ -43,6 +43,10 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/abci/did"
+
+	_log "log"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 type loggerWriter struct{}
@@ -93,6 +97,10 @@ func init() {
 
 // Ref: github.com/tendermint/tendermint/cmd/tendermint/main.go
 func main() {
+	go func() {
+		_log.Println(http.ListenAndServe(":6060", nil))
+	}()
+
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
 		cmd.GenValidatorCmd,
