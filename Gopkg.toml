@@ -12,7 +12,7 @@
 
 [[override]]
   name = "github.com/tendermint/tendermint"
-  revision = "v0.27.0"
+  revision = "v0.27.3"
 
 [[override]]
   name = "golang.org/x/crypto"
