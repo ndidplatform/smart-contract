@@ -90,7 +90,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
-      tendermint_set_mempool_recheck true
+      tendermint_set_mempool_recheck false
       if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       did-tendermint node --moniker=${HOSTNAME} $@
       ;;
@@ -102,7 +102,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
       tendermint_set_create_empty_block_interval 0
-      tendermint_set_mempool_recheck true
+      tendermint_set_mempool_recheck false
       if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       until tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${SEED_RPC_PORT}; do sleep 1; done
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
