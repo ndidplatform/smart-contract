@@ -58,6 +58,7 @@ type DIDApplication struct {
 	types.BaseApplication
 	state              State
 	checkTxTempState   map[string][]byte
+	deliverTxTempState map[string][]byte
 	ValUpdates         []types.ValidatorUpdate
 	logger             *logrus.Entry
 	Version            string
@@ -82,6 +83,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	return &DIDApplication{
 		state:              state,
 		checkTxTempState:   make(map[string][]byte),
+		deliverTxTempState: make(map[string][]byte),
 		logger:             logger,
 		Version:            ABCIVersion,
 		AppProtocolVersion: ABCIProtocolVersion,
@@ -234,7 +236,10 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
-	app.checkTxTempState = make(map[string][]byte)
+	for key := range app.deliverTxTempState {
+		delete(app.checkTxTempState, key)
+	}
+	app.deliverTxTempState = make(map[string][]byte)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
