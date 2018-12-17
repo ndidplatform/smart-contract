@@ -197,6 +197,14 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
+	// Set checkTx state for each node's available token or token difference
+	// Deduct used token if passed
+	// Error response if not enough
+	// Adjust difference on Commit()
+
+	// TODO: Check for node's key change
+
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
