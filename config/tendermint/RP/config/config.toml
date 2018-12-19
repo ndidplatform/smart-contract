@@ -16,7 +16,7 @@ moniker = "RP"
 fast_sync = true
 
 # Database backend: leveldb | memdb | cleveldb
-db_backend = "cleveldb"
+db_backend = "goleveldb"
 
 # Database directory
 db_dir = "data"
