@@ -329,10 +329,6 @@
   version = "v1.3.1"
 
 [[projects]]
-<<<<<<< HEAD
-  branch = "master"
-=======
->>>>>>> development
   digest = "1:685fdfea42d825ebd39ee0994354b46c374cf2c2b2d97a41a8dee1807c6a9b62"
   name = "github.com/syndtr/goleveldb"
   packages = [
