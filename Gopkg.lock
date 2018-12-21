@@ -329,7 +329,10 @@
   version = "v1.3.1"
 
 [[projects]]
+<<<<<<< HEAD
   branch = "master"
+=======
+>>>>>>> development
   digest = "1:685fdfea42d825ebd39ee0994354b46c374cf2c2b2d97a41a8dee1807c6a9b62"
   name = "github.com/syndtr/goleveldb"
   packages = [
@@ -571,6 +574,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/jmhodges/levigo",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
     "github.com/spf13/cobra",
