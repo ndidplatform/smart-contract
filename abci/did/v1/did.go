@@ -60,6 +60,7 @@ type DIDApplication struct {
 	types.BaseApplication
 	state              State
 	checkTxTempState   map[string][]byte
+	deliverTxTempState map[string][]byte
 	ValUpdates         []types.ValidatorUpdate
 	logger             *logrus.Entry
 	Version            string
@@ -84,6 +85,7 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 	return &DIDApplication{
 		state:              state,
 		checkTxTempState:   make(map[string][]byte),
+		deliverTxTempState: make(map[string][]byte),
 		logger:             logger,
 		Version:            ABCIVersion,
 		AppProtocolVersion: ABCIProtocolVersion,
@@ -213,6 +215,13 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	go utils.WriteEventLogTx(dbDir, time.Now(), "start_CheckTx", method, nonceBase64)
+	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
+	// Set checkTx state for each node's available token or token difference
+	// Deduct used token if passed
+	// Error response if not enough
+	// Adjust difference on Commit()
+
+	// TODO: Check for node's key change
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
@@ -259,7 +268,10 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	go utils.WriteEventLog(dbDir, time.Now(), "start_Commit")
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
-	app.checkTxTempState = make(map[string][]byte)
+	for key := range app.deliverTxTempState {
+		delete(app.checkTxTempState, key)
+	}
+	app.deliverTxTempState = make(map[string][]byte)
 	go utils.WriteEventLog(dbDir, time.Now(), "end_Commit")
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }

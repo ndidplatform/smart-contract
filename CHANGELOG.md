@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- Update Tendermint version to v0.27.0.
+
 ## 1.0.0 (December 7, 2018)
 
 IMPROVEMENTS:

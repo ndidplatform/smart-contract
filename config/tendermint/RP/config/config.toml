@@ -150,7 +150,7 @@ dial_timeout = "3s"
 ##### mempool configuration options #####
 [mempool]
 
-recheck = true
+recheck = false
 broadcast = true
 wal_dir = ""
 
