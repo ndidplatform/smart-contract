@@ -154,6 +154,31 @@ type EventLogQuery struct {
 	Function string `json:"function"`
 }
 
+func WriteDurationLog(filename string, durationTime int64, function string) {
+	createDirIfNotExist("event_log")
+	f, err := os.OpenFile("event_log/"+filename+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	var eventLog DurationLog
+	eventLog.Duration = durationTime
+	eventLog.Function = function
+	eventLogJSON, err := json.Marshal(eventLog)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	_, err = f.WriteString(string(eventLogJSON) + "\r\n")
+	if err != nil {
+		panic(err)
+	}
+}
+
+type DurationLog struct {
+	Duration int64  `json:"duration"`
+	Function string `json:"function"`
+}
+
 func createDirIfNotExist(dir string) {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0755)

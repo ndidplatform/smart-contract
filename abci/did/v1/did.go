@@ -129,21 +129,27 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	go utils.WriteEventLogBeginBlock(dbDir, time.Now(), "start_BeginBlock", req.Header.Height, req.Header.NumTxs)
+	startTime := time.Now()
+	go utils.WriteEventLogBeginBlock(dbDir, startTime, "start_BeginBlock", req.Header.Height, req.Header.NumTxs)
 	app.CurrentBlock = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
-	go utils.WriteEventLogBeginBlock(dbDir, time.Now(), "stop_BeginBlock", req.Header.Height, req.Header.NumTxs)
+	stopTime := time.Now()
+	go utils.WriteEventLogBeginBlock(dbDir, stopTime, "stop_BeginBlock", req.Header.Height, req.Header.NumTxs)
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "BeginBlock")
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	go utils.WriteEventLog(dbDir, time.Now(), "start_EndBlock")
+	startTime := time.Now()
+	go utils.WriteEventLog(dbDir, startTime, "start_EndBlock")
 	app.logger.Infof("EndBlock: %d", req.Height)
-	go utils.WriteEventLog(dbDir, time.Now(), "start_EndBlock")
+	stopTime := time.Now()
+	go utils.WriteEventLog(dbDir, stopTime, "stop_EndBlock")
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "EndBlock")
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
@@ -170,12 +176,15 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	go utils.WriteEventLogTx(dbDir, time.Now(), "start_DeliverTx", method, nonceBase64)
+	startTime := time.Now()
+	go utils.WriteEventLogTx(dbDir, startTime, "start_DeliverTx", method, nonceBase64)
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
-		go utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
+		stopTime := time.Now()
+		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -184,10 +193,14 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if method != "" {
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
-		go utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
+		stopTime := time.Now()
+		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
 		return result
 	}
-	go utils.WriteEventLogTx(dbDir, time.Now(), "end_DeliverTx", method, nonceBase64)
+	stopTime := time.Now()
+	go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -214,7 +227,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	go utils.WriteEventLogTx(dbDir, time.Now(), "start_CheckTx", method, nonceBase64)
+	startTime := time.Now()
+	go utils.WriteEventLogTx(dbDir, startTime, "start_CheckTx", method, nonceBase64)
 	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
 	// Set checkTx state for each node's available token or token difference
 	// Deduct used token if passed
@@ -228,7 +242,9 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if nonceDup {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		go utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
+		stopTime := time.Now()
+		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
 		return res
 	}
 
@@ -239,7 +255,9 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		go utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
+		stopTime := time.Now()
+		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
 		return res
 	}
 
@@ -249,30 +267,39 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		// Check has function in system
 		if IsMethod[method] {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
-			go utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
+			stopTime := time.Now()
+			go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
+			go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
-		go utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
+		stopTime := time.Now()
+		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
-	go utils.WriteEventLogTx(dbDir, time.Now(), "end_CheckTx", method, nonceBase64)
+	stopTime := time.Now()
+	go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
 	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	go utils.WriteEventLog(dbDir, time.Now(), "start_Commit")
+	startTime := time.Now()
+	go utils.WriteEventLog(dbDir, startTime, "start_Commit")
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	for key := range app.deliverTxTempState {
 		delete(app.checkTxTempState, key)
 	}
 	app.deliverTxTempState = make(map[string][]byte)
-	go utils.WriteEventLog(dbDir, time.Now(), "end_Commit")
+	stopTime := time.Now()
+	go utils.WriteEventLog(dbDir, stopTime, "end_Commit")
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Commit")
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
@@ -296,7 +323,8 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	param := query.Params
 
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	go utils.WriteEventLogQuery(dbDir, time.Now(), "start_Query", method)
+	startTime := time.Now()
+	go utils.WriteEventLogQuery(dbDir, startTime, "start_Query", method)
 
 	app.logger.Infof("Query: %s", method)
 
@@ -306,10 +334,14 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
-		go utils.WriteEventLogQuery(dbDir, time.Now(), "end_Query", method)
+		stopTime := time.Now()
+		go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query")
 		return app.QueryRouter(method, param, height)
 	}
-	go utils.WriteEventLogQuery(dbDir, time.Now(), "end_Query", method)
+	stopTime := time.Now()
+	go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query")
 	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
