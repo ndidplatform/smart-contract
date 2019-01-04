@@ -154,16 +154,29 @@ type EventLogQuery struct {
 	Function string `json:"function"`
 }
 
-func WriteDurationLog(filename string, durationTime int64, function string) {
+func WriteDurationLog(filename string, durationTime int64, function string, optionalParams ...string) {
 	createDirIfNotExist("event_log")
 	f, err := os.OpenFile("event_log/"+filename+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
+
+	var methodName string
+	var nonceBase64 string
+
+	if len(optionalParams) > 0 {
+		if function == "CheckTx" {
+			nonceBase64 = optionalParams[1]
+		}
+		methodName = optionalParams[0]
+	}
+
 	var eventLog DurationLog
 	eventLog.Duration = durationTime
 	eventLog.Function = function
+	eventLog.Method = methodName
+	eventLog.Nonce = nonceBase64
 	eventLogJSON, err := json.Marshal(eventLog)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -177,6 +190,8 @@ func WriteDurationLog(filename string, durationTime int64, function string) {
 type DurationLog struct {
 	Duration int64  `json:"duration"`
 	Function string `json:"function"`
+	Method   string `json:"method"`
+	Nonce    string `json:"nonce"`
 }
 
 func createDirIfNotExist(dir string) {

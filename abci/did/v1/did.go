@@ -184,7 +184,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if nonceDup {
 		stopTime := time.Now()
 		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -195,12 +195,12 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
 		stopTime := time.Now()
 		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
 		return result
 	}
 	stopTime := time.Now()
 	go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx")
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -244,7 +244,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		res.Log = "Duplicate nonce"
 		stopTime := time.Now()
 		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
 		return res
 	}
 
@@ -257,7 +257,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		res.Log = "Duplicate nonce"
 		stopTime := time.Now()
 		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
 		return res
 	}
 
@@ -269,21 +269,21 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 			stopTime := time.Now()
 			go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-			go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
+			go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
 		stopTime := time.Now()
 		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
 	stopTime := time.Now()
 	go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx")
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
 	return res
 }
 
@@ -336,12 +336,12 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	if method != "" {
 		stopTime := time.Now()
 		go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query")
+		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query", method)
 		return app.QueryRouter(method, param, height)
 	}
 	stopTime := time.Now()
 	go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query")
+	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query", method)
 	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
