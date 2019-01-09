@@ -30,8 +30,10 @@ import (
 
 func init() {
 	prometheus.MustRegister(checkTxCounter)
+	prometheus.MustRegister(checkTxFailCounter)
 	prometheus.MustRegister(checkTxDurationHistogram)
 	prometheus.MustRegister(deliverTxCounter)
+	prometheus.MustRegister(deliverTxFailCounter)
 	prometheus.MustRegister(deliverTxDurationHistogram)
 	prometheus.MustRegister(queryCounter)
 	prometheus.MustRegister(queryDurationHistogram)
