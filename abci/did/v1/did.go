@@ -33,7 +33,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/abci/version"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
@@ -68,135 +67,6 @@ type DIDApplication struct {
 	CurrentBlock       int64
 	CurrentChain       string
 }
-
-func init() {
-	prometheus.MustRegister(checkTxCounter)
-	prometheus.MustRegister(checkTxDurationHistogram)
-	prometheus.MustRegister(deliverTxCounter)
-	prometheus.MustRegister(deliverTxDurationHistogram)
-	prometheus.MustRegister(queryCounter)
-	prometheus.MustRegister(queryDurationHistogram)
-	prometheus.MustRegister(commitDurationHistogram)
-}
-
-// prometheus
-func recordCheckTxMetrics(fName string) {
-	go func() {
-		checkTxCounter.With(prometheus.Labels{"function": fName}).Inc()
-	}()
-}
-
-var (
-	checkTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "abci",
-		Name:      "check_tx_total",
-		Help:      "Total number of CheckTx function called",
-	},
-		[]string{"function"})
-)
-
-func recordCheckTxDurationMetrics(startTime time.Time, fName string) {
-	go func() {
-		duration := time.Since(startTime)
-		checkTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
-	}()
-}
-
-var (
-	checkTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Subsystem: "abci",
-		Name:      "check_tx_duration_seconds",
-		Help:      "Duration of CheckTx in seconds",
-		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
-	},
-		[]string{"function"},
-	)
-)
-
-func recordDeliverTxMetrics(fName string) {
-	go func() {
-		deliverTxCounter.With(prometheus.Labels{"function": fName}).Inc()
-	}()
-}
-
-var (
-	deliverTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "abci",
-		Name:      "deliver_tx_total",
-		Help:      "Total number of DeliverTx function called",
-	},
-		[]string{"function"},
-	)
-)
-
-func recordDeliverTxDurationMetrics(startTime time.Time, fName string) {
-	go func() {
-		duration := time.Since(startTime)
-		deliverTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
-	}()
-}
-
-var (
-	deliverTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Subsystem: "abci",
-		Name:      "deliver_tx_duration_seconds",
-		Help:      "Duration of DeliverTx in seconds",
-		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
-	},
-		[]string{"function"},
-	)
-)
-
-func recordQueryMetrics(fName string) {
-	go func() {
-		queryCounter.With(prometheus.Labels{"function": fName}).Inc()
-	}()
-}
-
-var (
-	queryCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: "abci",
-		Name:      "query_total",
-		Help:      "Total number of Query function called",
-	},
-		[]string{"function"},
-	)
-)
-
-func recordQueryDurationMetrics(startTime time.Time, fName string) {
-	go func() {
-		duration := time.Since(startTime)
-		queryDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
-	}()
-}
-
-var (
-	queryDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Subsystem: "abci",
-		Name:      "query_duration_seconds",
-		Help:      "Duration of Query in seconds",
-		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
-	},
-		[]string{"function"},
-	)
-)
-
-func recordCommitDurationMetrics(startTime time.Time) {
-	go func() {
-		duration := time.Since(startTime)
-		commitDurationHistogram.Observe(duration.Seconds())
-	}()
-}
-
-var (
-	commitDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Subsystem: "abci",
-		Name:      "commit_duration_seconds",
-		Help:      "Duration of Commit in seconds",
-		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
-	},
-	)
-)
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
 	defer func() {
@@ -299,6 +169,7 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
 		go recordDeliverTxDurationMetrics(startTime, method)
+		go recordDeliverTxFailMetrics(method)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -308,9 +179,13 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
 		go recordDeliverTxDurationMetrics(startTime, method)
+		if result.Code != code.OK {
+			go recordDeliverTxFailMetrics(method)
+		}
 		return result
 	}
 	go recordDeliverTxDurationMetrics(startTime, method)
+	go recordDeliverTxFailMetrics(method)
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -354,6 +229,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
 		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 
@@ -365,6 +241,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
 		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 
@@ -375,16 +252,21 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		if IsMethod[method] {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 			go recordCheckTxDurationMetrics(startTime, method)
+			if result.Code != code.OK {
+				go recordCheckTxFailMetrics(method)
+			}
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
 		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
 	go recordCheckTxDurationMetrics(startTime, method)
+	go recordCheckTxFailMetrics(method)
 	return res
 }
 
