@@ -89,8 +89,8 @@ func recordCheckTxMetrics(fName string) {
 var (
 	checkTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: "abci",
-		Name:      "check_tx",
-		Help:      "Counter of check Tx",
+		Name:      "check_tx_total",
+		Help:      "Total number of CheckTx function called",
 	},
 		[]string{"function"})
 )
@@ -106,8 +106,8 @@ var (
 	checkTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Subsystem: "abci",
 		Name:      "check_tx_duration_seconds",
-		Help:      "Check Tx duration time",
-		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+		Help:      "Duration of CheckTx in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 		[]string{"function"},
 	)
@@ -122,8 +122,8 @@ func recordDeliverTxMetrics(fName string) {
 var (
 	deliverTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: "abci",
-		Name:      "deliver_tx",
-		Help:      "Counter of deliver Tx",
+		Name:      "deliver_tx_total",
+		Help:      "Total number of DeliverTx function called",
 	},
 		[]string{"function"},
 	)
@@ -140,8 +140,8 @@ var (
 	deliverTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Subsystem: "abci",
 		Name:      "deliver_tx_duration_seconds",
-		Help:      "Deliver Tx duration time",
-		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+		Help:      "Duration of DeliverTx in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 		[]string{"function"},
 	)
@@ -156,8 +156,8 @@ func recordQueryMetrics(fName string) {
 var (
 	queryCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Subsystem: "abci",
-		Name:      "query",
-		Help:      "Counter of query",
+		Name:      "query_total",
+		Help:      "Total number of Query function called",
 	},
 		[]string{"function"},
 	)
@@ -173,9 +173,9 @@ func recordQueryDurationMetrics(startTime time.Time, fName string) {
 var (
 	queryDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Subsystem: "abci",
-		Name:      "queryduration_seconds",
-		Help:      "Query duration time",
-		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+		Name:      "query_duration_seconds",
+		Help:      "Duration of Query in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 		[]string{"function"},
 	)
@@ -192,8 +192,8 @@ var (
 	commitDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Subsystem: "abci",
 		Name:      "commit_duration_seconds",
-		Help:      "Commit duration time",
-		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+		Help:      "Duration of Commit in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 	)
 )
