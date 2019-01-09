@@ -93,6 +93,12 @@ func init() {
 
 // Ref: github.com/tendermint/tendermint/cmd/tendermint/main.go
 func main() {
+
+	//prometheus
+	// var prometheusPort = getEnv("PROMETHEUS_PORT", "2112")
+	// http.Handle("/metrics", promhttp.Handler())
+	// go http.ListenAndServe(":"+prometheusPort, nil)
+
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
 		cmd.GenValidatorCmd,

@@ -32,8 +32,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/abci/version"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
@@ -68,6 +68,135 @@ type DIDApplication struct {
 	CurrentBlock       int64
 	CurrentChain       string
 }
+
+func init() {
+	prometheus.MustRegister(checkTxCounter)
+	prometheus.MustRegister(checkTxDurationHistogram)
+	prometheus.MustRegister(deliverTxCounter)
+	prometheus.MustRegister(deliverTxDurationHistogram)
+	prometheus.MustRegister(queryCounter)
+	prometheus.MustRegister(queryDurationHistogram)
+	prometheus.MustRegister(commitDurationHistogram)
+}
+
+// prometheus
+func recordCheckTxMetrics(fName string) {
+	go func() {
+		checkTxCounter.With(prometheus.Labels{"function": fName}).Inc()
+	}()
+}
+
+var (
+	checkTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "abci",
+		Name:      "check_tx",
+		Help:      "Counter of check Tx",
+	},
+		[]string{"function"})
+)
+
+func recordCheckTxDurationMetrics(startTime time.Time, fName string) {
+	go func() {
+		duration := time.Since(startTime)
+		checkTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
+	}()
+}
+
+var (
+	checkTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "check_tx_duration_seconds",
+		Help:      "Check Tx duration time",
+		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+	},
+		[]string{"function"},
+	)
+)
+
+func recordDeliverTxMetrics(fName string) {
+	go func() {
+		deliverTxCounter.With(prometheus.Labels{"function": fName}).Inc()
+	}()
+}
+
+var (
+	deliverTxCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "abci",
+		Name:      "deliver_tx",
+		Help:      "Counter of deliver Tx",
+	},
+		[]string{"function"},
+	)
+)
+
+func recordDeliverTxDurationMetrics(startTime time.Time, fName string) {
+	go func() {
+		duration := time.Since(startTime)
+		deliverTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
+	}()
+}
+
+var (
+	deliverTxDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "deliver_tx_duration_seconds",
+		Help:      "Deliver Tx duration time",
+		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+	},
+		[]string{"function"},
+	)
+)
+
+func recordQueryMetrics(fName string) {
+	go func() {
+		queryCounter.With(prometheus.Labels{"function": fName}).Inc()
+	}()
+}
+
+var (
+	queryCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Subsystem: "abci",
+		Name:      "query",
+		Help:      "Counter of query",
+	},
+		[]string{"function"},
+	)
+)
+
+func recordQueryDurationMetrics(startTime time.Time, fName string) {
+	go func() {
+		duration := time.Since(startTime)
+		queryDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
+	}()
+}
+
+var (
+	queryDurationHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "queryduration_seconds",
+		Help:      "Query duration time",
+		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+	},
+		[]string{"function"},
+	)
+)
+
+func recordCommitDurationMetrics(startTime time.Time) {
+	go func() {
+		duration := time.Since(startTime)
+		commitDurationHistogram.Observe(duration.Seconds())
+	}()
+}
+
+var (
+	commitDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "commit_duration_seconds",
+		Help:      "Commit duration time",
+		Buckets:   []float64{0, 0.25, 0.5, 0.75, 1},
+	},
+	)
+)
 
 func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
 	defer func() {
@@ -128,32 +257,21 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	startTime := time.Now()
-	go utils.WriteEventLogBeginBlock(dbDir, startTime, "start_BeginBlock", req.Header.Height, req.Header.NumTxs)
 	app.CurrentBlock = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make([]types.ValidatorUpdate, 0)
-	stopTime := time.Now()
-	go utils.WriteEventLogBeginBlock(dbDir, stopTime, "stop_BeginBlock", req.Header.Height, req.Header.NumTxs)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "BeginBlock")
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	startTime := time.Now()
-	go utils.WriteEventLog(dbDir, startTime, "start_EndBlock")
 	app.logger.Infof("EndBlock: %d", req.Height)
-	stopTime := time.Now()
-	go utils.WriteEventLog(dbDir, stopTime, "stop_EndBlock")
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "EndBlock")
 	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
 }
 
 func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
+
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -174,17 +292,13 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	startTime := time.Now()
-	go utils.WriteEventLogTx(dbDir, startTime, "start_DeliverTx", method, nonceBase64)
+	go recordDeliverTxMetrics(method)
 
+	startTime := time.Now()
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
-		stopTime := time.Now()
-		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
+		go recordDeliverTxDurationMetrics(startTime, method)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -193,14 +307,10 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if method != "" {
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
-		stopTime := time.Now()
-		go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
+		go recordDeliverTxDurationMetrics(startTime, method)
 		return result
 	}
-	stopTime := time.Now()
-	go utils.WriteEventLogTx(dbDir, stopTime, "end_DeliverTx", method, nonceBase64)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "DeliverTx", method)
+	go recordDeliverTxDurationMetrics(startTime, method)
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -225,10 +335,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
+	go recordCheckTxMetrics(method)
+
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	startTime := time.Now()
-	go utils.WriteEventLogTx(dbDir, startTime, "start_CheckTx", method, nonceBase64)
+
 	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
 	// Set checkTx state for each node's available token or token difference
 	// Deduct used token if passed
@@ -242,9 +353,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if nonceDup {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		stopTime := time.Now()
-		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
+		go recordCheckTxDurationMetrics(startTime, method)
 		return res
 	}
 
@@ -255,9 +364,7 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		stopTime := time.Now()
-		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
+		go recordCheckTxDurationMetrics(startTime, method)
 		return res
 	}
 
@@ -267,39 +374,29 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		// Check has function in system
 		if IsMethod[method] {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
-			stopTime := time.Now()
-			go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-			go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
+			go recordCheckTxDurationMetrics(startTime, method)
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
-		stopTime := time.Now()
-		go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
+		go recordCheckTxDurationMetrics(startTime, method)
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
-	stopTime := time.Now()
-	go utils.WriteEventLogTx(dbDir, stopTime, "end_CheckTx", method, nonceBase64)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "CheckTx", method, nonceBase64)
+	go recordCheckTxDurationMetrics(startTime, method)
 	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 	startTime := time.Now()
-	go utils.WriteEventLog(dbDir, startTime, "start_Commit")
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	for key := range app.deliverTxTempState {
 		delete(app.checkTxTempState, key)
 	}
 	app.deliverTxTempState = make(map[string][]byte)
-	stopTime := time.Now()
-	go utils.WriteEventLog(dbDir, stopTime, "end_Commit")
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Commit")
+	recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
@@ -322,9 +419,8 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	method := query.Method
 	param := query.Params
 
-	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 	startTime := time.Now()
-	go utils.WriteEventLogQuery(dbDir, startTime, "start_Query", method)
+	go recordQueryMetrics(method)
 
 	app.logger.Infof("Query: %s", method)
 
@@ -334,14 +430,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
-		stopTime := time.Now()
-		go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
-		go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query", method)
+		go recordQueryDurationMetrics(startTime, method)
 		return app.QueryRouter(method, param, height)
 	}
-	stopTime := time.Now()
-	go utils.WriteEventLogQuery(dbDir, stopTime, "end_Query", method)
-	go utils.WriteDurationLog(dbDir, (stopTime.Sub(startTime)).Nanoseconds(), "Query", method)
+	go recordQueryDurationMetrics(startTime, method)
 	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
