@@ -278,7 +278,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		delete(app.checkTxTempState, key)
 	}
 	app.deliverTxTempState = make(map[string][]byte)
-	recordCommitDurationMetrics(startTime)
+	go recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
