@@ -3,7 +3,7 @@
   "chain_id": "test-chain-NDID",
   "consensus_params": {
     "block_size": {
-      "max_bytes": "1048576",
+      "max_bytes": "10485760",
       "max_gas": "-1"
     },
     "evidence": {
