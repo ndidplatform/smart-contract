@@ -6,6 +6,10 @@
   name = "github.com/sirupsen/logrus"
   version = "1.0.5"
 
+[[constraint]]
+  name = "github.com/dgraph-io/badger"
+  version = "1.5.4"
+
 [[override]]
   name = "github.com/tendermint/iavl"
   version = "v0.12.0"

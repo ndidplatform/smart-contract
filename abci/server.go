@@ -34,6 +34,7 @@ import (
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
+	dbm "github.com/tendermint/tendermint/libs/db"
 	"github.com/tendermint/tendermint/libs/log"
 	nm "github.com/tendermint/tendermint/node"
 	"github.com/tendermint/tendermint/p2p"
@@ -127,6 +128,11 @@ func main() {
 	if err := cmd.Execute(); err != nil {
 		panic(err)
 	}
+}
+
+func DBProvider(ctx *nm.DBContext) (dbm.DB, error) {
+	dbType := dbm.DBBackendType(ctx.Config.DBBackend)
+	return dbm.NewDB(ctx.ID, dbType, ctx.Config.DBDir()), nil
 }
 
 // Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
