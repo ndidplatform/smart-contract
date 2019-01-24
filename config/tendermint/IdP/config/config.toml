@@ -155,10 +155,10 @@ broadcast = true
 wal_dir = ""
 
 # size of the mempool
-size = 10000
+size = 50000
 
 # size of the cache (used to filter transactions we saw earlier)
-cache_size = 0
+cache_size = 10000
 
 ##### consensus configuration options #####
 [consensus]
@@ -217,7 +217,7 @@ index_all_tags = false
 # When true, Prometheus metrics are served under /metrics on
 # PrometheusListenAddr.
 # Check out the documentation for the list of available metrics.
-prometheus = false
+prometheus = true
 
 # Address to listen for Prometheus collector(s) connections
 prometheus_listen_addr = ":26660"

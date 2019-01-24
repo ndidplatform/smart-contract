@@ -28,6 +28,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -140,6 +141,7 @@ func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEnd
 }
 
 func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
+
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -160,9 +162,14 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	go recordDeliverTxMetrics(method)
+
+	startTime := time.Now()
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
+		go recordDeliverTxDurationMetrics(startTime, method)
+		go recordDeliverTxFailMetrics(method)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
@@ -171,8 +178,14 @@ func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
 	if method != "" {
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","tags":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Tags[0].Key), string(result.Tags[0].Value))
+		go recordDeliverTxDurationMetrics(startTime, method)
+		if result.Code != code.OK {
+			go recordDeliverTxFailMetrics(method)
+		}
 		return result
 	}
+	go recordDeliverTxDurationMetrics(startTime, method)
+	go recordDeliverTxFailMetrics(method)
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
@@ -197,6 +210,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
 
+	go recordCheckTxMetrics(method)
+
+	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
+	startTime := time.Now()
+
 	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
 	// Set checkTx state for each node's available token or token difference
 	// Deduct used token if passed
@@ -210,10 +228,11 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	if nonceDup {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
+		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	// Check duplicate nonce in checkTx stateDB
 	_, exist := app.checkTxTempState[nonceBase64]
 	if !exist {
@@ -221,6 +240,8 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
+		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 
@@ -230,24 +251,34 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 		// Check has function in system
 		if IsMethod[method] {
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
+			go recordCheckTxDurationMetrics(startTime, method)
+			if result.Code != code.OK {
+				go recordCheckTxFailMetrics(method)
+			}
 			return result
 		}
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
+		go recordCheckTxDurationMetrics(startTime, method)
+		go recordCheckTxFailMetrics(method)
 		return res
 	}
 	res.Code = code.InvalidTransactionFormat
 	res.Log = "Invalid transaction format"
+	go recordCheckTxDurationMetrics(startTime, method)
+	go recordCheckTxFailMetrics(method)
 	return res
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
+	startTime := time.Now()
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
 	for key := range app.deliverTxTempState {
 		delete(app.checkTxTempState, key)
 	}
 	app.deliverTxTempState = make(map[string][]byte)
+	go recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: app.state.db.Hash()}
 }
 
@@ -270,6 +301,9 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	method := query.Method
 	param := query.Params
 
+	startTime := time.Now()
+	go recordQueryMetrics(method)
+
 	app.logger.Infof("Query: %s", method)
 
 	height := reqQuery.Height
@@ -278,8 +312,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	}
 
 	if method != "" {
+		go recordQueryDurationMetrics(startTime, method)
 		return app.QueryRouter(method, param, height)
 	}
+	go recordQueryDurationMetrics(startTime, method)
 	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
 }
 
