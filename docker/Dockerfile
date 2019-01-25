@@ -34,6 +34,9 @@ COPY Gopkg.toml Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/
 WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract
 RUN dep ensure --vendor-only
 
+COPY docker/custom/mem_db.go $GOPATH/src/github.com/ndidplatform/smart-contract/vendor/github.com/tendermint/tendermint/libs/db
+RUN rm $GOPATH/src/github.com/ndidplatform/smart-contract/vendor/github.com/tendermint/tendermint/libs/db/fsdb.go
+
 COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
 COPY .git $GOPATH/src/github.com/ndidplatform/smart-contract/.git
