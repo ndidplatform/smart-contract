@@ -586,10 +586,30 @@ func (itr *memDBIterator) Domain() ([]byte, []byte) {
 	return itr.start, itr.end
 }
 
+func legacyIsKeyInDomain(key, start, end []byte, isReverse bool) bool {
+	if !isReverse {
+		if bytes.Compare(key, start) < 0 {
+			return false
+		}
+		if end != nil && bytes.Compare(end, key) <= 0 {
+			return false
+		}
+		return true
+	} else {
+		if start != nil && bytes.Compare(start, key) < 0 {
+			return false
+		}
+		if end != nil && bytes.Compare(key, end) <= 0 {
+			return false
+		}
+		return true
+	}
+}
+
 // Implements Iterator.
 func (itr *memDBIterator) Valid() bool {
 	exact, _ := itr.root.findExactOrClosetLeafNode(itr.cur)
-	return exact && IsKeyInDomain([]byte(itr.cur), itr.start, itr.end, itr.reverse)
+	return exact && legacyIsKeyInDomain([]byte(itr.cur), itr.start, itr.end, itr.reverse)
 }
 
 // Implements Iterator.
