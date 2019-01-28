@@ -274,12 +274,19 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 	app.state.db.SaveVersion()
+	go recordIavlSaveVersionDurationMetrics(startTime)
+
 	for key := range app.deliverTxTempState {
 		delete(app.checkTxTempState, key)
 	}
 	app.deliverTxTempState = make(map[string][]byte)
+
+	appHashStartTime := time.Now()
+	appHash := app.state.db.Hash()
+	go recordAppHashDurationMetrics(appHashStartTime)
+
 	go recordCommitDurationMetrics(startTime)
-	return types.ResponseCommit{Data: app.state.db.Hash()}
+	return types.ResponseCommit{Data: appHash}
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {

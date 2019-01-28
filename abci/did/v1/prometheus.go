@@ -38,6 +38,8 @@ func init() {
 	prometheus.MustRegister(queryCounter)
 	prometheus.MustRegister(queryDurationHistogram)
 	prometheus.MustRegister(commitDurationHistogram)
+	prometheus.MustRegister(iavlSaveVersionDurationHistogram)
+	prometheus.MustRegister(appHashDurationHistogram)
 }
 
 func recordCheckTxMetrics(fName string) {
@@ -166,6 +168,36 @@ var (
 		Subsystem: "abci",
 		Name:      "commit_duration_seconds",
 		Help:      "Duration of Commit in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
+	},
+	)
+)
+
+func recordIavlSaveVersionDurationMetrics(startTime time.Time) {
+	duration := time.Since(startTime)
+	iavlSaveVersionDurationHistogram.Observe(duration.Seconds())
+}
+
+var (
+	iavlSaveVersionDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "iavl_save_version_duration_seconds",
+		Help:      "Duration of IAVL's SaveVersion() in seconds",
+		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
+	},
+	)
+)
+
+func recordAppHashDurationMetrics(startTime time.Time) {
+	duration := time.Since(startTime)
+	appHashDurationHistogram.Observe(duration.Seconds())
+}
+
+var (
+	appHashDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
+		Subsystem: "abci",
+		Name:      "app_hash_duration_seconds",
+		Help:      "Duration of app hash calculation in seconds",
 		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 	)
