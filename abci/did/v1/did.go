@@ -459,7 +459,9 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	height := reqQuery.Height
 	if height == 0 {
-		height = app.state.Height + 1
+		height = app.state.Height
+	} else {
+		height = height + 1
 	}
 
 	if method != "" {
