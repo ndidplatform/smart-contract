@@ -22,20 +22,18 @@
 
 package did
 
-import (
-	// "encoding/json"
+// "encoding/json"
 
-	// "github.com/golang/protobuf/proto"
-	// "github.com/ndidplatform/smart-contract/abci/utils"
-	// pbData "github.com/ndidplatform/smart-contract/protos/data"
-	// "github.com/tendermint/tendermint/abci/types"
-)
+// "github.com/golang/protobuf/proto"
+// "github.com/ndidplatform/smart-contract/abci/utils"
+// pbData "github.com/ndidplatform/smart-contract/protos/data"
+// "github.com/tendermint/tendermint/abci/types"
 
 // FIXME: Need a more efficient way to store Tx report
 // Currently, it load and unmarshal the whole report, add more item, then marshal it all back and store
 // func writeBurnTokenReport(nodeID string, method string, price float64, data string, app *DIDApplication) error {
 // 	key := "SpendGas" + "|" + nodeID
-// 	_, chkExists := app.state.db.Get(prefixKey([]byte(key)))
+// 	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
 // 	var newReport pbData.Report
 // 	newReport.Method = method
 // 	newReport.Price = price
@@ -69,19 +67,19 @@ import (
 // 	var funcParam GetUsedTokenReportParam
 // 	err := json.Unmarshal([]byte(param), &funcParam)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 // 	}
 // 	key := "SpendGas" + "|" + funcParam.NodeID
-// 	_, value := app.state.db.GetVersioned(prefixKey([]byte(key)), height)
+// 	_, value := app.GetStateDBVersioned(prefixKey([]byte(key)), height)
 // 	if value == nil {
 // 		value = []byte("[]")
-// 		return app.ReturnQuery(value, "not found", app.state.db.Version())
+// 		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
 // 	}
 // 	var result GetUsedTokenReportResult
 // 	var reports pbData.ReportList
 // 	err = proto.Unmarshal([]byte(value), &reports)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 // 	}
 // 	for _, report := range reports.Reports {
 // 		var newRow Report
@@ -92,7 +90,7 @@ import (
 // 	}
 // 	resultJSON, err := json.Marshal(result)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 // 	}
-// 	return app.ReturnQuery(resultJSON, "success", app.state.db.Version())
+// 	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
 // }

@@ -23,10 +23,13 @@
 package did
 
 import (
+	"crypto/md5"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,10 +37,10 @@ import (
 	"github.com/ndidplatform/smart-contract/abci/code"
 	"github.com/ndidplatform/smart-contract/abci/version"
 	"github.com/sirupsen/logrus"
-	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
@@ -46,7 +49,9 @@ var (
 )
 
 type State struct {
-	db *iavl.MutableTree
+	db      dbm.DB
+	Height  int64  `json:"height"`
+	AppHash []byte `json:"app_hash"`
 }
 
 func prefixKey(key []byte) []byte {
@@ -66,17 +71,40 @@ type DIDApplication struct {
 	AppProtocolVersion uint64
 	CurrentBlock       int64
 	CurrentChain       string
+	CurrentKeyValues   [][]byte
 }
 
-func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplication {
+func loadState(db dbm.DB) State {
+	stateBytes := db.Get(stateKey)
+	var state State
+	if len(stateBytes) != 0 {
+		err := json.Unmarshal(stateBytes, &state)
+		if err != nil {
+			panic(err)
+		}
+	}
+	state.db = db
+	return state
+}
+
+func saveState(state State) {
+	stateBytes, err := json.Marshal(state)
+	if err != nil {
+		panic(err)
+	}
+	state.db.Set(stateKey, stateBytes)
+}
+
+func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
 			panic(r)
 		}
 	}()
-	var state State
-	state.db = tree
+	// var state State
+	// state.db = db
+	state := loadState(db)
 
 	ABCIVersion := version.Version
 	ABCIProtocolVersion := version.AppProtocolVersion
@@ -92,24 +120,119 @@ func NewDIDApplication(logger *logrus.Entry, tree *iavl.MutableTree) *DIDApplica
 }
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
+	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(prefixKey(key)))
+	// // app.logger.Errorf("Set updateBlockNumberKey: %s", string(updateBlockNumberKey))
+	// updateBlockNumberValue := []byte(strconv.FormatInt(app.state.Height, 10))
+	// app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(updateBlockNumberKey))
+	// app.CurrentKeyValues = append(app.CurrentKeyValues, updateBlockNumberValue)
+	// app.state.db.Set(updateBlockNumberKey, updateBlockNumberValue)
+	strKey := string(key) + "|" + strconv.FormatInt(app.state.Height, 10)
+	key = []byte(strKey)
+	// app.logger.Errorf("Set key: %s", string(prefixKey(key)))
+	app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(key))
+	app.CurrentKeyValues = append(app.CurrentKeyValues, value)
 	app.state.db.Set(prefixKey(key), value)
 }
 
 func (app *DIDApplication) SetStateDBWithOutPrefix(key, value []byte) {
+	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(prefixKey(key)))
+	// updateBlockNumberValue := []byte(strconv.FormatInt(app.state.Height, 10))
+	// app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(updateBlockNumberKey))
+	// app.CurrentKeyValues = append(app.CurrentKeyValues, updateBlockNumberValue)
+	// app.state.db.Set(updateBlockNumberKey, updateBlockNumberValue)
+	strKey := string(key) + "|" + strconv.FormatInt(app.state.Height, 10)
+	key = []byte(strKey)
+	app.CurrentKeyValues = append(app.CurrentKeyValues, key)
+	app.CurrentKeyValues = append(app.CurrentKeyValues, value)
 	app.state.db.Set(key, value)
 }
 
+func (app *DIDApplication) GetStateDB(key []byte) (err error, value []byte) {
+	// Get update block number
+	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(key))
+	// // app.logger.Errorf("Get updateBlockNumberKey: %s", string(updateBlockNumberKey))
+	// blockNumber := app.state.db.Get(updateBlockNumberKey)
+
+	blockNumber := app.state.Height
+	for {
+		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
+		realKey := []byte(strKey)
+		// app.logger.Errorf("Get key: %s", string(realKey))
+		value = app.state.db.Get(realKey)
+		if value != nil {
+			break
+		}
+		if blockNumber == 0 {
+			break
+		}
+		blockNumber--
+	}
+
+	// strKey := string(key) + "|" + string(blockNumber)
+	// key = []byte(strKey)
+	// app.logger.Errorf("Get key: %s", string(key))
+	// value = app.state.db.Get(key)
+	return nil, value
+}
+
+func (app *DIDApplication) GetStateDBVersioned(key []byte, height int64) (err error, value []byte) {
+	// blockNumber := strconv.FormatInt(height, 10)
+	// if height == app.state.Height-1 {
+	// 	updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(key))
+	// 	blockNumber = string(app.state.db.Get(updateBlockNumberKey))
+	// }
+	// strKey := string(key) + "|" + blockNumber
+	// key = []byte(strKey)
+	// value = app.state.db.Get(key)
+
+	blockNumber := height
+	for {
+		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
+		realKey := []byte(strKey)
+		// app.logger.Errorf("Get key: %s", string(realKey))
+		value = app.state.db.Get(realKey)
+		if value != nil {
+			break
+		}
+		if blockNumber == 0 {
+			break
+		}
+		blockNumber--
+	}
+
+	return nil, value
+}
+
 func (app *DIDApplication) DeleteStateDB(key []byte) {
-	app.state.db.Remove(prefixKey(key))
+	// app.logger.Errorf("Delete key: %s", string(prefixKey(key)))
+	// app.state.db.Delete(prefixKey(key))
+
+	key = prefixKey(key)
+	blockNumber := app.state.Height
+	for {
+		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
+		realKey := []byte(strKey)
+		// app.logger.Errorf("Delete key: %s", string(realKey))
+		value := app.state.db.Get(realKey)
+		if value != nil {
+			app.state.db.DeleteSync(realKey)
+		}
+		if blockNumber == 0 {
+			break
+		}
+		blockNumber--
+	}
+
+	// app.state.db.Set(prefixKey(key), []byte(""))
 }
 
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
-	res.LastBlockHeight = app.state.db.Version()
-	res.LastBlockAppHash = app.state.db.Hash()
+	app.logger.Infof("CurrentBlock: %d", app.state.Height)
+	res.LastBlockHeight = app.state.Height
+	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
-	app.CurrentBlock = app.state.db.Version()
 	return res
 }
 
@@ -270,10 +393,20 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	return res
 }
 
+func Hash(arr [][]byte) []byte {
+	arrBytes := []byte{}
+	for _, item := range arr {
+		jsonBytes, _ := json.Marshal(item)
+		arrBytes = append(arrBytes, jsonBytes...)
+	}
+	sum := md5.Sum(arrBytes)
+	return sum[:]
+}
+
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
-	app.state.db.SaveVersion()
+	// app.state.db.SaveVersion()
 	go recordIavlSaveVersionDurationMetrics(startTime)
 
 	for key := range app.deliverTxTempState {
@@ -282,10 +415,21 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.deliverTxTempState = make(map[string][]byte)
 
 	appHashStartTime := time.Now()
-	appHash := app.state.db.Hash()
+	// Calculate app hash
+	if len(app.CurrentKeyValues) > 0 {
+		app.state.AppHash = Hash(app.CurrentKeyValues)
+		app.state.Height = app.state.Height + 1
+	}
+	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
 
+	// Clear current kv
+	app.CurrentKeyValues = make([][]byte, 0)
+
 	go recordCommitDurationMetrics(startTime)
+
+	// Save state
+	saveState(app.state)
 	return types.ResponseCommit{Data: appHash}
 }
 
@@ -295,7 +439,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = app.ReturnQuery(nil, "Unknown error", app.state.db.Version())
+			res = app.ReturnQuery(nil, "Unknown error", app.state.Height)
 		}
 	}()
 
@@ -315,7 +459,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	height := reqQuery.Height
 	if height == 0 {
-		height = app.state.db.Version()
+		height = app.state.Height
 	}
 
 	if method != "" {
@@ -323,7 +467,7 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 		return app.QueryRouter(method, param, height)
 	}
 	go recordQueryDurationMetrics(startTime, method)
-	return app.ReturnQuery(nil, "method can't empty", app.state.db.Version())
+	return app.ReturnQuery(nil, "method can't empty", app.state.Height)
 }
 
 func getEnv(key, defaultValue string) string {

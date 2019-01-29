@@ -29,7 +29,6 @@ import (
 	didV1 "github.com/ndidplatform/smart-contract/abci/did/v1"
 	// didV2 "github.com/ndidplatform/smart-contract/abci/did2/v2"
 	"github.com/sirupsen/logrus"
-	"github.com/tendermint/iavl"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
@@ -54,11 +53,11 @@ func NewDIDApplicationInterface() *DIDApplicationInterface {
 	}
 	name := "didDB"
 	db := dbm.NewDB(name, dbm.DBBackendType(dbType), dbDir)
-	tree := iavl.NewMutableTree(db, 0)
-	tree.Load()
+	// tree := iavl.NewMutableTree(db, 0)
+	// tree.Load()
 
 	return &DIDApplicationInterface{
-		appV1: didV1.NewDIDApplication(logger, tree),
+		appV1: didV1.NewDIDApplication(logger, db),
 		// appV2: didV2.NewDIDApplication(logger, tree),
 	}
 }

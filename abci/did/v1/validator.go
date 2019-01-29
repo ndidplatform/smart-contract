@@ -43,17 +43,17 @@ func isValidatorTx(tx []byte) bool {
 
 func (app *DIDApplication) Validators() (validators []types.Validator) {
 	app.logger.Infof("Validators")
-	app.state.db.Iterate(func(key []byte, value []byte) bool {
+	itr := app.state.db.Iterator(nil, nil)
+	defer itr.Close()
+	for ; itr.Valid(); itr.Next() {
+		key := itr.Key()
 		validator := new(types.Validator)
 		err := types.ReadMessage(bytes.NewBuffer(key), validator)
 		if err != nil {
 			panic(err)
 		}
 		validators = append(validators, *validator)
-
-		return false
-	})
-
+	}
 	return
 }
 
@@ -66,7 +66,7 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 		if !app.state.db.Has(key) {
 			return app.ReturnDeliverTxLog(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
 		}
-		app.state.db.Remove(key)
+		app.state.db.Delete(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))

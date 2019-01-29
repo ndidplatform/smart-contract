@@ -36,7 +36,7 @@ import (
 
 func (app *DIDApplication) getTokenPriceByFunc(fnName string, height int64) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
@@ -71,7 +71,7 @@ func (app *DIDApplication) createTokenAccount(nodeID string) {
 
 func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -108,7 +108,7 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 	}
 	price := app.getTokenPriceByFunc(funcParam.Func, height)
 	var res = GetPriceFuncResult{
@@ -116,14 +116,14 @@ func (app *DIDApplication) getPriceFunc(param string, height int64) types.Respon
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 	}
-	return app.ReturnQuery(value, "success", app.state.db.Version())
+	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
 }
 
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -143,7 +143,7 @@ func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 
 func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	key := "Token" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		return false
 	}
@@ -157,7 +157,7 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 
 func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -180,7 +180,7 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
 
 func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
-	_, value := app.state.db.Get(prefixKey([]byte(key)))
+	_, value := app.GetStateDB(prefixKey([]byte(key)))
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}
@@ -263,18 +263,18 @@ func (app *DIDApplication) getNodeToken(param string, height int64) types.Respon
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.db.Version())
+		return app.ReturnQuery([]byte("{}"), err.Error(), app.CurrentBlock-1)
 	}
 	tokenAmount, err := app.getToken(funcParam.NodeID)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.db.Version())
+		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.db.Version())
+		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 	}
-	return app.ReturnQuery(value, "success", app.state.db.Version())
+	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
 }
