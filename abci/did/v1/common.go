@@ -547,7 +547,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 		value = []byte("")
 		return app.ReturnQuery(value, err.Error(), app.CurrentBlock-1)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", height)
 }
 
 func (app *DIDApplication) getNamespaceList(param string, height int64) types.ResponseQuery {
