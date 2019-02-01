@@ -125,11 +125,6 @@ func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-
-	if nodeID == "NDID" {
-		fmt.Println("b3>>", node)
-	}
-
 	if node.Role != "NDID" {
 		return false
 	}

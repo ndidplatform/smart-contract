@@ -83,8 +83,6 @@ func (app *DIDApplication) GetStateDB(key []byte) (err error, value []byte) {
 	value, existInUncommittedState = app.UncommittedState[string(key)]
 	if !existInUncommittedState {
 		value = app.state.db.Get(key)
-	} else {
-		value = nil
 	}
 
 	return nil, value
