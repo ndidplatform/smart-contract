@@ -70,7 +70,7 @@ type DIDApplication struct {
 	AppProtocolVersion       uint64
 	CurrentBlock             int64
 	CurrentChain             string
-	HashData                 [][]byte
+	HashData                 []byte
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
 }
@@ -287,21 +287,18 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	return res
 }
 
-func Hash(arr [][]byte) []byte {
-	arrBytes := []byte{}
-	for _, item := range arr {
-		jsonBytes, _ := json.Marshal(item)
-		arrBytes = append(arrBytes, jsonBytes...)
-	}
-	sum := sha256.Sum256(arrBytes)
+func hash(data []byte) []byte {
+	sum := sha256.Sum256(data)
 	return sum[:]
 }
 
 func (app *DIDApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
-	// app.state.db.SaveVersion()
-	go recordIavlSaveVersionDurationMetrics(startTime)
+
+	app.SaveDBState()
+	app.state.Height = app.state.Height + 1
+	go recordDBSaveDurationMetrics(startTime)
 
 	for key := range app.deliverTxTempState {
 		delete(app.checkTxTempState, key)
@@ -311,17 +308,13 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	appHashStartTime := time.Now()
 	// Calculate app hash
 	if len(app.HashData) > 0 {
-		app.HashData = append([][]byte{app.state.AppHash}, app.HashData...)
-		app.state.AppHash = Hash(app.HashData)
+		app.HashData = append(app.state.AppHash, app.HashData...)
+		app.state.AppHash = hash(app.HashData)
 	}
 	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
 
-	// Clear current kv
-	app.HashData = make([][]byte, 0)
-
-	app.SaveDBState()
-	app.state.Height = app.state.Height + 1
+	app.HashData = make([]byte, 0)
 
 	// Save state
 	saveState(app.state)

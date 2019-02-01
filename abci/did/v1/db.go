@@ -31,8 +31,8 @@ import (
 )
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {
-	app.HashData = append(app.HashData, key)
-	app.HashData = append(app.HashData, value)
+	app.HashData = append(app.HashData, key...)
+	app.HashData = append(app.HashData, value...)
 
 	app.UncommittedState[string(key)] = value
 
@@ -59,7 +59,7 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 	}
 
 	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock {
-		app.HashData = append(app.HashData, versionsKey)
+		app.HashData = append(app.HashData, versionsKey...)
 		// app.HashData = append(app.HashData, len(versions))
 
 		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.CurrentBlock)
@@ -70,8 +70,8 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(app.CurrentBlock, 10)
 	// keyWithVersion := []byte(keyWithVersionStr)
 
-	app.HashData = append(app.HashData, key)
-	app.HashData = append(app.HashData, value)
+	app.HashData = append(app.HashData, key...)
+	app.HashData = append(app.HashData, value...)
 
 	app.UncommittedState[keyWithVersionStr] = value
 

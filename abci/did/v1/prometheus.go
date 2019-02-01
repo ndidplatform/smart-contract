@@ -38,7 +38,7 @@ func init() {
 	prometheus.MustRegister(queryCounter)
 	prometheus.MustRegister(queryDurationHistogram)
 	prometheus.MustRegister(commitDurationHistogram)
-	prometheus.MustRegister(iavlSaveVersionDurationHistogram)
+	prometheus.MustRegister(dbSaveDurationHistogram)
 	prometheus.MustRegister(appHashDurationHistogram)
 }
 
@@ -173,16 +173,16 @@ var (
 	)
 )
 
-func recordIavlSaveVersionDurationMetrics(startTime time.Time) {
+func recordDBSaveDurationMetrics(startTime time.Time) {
 	duration := time.Since(startTime)
-	iavlSaveVersionDurationHistogram.Observe(duration.Seconds())
+	dbSaveDurationHistogram.Observe(duration.Seconds())
 }
 
 var (
-	iavlSaveVersionDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
+	dbSaveDurationHistogram = prometheus.NewHistogram(prometheus.HistogramOpts{
 		Subsystem: "abci",
-		Name:      "iavl_save_version_duration_seconds",
-		Help:      "Duration of IAVL's SaveVersion() in seconds",
+		Name:      "db_save_duration_seconds",
+		Help:      "Duration of DB save in seconds",
 		Buckets:   []float64{0.05, 0.1, 0.25, 0.5, 0.75, 1},
 	},
 	)
