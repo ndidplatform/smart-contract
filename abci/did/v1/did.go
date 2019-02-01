@@ -43,7 +43,7 @@ import (
 )
 
 var (
-	stateKey        = []byte("stateKey")
+	stateKey = []byte("stateKey")
 	// nonceKeyPrefix  = []byte("nonce:")
 )
 
@@ -313,7 +313,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	if len(app.HashData) > 0 {
 		app.HashData = append([][]byte{app.state.AppHash}, app.HashData...)
 		app.state.AppHash = Hash(app.HashData)
-		app.state.Height = app.state.Height + 1
 	}
 	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
@@ -322,11 +321,12 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.HashData = make([][]byte, 0)
 
 	app.SaveDBState()
-
-	go recordCommitDurationMetrics(startTime)
+	app.state.Height = app.state.Height + 1
 
 	// Save state
 	saveState(app.state)
+
+	go recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: appHash}
 }
 
@@ -357,8 +357,6 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 	height := reqQuery.Height
 	if height == 0 {
 		height = app.state.Height
-	} else {
-		height = height + 1
 	}
 
 	if method != "" {
