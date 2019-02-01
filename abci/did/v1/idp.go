@@ -102,7 +102,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.Height-1)
+	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.Height)
 	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
 	if err != nil {
@@ -540,7 +540,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.CurrentBlock-1)
+	var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.Height)
 	var requestDetailResult GetRequestDetailResult
 	err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
 	if err != nil {
