@@ -58,7 +58,7 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 		}
 	}
 
-	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock{
+	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock {
 		app.HashData = append(app.HashData, versionsKey)
 		// app.HashData = append(app.HashData, len(versions))
 
