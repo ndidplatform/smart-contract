@@ -123,10 +123,10 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
-	app.logger.Infof("CurrentBlock: %d", app.state.Height)
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
+	app.CurrentBlock = app.state.Height
 	return res
 }
 

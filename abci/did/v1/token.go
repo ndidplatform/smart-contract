@@ -108,7 +108,7 @@ func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	price := app.getTokenPriceByFunc(funcParam.Func)
 	var res = GetPriceFuncResult{
@@ -116,9 +116,9 @@ func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
@@ -277,18 +277,18 @@ func (app *DIDApplication) getNodeToken(param string) types.ResponseQuery {
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.Height)
 	}
 	tokenAmount, err := app.getTokenCommitted(funcParam.NodeID)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }

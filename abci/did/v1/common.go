@@ -69,7 +69,7 @@ func (app *DIDApplication) getNodeMasterPublicKey(param string) types.ResponseQu
 	var funcParam GetNodeMasterPublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
 	_, value := app.GetCommittedStateDB([]byte(key))
@@ -77,21 +77,21 @@ func (app *DIDApplication) getNodeMasterPublicKey(param string) types.ResponseQu
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(valueJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	res.MasterPublicKey = nodeDetail.MasterPublicKey
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 
 }
 
@@ -100,7 +100,7 @@ func (app *DIDApplication) getNodePublicKey(param string) types.ResponseQuery {
 	var funcParam GetNodePublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
 	_, value := app.GetCommittedStateDB([]byte(key))
@@ -108,21 +108,21 @@ func (app *DIDApplication) getNodePublicKey(param string) types.ResponseQuery {
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(valueJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	res.PublicKey = nodeDetail.PublicKey
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getNodeNameByNodeID(nodeID string) string {
@@ -144,7 +144,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var returnNodes GetIdpNodesResult
@@ -157,7 +157,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, idp := range idpsList.NodeId {
 				nodeDetailKey := "NodeID" + "|" + idp
@@ -196,7 +196,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			var nodes data.MsqDesList
 			err = proto.Unmarshal([]byte(value), &nodes)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 
 			for _, node := range nodes.Nodes {
@@ -244,12 +244,12 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 
 	value, err := json.Marshal(returnNodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(returnNodes.Node) == 0 {
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
@@ -257,7 +257,7 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "ServiceDestination" + "|" + funcParam.ServiceID
 	_, value := app.GetCommittedStateDB([]byte(key))
@@ -267,9 +267,9 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 
 	// filter serive is active
@@ -280,29 +280,29 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if service.Active == false {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "service is not active", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "service is not active", app.state.Height)
 	}
 
 	var storedData data.ServiceDesList
 	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var result GetAsNodesByServiceIdWithNameResult
@@ -354,12 +354,12 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Node) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getMqAddresses(param string) types.ResponseQuery {
@@ -367,18 +367,18 @@ func (app *DIDApplication) getMqAddresses(param string) types.ResponseQuery {
 	var funcParam GetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, value := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		value = []byte("[]")
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	var result GetMqAddressesResult
 	for _, msq := range nodeDetail.Mq {
@@ -389,12 +389,12 @@ func (app *DIDApplication) getMqAddresses(param string) types.ResponseQuery {
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getRequest(param string, height int64) types.ResponseQuery {
@@ -402,19 +402,19 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.GetCommittedVersionedStateDB([]byte(key), height)
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var res GetRequestResult
@@ -425,9 +425,9 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getRequestDetail(param string, height int64) types.ResponseQuery {
@@ -435,7 +435,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
@@ -443,7 +443,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
 	}
 
 	var result GetRequestDetailResult
@@ -451,7 +451,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
 	}
 
 	result.RequestID = request.RequestId
@@ -545,7 +545,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(resultJSON, "success", height)
 }
@@ -556,7 +556,7 @@ func (app *DIDApplication) getNamespaceList(param string) types.ResponseQuery {
 	_, value := app.GetCommittedStateDB([]byte(key))
 	if value == nil {
 		value = []byte("[]")
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 
 	result := make([]*data.Namespace, 0)
@@ -564,7 +564,7 @@ func (app *DIDApplication) getNamespaceList(param string) types.ResponseQuery {
 	var namespaces data.NamespaceList
 	err := proto.Unmarshal([]byte(value), &namespaces)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, namespace := range namespaces.Namespaces {
 		if namespace.Active {
@@ -573,9 +573,9 @@ func (app *DIDApplication) getNamespaceList(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getServiceDetail(param string) types.ResponseQuery {
@@ -583,24 +583,24 @@ func (app *DIDApplication) getServiceDetail(param string) types.ResponseQuery {
 	var funcParam GetServiceDetailParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "Service" + "|" + funcParam.ServiceID
 	_, value := app.GetCommittedStateDB([]byte(key))
 	if value == nil {
 		value = []byte("{}")
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal(value, &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	returnValue, err := json.Marshal(service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
@@ -641,7 +641,7 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 	var funcParam CheckExistingIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingIdentityResult
 	result.Exist = false
@@ -650,14 +650,14 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 	if value == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
 	var nodes data.MsqDesList
 	err = proto.Unmarshal([]byte(value), &nodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	msqCount := 0
 	for _, node := range nodes.Nodes {
@@ -670,9 +670,9 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAccessorGroupID(param string) types.ResponseQuery {
@@ -680,7 +680,7 @@ func (app *DIDApplication) getAccessorGroupID(param string) types.ResponseQuery 
 	var funcParam GetAccessorGroupIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorGroupIDResult
 	result.AccessorGroupID = ""
@@ -688,7 +688,7 @@ func (app *DIDApplication) getAccessorGroupID(param string) types.ResponseQuery 
 	_, value := app.GetCommittedStateDB([]byte(key))
 	// If value == nil set log = "not found"
 	if value == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var accessor data.Accessor
 	err = proto.Unmarshal([]byte(value), &accessor)
@@ -697,9 +697,9 @@ func (app *DIDApplication) getAccessorGroupID(param string) types.ResponseQuery 
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
@@ -707,7 +707,7 @@ func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
 	var funcParam GetAccessorKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorKeyResult
 	result.AccessorPublicKey = ""
@@ -715,7 +715,7 @@ func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
 	_, value := app.GetCommittedStateDB([]byte(key))
 	// If value == nil set log = "not found"
 	if value == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var accessor data.Accessor
 	err = proto.Unmarshal([]byte(value), &accessor)
@@ -725,9 +725,9 @@ func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getServiceList(param string) types.ResponseQuery {
@@ -738,16 +738,16 @@ func (app *DIDApplication) getServiceList(param string) types.ResponseQuery {
 		result := make([]ServiceDetail, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	result := make([]*data.ServiceDetail, 0)
 	// filter flag==true
 	var services data.ServiceDetailList
 	err := proto.Unmarshal([]byte(value), &services)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, service := range services.Services {
 		if service.Active {
@@ -756,9 +756,9 @@ func (app *DIDApplication) getServiceList(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getServiceNameByServiceID(serviceID string) string {
@@ -780,7 +780,7 @@ func (app *DIDApplication) checkExistingAccessorID(param string) types.ResponseQ
 	var funcParam CheckExistingAccessorIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingResult
 	result.Exist = false
@@ -789,21 +789,21 @@ func (app *DIDApplication) checkExistingAccessorID(param string) types.ResponseQ
 	if accessorValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
 	var accessor data.Accessor
 	err = proto.Unmarshal([]byte(accessorValue), &accessor)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) checkExistingAccessorGroupID(param string) types.ResponseQuery {
@@ -811,7 +811,7 @@ func (app *DIDApplication) checkExistingAccessorGroupID(param string) types.Resp
 	var funcParam CheckExistingAccessorGroupIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingResult
 	result.Exist = false
@@ -820,16 +820,16 @@ func (app *DIDApplication) checkExistingAccessorGroupID(param string) types.Resp
 	if accessorGroupValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
 	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
@@ -837,18 +837,18 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 	var funcParam GetNodeInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
 	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// If node behind proxy
@@ -860,7 +860,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		var proxy data.Proxy
 		err = proto.Unmarshal([]byte(proxyValue), &proxy)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		proxyNodeID := proxy.ProxyNodeId
 
@@ -868,12 +868,12 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 		_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
 		if proxyNodeDetailValue == nil {
-			return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+			return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 		}
 		var proxyNode data.NodeDetail
 		err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		if nodeDetail.Role == "IdP" {
 			var result GetNodeInfoResultIdPandASBehindProxy
@@ -898,9 +898,9 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 			result.Proxy.Config = proxy.Config
 			value, err := json.Marshal(result)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+			return app.ReturnQuery(value, "success", app.state.Height)
 		}
 		var result GetNodeInfoResultRPandASBehindProxy
 		result.PublicKey = nodeDetail.PublicKey
@@ -922,9 +922,9 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		result.Proxy.Config = proxy.Config
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "success", app.state.Height)
 	}
 	if nodeDetail.Role == "IdP" {
 		var result GetNodeInfoIdPResult
@@ -944,9 +944,9 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		}
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "success", app.state.Height)
 	}
 	var result GetNodeInfoResult
 	result.PublicKey = nodeDetail.PublicKey
@@ -963,9 +963,9 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 	}
 	value, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
@@ -973,18 +973,18 @@ func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
 	var funcParam GetIdentityInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetIdentityInfoResult
 	key := "MsqDestination" + "|" + funcParam.HashID
 	_, chkExists := app.GetCommittedStateDB([]byte(key))
 	if chkExists == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var nodes data.MsqDesList
 	err = proto.Unmarshal([]byte(chkExists), &nodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, node := range nodes.Nodes {
 		if node.NodeId == funcParam.NodeID {
@@ -994,12 +994,12 @@ func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if result.Ial <= 0.0 {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
@@ -1007,17 +1007,17 @@ func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
 	var funcParam GetDataSignatureParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
 	_, signDataValue := app.GetCommittedStateDB([]byte(signDataKey))
 	if signDataValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var result GetDataSignatureResult
 	result.Signature = string(signDataValue)
 	returnValue, err := json.Marshal(result)
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getIdentityProof(param string) types.ResponseQuery {
@@ -1025,17 +1025,17 @@ func (app *DIDApplication) getIdentityProof(param string) types.ResponseQuery {
 	var funcParam GetIdentityProofParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
 	_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
 	if identityProofValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var result GetIdentityProofResult
 	result.IdentityProof = string(identityProofValue)
 	returnValue, err := json.Marshal(result)
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
@@ -1043,7 +1043,7 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 	var funcParam GetServicesByAsIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetServicesByAsIDResult
 	result.Services = make([]Service, 0)
@@ -1052,28 +1052,28 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 	if provideServiceValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	var services data.ServiceList
 	err = proto.Unmarshal([]byte(provideServiceValue), &services)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.AsID
 	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for index, provideService := range services.Services {
 		serviceKey := "Service" + "|" + provideService.ServiceId
@@ -1084,7 +1084,7 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 		var service data.ServiceDetail
 		err = proto.Unmarshal([]byte(serviceValue), &service)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
@@ -1109,12 +1109,12 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Services) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
@@ -1122,7 +1122,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetIdpNodesInfoResult
 	result.Node = make([]interface{}, 0)
@@ -1137,14 +1137,14 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if idpsValue == nil {
 			value, err := json.Marshal(result)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+			return app.ReturnQuery(value, "not found", app.state.Height)
 		}
 		var idpsList data.IdPList
 		err := proto.Unmarshal(idpsValue, &idpsList)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		for _, idp := range idpsList.NodeId {
 			// filter from node_id_list
@@ -1180,19 +1180,19 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				var proxy data.Proxy
 				err = proto.Unmarshal([]byte(proxyValue), &proxy)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+					return app.ReturnQuery(nil, err.Error(), app.state.Height)
 				}
 				proxyNodeID := proxy.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
 				if proxyNodeDetailValue == nil {
-					return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+					return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 				}
 				var proxyNode data.NodeDetail
 				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+					return app.ReturnQuery(nil, err.Error(), app.state.Height)
 				}
 				// Check proxy node is active
 				if !proxyNode.Active {
@@ -1241,14 +1241,14 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if value == nil {
 			value, err := json.Marshal(result)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+			return app.ReturnQuery(value, "not found", app.state.Height)
 		}
 		var nodes data.MsqDesList
 		err = proto.Unmarshal([]byte(value), &nodes)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		for _, node := range nodes.Nodes {
 			// filter from node_id_list
@@ -1296,19 +1296,19 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				var proxy data.Proxy
 				err = proto.Unmarshal([]byte(proxyValue), &proxy)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+					return app.ReturnQuery(nil, err.Error(), app.state.Height)
 				}
 				proxyNodeID := proxy.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
 				if proxyNodeDetailValue == nil {
-					return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+					return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 				}
 				var proxyNode data.NodeDetail
 				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+					return app.ReturnQuery(nil, err.Error(), app.state.Height)
 				}
 				// Check proxy node is active
 				if !proxyNode.Active {
@@ -1354,12 +1354,12 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	}
 	value, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Node) == 0 {
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {
@@ -1367,7 +1367,7 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := "ServiceDestination" + "|" + funcParam.ServiceID
 	_, value := app.GetCommittedStateDB([]byte(key))
@@ -1376,9 +1376,9 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 		result.Node = make([]interface{}, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	// filter serive is active
 	serviceKey := "Service" + "|" + funcParam.ServiceID
@@ -1388,28 +1388,28 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if service.Active == false {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "service is not active", app.CurrentBlock-1)
+		return app.ReturnQuery(value, "service is not active", app.state.Height)
 	}
 	var storedData data.ServiceDesList
 	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	// Make mapping
 	mapNodeIDList := map[string]bool{}
@@ -1465,19 +1465,19 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 			var proxy data.Proxy
 			err = proto.Unmarshal([]byte(proxyValue), &proxy)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			proxyNodeID := proxy.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
 			if proxyNodeDetailValue == nil {
-				return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+				return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 			}
 			var proxyNode data.NodeDetail
 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			// Check proxy node is active
 			if !proxyNode.Active {
@@ -1522,9 +1522,9 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQuery {
@@ -1532,7 +1532,7 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 	var funcParam GetNodesBehindProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetNodesBehindProxyNodeResult
 	result.Nodes = make([]interface{}, 0)
@@ -1541,15 +1541,15 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 	if behindProxyNodeValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, node := range nodes.Nodes {
 		nodeDetailKey := "NodeID" + "|" + node
@@ -1600,12 +1600,12 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Nodes) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
@@ -1613,7 +1613,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 	var funcParam GetNodeIDListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetNodeIDListResult
 	result.NodeIDList = make([]string, 0)
@@ -1624,7 +1624,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range rpsList.NodeId {
 				nodeDetailKey := "NodeID" + "|" + nodeID
@@ -1648,7 +1648,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range idpsList.NodeId {
 				nodeDetailKey := "NodeID" + "|" + nodeID
@@ -1672,7 +1672,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range asList.NodeId {
 				nodeDetailKey := "NodeID" + "|" + nodeID
@@ -1696,7 +1696,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 		if allValue != nil {
 			err := proto.Unmarshal(allValue, &allList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range allList.NodeId {
 				nodeDetailKey := "NodeID" + "|" + nodeID
@@ -1716,12 +1716,12 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.NodeIDList) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAccessorsInAccessorGroup(param string) types.ResponseQuery {
@@ -1729,23 +1729,23 @@ func (app *DIDApplication) getAccessorsInAccessorGroup(param string) types.Respo
 	var funcParam GetAccessorsInAccessorGroupParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorsInAccessorGroupResult
 	result.AccessorList = make([]string, 0)
 	if funcParam.AccessorGroupID == "" {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "not found", app.CurrentBlock-1)
+		return app.ReturnQuery(returnValue, "not found", app.state.Height)
 	}
 	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
 	_, accessorInGroupKeyValue := app.GetCommittedStateDB([]byte(accessorInGroupKey))
 	var accessors data.AccessorInGroup
 	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	// If IdpID == "", return all accessors in group
 	if funcParam.IdpID == "" {
@@ -1760,7 +1760,7 @@ func (app *DIDApplication) getAccessorsInAccessorGroup(param string) types.Respo
 			var accessorObj data.Accessor
 			err := proto.Unmarshal(accessorValue, &accessorObj)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			if accessorObj.Owner == funcParam.IdpID {
 				result.AccessorList = append(result.AccessorList, accessor)
@@ -1769,9 +1769,9 @@ func (app *DIDApplication) getAccessorsInAccessorGroup(param string) types.Respo
 	}
 	returnValue, err := json.Marshal(result)
 	if len(result.AccessorList) > 0 {
-		return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "not found", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "not found", app.state.Height)
 }
 
 func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
@@ -1779,7 +1779,7 @@ func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
 	var funcParam GetAccessorOwnerParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorOwnerResult
 	result.NodeID = ""
@@ -1787,7 +1787,7 @@ func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
 	_, value := app.GetCommittedStateDB([]byte(key))
 	// If value == nil set log = "not found"
 	if value == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.CurrentBlock-1)
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var accessor data.Accessor
 	err = proto.Unmarshal([]byte(value), &accessor)
@@ -1796,9 +1796,9 @@ func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) isInitEnded(param string) types.ResponseQuery {
@@ -1812,14 +1812,14 @@ func (app *DIDApplication) isInitEnded(param string) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getChainHistory(param string) types.ResponseQuery {
 	app.logger.Infof("GetChainHistory, Parameter: %s", param)
 	chainHistoryInfoKey := "ChainHistoryInfo"
 	_, value := app.GetCommittedStateDB([]byte(chainHistoryInfoKey))
-	return app.ReturnQuery(value, "success", app.CurrentBlock-1)
+	return app.ReturnQuery(value, "success", app.state.Height)
 }

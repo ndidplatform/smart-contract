@@ -67,19 +67,19 @@ package did
 // 	var funcParam GetUsedTokenReportParam
 // 	err := json.Unmarshal([]byte(param), &funcParam)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 // 	}
 // 	key := "SpendGas" + "|" + funcParam.NodeID
 // 	_, value := app.GetStateDBVersioned([]byte(key)), height)
 // 	if value == nil {
 // 		value = []byte("[]")
-// 		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)
+// 		return app.ReturnQuery(value, "not found", app.state.Height)
 // 	}
 // 	var result GetUsedTokenReportResult
 // 	var reports pbData.ReportList
 // 	err = proto.Unmarshal([]byte(value), &reports)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 // 	}
 // 	for _, report := range reports.Reports {
 // 		var newRow Report
@@ -90,7 +90,7 @@ package did
 // 	}
 // 	resultJSON, err := json.Marshal(result)
 // 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
+// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 // 	}
-// 	return app.ReturnQuery(resultJSON, "success", app.CurrentBlock-1)
+// 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 // }
