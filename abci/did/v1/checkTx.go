@@ -92,7 +92,7 @@ var IsMethod = map[string]bool{
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
 	key := "MasterNDID"
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetStateDB([]byte(key))
 	if value != nil {
 		// NDID node (first node of the network) is already existed
 		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
@@ -102,7 +102,7 @@ func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.Re
 
 func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -119,12 +119,17 @@ func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) ty
 
 func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
+
+	if nodeID == "NDID" {
+		fmt.Println("b3>>", node)
+	}
+
 	if node.Role != "NDID" {
 		return false
 	}
@@ -133,7 +138,7 @@ func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -147,7 +152,7 @@ func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -161,7 +166,7 @@ func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -213,7 +218,7 @@ func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string) type
 	}
 	// Check request is existed
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetStateDB(prefixKey([]byte(requestKey)))
+	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
@@ -271,7 +276,7 @@ func getPublicKeyInitNDID(param string) string {
 
 func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetStateDB([]byte(key))
 	if value == nil {
 		return ""
 	}
@@ -285,7 +290,7 @@ func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 
 func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetStateDB([]byte(key))
 	if value == nil {
 		return ""
 	}
@@ -299,7 +304,7 @@ func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
 
 func (app *DIDApplication) getRoleFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetStateDB([]byte(key))
 	if value == nil {
 		return ""
 	}
@@ -388,7 +393,7 @@ var IsMasterKeyMethod = map[string]bool{
 
 func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB(prefixKey([]byte(initStateKey)))
+	_, value := app.GetStateDB([]byte(initStateKey))
 	if string(value) == "" {
 		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
@@ -400,7 +405,7 @@ func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 
 func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB(prefixKey([]byte(initStateKey)))
+	_, value := app.GetStateDB([]byte(initStateKey))
 	if string(value) != "true" {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
@@ -409,7 +414,7 @@ func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
 
 func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
 	lastBlockKey := "lastBlock"
-	_, value := app.GetStateDB(prefixKey([]byte(lastBlockKey)))
+	_, value := app.GetStateDB([]byte(lastBlockKey))
 	if string(value) == "" {
 		value = []byte("-1")
 	}
@@ -494,7 +499,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		}
 		// If node behind proxy then check proxy is active
 		proxyKey := "Proxy" + "|" + nodeID
-		_, proxyValue := app.GetStateDB(prefixKey([]byte(proxyKey)))
+		_, proxyValue := app.GetStateDB([]byte(proxyKey))
 		if proxyValue != nil {
 			// Get proxy node ID
 			var proxy data.Proxy
@@ -506,7 +511,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.GetStateDB(prefixKey([]byte(proxyNodeDetailKey)))
+			_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))
 			if proxyNodeDetailValue == nil {
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
 			}
@@ -540,7 +545,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 	// check token for create Tx
 	if result.Code == code.OK {
 		if !app.checkNDID(param, nodeID) && method != "InitNDID" {
-			needToken := app.getTokenPriceByFunc(method, app.CurrentBlock-1)
+			needToken := app.getTokenPriceByFunc(method)
 			nodeToken, err := app.getToken(nodeID)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
@@ -612,7 +617,7 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 
 func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetStateDB([]byte(key))
 	if value == nil {
 		return false
 	}
@@ -626,7 +631,7 @@ func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
 
 func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	if value == nil {
 		return false
 	}
@@ -642,5 +647,5 @@ func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 }
 
 func (app *DIDApplication) isDuplicateNonce(nonce []byte) bool {
-	return app.state.db.Has(prefixKey(nonce))
+	return app.state.db.Has(nonce)
 }

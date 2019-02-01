@@ -7,10 +7,6 @@
   version = "1.0.5"
 
 [[override]]
-  name = "github.com/tendermint/iavl"
-  version = "v0.12.0"
-
-[[override]]
   name = "github.com/tendermint/tendermint"
   version = "v0.29.1"
 

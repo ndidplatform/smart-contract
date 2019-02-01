@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+message KeyVersions {
+  repeated int64 versions = 1;
+}
+
 message NodeDetail {
   string public_key = 1;
   string master_public_key = 2;

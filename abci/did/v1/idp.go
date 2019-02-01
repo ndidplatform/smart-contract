@@ -53,12 +53,12 @@ func (app *DIDApplication) registerAccessor(param string, nodeID string) types.R
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
 	accessorGroup := funcParam.AccessorGroupID
 	// Check duplicate accessor_id
-	_, chkAccessorKeyExists := app.GetStateDB(prefixKey([]byte(accessorKey)))
+	_, chkAccessorKeyExists := app.GetStateDB([]byte(accessorKey))
 	if chkAccessorKeyExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
 	// Check duplicate accessor_group_id
-	_, chkAccessorGroupKeyExists := app.GetStateDB(prefixKey([]byte(accessorGroupKey)))
+	_, chkAccessorGroupKeyExists := app.GetStateDB([]byte(accessorGroupKey))
 	if chkAccessorGroupKeyExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorGroupID, "Duplicate Accessor Group ID", "")
 	}
@@ -85,13 +85,13 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	}
 	// AccessorGroupID: must already exist
 	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
-	_, chkAccessorGroupKeyExists := app.GetStateDB(prefixKey([]byte(accessorGroupKey)))
+	_, chkAccessorGroupKeyExists := app.GetStateDB([]byte(accessorGroupKey))
 	if chkAccessorGroupKeyExists == nil {
 		return app.ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
 	}
 	// AccessorID: must not duplicate
 	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	_, chkAccessorKeyExists := app.GetStateDB(prefixKey([]byte(accessorKey)))
+	_, chkAccessorKeyExists := app.GetStateDB([]byte(accessorKey))
 	if chkAccessorKeyExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
 	}
@@ -139,7 +139,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetStateDB(prefixKey([]byte(requestKey)))
+	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
 	if requestValue == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -166,7 +166,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	}
 	// Add relation AccessorGroupID -> AccessorID
 	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
-	_, accessorInGroupKeyValue := app.GetStateDB(prefixKey([]byte(accessorInGroupKey)))
+	_, accessorInGroupKeyValue := app.GetStateDB([]byte(accessorInGroupKey))
 	var accessors data.AccessorInGroup
 	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
 	if err != nil {
@@ -181,7 +181,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
+	app.SetVersionedStateDB([]byte(requestKey), []byte(requestProtobuf))
 	app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
 	app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
@@ -195,7 +195,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -212,7 +212,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	timeOutKey := "TimeOutBlockRegisterIdentity"
 	var timeOut data.TimeOutBlockRegisterIdentity
-	_, timeOutValue := app.GetStateDB(prefixKey([]byte(timeOutKey)))
+	_, timeOutValue := app.GetStateDB([]byte(timeOutKey))
 	if timeOutValue != nil {
 		err := proto.Unmarshal([]byte(timeOutValue), &timeOut)
 		if err != nil {
@@ -225,7 +225,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	// If validate passed then add Msq Destination
 	for _, user := range funcParam.Users {
 		key := "MsqDestination" + "|" + user.HashID
-		_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+		_, chkExists := app.GetStateDB([]byte(key))
 		if chkExists != nil {
 			var nodes data.MsqDesList
 			err = proto.Unmarshal([]byte(chkExists), &nodes)
@@ -307,7 +307,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	response.IdpId = nodeID
 	response.IdentityProof = funcParam.IdentityProof
 	response.PrivateProofHash = funcParam.PrivateProofHash
-	_, value := app.GetStateDB(prefixKey([]byte(key)))
+	_, value := app.GetVersionedStateDB([]byte(key), 0)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -334,7 +334,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	}
 	// Check AAL, IAL with MaxIalAal
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -364,7 +364,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	// Check identity proof if mode == 3
 	if request.Mode == 3 {
 		identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-		_, identityProofValue := app.GetStateDB(prefixKey([]byte(identityProofKey)))
+		_, identityProofValue := app.GetStateDB([]byte(identityProofKey))
 		proofPassed := false
 		if identityProofValue != nil {
 			if funcParam.IdentityProof == string(identityProofValue) {
@@ -394,7 +394,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.SetVersionedStateDB([]byte(key), []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
@@ -407,7 +407,7 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 	}
 	// Check IAL must less than Max IAL
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -420,7 +420,7 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
 	}
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-	_, msqDesValue := app.GetStateDB(prefixKey([]byte(msqDesKey)))
+	_, msqDesValue := app.GetStateDB([]byte(msqDesKey))
 	if msqDesValue == nil {
 		return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
 	}
@@ -455,7 +455,7 @@ func (app *DIDApplication) declareIdentityProof(param string, nodeID string) typ
 	}
 	// Check the request
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetStateDB(prefixKey([]byte(requestKey)))
+	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
 	if requestValue == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -477,7 +477,7 @@ func (app *DIDApplication) declareIdentityProof(param string, nodeID string) typ
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
 	}
 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-	_, identityProofValue := app.GetStateDB(prefixKey([]byte(identityProofKey)))
+	_, identityProofValue := app.GetStateDB([]byte(identityProofKey))
 	if identityProofValue != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
 	}
@@ -494,7 +494,7 @@ func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID str
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-	_, msqDesValue := app.GetStateDB(prefixKey([]byte(msqDesKey)))
+	_, msqDesValue := app.GetStateDB([]byte(msqDesKey))
 	if msqDesValue == nil {
 		return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
 	}
@@ -584,7 +584,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 		return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
 	}
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetStateDB(prefixKey([]byte(requestKey)))
+	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
 	if requestValue == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -603,7 +603,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 	// All accessor key with id in "accessor_id_list" must be created by IDP that call the function
 	for _, accessorID := range funcParam.AccessorIDList {
 		accessorKey := "Accessor" + "|" + accessorID
-		_, accessorValue := app.GetStateDB(prefixKey([]byte(accessorKey)))
+		_, accessorValue := app.GetStateDB([]byte(accessorKey))
 		if accessorValue == nil {
 			return app.ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
 		}
@@ -620,7 +620,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 	// If all condition pass, disable all accessor key with id in "accessor_id_list"
 	for _, accessorID := range funcParam.AccessorIDList {
 		accessorKey := "Accessor" + "|" + accessorID
-		_, accessorValue := app.GetStateDB(prefixKey([]byte(accessorKey)))
+		_, accessorValue := app.GetStateDB([]byte(accessorKey))
 		if accessorValue == nil {
 			return app.ReturnDeliverTxLog(code.AccessorIDNotFound, "Accessor ID not found", "")
 		}
@@ -637,7 +637,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 		}
 		// Remove AccessorID from AccessorInGroup
 		accessorInGroupKey := "AccessorInGroup" + "|" + accessor.AccessorGroupId
-		_, accessorInGroupKeyValue := app.GetStateDB(prefixKey([]byte(accessorInGroupKey)))
+		_, accessorInGroupKeyValue := app.GetStateDB([]byte(accessorInGroupKey))
 		var accessors data.AccessorInGroup
 		err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
 		if err != nil {
@@ -656,7 +656,7 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 		}
 		// Add accessor ID to revokedAccessorInGroup
 		revokedAccessorInGroupKey := "RevokedAccessorInGroup" + "|" + accessor.AccessorGroupId
-		_, revokedAccessorInGroupValue := app.GetStateDB(prefixKey([]byte(revokedAccessorInGroupKey)))
+		_, revokedAccessorInGroupValue := app.GetStateDB([]byte(revokedAccessorInGroupKey))
 		var revokedAccessorInGroup data.AccessorInGroup
 		err = proto.Unmarshal(revokedAccessorInGroupValue, &revokedAccessorInGroup)
 		if err != nil {
@@ -675,6 +675,6 @@ func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) typ
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
+	app.SetVersionedStateDB([]byte(requestKey), []byte(requestProtobuf))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

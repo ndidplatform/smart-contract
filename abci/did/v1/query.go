@@ -46,67 +46,67 @@ func (app *DIDApplication) QueryRouter(method string, param string, height int64
 func (app *DIDApplication) callQuery(name string, param string, height int64) types.ResponseQuery {
 	switch name {
 	case "GetNodePublicKey":
-		return app.getNodePublicKey(param, height)
+		return app.getNodePublicKey(param)
 	case "GetIdpNodes":
-		return app.getIdpNodes(param, height)
+		return app.getIdpNodes(param)
 	case "GetRequest":
 		return app.getRequest(param, height)
 	case "GetRequestDetail":
 		return app.getRequestDetail(param, height)
 	case "GetAsNodesByServiceId":
-		return app.getAsNodesByServiceId(param, height)
+		return app.getAsNodesByServiceId(param)
 	case "GetMqAddresses":
-		return app.getMqAddresses(param, height)
+		return app.getMqAddresses(param)
 	case "GetNodeToken":
-		return app.getNodeToken(param, height)
+		return app.getNodeToken(param)
 	case "GetPriceFunc":
-		return app.getPriceFunc(param, height)
+		return app.getPriceFunc(param)
 	// case "GetUsedTokenReport":
 	// 	return app.getUsedTokenReport(param, height)
 	case "GetServiceDetail":
-		return app.getServiceDetail(param, height)
+		return app.getServiceDetail(param)
 	case "GetNamespaceList":
-		return app.getNamespaceList(param, height)
+		return app.getNamespaceList(param)
 	case "CheckExistingIdentity":
-		return app.checkExistingIdentity(param, height)
+		return app.checkExistingIdentity(param)
 	case "GetAccessorGroupID":
-		return app.getAccessorGroupID(param, height)
+		return app.getAccessorGroupID(param)
 	case "GetAccessorKey":
-		return app.getAccessorKey(param, height)
+		return app.getAccessorKey(param)
 	case "GetServiceList":
-		return app.getServiceList(param, height)
+		return app.getServiceList(param)
 	case "GetNodeMasterPublicKey":
-		return app.getNodeMasterPublicKey(param, height)
+		return app.getNodeMasterPublicKey(param)
 	case "GetNodeInfo":
-		return app.getNodeInfo(param, height)
+		return app.getNodeInfo(param)
 	case "CheckExistingAccessorID":
-		return app.checkExistingAccessorID(param, height)
+		return app.checkExistingAccessorID(param)
 	case "CheckExistingAccessorGroupID":
-		return app.checkExistingAccessorGroupID(param, height)
+		return app.checkExistingAccessorGroupID(param)
 	case "GetIdentityInfo":
-		return app.getIdentityInfo(param, height)
+		return app.getIdentityInfo(param)
 	case "GetDataSignature":
-		return app.getDataSignature(param, height)
+		return app.getDataSignature(param)
 	case "GetIdentityProof":
-		return app.getIdentityProof(param, height)
+		return app.getIdentityProof(param)
 	case "GetServicesByAsID":
-		return app.getServicesByAsID(param, height)
+		return app.getServicesByAsID(param)
 	case "GetIdpNodesInfo":
-		return app.getIdpNodesInfo(param, height)
+		return app.getIdpNodesInfo(param)
 	case "GetAsNodesInfoByServiceId":
-		return app.getAsNodesInfoByServiceId(param, height)
+		return app.getAsNodesInfoByServiceId(param)
 	case "GetNodesBehindProxyNode":
-		return app.getNodesBehindProxyNode(param, height)
+		return app.getNodesBehindProxyNode(param)
 	case "GetNodeIDList":
-		return app.getNodeIDList(param, height)
+		return app.getNodeIDList(param)
 	case "GetAccessorsInAccessorGroup":
-		return app.getAccessorsInAccessorGroup(param, height)
+		return app.getAccessorsInAccessorGroup(param)
 	case "GetAccessorOwner":
-		return app.getAccessorOwner(param, height)
+		return app.getAccessorOwner(param)
 	case "IsInitEnded":
-		return app.isInitEnded(param, height)
+		return app.isInitEnded(param)
 	case "GetChainHistory":
-		return app.getChainHistory(param, height)
+		return app.getChainHistory(param)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

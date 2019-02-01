@@ -23,13 +23,12 @@
 package did
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -45,7 +44,7 @@ import (
 
 var (
 	stateKey        = []byte("stateKey")
-	kvPairPrefixKey = []byte("kvPairKey:")
+	// nonceKeyPrefix  = []byte("nonce:")
 )
 
 type State struct {
@@ -54,24 +53,26 @@ type State struct {
 	AppHash []byte `json:"app_hash"`
 }
 
-func prefixKey(key []byte) []byte {
-	return append(kvPairPrefixKey, key...)
-}
+// func prefixNonceKey(nonceKey []byte) []byte {
+// 	return append(nonceKeyPrefix, nonceKey...)
+// }
 
 var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state              State
-	checkTxTempState   map[string][]byte
-	deliverTxTempState map[string][]byte
-	ValUpdates         []types.ValidatorUpdate
-	logger             *logrus.Entry
-	Version            string
-	AppProtocolVersion uint64
-	CurrentBlock       int64
-	CurrentChain       string
-	CurrentKeyValues   [][]byte
+	state                    State
+	checkTxTempState         map[string][]byte
+	deliverTxTempState       map[string][]byte
+	ValUpdates               []types.ValidatorUpdate
+	logger                   *logrus.Entry
+	Version                  string
+	AppProtocolVersion       uint64
+	CurrentBlock             int64
+	CurrentChain             string
+	HashData                 [][]byte
+	UncommittedState         map[string][]byte
+	UncommittedVersionsState map[string][]int64
 }
 
 func loadState(db dbm.DB) State {
@@ -117,113 +118,6 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		Version:            ABCIVersion,
 		AppProtocolVersion: ABCIProtocolVersion,
 	}
-}
-
-func (app *DIDApplication) SetStateDB(key, value []byte) {
-	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(prefixKey(key)))
-	// // app.logger.Errorf("Set updateBlockNumberKey: %s", string(updateBlockNumberKey))
-	// updateBlockNumberValue := []byte(strconv.FormatInt(app.state.Height, 10))
-	// app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(updateBlockNumberKey))
-	// app.CurrentKeyValues = append(app.CurrentKeyValues, updateBlockNumberValue)
-	// app.state.db.Set(updateBlockNumberKey, updateBlockNumberValue)
-	strKey := string(key) + "|" + strconv.FormatInt(app.state.Height, 10)
-	key = []byte(strKey)
-	// app.logger.Errorf("Set key: %s", string(prefixKey(key)))
-	app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(key))
-	app.CurrentKeyValues = append(app.CurrentKeyValues, value)
-	app.state.db.Set(prefixKey(key), value)
-}
-
-func (app *DIDApplication) SetStateDBWithOutPrefix(key, value []byte) {
-	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(prefixKey(key)))
-	// updateBlockNumberValue := []byte(strconv.FormatInt(app.state.Height, 10))
-	// app.CurrentKeyValues = append(app.CurrentKeyValues, prefixKey(updateBlockNumberKey))
-	// app.CurrentKeyValues = append(app.CurrentKeyValues, updateBlockNumberValue)
-	// app.state.db.Set(updateBlockNumberKey, updateBlockNumberValue)
-	strKey := string(key) + "|" + strconv.FormatInt(app.state.Height, 10)
-	key = []byte(strKey)
-	app.CurrentKeyValues = append(app.CurrentKeyValues, key)
-	app.CurrentKeyValues = append(app.CurrentKeyValues, value)
-	app.state.db.Set(key, value)
-}
-
-func (app *DIDApplication) GetStateDB(key []byte) (err error, value []byte) {
-	// Get update block number
-	// updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(key))
-	// // app.logger.Errorf("Get updateBlockNumberKey: %s", string(updateBlockNumberKey))
-	// blockNumber := app.state.db.Get(updateBlockNumberKey)
-
-	blockNumber := app.state.Height
-	for {
-		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
-		realKey := []byte(strKey)
-		// app.logger.Errorf("Get key: %s", string(realKey))
-		value = app.state.db.Get(realKey)
-		if value != nil {
-			break
-		}
-		if blockNumber == 0 {
-			break
-		}
-		blockNumber--
-	}
-
-	// strKey := string(key) + "|" + string(blockNumber)
-	// key = []byte(strKey)
-	// app.logger.Errorf("Get key: %s", string(key))
-	// value = app.state.db.Get(key)
-	return nil, value
-}
-
-func (app *DIDApplication) GetStateDBVersioned(key []byte, height int64) (err error, value []byte) {
-	// blockNumber := strconv.FormatInt(height, 10)
-	// if height == app.state.Height-1 {
-	// 	updateBlockNumberKey := []byte("UpdateBlockNumber" + "|" + string(key))
-	// 	blockNumber = string(app.state.db.Get(updateBlockNumberKey))
-	// }
-	// strKey := string(key) + "|" + blockNumber
-	// key = []byte(strKey)
-	// value = app.state.db.Get(key)
-
-	blockNumber := height
-	for {
-		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
-		realKey := []byte(strKey)
-		// app.logger.Errorf("Get key: %s", string(realKey))
-		value = app.state.db.Get(realKey)
-		if value != nil {
-			break
-		}
-		if blockNumber == 0 {
-			break
-		}
-		blockNumber--
-	}
-
-	return nil, value
-}
-
-func (app *DIDApplication) DeleteStateDB(key []byte) {
-	// app.logger.Errorf("Delete key: %s", string(prefixKey(key)))
-	// app.state.db.Delete(prefixKey(key))
-
-	key = prefixKey(key)
-	blockNumber := app.state.Height
-	for {
-		strKey := string(key) + "|" + strconv.FormatInt(blockNumber, 10)
-		realKey := []byte(strKey)
-		// app.logger.Errorf("Delete key: %s", string(realKey))
-		value := app.state.db.Get(realKey)
-		if value != nil {
-			app.state.db.DeleteSync(realKey)
-		}
-		if blockNumber == 0 {
-			break
-		}
-		blockNumber--
-	}
-
-	// app.state.db.Set(prefixKey(key), []byte(""))
 }
 
 func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
@@ -399,7 +293,7 @@ func Hash(arr [][]byte) []byte {
 		jsonBytes, _ := json.Marshal(item)
 		arrBytes = append(arrBytes, jsonBytes...)
 	}
-	sum := md5.Sum(arrBytes)
+	sum := sha256.Sum256(arrBytes)
 	return sum[:]
 }
 
@@ -416,15 +310,18 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
-	if len(app.CurrentKeyValues) > 0 {
-		app.state.AppHash = Hash(app.CurrentKeyValues)
+	if len(app.HashData) > 0 {
+		app.HashData = append([][]byte{app.state.AppHash}, app.HashData...)
+		app.state.AppHash = Hash(app.HashData)
 		app.state.Height = app.state.Height + 1
 	}
 	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
 
 	// Clear current kv
-	app.CurrentKeyValues = make([][]byte, 0)
+	app.HashData = make([][]byte, 0)
+
+	app.SaveDBState()
 
 	go recordCommitDurationMetrics(startTime)
 

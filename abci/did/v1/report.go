@@ -33,7 +33,7 @@ package did
 // Currently, it load and unmarshal the whole report, add more item, then marshal it all back and store
 // func writeBurnTokenReport(nodeID string, method string, price float64, data string, app *DIDApplication) error {
 // 	key := "SpendGas" + "|" + nodeID
-// 	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+// 	_, chkExists := app.GetStateDB([]byte(key)))
 // 	var newReport pbData.Report
 // 	newReport.Method = method
 // 	newReport.Price = price
@@ -70,7 +70,7 @@ package did
 // 		return app.ReturnQuery(nil, err.Error(), app.CurrentBlock-1)
 // 	}
 // 	key := "SpendGas" + "|" + funcParam.NodeID
-// 	_, value := app.GetStateDBVersioned(prefixKey([]byte(key)), height)
+// 	_, value := app.GetStateDBVersioned([]byte(key)), height)
 // 	if value == nil {
 // 		value = []byte("[]")
 // 		return app.ReturnQuery(value, "not found", app.CurrentBlock-1)

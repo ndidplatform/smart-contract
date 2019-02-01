@@ -101,7 +101,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	}
 	key := "NodeID" + "|" + funcParam.NodeID
 	// check Duplicate Node ID
-	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+	_, chkExists := app.GetStateDB([]byte(key))
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
@@ -131,7 +131,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	var idpsList data.IdPList
 	idpsKey := "IdPList"
 	if funcParam.Role == "IdP" {
-		_, idpsValue := app.GetStateDB(prefixKey([]byte(idpsKey)))
+		_, idpsValue := app.GetStateDB([]byte(idpsKey))
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
@@ -149,7 +149,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	var rpsList data.RPList
 	rpsKey := "rpList"
 	if funcParam.Role == "RP" {
-		_, rpsValue := app.GetStateDB(prefixKey([]byte(rpsKey)))
+		_, rpsValue := app.GetStateDB([]byte(rpsKey))
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
@@ -167,7 +167,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	var asList data.ASList
 	asKey := "asList"
 	if funcParam.Role == "AS" {
-		_, asValue := app.GetStateDB(prefixKey([]byte(asKey)))
+		_, asValue := app.GetStateDB([]byte(asKey))
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
@@ -183,7 +183,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	}
 	var allList data.AllList
 	allKey := "allList"
-	_, allValue := app.GetStateDB(prefixKey([]byte(allKey)))
+	_, allValue := app.GetStateDB([]byte(allKey))
 	if allValue != nil {
 		err := proto.Unmarshal(allValue, &allList)
 		if err != nil {
@@ -214,7 +214,7 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "AllNamespace"
-	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+	_, chkExists := app.GetStateDB([]byte(key))
 	var namespaces data.NamespaceList
 	if chkExists != nil {
 		err = proto.Unmarshal([]byte(chkExists), &namespaces)
@@ -251,7 +251,7 @@ func (app *DIDApplication) disableNamespace(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "AllNamespace"
-	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+	_, chkExists := app.GetStateDB([]byte(key))
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "List of namespace not found", "")
 	}
@@ -282,7 +282,7 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, chkExists := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.GetStateDB([]byte(serviceKey))
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
 	}
@@ -299,7 +299,7 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	}
 	// Add detail to service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.GetStateDB(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.GetStateDB([]byte(allServiceKey))
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
@@ -335,13 +335,13 @@ func (app *DIDApplication) disableService(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, chkExists := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.GetStateDB([]byte(serviceKey))
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.GetStateDB(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.GetStateDB([]byte(allServiceKey))
 	var services data.ServiceDetailList
 	if allServiceValue == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "List of Service not found", "")
@@ -384,7 +384,7 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 	}
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -423,7 +423,7 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, serviceValue := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, serviceValue := app.GetStateDB([]byte(serviceKey))
 	if serviceValue == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -444,7 +444,7 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 	}
 	// Update detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.GetStateDB(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.GetStateDB([]byte(allServiceKey))
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
@@ -483,7 +483,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	}
 	// Check node ID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -498,7 +498,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	}
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, serviceJSON := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, serviceJSON := app.GetStateDB([]byte(serviceKey))
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -526,7 +526,7 @@ func (app *DIDApplication) disableNode(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -553,13 +553,13 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 	}
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, serviceJSON := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, serviceJSON := app.GetStateDB([]byte(serviceKey))
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -578,7 +578,7 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
-	_, approveServiceJSON := app.GetStateDB(prefixKey([]byte(approveServiceKey)))
+	_, approveServiceJSON := app.GetStateDB([]byte(approveServiceKey))
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -604,7 +604,7 @@ func (app *DIDApplication) enableNode(param string, nodeID string) types.Respons
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -631,13 +631,13 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 	}
 	// Check Service ID
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, serviceJSON := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, serviceJSON := app.GetStateDB([]byte(serviceKey))
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -656,7 +656,7 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
-	_, approveServiceJSON := app.GetStateDB(prefixKey([]byte(approveServiceKey)))
+	_, approveServiceJSON := app.GetStateDB([]byte(approveServiceKey))
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -682,7 +682,7 @@ func (app *DIDApplication) enableNamespace(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "AllNamespace"
-	_, chkExists := app.GetStateDB(prefixKey([]byte(key)))
+	_, chkExists := app.GetStateDB([]byte(key))
 	var namespaces data.NamespaceList
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
@@ -713,13 +713,13 @@ func (app *DIDApplication) enableService(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := "Service" + "|" + funcParam.ServiceID
-	_, chkExists := app.GetStateDB(prefixKey([]byte(serviceKey)))
+	_, chkExists := app.GetStateDB([]byte(serviceKey))
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.GetStateDB(prefixKey([]byte(allServiceKey)))
+	_, allServiceValue := app.GetStateDB([]byte(allServiceKey))
 	var services data.ServiceDetailList
 	err = proto.Unmarshal([]byte(allServiceValue), &services)
 	if err != nil {
@@ -785,13 +785,13 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	// Check already associated with a proxy
-	_, proxyValue := app.GetStateDB(prefixKey([]byte(proxyKey)))
+	_, proxyValue := app.GetStateDB([]byte(proxyKey))
 	if proxyValue != nil {
 		return app.ReturnDeliverTxLog(code.NodeIDIsAlreadyAssociatedWithProxyNode, "This node ID is already associated with a proxy node", "")
 	}
@@ -803,7 +803,7 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	if !app.checkIsProxyNode(funcParam.ProxyNodeID) {
 		return app.ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
 	}
-	_, behindProxyNodeValue := app.GetStateDB(prefixKey([]byte(behindProxyNodeKey)))
+	_, behindProxyNodeValue := app.GetStateDB([]byte(behindProxyNodeKey))
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -823,7 +823,7 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	// Delete msq address
-	_, value := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, value := app.GetStateDB([]byte(nodeDetailKey))
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
@@ -855,13 +855,13 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 	newProxyNodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	// Check already associated with a proxy
-	_, proxyValue := app.GetStateDB(prefixKey([]byte(proxyKey)))
+	_, proxyValue := app.GetStateDB([]byte(proxyKey))
 	if proxyValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
@@ -877,7 +877,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeId
-	_, behindProxyNodeValue := app.GetStateDB(prefixKey([]byte(behindProxyNodeKey)))
+	_, behindProxyNodeValue := app.GetStateDB([]byte(behindProxyNodeKey))
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -885,7 +885,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 		}
 	}
 	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
-	_, newBehindProxyNodeValue := app.GetStateDB(prefixKey([]byte(newBehindProxyNodeKey)))
+	_, newBehindProxyNodeValue := app.GetStateDB([]byte(newBehindProxyNodeKey))
 	if newBehindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
 		if err != nil {
@@ -941,7 +941,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	_, nodeDetailValue := app.GetStateDB(prefixKey([]byte(nodeDetailKey)))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -951,7 +951,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 		return app.ReturnDeliverTxLog(code.NodeIDisProxyNode, "This node ID is an ID of a proxy node", "")
 	}
 	// Check already associated with a proxy
-	_, proxyValue := app.GetStateDB(prefixKey([]byte(proxyKey)))
+	_, proxyValue := app.GetStateDB([]byte(proxyKey))
 	if proxyValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
@@ -961,7 +961,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	behindProxyNodeKey := "BehindProxyNode" + "|" + proxy.ProxyNodeId
-	_, behindProxyNodeValue := app.GetStateDB(prefixKey([]byte(behindProxyNodeKey)))
+	_, behindProxyNodeValue := app.GetStateDB([]byte(behindProxyNodeKey))
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -1015,7 +1015,7 @@ func (app *DIDApplication) SetInitData(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	for _, kv := range funcParam.KVList {
-		app.SetStateDBWithOutPrefix(kv.Key, kv.Value)
+		app.SetStateDB(kv.Key, kv.Value)
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

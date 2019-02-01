@@ -68,7 +68,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	// ---- Burn token ----
 	if result.Code == code.OK {
 		if !app.checkNDID(param, nodeID) && !isNDIDMethod[method] {
-			needToken := app.getTokenPriceByFunc(method, app.CurrentBlock-1)
+			needToken := app.getTokenPriceByFunc(method)
 			err := app.reduceToken(nodeID, needToken)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
@@ -83,8 +83,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 
 	// Set used nonce to stateDB
 	emptyValue := make([]byte, 0)
-	// app.SetStateDB([]byte(nonce), emptyValue)
-	app.state.db.Set(prefixKey([]byte(nonce)), emptyValue)
+	app.SetStateDB([]byte(nonce), emptyValue)
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	app.deliverTxTempState[nonceBase64] = []byte(nil)
 	return result
