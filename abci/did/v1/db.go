@@ -58,16 +58,16 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 		}
 	}
 
-	if len(versions) == 0 || versions[len(versions)-1] != app.state.Height {
+	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock{
 		app.HashData = append(app.HashData, versionsKey)
 		// app.HashData = append(app.HashData, len(versions))
 
-		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.state.Height)
+		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.CurrentBlock)
 
 		// app.state.db.Set(versionKey, []byte(newVersions))
 	}
 
-	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(app.state.Height, 10)
+	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(app.CurrentBlock, 10)
 	// keyWithVersion := []byte(keyWithVersionStr)
 
 	app.HashData = append(app.HashData, key)
