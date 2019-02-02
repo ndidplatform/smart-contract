@@ -642,5 +642,5 @@ func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 }
 
 func (app *DIDApplication) isDuplicateNonce(nonce []byte) bool {
-	return app.state.db.Has(nonce)
+	return app.HasStateDB(nonce)
 }
