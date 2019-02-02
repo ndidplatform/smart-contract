@@ -176,11 +176,37 @@ func (app *DIDApplication) GetCommittedVersionedStateDB(key []byte, height int64
 	return nil, value
 }
 
+func (app *DIDApplication) HasStateDB(key []byte) bool {
+	_, existInUncommittedState := app.UncommittedState[string(key)]
+	if existInUncommittedState {
+		return true
+	}
+	return app.state.db.Has(key)
+}
+
+func (app *DIDApplication) HasVersionedStateDB(key []byte) bool {
+	versionsKeyStr := string(key) + "|versions"
+	versionsKey := []byte(versionsKeyStr)
+
+	_, existInUncommittedState := app.UncommittedVersionsState[versionsKeyStr]
+	if existInUncommittedState {
+		return true
+	}
+
+	return app.state.db.Has(versionsKey)
+}
+
 func (app *DIDApplication) DeleteStateDB(key []byte) {
+	app.HashData = append(app.HashData, key...)
+	app.HashData = append(app.HashData, []byte("delete")...) // Remove or replace with something else?
+
 	app.UncommittedState[string(key)] = nil
 }
 
 func (app *DIDApplication) DeleteVersionedStateDB(key []byte) {
+	if !app.HasVersionedStateDB(key) {
+		return
+	}
 	app.SetVersionedStateDB(key, nil)
 }
 

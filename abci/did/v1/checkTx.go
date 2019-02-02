@@ -92,8 +92,8 @@ var IsMethod = map[string]bool{
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
 	key := "MasterNDID"
-	_, value := app.GetStateDB([]byte(key))
-	if value != nil {
+	exist := app.HasStateDB([]byte(key))
+	if exist {
 		// NDID node (first node of the network) is already existed
 		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
 	}

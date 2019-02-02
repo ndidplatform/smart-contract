@@ -44,6 +44,13 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	var request data.Request
 	// set request data
 	request.RequestId = funcParam.RequestID
+
+	key := "Request" + "|" + request.RequestId
+	requestIDExist := app.HasVersionedStateDB([]byte(key))
+	if requestIDExist {
+		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
+	}
+
 	request.MinIdp = int64(funcParam.MinIdp)
 	request.MinAal = funcParam.MinAal
 	request.MinIal = funcParam.MinIal
@@ -187,14 +194,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.CreationBlockHeight = app.CurrentBlock
 	// set chain_id
 	request.ChainId = app.CurrentChain
-	key := "Request" + "|" + request.RequestId
+
 	value, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	_, existValue := app.GetVersionedStateDB([]byte(key), 0)
-	if existValue != nil {
-		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
 	app.SetVersionedStateDB([]byte(key), []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
