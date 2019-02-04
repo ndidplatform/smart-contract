@@ -23,6 +23,7 @@
 package did
 
 import (
+	"encoding/binary"
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
@@ -60,7 +61,10 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 
 	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock {
 		app.HashData = append(app.HashData, versionsKey...)
-		// app.HashData = append(app.HashData, len(versions))
+		versionBytes := make([]byte, 8)
+		for _, version := range versions {
+			app.HashData = append(app.HashData, binary.BigEndian.PutUint64(versionBytes, uint64(version)))
+		}
 
 		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.CurrentBlock)
 
