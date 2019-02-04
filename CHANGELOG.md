@@ -2,9 +2,14 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- Change underlying data structure for app state storage.
+- Remove IAVL dependency.
+
 IMPROVEMENTS:
 
-- Update Tendermint version to v0.27.4.
+- Update Tendermint version to v0.29.1.
 
 ## 1.0.0 (December 7, 2018)
 
