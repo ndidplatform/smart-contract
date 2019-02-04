@@ -87,22 +87,22 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			if !proxyNode.Active {
 				return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
 			}
-		} else {
-			// Get node detail
-			nodeDetailKey := "NodeID" + "|" + idp
-			_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
-			if nodeDetaiValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-			}
-			var node data.NodeDetail
-			err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-			}
-			// Check node is active
-			if !node.Active {
-				return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
-			}
+		}
+
+		// Get node detail
+		nodeDetailKey := "NodeID" + "|" + idp
+		_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+		if nodeDetaiValue == nil {
+			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		}
+		var node data.NodeDetail
+		err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// Check node is active
+		if !node.Active {
+			return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
 		}
 	}
 	// set data request
@@ -146,22 +146,22 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 				if !proxyNode.Active {
 					return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
 				}
-			} else {
-				// Get node detail
-				nodeDetailKey := "NodeID" + "|" + as
-				_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
-				if nodeDetaiValue == nil {
-					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-				}
-				var node data.NodeDetail
-				err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-				// Check node is active
-				if !node.Active {
-					return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
-				}
+			}
+
+			// Get node detail
+			nodeDetailKey := "NodeID" + "|" + as
+			_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+			if nodeDetaiValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var node data.NodeDetail
+			err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			// Check node is active
+			if !node.Active {
+				return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
 			}
 		}
 		request.DataRequestList = append(request.DataRequestList, &newRow)
