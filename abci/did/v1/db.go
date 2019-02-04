@@ -63,7 +63,8 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 		app.HashData = append(app.HashData, versionsKey...)
 		versionBytes := make([]byte, 8)
 		for _, version := range versions {
-			app.HashData = append(app.HashData, binary.BigEndian.PutUint64(versionBytes, uint64(version)))
+			binary.BigEndian.PutUint64(versionBytes, uint64(version))
+			app.HashData = append(app.HashData, versionBytes...)
 		}
 
 		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.CurrentBlock)
