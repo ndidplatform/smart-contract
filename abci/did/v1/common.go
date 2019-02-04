@@ -430,7 +430,7 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getRequestDetail(param string, height int64) types.ResponseQuery {
+func (app *DIDApplication) getRequestDetail(param string, height int64, getFromCommitedState bool) types.ResponseQuery {
 	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -439,7 +439,12 @@ func (app *DIDApplication) getRequestDetail(param string, height int64) types.Re
 	}
 
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.GetCommittedVersionedStateDB([]byte(key), height)
+	var value []byte
+	if getFromCommitedState {
+		_, value = app.GetCommittedVersionedStateDB([]byte(key), height)
+	} else {
+		_, value = app.GetVersionedStateDB([]byte(key), height)
+	}
 
 	if value == nil {
 		valueJSON := []byte("{}")

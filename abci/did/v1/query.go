@@ -52,7 +52,7 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 	case "GetRequest":
 		return app.getRequest(param, height)
 	case "GetRequestDetail":
-		return app.getRequestDetail(param, height)
+		return app.getRequestDetail(param, height, true)
 	case "GetAsNodesByServiceId":
 		return app.getAsNodesByServiceId(param)
 	case "GetMqAddresses":
