@@ -107,9 +107,18 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	}
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
+	serviceIDInDataRequestList := make(map[string]int)
 	for index := range funcParam.DataRequestList {
 		var newRow data.DataRequest
 		newRow.ServiceId = funcParam.DataRequestList[index].ServiceID
+
+		// Check for duplicate service ID in data request list
+		_, exist := serviceIDInDataRequestList[newRow.ServiceId]
+		if exist {
+			return app.ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
+		}
+		serviceIDInDataRequestList[newRow.ServiceId]++
+
 		newRow.RequestParamsHash = funcParam.DataRequestList[index].RequestParamsHash
 		newRow.MinAs = int64(funcParam.DataRequestList[index].Count)
 		newRow.AsIdList = funcParam.DataRequestList[index].As
@@ -180,16 +189,6 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	}
 	// set default value
 	request.ResponseList = make([]*data.Response, 0)
-	// check duplicate service ID in Data Request
-	serviceIDCount := make(map[string]int)
-	for _, dataRequest := range request.DataRequestList {
-		serviceIDCount[dataRequest.ServiceId]++
-	}
-	for _, count := range serviceIDCount {
-		if count > 1 {
-			return app.ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
-		}
-	}
 	// set creation_block_height
 	request.CreationBlockHeight = app.CurrentBlock
 	// set chain_id
