@@ -111,12 +111,14 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:              state,
-		checkTxTempState:   make(map[string][]byte),
-		deliverTxTempState: make(map[string][]byte),
-		logger:             logger,
-		Version:            ABCIVersion,
-		AppProtocolVersion: ABCIProtocolVersion,
+		state:                    state,
+		checkTxTempState:         make(map[string][]byte),
+		deliverTxTempState:       make(map[string][]byte),
+		logger:                   logger,
+		Version:                  ABCIVersion,
+		AppProtocolVersion:       ABCIProtocolVersion,
+		UncommittedState:         make(map[string][]byte),
+		UncommittedVersionsState: make(map[string][]int64),
 	}
 }
 
@@ -127,8 +129,6 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
 	app.CurrentBlock = app.state.Height
-	app.UncommittedState = make(map[string][]byte, 0)
-	app.UncommittedVersionsState = make(map[string][]int64, 0)
 	return res
 }
 
