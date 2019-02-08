@@ -85,7 +85,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	emptyValue := make([]byte, 0)
 	app.SetStateDB([]byte(nonce), emptyValue)
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	app.deliverTxTempState[nonceBase64] = []byte(nil)
+	app.deliverTxNonceState[nonceBase64] = []byte(nil)
 	return result
 }
 

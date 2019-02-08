@@ -62,8 +62,8 @@ var _ types.Application = (*DIDApplication)(nil)
 type DIDApplication struct {
 	types.BaseApplication
 	state                    State
-	checkTxTempState         map[string][]byte
-	deliverTxTempState       map[string][]byte
+	checkTxNonceState        map[string][]byte
+	deliverTxNonceState      map[string][]byte
 	ValUpdates               []types.ValidatorUpdate
 	logger                   *logrus.Entry
 	Version                  string
@@ -112,8 +112,8 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
 		state:                    state,
-		checkTxTempState:         make(map[string][]byte),
-		deliverTxTempState:       make(map[string][]byte),
+		checkTxNonceState:        make(map[string][]byte),
+		deliverTxNonceState:      make(map[string][]byte),
 		logger:                   logger,
 		Version:                  ABCIVersion,
 		AppProtocolVersion:       ABCIProtocolVersion,
@@ -253,9 +253,9 @@ func (app *DIDApplication) CheckTx(tx []byte) (res types.ResponseCheckTx) {
 	}
 
 	// Check duplicate nonce in checkTx stateDB
-	_, exist := app.checkTxTempState[nonceBase64]
+	_, exist := app.checkTxNonceState[nonceBase64]
 	if !exist {
-		app.checkTxTempState[nonceBase64] = []byte(nil)
+		app.checkTxNonceState[nonceBase64] = []byte(nil)
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
@@ -302,10 +302,10 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.state.Height = app.state.Height + 1
 	go recordDBSaveDurationMetrics(startTime)
 
-	for key := range app.deliverTxTempState {
-		delete(app.checkTxTempState, key)
+	for key := range app.deliverTxNonceState {
+		delete(app.checkTxNonceState, key)
 	}
-	app.deliverTxTempState = make(map[string][]byte)
+	app.deliverTxNonceState = make(map[string][]byte)
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
