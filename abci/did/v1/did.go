@@ -127,6 +127,8 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
 	app.CurrentBlock = app.state.Height
+	app.UncommittedState = make(map[string][]byte, 0)
+	app.UncommittedVersionsState = make(map[string][]int64, 0)
 	return res
 }
 
