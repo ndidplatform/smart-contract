@@ -10,6 +10,7 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
 - Update Tendermint version to v0.30.0.
+- Add Prometheus support.
 
 ## 1.0.0 (December 7, 2018)
 
