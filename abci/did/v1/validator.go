@@ -64,17 +64,17 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 
 	if v.Power == 0 {
 		// remove validator
-		if !app.state.db.Has(key) {
+		if !app.HasStateDB(key) {
 			return app.ReturnDeliverTxLog(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
 		}
-		app.state.db.Delete(key)
+		app.DeleteStateDB(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
 		if err := types.WriteMessage(&v, value); err != nil {
 			return app.ReturnDeliverTxLog(code.EncodingError, fmt.Sprintf("Error encoding validator: %v", err), "")
 		}
-		app.state.db.Set(key, value.Bytes())
+		app.SetStateDB(key, value.Bytes())
 	}
 
 	app.ValUpdates[pubKeyBase64] = v
