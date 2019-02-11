@@ -195,6 +195,9 @@ func (app *DIDApplication) HasVersionedStateDB(key []byte) bool {
 }
 
 func (app *DIDApplication) DeleteStateDB(key []byte) {
+	if !app.HasStateDB(key) {
+		return
+	}
 	app.HashData = append(app.HashData, key...)
 	app.HashData = append(app.HashData, []byte("delete")...) // Remove or replace with something else?
 
