@@ -77,7 +77,7 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 		app.state.db.Set(key, value.Bytes())
 	}
 
-	app.ValUpdates[pubKeyBase64] = v.Power
+	app.ValUpdates[pubKeyBase64] = v
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
