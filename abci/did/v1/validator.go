@@ -59,7 +59,8 @@ func (app *DIDApplication) Validators() (validators []types.Validator) {
 
 // add, update, or remove a validator
 func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
-	key := []byte("val:" + base64.StdEncoding.EncodeToString(v.PubKey.GetData()))
+	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetData())
+	key := []byte("val:" + pubKeyBase64)
 
 	if v.Power == 0 {
 		// remove validator
@@ -76,9 +77,7 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 		app.state.db.Set(key, value.Bytes())
 	}
 
-	// we only update the changes array if we successfully updated the tree
-	app.ValUpdates = append(app.ValUpdates, v)
-
+	app.ValUpdates[pubKeyBase64] = v.Power
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 

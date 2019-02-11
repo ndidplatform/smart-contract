@@ -64,7 +64,7 @@ type DIDApplication struct {
 	state                    State
 	checkTxNonceState        map[string][]byte
 	deliverTxNonceState      map[string][]byte
-	ValUpdates               []types.ValidatorUpdate
+	ValUpdates               map[string]int64
 	logger                   *logrus.Entry
 	Version                  string
 	AppProtocolVersion       uint64
@@ -119,6 +119,7 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		AppProtocolVersion:       ABCIProtocolVersion,
 		UncommittedState:         make(map[string][]byte),
 		UncommittedVersionsState: make(map[string][]int64),
+		ValUpdates:               make(map[string]int64),
 	}
 }
 
@@ -149,14 +150,25 @@ func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.Respons
 	app.CurrentBlock = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
-	app.ValUpdates = make([]types.ValidatorUpdate, 0)
+	app.ValUpdates = make(map[string]int64, 0)
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
 func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	app.logger.Infof("EndBlock: %d", req.Height)
-	return types.ResponseEndBlock{ValidatorUpdates: app.ValUpdates}
+	valUpdates := make([]types.ValidatorUpdate, 0)
+	for pubKeyBase64, power := range app.ValUpdates {
+		pubKey, _ := base64.StdEncoding.DecodeString(pubKeyBase64)
+		var pubKeyObj types.PubKey
+		pubKeyObj.Type = "ed25519"
+		pubKeyObj.Data = pubKey
+		var newValidator types.ValidatorUpdate
+		newValidator.PubKey = pubKeyObj
+		newValidator.Power = power
+		valUpdates = append(valUpdates, newValidator)
+	}
+	return types.ResponseEndBlock{ValidatorUpdates: valUpdates}
 }
 
 func (app *DIDApplication) DeliverTx(tx []byte) (res types.ResponseDeliverTx) {
