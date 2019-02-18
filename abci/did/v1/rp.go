@@ -100,6 +100,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
 	serviceIDInDataRequestList := make(map[string]int)
+	nodeDetailMap := make(map[string]*data.NodeDetail, 0)
 	for index := range funcParam.DataRequestList {
 		var newRow data.DataRequest
 		newRow.ServiceId = funcParam.DataRequestList[index].ServiceID
@@ -121,17 +122,25 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		newRow.ReceivedDataFromList = make([]string, 0)
 		// Check all as in as_list is active
 		for _, as := range newRow.AsIdList {
-			// Get node detail
-			nodeDetailKey := "NodeID" + "|" + as
-			_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
-			if nodeDetaiValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-			}
 			var node data.NodeDetail
-			err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			if nodeDetailMap[as] == nil {
+				// Get node detail
+				nodeDetailKey := "NodeID" + "|" + as
+				_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+				if nodeDetaiValue == nil {
+					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				}
+				err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				// Save node detail to mapping
+				nodeDetailMap[as] = &node
+			} else {
+				// Get node detail from mapping
+				node = *nodeDetailMap[as]
 			}
+
 			// Check node is active
 			if !node.Active {
 				return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
