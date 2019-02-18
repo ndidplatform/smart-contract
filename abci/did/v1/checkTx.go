@@ -492,18 +492,23 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		if !app.getActiveStatusByNodeID(nodeID) {
 			return ReturnCheckTx(code.NodeIsNotActive, "Node is not active")
 		}
-		// If node behind proxy then check proxy is active
-		proxyKey := "Proxy" + "|" + nodeID
-		_, proxyValue := app.GetStateDB([]byte(proxyKey))
-		if proxyValue != nil {
-			// Get proxy node ID
-			var proxy data.Proxy
-			err := proto.Unmarshal([]byte(proxyValue), &proxy)
-			if err != nil {
-				return ReturnCheckTx(code.UnmarshalError, err.Error())
-			}
-			proxyNodeID := proxy.ProxyNodeId
 
+		// Get node detail by NodeID
+		nodeDetailKey := "NodeID" + "|" + nodeID
+		_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+		// If node not found then return code.NodeIDNotFound
+		if nodeDetailValue == nil {
+			return ReturnCheckTx(code.NodeIDNotFound, "Node ID not found")
+		}
+		// Unmarshal node detail
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+		if err != nil {
+			return ReturnCheckTx(code.UnmarshalError, err.Error())
+		}
+		// If node behind proxy then check proxy is active
+		if nodeDetail.ProxyNodeId != "" {
+			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))

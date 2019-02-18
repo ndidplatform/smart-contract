@@ -857,18 +857,8 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 	}
 
 	// If node behind proxy
-	proxyKey := "Proxy" + "|" + funcParam.NodeID
-	_, proxyValue := app.GetCommittedStateDB([]byte(proxyKey))
-
-	if proxyValue != nil {
-		// Get proxy node ID
-		var proxy data.Proxy
-		err = proto.Unmarshal([]byte(proxyValue), &proxy)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		proxyNodeID := proxy.ProxyNodeId
-
+	if nodeDetail.ProxyNodeId != "" {
+		proxyNodeID := nodeDetail.ProxyNodeId
 		// Get proxy node detail
 		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 		_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
@@ -900,7 +890,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 					result.Proxy.Mq = append(result.Proxy.Mq, msq)
 				}
 			}
-			result.Proxy.Config = proxy.Config
+			result.Proxy.Config = nodeDetail.ProxyConfig
 			value, err := json.Marshal(result)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -924,7 +914,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 				result.Proxy.Mq = append(result.Proxy.Mq, msq)
 			}
 		}
-		result.Proxy.Config = proxy.Config
+		result.Proxy.Config = nodeDetail.ProxyConfig
 		value, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1178,16 +1168,8 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				continue
 			}
 			// If node is behind proxy
-			proxyKey := "Proxy" + "|" + idp
-			_, proxyValue := app.GetCommittedStateDB([]byte(proxyKey))
-			if proxyValue != nil {
-				// Get proxy node ID
-				var proxy data.Proxy
-				err = proto.Unmarshal([]byte(proxyValue), &proxy)
-				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
-				}
-				proxyNodeID := proxy.ProxyNodeId
+			if nodeDetail.ProxyNodeId != "" {
+				proxyNodeID := nodeDetail.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
@@ -1219,7 +1201,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
 					}
 				}
-				msqDesNode.Proxy.Config = proxy.Config
+				msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
 				result.Node = append(result.Node, msqDesNode)
 			} else {
 				var msq []MsqAddress
@@ -1294,16 +1276,8 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				continue
 			}
 			// If node is behind proxy
-			proxyKey := "Proxy" + "|" + node.NodeId
-			_, proxyValue := app.GetCommittedStateDB([]byte(proxyKey))
-			if proxyValue != nil {
-				// Get proxy node ID
-				var proxy data.Proxy
-				err = proto.Unmarshal([]byte(proxyValue), &proxy)
-				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
-				}
-				proxyNodeID := proxy.ProxyNodeId
+			if nodeDetail.ProxyNodeId != "" {
+				proxyNodeID := nodeDetail.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
@@ -1335,7 +1309,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
 					}
 				}
-				msqDesNode.Proxy.Config = proxy.Config
+				msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
 				result.Node = append(result.Node, msqDesNode)
 			} else {
 				var msq []MsqAddress
@@ -1463,16 +1437,8 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 			continue
 		}
 		// If node is behind proxy
-		proxyKey := "Proxy" + "|" + storedData.Node[index].NodeId
-		_, proxyValue := app.GetCommittedStateDB([]byte(proxyKey))
-		if proxyValue != nil {
-			// Get proxy node ID
-			var proxy data.Proxy
-			err = proto.Unmarshal([]byte(proxyValue), &proxy)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-			}
-			proxyNodeID := proxy.ProxyNodeId
+		if nodeDetail.ProxyNodeId != "" {
+			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
@@ -1504,7 +1470,7 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 					as.Proxy.Mq = append(as.Proxy.Mq, msq)
 				}
 			}
-			as.Proxy.Config = proxy.Config
+			as.Proxy.Config = nodeDetail.ProxyConfig
 			result.Node = append(result.Node, as)
 		} else {
 			var msqAddress []MsqAddress
@@ -1568,15 +1534,8 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 			continue
 		}
 
-		// Get proxy detail
-		proxyKey := "Proxy" + "|" + node
-		_, proxyValue := app.GetCommittedStateDB([]byte(proxyKey))
-		if proxyValue == nil {
-			continue
-		}
-		var proxy data.Proxy
-		err = proto.Unmarshal([]byte(proxyValue), &proxy)
-		if err != nil {
+		// Check node has proxy node ID
+		if nodeDetail.ProxyNodeId == "" {
 			continue
 		}
 
@@ -1589,7 +1548,7 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
-			row.Config = proxy.Config
+			row.Config = nodeDetail.ProxyConfig
 			result.Nodes = append(result.Nodes, row)
 		} else {
 			var row ASorRPBehindProxy
@@ -1598,7 +1557,7 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 			row.Role = nodeDetail.Role
 			row.PublicKey = nodeDetail.PublicKey
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
-			row.Config = proxy.Config
+			row.Config = nodeDetail.ProxyConfig
 			result.Nodes = append(result.Nodes, row)
 		}
 
