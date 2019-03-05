@@ -11,7 +11,7 @@ Tendermint bundled with ABCI app
   - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
 
-- LevelDB version >= 1.7 and snappy
+- (Optional) LevelDB version >= 1.7 and snappy
 
   - Ubuntu (Ref: https://tendermint.com/docs/introduction/install.html#compile-with-cleveldb-support)
 
@@ -69,6 +69,12 @@ Tendermint bundled with ABCI app
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
 
 ## Build
+
+```sh
+CGO_ENABLED=1 go build -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "gcc" -o ./did-tendermint ./abci
+```
+
+or with snappy lib used by cleveldb
 
 ```sh
 CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go build -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "gcc" -o ./did-tendermint ./abci
