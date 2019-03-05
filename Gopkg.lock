@@ -336,7 +336,7 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:685fdfea42d825ebd39ee0994354b46c374cf2c2b2d97a41a8dee1807c6a9b62"
+  digest = "1:8b33d3c3085b04948abeebca850c8e1e6828a2cd9503120e7545aadf0dad07f1"
   name = "github.com/syndtr/goleveldb"
   packages = [
     "leveldb",
@@ -353,7 +353,7 @@
     "leveldb/util",
   ]
   pruneopts = "UT"
-  revision = "b001fa50d6b27f3f0bb175a87d0cb55426d0a0ae"
+  revision = "3a907f965fc16db5f7787e18d4434bbe46d47f6e"
 
 [[projects]]
   digest = "1:ad9c4c1a4e7875330b1f62906f2830f043a23edb5db997e3a5ac5d3e6eadf80a"
@@ -563,6 +563,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/jmhodges/levigo",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
