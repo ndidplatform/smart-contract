@@ -213,6 +213,7 @@ func (app *DIDApplication) DeleteVersionedStateDB(key []byte) {
 
 func (app *DIDApplication) SaveDBState() {
 	batch := app.state.db.NewBatch()
+	defer batch.Close()
 
 	for key := range app.UncommittedState {
 		value := app.UncommittedState[key]
