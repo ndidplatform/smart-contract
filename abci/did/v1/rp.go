@@ -213,7 +213,7 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a closed request", "")
 	}
 	if request.TimedOut {
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
@@ -272,7 +272,7 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not set time out a timed out request", "")
 	}
 	if request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
