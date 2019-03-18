@@ -37,6 +37,10 @@ RUN dep ensure --vendor-only
 COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
 COPY .git $GOPATH/src/github.com/ndidplatform/smart-contract/.git
+COPY patches $GOPATH/src/github.com/ndidplatform/smart-contract/patches
+
+RUN git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_goleveldb_bloom_filter.patch && \
+    git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_cleveldb_cache_and_bloom_filter.patch
 
 WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 ENV CGO_ENABLED=1

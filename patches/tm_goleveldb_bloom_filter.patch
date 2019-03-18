@@ -1,0 +1,29 @@
+diff --git a/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go b/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
+index 9a4358f6..bbb33a36 100644
+--- a/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
++++ b/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
+@@ -7,6 +7,7 @@ import (
+ 
+ 	"github.com/syndtr/goleveldb/leveldb"
+ 	"github.com/syndtr/goleveldb/leveldb/errors"
++	"github.com/syndtr/goleveldb/leveldb/filter"
+ 	"github.com/syndtr/goleveldb/leveldb/iterator"
+ 	"github.com/syndtr/goleveldb/leveldb/opt"
+ 
+@@ -33,6 +34,16 @@ func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
+ 
+ func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, error) {
+ 	dbPath := filepath.Join(dir, name+".db")
++
++	bloomFilter := filter.NewBloomFilter(10)
++	if o == nil {
++		o = &opt.Options{
++			Filter: bloomFilter,
++		}
++	} else {
++		o.Filter = bloomFilter
++	}
++
+ 	db, err := leveldb.OpenFile(dbPath, o)
+ 	if err != nil {
+ 		return nil, err
