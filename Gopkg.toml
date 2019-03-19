@@ -12,7 +12,7 @@
 
 [[override]]
   name = "github.com/syndtr/goleveldb"
-  revision = "7bd84fdc8ccda40c12af62ed4f0a94a0dd04a362"
+  revision = "c3a204f8e96543bb0cc090385c001078f184fc46"
 
 [prune]
   go-tests = true

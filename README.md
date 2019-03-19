@@ -60,6 +60,13 @@ Tendermint bundled with ABCI app
     dep ensure
     ```
 
+4.  (Optional) Patch Tendermint LevelDB adapters
+
+    ```sh
+    git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_goleveldb_bloom_filter.patch && \
+    git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_cleveldb_cache_and_bloom_filter.patch
+    ```
+
 **Environment variable options**
 
 - `ABCI_DB_DIR_PATH`: Directory path for ABCI app persistence data files [Default: `./DID`]

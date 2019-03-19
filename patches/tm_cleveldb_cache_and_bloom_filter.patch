@@ -1,0 +1,59 @@
+diff --git a/vendor/github.com/tendermint/tendermint/libs/db/c_level_db.go b/vendor/github.com/tendermint/tendermint/libs/db/c_level_db.go
+index decb1af5..31fc656b 100644
+--- a/vendor/github.com/tendermint/tendermint/libs/db/c_level_db.go
++++ b/vendor/github.com/tendermint/tendermint/libs/db/c_level_db.go
+@@ -21,17 +21,23 @@ func init() {
+ var _ DB = (*CLevelDB)(nil)
+ 
+ type CLevelDB struct {
+-	db     *levigo.DB
+-	ro     *levigo.ReadOptions
+-	wo     *levigo.WriteOptions
+-	woSync *levigo.WriteOptions
++	db           *levigo.DB
++	ro           *levigo.ReadOptions
++	wo           *levigo.WriteOptions
++	woSync       *levigo.WriteOptions
++	cache        *levigo.Cache
++	filterPolicy *levigo.FilterPolicy
+ }
+ 
+ func NewCLevelDB(name string, dir string) (*CLevelDB, error) {
+ 	dbPath := filepath.Join(dir, name+".db")
+ 
++	cache := levigo.NewLRUCache(500 * 1024 * 1024) // 500 MB
++	filter := levigo.NewBloomFilter(10)
++
+ 	opts := levigo.NewOptions()
+-	opts.SetCache(levigo.NewLRUCache(1 << 30))
++	opts.SetCache(cache)
++	opts.SetFilterPolicy(filter)
+ 	opts.SetCreateIfMissing(true)
+ 	db, err := levigo.Open(dbPath, opts)
+ 	if err != nil {
+@@ -42,10 +48,12 @@ func NewCLevelDB(name string, dir string) (*CLevelDB, error) {
+ 	woSync := levigo.NewWriteOptions()
+ 	woSync.SetSync(true)
+ 	database := &CLevelDB{
+-		db:     db,
+-		ro:     ro,
+-		wo:     wo,
+-		woSync: woSync,
++		db:           db,
++		ro:           ro,
++		wo:           wo,
++		woSync:       woSync,
++		cache:        cache,
++		filterPolicy: filter,
+ 	}
+ 	return database, nil
+ }
+@@ -113,6 +121,8 @@ func (db *CLevelDB) Close() {
+ 	db.ro.Close()
+ 	db.wo.Close()
+ 	db.woSync.Close()
++	db.cache.Close()
++	db.filterPolicy.Close()
+ }
+ 
+ // Implements DB.
