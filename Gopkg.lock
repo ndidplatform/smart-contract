@@ -336,7 +336,7 @@
   version = "v1.3.1"
 
 [[projects]]
-  digest = "1:b983d08e2d583d99f1021d888aaaa773019de98ec9d454a0205478933534177e"
+  digest = "1:3f0c28875fb78456bc1815a9c13cb5962a4f0c462b37ec72e90c2f2cc407b54f"
   name = "github.com/syndtr/goleveldb"
   packages = [
     "leveldb",
@@ -353,7 +353,7 @@
     "leveldb/util",
   ]
   pruneopts = "UT"
-  revision = "7bd84fdc8ccda40c12af62ed4f0a94a0dd04a362"
+  revision = "c3a204f8e96543bb0cc090385c001078f184fc46"
 
 [[projects]]
   digest = "1:ad9c4c1a4e7875330b1f62906f2830f043a23edb5db997e3a5ac5d3e6eadf80a"
