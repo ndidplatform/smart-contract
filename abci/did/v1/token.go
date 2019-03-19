@@ -155,27 +155,27 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) reduceToken(nodeID string, amount float64) error {
+func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
 	key := "Token" + "|" + nodeID
 	_, value := app.GetStateDB([]byte(key))
 	if value == nil {
-		return errors.New("token account not found")
+		return code.TokenAccountNotFound, "token account not found"
 	}
 	var token data.Token
 	err := proto.Unmarshal(value, &token)
 	if err != nil {
-		return errors.New("token account not found")
+		return code.TokenAccountNotFound, "token account not found"
 	}
 	if amount > token.Amount {
-		return errors.New("token not enough")
+		return code.TokenNotEnough, "token not enough"
 	}
 	token.Amount = token.Amount - amount
 	value, err = utils.ProtoDeterministicMarshal(&token)
 	if err != nil {
-		return errors.New("token account not found")
+		return code.TokenAccountNotFound, "token account not found"
 	}
 	app.SetStateDB([]byte(key), []byte(value))
-	return nil
+	return code.OK, ""
 }
 
 func (app *DIDApplication) getToken(nodeID string) (float64, error) {
@@ -265,9 +265,9 @@ func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.Re
 	if !app.checkTokenAccount(funcParam.NodeID) {
 		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
-	err = app.reduceToken(funcParam.NodeID, funcParam.Amount)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.TokenNotEnough, err.Error(), "")
+	errCode, _ := app.reduceToken(funcParam.NodeID, funcParam.Amount)
+	if errCode != code.OK {
+		return app.ReturnDeliverTxLog(errCode, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

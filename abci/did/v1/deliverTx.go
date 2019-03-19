@@ -68,15 +68,11 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	// ---- Burn token ----
 	if !app.checkNDID(param, nodeID) && !isNDIDMethod[method] {
 		needToken := app.getTokenPriceByFunc(method)
-		err := app.reduceToken(nodeID, needToken)
-		if err != nil {
-			result.Code = code.TokenAccountNotFound
-			result.Log = err.Error()
+		errCode, errLog := app.reduceToken(nodeID, needToken)
+		if errCode != code.OK {
+			result.Code = errCode
+			result.Log = errLog
 		}
-		// FIXME: Need a better way to store report or remove it in later release
-		// Write burn token report
-		// only have result.Data in some method
-		// writeBurnTokenReport(nodeID, method, needToken, string(result.Data), app)
 	}
 
 	// Set used nonce to stateDB
