@@ -119,8 +119,6 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.addNamespace(param, nodeID)
 	case "UpdateNode":
 		return app.updateNode(param, nodeID)
-	case "RegisterAccessor":
-		return app.registerAccessor(param, nodeID)
 	case "SetValidator":
 		return app.setValidator(param, nodeID)
 	case "AddService":
@@ -169,8 +167,6 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.updateNodeProxyNode(param, nodeID)
 	case "RemoveNodeFromProxyNode":
 		return app.removeNodeFromProxyNode(param, nodeID)
-	case "RevokeAccessorMethod":
-		return app.revokeAccessorMethod(param, nodeID)
 	case "SetInitData":
 		return app.SetInitData(param, nodeID)
 	case "EndInit":

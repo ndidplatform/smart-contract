@@ -69,8 +69,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNamespaceList(param)
 	case "CheckExistingIdentity":
 		return app.checkExistingIdentity(param)
-	case "GetAccessorGroupID":
-		return app.getAccessorGroupID(param)
+	// case "GetAccessorGroupID":
+	// 	return app.getAccessorGroupID(param)
 	case "GetAccessorKey":
 		return app.getAccessorKey(param)
 	case "GetServiceList":

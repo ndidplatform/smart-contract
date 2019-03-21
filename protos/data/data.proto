@@ -120,9 +120,8 @@ message Report {
 message Accessor  {
   string accessor_type = 1;
   string accessor_public_key = 2;
-  string accessor_group_id = 3;
-  bool active = 4;
-  string owner = 5;
+  bool active = 3;
+  string owner = 4;
 }
 
 message MsqDesList {
@@ -183,4 +182,20 @@ message Token {
 
 message TokenPrice {
   double price = 1;
+}
+
+message ReferenceGroup {
+  repeated IdentityInRefGroup identities = 1;
+  repeated IdPInRefGroup idps = 2;
+}
+
+message IdPInRefGroup {
+  string node_id = 1;
+  repeated int64 mode = 2;
+  repeated Accessor accessors = 3;
+}
+
+message IdentityInRefGroup {
+  string namespace = 1;
+  string identifier_hash = 2;
 }

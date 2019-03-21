@@ -110,7 +110,7 @@
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "min_aal": 3,
   "min_ial": 3,
-  "node_id_list": null
+  "node_id_list": [] //array of string
 }
 ```
 
@@ -371,7 +371,7 @@
 
 ## Remove These
 
-- ClearRegisterIdentityTimeout
+- ClearRegisterIdentityTimeout 
 - SetTimeOutBlockRegisterIdentity
 - RegisterAccessor
 - DeclareIdentityProof

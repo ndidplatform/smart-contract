@@ -44,9 +44,15 @@ type GetNodeMasterPublicKeyResult struct {
 }
 
 type User struct {
-	HashID string  `json:"hash_id"`
-	Ial    float64 `json:"ial"`
-	First  bool    `json:"first"`
+	ReferenceGroupCode     string  `json:"reference_group_code"`
+	IdentityNamespace      string  `json:"identity_namespace"`
+	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
+	Ial                    float64 `json:"ial"`
+	Mode                   int64   `json:"mode"`
+	AccessorID             string  `json:"accessor_id"`
+	AccessorPublicKey      string  `json:"accessor_public_key"`
+	AccessorType           string  `json:"accessor_type"`
+	RequestID              string  `json:"request_id"`
 }
 
 type RegisterIdentityParam struct {
@@ -66,10 +72,12 @@ type MsqDestination struct {
 }
 
 type GetIdpNodesParam struct {
-	HashID     string   `json:"hash_id"`
-	MinIal     float64  `json:"min_ial"`
-	MinAal     float64  `json:"min_aal"`
-	NodeIDList []string `json:"node_id_list"`
+	ReferenceGroupCode     string   `json:"reference_group_code"`
+	IdentityNamespace      string   `json:"identity_namespace"`
+	IdentityIdentifierHash string   `json:"identity_identifier_hash"`
+	MinAal                 float64  `json:"min_aal"`
+	MinIal                 float64  `json:"min_ial"`
+	NodeIDList             []string `json:"node_id_list"`
 }
 
 type MsqDestinationNode struct {
@@ -77,6 +85,7 @@ type MsqDestinationNode struct {
 	Name   string  `json:"node_name"`
 	MaxIal float64 `json:"max_ial"`
 	MaxAal float64 `json:"max_aal"`
+	Mode   []int64 `json:"mode"`
 }
 
 type GetIdpNodesResult struct {
