@@ -57,7 +57,7 @@
 
 - Remove `accessor_group_id`
 - Add `identity_namespace`, `identity_identifier_hash`, and `reference_group_code`
-- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error when `identity_namespace`+`identity_identifier_hash` is not in that reference_group_code?)
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error)
 
 
 ## UpgradeIdentityMode (New) (ชื่อนี้ดีไหม?)
@@ -66,6 +66,7 @@
 
 ```javascript
 {
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "mode": 3, // allow only 2,3
@@ -77,9 +78,10 @@
 
 - If identity is already in mode that's in input parameter, error.
 - If mode in input is less than identity's current mode, error.
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error)
 
 
-## GetUID
+## GetReferenceGroupCode
 
 ### Parameter
 
