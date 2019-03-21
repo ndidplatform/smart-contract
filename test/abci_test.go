@@ -111,7 +111,37 @@ func TestSetNodeTokenIDP1(t *testing.T) {
 	SetNodeToken(t, param)
 }
 
-func TestIdPRegisterIdentity(t *testing.T) {
+func TestRegisterNodeIDP2(t *testing.T) {
+	idpKey := getPrivateKeyFromString(idpPrivK2)
+	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	idpMasterKey := getPrivateKeyFromString(allMasterKey)
+	idpMasterPublicKeyBytes, err := generatePublicKey(&idpMasterKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param did.RegisterNode
+	param.NodeID = IdP2
+	param.PublicKey = string(idpPublicKeyBytes)
+	param.MasterPublicKey = string(idpMasterPublicKeyBytes)
+	param.NodeName = "IdP Number 2"
+	param.Role = "IdP"
+	param.MaxIal = 2.3
+	param.MaxAal = 3.0
+	RegisterNode(t, param)
+}
+
+func TestSetNodeTokenIDP2(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		IdP2,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
 	userHash := h.Sum(nil)
@@ -160,6 +190,63 @@ func TestQueryGetIdpNodes1ByRefGroupCode(t *testing.T) {
 	param.MinIal = 3
 	param.MinAal = 3
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"mode":[2]}]}`
+	GetIdpNodesExpectString(t, param, expected)
+}
+
+func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var user did.User
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	user.IdentityNamespace = userNamespace
+	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.Ial = 2.3
+	user.Mode = 2
+	user.AccessorID = accessorID1.String()
+	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID1.String()
+	var users []did.User
+	users = append(users, user)
+	var param = did.RegisterIdentityParam{
+		users,
+	}
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identity already existed")
+}
+
+func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace2 + userID1))
+	userHash := h.Sum(nil)
+	var user did.User
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	user.IdentityNamespace = userNamespace2
+	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.Ial = 2.3
+	user.Mode = 2
+	user.AccessorID = accessorID1.String()
+	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID1.String()
+	var users []did.User
+	users = append(users, user)
+	var param = did.RegisterIdentityParam{
+		users,
+	}
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetIdpNodes1ByIdentity2(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var param did.GetIdpNodesParam
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	param.MinIal = 2.3
+	param.MinAal = 3
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"mode":[2]},{"node_id":"` + IdP2 + `","node_name":"IdP Number 2","max_ial":2.3,"max_aal":3,"mode":[2]}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
 

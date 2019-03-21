@@ -110,5 +110,7 @@ const (
 	ChainIsNotInitialized                     uint32 = 83
 	DuplicateNonce                            uint32 = 84
 	NotExistValidator                         uint32 = 85
+	IdentityAlreadyExisted                    uint32 = 86
+	IdentityCannotBeEmpty                     uint32 = 87
 	UnknownError                              uint32 = 999
 )
