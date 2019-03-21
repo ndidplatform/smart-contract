@@ -183,7 +183,13 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.Mode = append(msqDesNode.Mode, 1)
-				returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				if len(funcParam.NodeIDList) == 0 {
+					returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				} else {
+					if contains(msqDesNode.ID, funcParam.NodeIDList) {
+						returnNodes.Node = append(returnNodes.Node, msqDesNode)
+					}
+				}
 			}
 		}
 	} else {
@@ -234,7 +240,13 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			msqDesNode.MaxIal = nodeDetail.MaxIal
 			msqDesNode.MaxAal = nodeDetail.MaxAal
 			msqDesNode.Mode = idp.Mode
-			returnNodes.Node = append(returnNodes.Node, msqDesNode)
+			if len(funcParam.NodeIDList) == 0 {
+				returnNodes.Node = append(returnNodes.Node, msqDesNode)
+			} else {
+				if contains(msqDesNode.ID, funcParam.NodeIDList) {
+					returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				}
+			}
 		}
 	}
 	value, err := json.Marshal(returnNodes)
@@ -244,7 +256,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 	if len(returnNodes.Node) == 0 {
 		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height) 
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
@@ -1784,3 +1796,13 @@ func (app *DIDApplication) getChainHistory(param string) types.ResponseQuery {
 	_, value := app.GetCommittedStateDB([]byte(chainHistoryInfoKey))
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
+
+func contains(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
