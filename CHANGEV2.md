@@ -332,6 +332,26 @@
 - Add `accepted_namespace_list`
 
 
+## CreateIdpResponse
+
+### Parameter
+
+```sh
+{
+  "aal": 3,
+  "ial": 3,
+  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "signature": "signature",
+  "status": "accept"
+}
+```
+
+**NOTE**
+
+- Remove `identity_proof`
+- Remove `private_proof_hash`
+
+
 ## Remove These
 
 - ClearRegisterIdentityTimeout
