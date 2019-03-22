@@ -379,6 +379,7 @@
 
 ```sh
 {
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
 }
@@ -387,7 +388,8 @@
 **NOTE**
 
 - Remove `hash_id`
-- Add `identity_namespace` and `identity_identifier_hash`
+- Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash`
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both, error)
 
 
 ## GetIdentityInfo
@@ -396,6 +398,7 @@
 
 ```sh
 {
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "node_id": "CuQfyyhjGcCAzKREzHmL"
@@ -405,7 +408,28 @@
 **NOTE**
 
 - Remove `hash_id`
-- Add `identity_namespace` and `identity_identifier_hash`
+- Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash`
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both, error)
+
+
+## UpdateIdentity
+
+### Parameter
+
+```sh
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "ial": 2.2
+}
+```
+
+**NOTE**
+
+- Remove `hash_id`
+- Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash`
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both, error)
 
 
 ## Remove These
