@@ -101,6 +101,25 @@
 ```
 
 
+## GetReferenceGroupCodeByAccessorId
+
+### Parameter
+
+```javascript
+{
+  "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
+}
+```
+
+### Output
+
+```javascript
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd"
+}
+```
+
+
 ## GetIdpNodes
 
 ### Parameter
