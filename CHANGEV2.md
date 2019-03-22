@@ -371,6 +371,24 @@
 - Add `identity_namespace` and `identity_identifier_hash`
 
 
+## GetIdentityInfo
+
+### Parameter
+
+```sh
+{
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "node_id": "CuQfyyhjGcCAzKREzHmL"
+}
+```
+
+**NOTE**
+
+- Remove `hash_id`
+- Add `identity_namespace` and `identity_identifier_hash`
+
+
 ## Remove These
 
 - ClearRegisterIdentityTimeout 
