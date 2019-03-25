@@ -12,7 +12,7 @@
       "identity_namespace": "citizenId",
       "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
       "ial": 3,
-      "mode": 2, // allow only 2, 3
+      "mode": [2, 3], // allow only 2, 3
       "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
       "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2\\nfID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8\\nW0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju\\nEFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM\\njNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD\\n9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0\\nYQIDAQAB\\n-----END PUBLIC KEY-----",
       "accessor_type": "accessor_type",
@@ -60,7 +60,7 @@
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error)
 
 
-## UpgradeIdentityMode (New) (ชื่อนี้ดีไหม?)
+## SetIdentityModeList (New)
 
 ### Parameter
 
@@ -69,7 +69,7 @@
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
-  "mode": 3, // allow only 2,3
+  "mode": [2, 3], // allow only 2,3
   "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
 }
 ```
