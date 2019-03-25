@@ -37,7 +37,7 @@
 - Check for `identity_namespace`+`identity_identifier_hash`. If exist, error.
 
 
-## AddAccessorMethod
+## AddAccessor
 
 ### Parameter
 
@@ -58,6 +58,7 @@
 - Remove `accessor_group_id`
 - Add `identity_namespace`, `identity_identifier_hash`, and `reference_group_code`
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error)
+- Change function name from `AddAccessorMethod` to `AddAccessor`
 
 
 ## UpdateIdentityModeList (New)
@@ -158,7 +159,7 @@
 - Add `mode` to result of `GetIdpNodesInfo`
 
 
-## RevokeAccessorMethod
+## RevokeAccessor
 
 ### Parameter
 
@@ -170,6 +171,10 @@
   "request_id": "e7dcf1c2-eea7-4dc8-af75-724cf86454ef"
 }
 ```
+
+**NOTE**
+
+- Change function name from `RevokeAccessorMethod` to `RevokeAccessor`
 
 
 ## RevokeIdentity (New)
