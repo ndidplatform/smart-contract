@@ -60,7 +60,7 @@
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error)
 
 
-## SetIdentityModeList (New)
+## UpdateIdentityModeList (New)
 
 ### Parameter
 
