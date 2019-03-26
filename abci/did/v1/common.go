@@ -1126,228 +1126,211 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	var result GetIdpNodesInfoResult
-	result.Node = make([]interface{}, 0)
-	value, err := json.Marshal(result)
-	return app.ReturnQuery(value, "not found", app.state.Height)
-	// // Make mapping
-	// mapNodeIDList := map[string]bool{}
-	// for _, nodeID := range funcParam.NodeIDList {
-	// 	mapNodeIDList[nodeID] = true
-	// }
-	// if funcParam.HashID == "" {
-	// 	idpsKey := "IdPList"
-	// 	_, idpsValue := app.GetCommittedStateDB([]byte(idpsKey))
-	// 	if idpsValue == nil {
-	// 		value, err := json.Marshal(result)
-	// 		if err != nil {
-	// 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 		}
-	// 		return app.ReturnQuery(value, "not found", app.state.Height)
-	// 	}
-	// 	var idpsList data.IdPList
-	// 	err := proto.Unmarshal(idpsValue, &idpsList)
-	// 	if err != nil {
-	// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 	}
-	// 	for _, idp := range idpsList.NodeId {
-	// 		// filter from node_id_list
-	// 		if len(mapNodeIDList) > 0 {
-	// 			if mapNodeIDList[idp] == false {
-	// 				continue
-	// 			}
-	// 		}
-	// 		nodeDetailKey := "NodeID" + "|" + idp
-	// 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-	// 		if nodeDetailValue == nil {
-	// 			continue
-	// 		}
-	// 		var nodeDetail data.NodeDetail
-	// 		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-	// 		if err != nil {
-	// 			continue
-	// 		}
-	// 		// check node is active
-	// 		if !nodeDetail.Active {
-	// 			continue
-	// 		}
-	// 		// check Max IAL && AAL
-	// 		if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-	// 			nodeDetail.MaxAal >= funcParam.MinAal) {
-	// 			continue
-	// 		}
-	// 		// If node is behind proxy
-	// 		if nodeDetail.ProxyNodeId != "" {
-	// 			proxyNodeID := nodeDetail.ProxyNodeId
-	// 			// Get proxy node detail
-	// 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-	// 			_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
-	// 			if proxyNodeDetailValue == nil {
-	// 				return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-	// 			}
-	// 			var proxyNode data.NodeDetail
-	// 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-	// 			if err != nil {
-	// 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 			}
-	// 			// Check proxy node is active
-	// 			if !proxyNode.Active {
-	// 				continue
-	// 			}
-	// 			var msqDesNode IdpNodeBehindProxy
-	// 			msqDesNode.NodeID = idp
-	// 			msqDesNode.Name = nodeDetail.NodeName
-	// 			msqDesNode.MaxIal = nodeDetail.MaxIal
-	// 			msqDesNode.MaxAal = nodeDetail.MaxAal
-	// 			msqDesNode.PublicKey = nodeDetail.PublicKey
-	// 			msqDesNode.Proxy.NodeID = string(proxyNodeID)
-	// 			msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-	// 			if proxyNode.Mq != nil {
-	// 				for _, mq := range proxyNode.Mq {
-	// 					var msq MsqAddress
-	// 					msq.IP = mq.Ip
-	// 					msq.Port = mq.Port
-	// 					msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-	// 				}
-	// 			}
-	// 			msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
-	// 			result.Node = append(result.Node, msqDesNode)
-	// 		} else {
-	// 			var msq []MsqAddress
-	// 			for _, mq := range nodeDetail.Mq {
-	// 				var msqAddress MsqAddress
-	// 				msqAddress.IP = mq.Ip
-	// 				msqAddress.Port = mq.Port
-	// 				msq = append(msq, msqAddress)
-	// 			}
-	// 			var msqDesNode = IdpNode{
-	// 				idp,
-	// 				nodeDetail.NodeName,
-	// 				nodeDetail.MaxIal,
-	// 				nodeDetail.MaxAal,
-	// 				nodeDetail.PublicKey,
-	// 				msq,
-	// 			}
-	// 			result.Node = append(result.Node, msqDesNode)
-	// 		}
-	// 	}
-	// } else {
-	// 	key := "MsqDestination" + "|" + funcParam.HashID
-	// 	_, value := app.GetCommittedStateDB([]byte(key))
-	// 	if value == nil {
-	// 		value, err := json.Marshal(result)
-	// 		if err != nil {
-	// 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 		}
-	// 		return app.ReturnQuery(value, "not found", app.state.Height)
-	// 	}
-	// 	var nodes data.MsqDesList
-	// 	err = proto.Unmarshal([]byte(value), &nodes)
-	// 	if err != nil {
-	// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 	}
-	// 	for _, node := range nodes.Nodes {
-	// 		// filter from node_id_list
-	// 		if len(mapNodeIDList) > 0 {
-	// 			if mapNodeIDList[node.NodeId] == false {
-	// 				continue
-	// 			}
-	// 		}
-	// 		// check msq destination is not active
-	// 		if !node.Active {
-	// 			continue
-	// 		}
-	// 		// check Ial > min ial
-	// 		if node.Ial < funcParam.MinIal {
-	// 			continue
-	// 		}
-	// 		// check msq destination is not timed out
-	// 		if node.TimeoutBlock != 0 && app.CurrentBlock > node.TimeoutBlock {
-	// 			continue
-	// 		}
-	// 		nodeDetailKey := "NodeID" + "|" + node.NodeId
-	// 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-	// 		if nodeDetailValue == nil {
-	// 			continue
-	// 		}
-	// 		var nodeDetail data.NodeDetail
-	// 		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-	// 		if err != nil {
-	// 			continue
-	// 		}
-	// 		// check node is active
-	// 		if !nodeDetail.Active {
-	// 			continue
-	// 		}
-	// 		// check Max IAL && AAL
-	// 		if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-	// 			nodeDetail.MaxAal >= funcParam.MinAal) {
-	// 			continue
-	// 		}
-	// 		// If node is behind proxy
-	// 		if nodeDetail.ProxyNodeId != "" {
-	// 			proxyNodeID := nodeDetail.ProxyNodeId
-	// 			// Get proxy node detail
-	// 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-	// 			_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
-	// 			if proxyNodeDetailValue == nil {
-	// 				return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-	// 			}
-	// 			var proxyNode data.NodeDetail
-	// 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-	// 			if err != nil {
-	// 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// 			}
-	// 			// Check proxy node is active
-	// 			if !proxyNode.Active {
-	// 				continue
-	// 			}
-	// 			var msqDesNode IdpNodeBehindProxy
-	// 			msqDesNode.NodeID = node.NodeId
-	// 			msqDesNode.Name = nodeDetail.NodeName
-	// 			msqDesNode.MaxIal = nodeDetail.MaxIal
-	// 			msqDesNode.MaxAal = nodeDetail.MaxAal
-	// 			msqDesNode.PublicKey = nodeDetail.PublicKey
-	// 			msqDesNode.Proxy.NodeID = string(proxyNodeID)
-	// 			msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-	// 			if proxyNode.Mq != nil {
-	// 				for _, mq := range proxyNode.Mq {
-	// 					var msq MsqAddress
-	// 					msq.IP = mq.Ip
-	// 					msq.Port = mq.Port
-	// 					msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-	// 				}
-	// 			}
-	// 			msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
-	// 			result.Node = append(result.Node, msqDesNode)
-	// 		} else {
-	// 			var msq []MsqAddress
-	// 			for _, mq := range nodeDetail.Mq {
-	// 				var msqAddress MsqAddress
-	// 				msqAddress.IP = mq.Ip
-	// 				msqAddress.Port = mq.Port
-	// 				msq = append(msq, msqAddress)
-	// 			}
-	// 			var msqDesNode = IdpNode{
-	// 				node.NodeId,
-	// 				nodeDetail.NodeName,
-	// 				nodeDetail.MaxIal,
-	// 				nodeDetail.MaxAal,
-	// 				nodeDetail.PublicKey,
-	// 				msq,
-	// 			}
-	// 			result.Node = append(result.Node, msqDesNode)
-	// 		}
-	// 	}
-	// }
-	// value, err := json.Marshal(result)
-	// if err != nil {
-	// 	return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	// }
-	// if len(result.Node) == 0 {
-	// 	return app.ReturnQuery(value, "not found", app.state.Height)
-	// }
-	// return app.ReturnQuery(value, "success", app.state.Height)
+	var returnNodes GetIdpNodesInfoResult
+	returnNodes.Node = make([]interface{}, 0)
+	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
+		idpsKey := "IdPList"
+		_, idpsValue := app.GetCommittedStateDB([]byte(idpsKey))
+		var idpsList data.IdPList
+		if idpsValue != nil {
+			err := proto.Unmarshal(idpsValue, &idpsList)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			for _, idp := range idpsList.NodeId {
+				nodeDetailKey := "NodeID" + "|" + idp
+				_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+				if nodeDetailValue == nil {
+					continue
+				}
+				var nodeDetail data.NodeDetail
+				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+				if err != nil {
+					continue
+				}
+				// check node is active
+				if !nodeDetail.Active {
+					continue
+				}
+				// check Max IAL && AAL
+				if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+					nodeDetail.MaxAal >= funcParam.MinAal) {
+					continue
+				}
+				// If node is behind proxy
+				if nodeDetail.ProxyNodeId != "" {
+					proxyNodeID := nodeDetail.ProxyNodeId
+					// Get proxy node detail
+					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+					_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
+					if proxyNodeDetailValue == nil {
+						return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+					}
+					var proxyNode data.NodeDetail
+					err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+					if err != nil {
+						return app.ReturnQuery(nil, err.Error(), app.state.Height)
+					}
+					// Check proxy node is active
+					if !proxyNode.Active {
+						continue
+					}
+					var msqDesNode IdpNodeBehindProxy
+					msqDesNode.NodeID = idp
+					msqDesNode.Name = nodeDetail.NodeName
+					msqDesNode.MaxIal = nodeDetail.MaxIal
+					msqDesNode.MaxAal = nodeDetail.MaxAal
+					msqDesNode.PublicKey = nodeDetail.PublicKey
+					msqDesNode.Proxy.NodeID = string(proxyNodeID)
+					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
+					if proxyNode.Mq != nil {
+						for _, mq := range proxyNode.Mq {
+							var msq MsqAddress
+							msq.IP = mq.Ip
+							msq.Port = mq.Port
+							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+						}
+					}
+					msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
+					returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				} else {
+					var msq []MsqAddress
+					for _, mq := range nodeDetail.Mq {
+						var msqAddress MsqAddress
+						msqAddress.IP = mq.Ip
+						msqAddress.Port = mq.Port
+						msq = append(msq, msqAddress)
+					}
+					var msqDesNode IdpNode
+					msqDesNode.NodeID = idp
+					msqDesNode.Name = nodeDetail.NodeName
+					msqDesNode.MaxIal = nodeDetail.MaxIal
+					msqDesNode.MaxAal = nodeDetail.MaxAal
+					msqDesNode.PublicKey = nodeDetail.PublicKey
+					msqDesNode.Mq = msq
+					msqDesNode.Mode = append(msqDesNode.Mode, 1)
+					if len(funcParam.NodeIDList) == 0 {
+						returnNodes.Node = append(returnNodes.Node, msqDesNode)
+					} else {
+						if contains(msqDesNode.NodeID, funcParam.NodeIDList) {
+							returnNodes.Node = append(returnNodes.Node, msqDesNode)
+						}
+					}
+				}
+			}
+		}
+	} else {
+		refGroupCode := ""
+		if funcParam.ReferenceGroupCode != "" {
+			refGroupCode = funcParam.ReferenceGroupCode
+		} else {
+			identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+			_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+			if refGroupCodeFromDB == nil {
+				return app.ReturnQuery(nil, "not found", app.state.Height)
+			}
+			refGroupCode = string(refGroupCodeFromDB)
+		}
+		refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+		_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+		if refGroupValue == nil {
+			return app.ReturnQuery(nil, "not found", app.state.Height)
+		}
+		var refGroup data.ReferenceGroup
+		err := proto.Unmarshal(refGroupValue, &refGroup)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		for _, idp := range refGroup.Idps {
+			nodeDetailKey := "NodeID" + "|" + idp.NodeId
+			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+			if nodeDetailValue == nil {
+				continue
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				continue
+			}
+			// check node is active
+			if !nodeDetail.Active {
+				continue
+			}
+			// check Max IAL && AAL
+			if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+				nodeDetail.MaxAal >= funcParam.MinAal) {
+				continue
+			}
+			// If node is behind proxy
+			if nodeDetail.ProxyNodeId != "" {
+				proxyNodeID := nodeDetail.ProxyNodeId
+				// Get proxy node detail
+				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
+				if proxyNodeDetailValue == nil {
+					return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+				}
+				var proxyNode data.NodeDetail
+				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+				if err != nil {
+					return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				}
+				// Check proxy node is active
+				if !proxyNode.Active {
+					continue
+				}
+				var msqDesNode IdpNodeBehindProxy
+				msqDesNode.NodeID = idp.NodeId
+				msqDesNode.Name = nodeDetail.NodeName
+				msqDesNode.MaxIal = nodeDetail.MaxIal
+				msqDesNode.MaxAal = nodeDetail.MaxAal
+				msqDesNode.PublicKey = nodeDetail.PublicKey
+				msqDesNode.Proxy.NodeID = string(proxyNodeID)
+				msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
+				if proxyNode.Mq != nil {
+					for _, mq := range proxyNode.Mq {
+						var msq MsqAddress
+						msq.IP = mq.Ip
+						msq.Port = mq.Port
+						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
+					}
+				}
+				msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
+				returnNodes.Node = append(returnNodes.Node, msqDesNode)
+			} else {
+				var msq []MsqAddress
+				for _, mq := range nodeDetail.Mq {
+					var msqAddress MsqAddress
+					msqAddress.IP = mq.Ip
+					msqAddress.Port = mq.Port
+					msq = append(msq, msqAddress)
+				}
+				var msqDesNode IdpNode
+				msqDesNode.NodeID = idp.NodeId
+				msqDesNode.Name = nodeDetail.NodeName
+				msqDesNode.MaxIal = nodeDetail.MaxIal
+				msqDesNode.MaxAal = nodeDetail.MaxAal
+				msqDesNode.PublicKey = nodeDetail.PublicKey
+				msqDesNode.Mq = msq
+				msqDesNode.Mode = idp.Mode
+				if len(funcParam.NodeIDList) == 0 {
+					returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				} else {
+					if contains(msqDesNode.NodeID, funcParam.NodeIDList) {
+						returnNodes.Node = append(returnNodes.Node, msqDesNode)
+					}
+				}
+			}
+		}
+	}
+	value, err := json.Marshal(returnNodes)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if len(returnNodes.Node) == 0 {
+		return app.ReturnQuery(value, "not found", app.state.Height)
+	}
+	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
 func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {

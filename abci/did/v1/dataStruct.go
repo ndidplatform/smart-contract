@@ -589,6 +589,7 @@ type IdpNode struct {
 	MaxAal    float64      `json:"max_aal"`
 	PublicKey string       `json:"public_key"`
 	Mq        []MsqAddress `json:"mq"`
+	Mode      []int64      `json:"mode"`
 }
 
 type ASWithMqNode struct {
@@ -658,6 +659,7 @@ type IdpNodeBehindProxy struct {
 	MaxIal    float64 `json:"max_ial"`
 	MaxAal    float64 `json:"max_aal"`
 	PublicKey string  `json:"public_key"`
+	Mode      []int64 `json:"mode"`
 	Proxy     struct {
 		NodeID    string       `json:"node_id"`
 		PublicKey string       `json:"public_key"`
