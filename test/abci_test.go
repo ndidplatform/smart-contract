@@ -422,13 +422,55 @@ func TestIdPAddAccessorMethodWithInvalidParameter2(t *testing.T) {
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "Reference group not found")
 }
 
+func TestIdP2CreateRequestForAddAccessorMethod(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID3.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "AddAccessorMethod"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP1CreateIdpResponse(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 3
+	param.RequestID = requestID3.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP2CloseRequestForrequestID3(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID3.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
 func TestIdPAddAccessorMethod(t *testing.T) {
 	var param did.AccessorMethod
 	param.ReferenceGroupCode = referenceGroupCode1.String()
 	param.AccessorID = accessorID3.String()
 	param.AccessorPublicKey = accessorPubKey1
 	param.AccessorType = "RSA2048"
-	param.RequestID = requestID1.String()
+	param.RequestID = requestID3.String()
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "success")
 }
 

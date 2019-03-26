@@ -73,6 +73,12 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
 	}
+	var minIdP int64
+	minIdP = 1
+	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessorMethod", minIdP)
+	if checkRequestResult.Code != code.OK {
+		return checkRequestResult
+	}
 	var accessor data.Accessor
 	accessor.AccessorId = funcParam.AccessorID
 	accessor.AccessorType = funcParam.AccessorType
