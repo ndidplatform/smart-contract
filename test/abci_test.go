@@ -151,6 +151,17 @@ func TestIdPSetMqAddressesForIdP1(t *testing.T) {
 	SetMqAddresses(t, param, idpPrivK, IdP1)
 }
 
+func TestQueryCheckExistingIdentityBeforeRegister(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var param did.CheckExistingIdentityParam
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var expected = `{"exist":false}`
+	CheckExistingIdentity(t, param, expected)
+}
+
 func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
@@ -171,6 +182,17 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 		users,
 	}
 	RegisterIdentity(t, param, idpPrivK, IdP1, "success")
+}
+
+func TestQueryCheckExistingIdentityAfterRegister(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var param did.CheckExistingIdentityParam
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var expected = `{"exist":true}` 
+	CheckExistingIdentity(t, param, expected)
 }
 
 func TestQueryGetIdpNodesForMode1(t *testing.T) {

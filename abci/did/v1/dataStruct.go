@@ -372,7 +372,9 @@ type AccessorMethod struct {
 }
 
 type CheckExistingIdentityParam struct {
-	HashID string `json:"hash_id"`
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
 }
 
 type CheckExistingIdentityResult struct {

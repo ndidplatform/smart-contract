@@ -656,63 +656,53 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingIdentityResult
-	result.Exist = false
-	key := "MsqDestination" + "|" + funcParam.HashID
-	_, value := app.GetCommittedStateDB([]byte(key))
-	if value == nil {
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
+		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
 	}
-	var nodes data.MsqDesList
-	err = proto.Unmarshal([]byte(value), &nodes)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	msqCount := 0
-	for _, node := range nodes.Nodes {
-		if node.TimeoutBlock == 0 || node.TimeoutBlock > app.CurrentBlock {
-			msqCount++
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			returnValue, err := json.Marshal(result)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
 		}
+		refGroupCode = string(refGroupCodeFromDB)
 	}
-	if msqCount > 0 {
-		result.Exist = true
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
 	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+	}
+	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
-
-// func (app *DIDApplication) getAccessorGroupID(param string) types.ResponseQuery {
-// 	app.logger.Infof("GetAccessorGroupID, Parameter: %s", param)
-// 	var funcParam GetAccessorGroupIDParam
-// 	err := json.Unmarshal([]byte(param), &funcParam)
-// 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-// 	}
-// 	var result GetAccessorGroupIDResult
-// 	result.AccessorGroupID = ""
-// 	key := "Accessor" + "|" + funcParam.AccessorID
-// 	_, value := app.GetCommittedStateDB([]byte(key))
-// 	// If value == nil set log = "not found"
-// 	if value == nil {
-// 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-// 	}
-// 	var accessor data.Accessor
-// 	err = proto.Unmarshal([]byte(value), &accessor)
-// 	if err == nil {
-// 		result.AccessorGroupID = accessor.AccessorGroupId
-// 	}
-// 	returnValue, err := json.Marshal(result)
-// 	if err != nil {
-// 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-// 	}
-// 	return app.ReturnQuery(returnValue, "success", app.state.Height)
-// }
 
 func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
