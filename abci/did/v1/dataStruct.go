@@ -452,12 +452,15 @@ type GetNodeInfoIdPResult struct {
 }
 
 type GetIdentityInfoParam struct {
-	HashID string `json:"hash_id"`
-	NodeID string `json:"node_id"`
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	NodeID                 string `json:"node_id"`
 }
 
 type GetIdentityInfoResult struct {
-	Ial float64 `json:"ial"`
+	Ial      float64 `json:"ial"`
+	ModeList []int64 `json:"mode_list"` 
 }
 
 type UpdateNodeByNDIDParam struct {

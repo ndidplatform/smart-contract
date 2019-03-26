@@ -673,7 +673,7 @@ func GetIdentityInfo(t *testing.T, param did.GetIdentityInfoParam, expected stri
 		return
 	}
 	if actual := string(resultString); actual != expected {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

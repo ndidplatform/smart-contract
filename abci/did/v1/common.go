@@ -968,19 +968,50 @@ func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetIdentityInfoResult
-	key := "MsqDestination" + "|" + funcParam.HashID
-	_, chkExists := app.GetCommittedStateDB([]byte(key))
-	if chkExists == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
 	}
-	var nodes data.MsqDesList
-	err = proto.Unmarshal([]byte(chkExists), &nodes)
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			returnValue, err := json.Marshal(result)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
 	}
-	for _, node := range nodes.Nodes {
-		if node.NodeId == funcParam.NodeID {
-			result.Ial = float64(node.Ial)
+	for _, idp := range refGroup.Idps {
+		if funcParam.NodeID == idp.NodeId {
+			result.Ial = idp.Ial
+			result.ModeList = idp.Mode
 			break
 		}
 	}

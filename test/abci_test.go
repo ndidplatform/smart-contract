@@ -184,6 +184,26 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	RegisterIdentity(t, param, idpPrivK, IdP1, "success")
 }
 
+func TestQueryGetIdentityInfoByIdentity(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	param.NodeID = IdP1
+	expected := `{"ial":3,"mode_list":[2]}`
+	GetIdentityInfo(t, param, expected)
+}
+
+func TestQueryGetIdentityInfoByRefGroupCode(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.NodeID = IdP1
+	expected := `{"ial":3,"mode_list":[2]}`
+	GetIdentityInfo(t, param, expected)
+}
+
 func TestQueryCheckExistingIdentityAfterRegister(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
@@ -191,7 +211,7 @@ func TestQueryCheckExistingIdentityAfterRegister(t *testing.T) {
 	var param did.CheckExistingIdentityParam
 	param.IdentityNamespace = userNamespace
 	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
-	var expected = `{"exist":true}` 
+	var expected = `{"exist":true}`
 	CheckExistingIdentity(t, param, expected)
 }
 
