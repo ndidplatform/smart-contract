@@ -162,6 +162,30 @@ func TestQueryCheckExistingIdentityBeforeRegister(t *testing.T) {
 	CheckExistingIdentity(t, param, expected)
 }
 
+func TestIdP1CreateRequestForRegisterIdentity(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID1.String()
+	param.MinIdp = 0
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "RegisterIdentity"
+	CreateRequest(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP1CloseRequestForRegisterIdentity(t *testing.T) {
+	var res []did.ResponseValid
+	var param = did.CloseRequestParam{
+		requestID1.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK, IdP1)
+}
+
 func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
@@ -262,6 +286,48 @@ func TestQueryGetIdpNodesInfoByRefGroupCode(t *testing.T) {
 	GetIdpNodesInfo(t, param, expected)
 }
 
+func TestIdP2CreateRequestForRegisterIdentity(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID2.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "RegisterIdentity"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdPCreateIdpResponse(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 3
+	param.RequestID = requestID2.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP2CloseRequestForRegisterIdentity(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID2.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
 func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
@@ -275,7 +341,7 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	user.AccessorID = accessorID2.String()
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
-	user.RequestID = requestID1.String()
+	user.RequestID = requestID2.String()
 	var users []did.User
 	users = append(users, user)
 	var param = did.RegisterIdentityParam{
@@ -297,7 +363,7 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	user.AccessorID = accessorID2.String()
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
-	user.RequestID = requestID1.String()
+	user.RequestID = requestID2.String()
 	var users []did.User
 	users = append(users, user)
 	var param = did.RegisterIdentityParam{

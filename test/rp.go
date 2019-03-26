@@ -118,12 +118,12 @@ func TimeOutRequest(t *testing.T, param did.TimeOutRequestParam, nodeID string) 
 	t.Logf("PASS: %s", fnName)
 }
 
-func CloseRequestByIdP(t *testing.T, param did.CloseRequestParam, nodeID string) {
+func CloseRequestByIdP(t *testing.T, param did.CloseRequestParam, priveKFile string, nodeID string) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	rpKey := getPrivateKeyFromString(idpPrivK)
+	rpKey := getPrivateKeyFromString(priveKFile)
 	rpNodeID := []byte(nodeID)
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	fnName := "CloseRequest"

@@ -115,5 +115,7 @@ const (
 	GotRefGroupCodeAndIdentity                uint32 = 88
 	RefGroupNotFound                          uint32 = 89
 	IdentityNotFoundInThisIdP                 uint32 = 90
+	InvalidPurpose                            uint32 = 91
+	RequestIsAlreadyUsed                      uint32 = 92
 	UnknownError                              uint32 = 999
 )

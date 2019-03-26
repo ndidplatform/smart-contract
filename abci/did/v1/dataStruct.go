@@ -138,13 +138,11 @@ type Response struct {
 }
 
 type CreateIdpResponseParam struct {
-	RequestID        string  `json:"request_id"`
-	Ial              float64 `json:"ial"`
-	Aal              float64 `json:"aal"`
-	Status           string  `json:"status"`
-	Signature        string  `json:"signature"`
-	IdentityProof    string  `json:"identity_proof"`
-	PrivateProofHash string  `json:"private_proof_hash"`
+	Aal       float64 `json:"aal"`
+	Ial       float64 `json:"ial"`
+	RequestID string  `json:"request_id"`
+	Signature string  `json:"signature"`
+	Status    string  `json:"status"`
 }
 
 type GetRequestParam struct {
@@ -460,7 +458,7 @@ type GetIdentityInfoParam struct {
 
 type GetIdentityInfoResult struct {
 	Ial      float64 `json:"ial"`
-	ModeList []int64 `json:"mode_list"` 
+	ModeList []int64 `json:"mode_list"`
 }
 
 type UpdateNodeByNDIDParam struct {

@@ -129,8 +129,6 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.updateNodeByNDID(param, nodeID)
 	case "UpdateIdentity":
 		return app.updateIdentity(param, nodeID)
-	case "DeclareIdentityProof":
-		return app.declareIdentityProof(param, nodeID)
 	case "UpdateServiceDestination":
 		return app.updateServiceDestination(param, nodeID)
 	case "UpdateService":

@@ -133,11 +133,34 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
 		var refGroup data.ReferenceGroup
 		// If referenceGroupCode already existed, add new identity to group
+		var minIdP int64
+		minIdP = 0
 		if refGroupValue != nil {
 			err := proto.Unmarshal(refGroupValue, &refGroup)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
+			// If have at least one node active
+			for _, idp := range refGroup.Idps {
+				nodeDetailKey := "NodeID" + "|" + idp.NodeId
+				_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+				if nodeDetailValue == nil {
+					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				}
+				var nodeDetail data.NodeDetail
+				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				if nodeDetail.Active {
+					minIdP = 1
+					break
+				}
+			}
+		}
+		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
 		}
 		var accessor data.Accessor
 		accessor.AccessorId = user.AccessorID
@@ -163,10 +186,76 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		identityToRefCodeValue := user.ReferenceGroupCode
 		accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
 		accessorToRefCodeValue := user.ReferenceGroupCode
+		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
 		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
 		app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 		app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	}
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int64) types.ResponseDeliverTx {
+	requestKey := "Request" + "|" + requestID
+	_, requestValue := app.GetCommittedVersionedStateDB([]byte(requestKey), app.state.Height)
+	if requestValue == nil {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	var request data.Request
+	err := proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if request.Purpose != purpose {
+		return app.ReturnDeliverTxLog(code.InvalidPurpose, "Request has a invalid purpose", "")
+	}
+	if request.UseCount > 0 {
+		return app.ReturnDeliverTxLog(code.RequestIsAlreadyUsed, "Request is already used", "")
+	}
+	if !request.Closed {
+		return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
+	}
+	var acceptCount int64
+	acceptCount = 0
+	for _, response := range request.ResponseList {
+		if response.ValidIal != "true" {
+			continue
+		}
+		if response.ValidProof != "true" {
+			continue
+		}
+		if response.ValidSignature != "true" {
+			continue
+		}
+		if response.Status == "accept" {
+			acceptCount++
+		}
+	}
+	if acceptCount >= minIdp {
+		return app.ReturnDeliverTxLog(code.OK, "Request is completed", "")
+	}
+	return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+}
+
+func (app *DIDApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {
+	requestKey := "Request" + "|" + requestID
+	_, requestValue := app.GetCommittedVersionedStateDB([]byte(requestKey), app.state.Height)
+	if requestValue == nil {
+		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	}
+	var request data.Request
+	err := proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	request.UseCount = request.UseCount + 1
+	requestProtobuf, err := utils.ProtoDeterministicMarshal(&request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -184,8 +273,6 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	response.Status = funcParam.Status
 	response.Signature = funcParam.Signature
 	response.IdpId = nodeID
-	response.IdentityProof = funcParam.IdentityProof
-	response.PrivateProofHash = funcParam.PrivateProofHash
 	_, value := app.GetVersionedStateDB([]byte(key), 0)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -239,20 +326,6 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	// Check IsTimedOut
 	if request.TimedOut {
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
-	}
-	// Check identity proof if mode == 3
-	if request.Mode == 3 {
-		identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-		_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
-		proofPassed := false
-		if identityProofValue != nil {
-			if funcParam.IdentityProof == string(identityProofValue) {
-				proofPassed = true
-			}
-		}
-		if proofPassed == false {
-			return app.ReturnDeliverTxLog(code.WrongIdentityProof, "Identity proof is wrong", "")
-		}
 	}
 	// Check nodeID is exist in idp_id_list
 	exist := false
@@ -325,45 +398,45 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) declareIdentityProof(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
-	var funcParam DeclareIdentityProofParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	// Check the request
-	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
-	if requestValue == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	}
-	var request data.Request
-	err = proto.Unmarshal([]byte(requestValue), &request)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	// check number of responses
-	if int64(len(request.ResponseList)) >= request.MinIdp {
-		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
-	}
-	// Check IsClosed
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
-	}
-	// Check IsTimedOut
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
-	}
-	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
-	_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
-	if identityProofValue != nil {
-		return app.ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
-	}
-	identityProofValue = []byte(funcParam.IdentityProof)
-	app.SetStateDB([]byte(identityProofKey), identityProofValue)
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
-}
+// func (app *DIDApplication) declareIdentityProof(param string, nodeID string) types.ResponseDeliverTx {
+// 	app.logger.Infof("DeclareIdentityProof, Parameter: %s", param)
+// 	var funcParam DeclareIdentityProofParam
+// 	err := json.Unmarshal([]byte(param), &funcParam)
+// 	if err != nil {
+// 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+// 	}
+// 	// Check the request
+// 	requestKey := "Request" + "|" + funcParam.RequestID
+// 	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
+// 	if requestValue == nil {
+// 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+// 	}
+// 	var request data.Request
+// 	err = proto.Unmarshal([]byte(requestValue), &request)
+// 	if err != nil {
+// 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+// 	}
+// 	// check number of responses
+// 	if int64(len(request.ResponseList)) >= request.MinIdp {
+// 		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't declare identity proof for the request that's completed response", "")
+// 	}
+// 	// Check IsClosed
+// 	if request.Closed {
+// 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't declare identity proof for the request that's closed", "")
+// 	}
+// 	// Check IsTimedOut
+// 	if request.TimedOut {
+// 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't declare identity proof for the request that's timed out", "")
+// 	}
+// 	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + nodeID
+// 	_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
+// 	if identityProofValue != nil {
+// 		return app.ReturnDeliverTxLog(code.DuplicateIdentityProof, "Duplicate Identity Proof", "")
+// 	}
+// 	identityProofValue = []byte(funcParam.IdentityProof)
+// 	app.SetStateDB([]byte(identityProofKey), identityProofValue)
+// 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+// }
 
 // func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID string) types.ResponseDeliverTx {
 // 	app.logger.Infof("ClearRegisterIdentityTimeout, Parameter: %s", param)
