@@ -491,6 +491,124 @@ func TestQueryGetReferenceGroupCode1(t *testing.T) {
 	GetReferenceGroupCodeExpectString(t, param, expected)
 }
 
+func TestNDIDAddService(t *testing.T) {
+	var param did.AddServiceParam
+	param.ServiceID = serviceID1
+	param.ServiceName = "Bank statement"
+	param.DataSchema = "DataSchema"
+	param.DataSchemaVersion = "DataSchemaVersion"
+	AddService(t, param)
+}
+
+func TestRegisterNodeAS(t *testing.T) {
+	asKey := getPrivateKeyFromString(asPrivK)
+	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	asMasterKey := getPrivateKeyFromString(allMasterKey)
+	asMasterPublicKeyBytes, err := generatePublicKey(&asMasterKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param did.RegisterNode
+	param.NodeName = "AS1"
+	param.NodeID = AS1
+	param.PublicKey = string(asPublicKeyBytes)
+	param.MasterPublicKey = string(asMasterPublicKeyBytes)
+	param.Role = "AS"
+	RegisterNode(t, param)
+}
+
+func TestSetNodeTokenAS1(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		AS1,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestAS1SetMqAddresses(t *testing.T) {
+	var mq did.MsqAddress
+	mq.IP = "192.168.3.102"
+	mq.Port = 8000
+	var param did.SetMqAddressesParam
+	param.Addresses = make([]did.MsqAddress, 0)
+	param.Addresses = append(param.Addresses, mq)
+	SetMqAddresses(t, param, asPrivK, AS1)
+}
+
+func TestRegisterServiceDestinationByNDIDForInvalidNodeID(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		"Invalid-node-ID",
+	}
+	RegisterServiceDestinationByNDIDExpectedString(t, param, "Node ID not found")
+}
+
+func TestRegisterServiceDestinationByNDIDForInvalidRole(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		IdP1,
+	}
+	RegisterServiceDestinationByNDIDExpectedString(t, param, "Role of node ID is not AS")
+}
+
+func TestASRegisterServiceDestinationByNDIDForAS1(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		AS1,
+	}
+	RegisterServiceDestinationByNDID(t, param)
+}
+
+func TestASRegisterServiceDestination(t *testing.T) {
+	var param did.RegisterServiceDestinationParam
+	param.ServiceID = serviceID1
+	param.MinAal = 1.1
+	param.MinIal = 1.2
+	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace)
+	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
+}
+
+func TestQueryGetAsNodesByServiceId(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.2,"min_aal":1.1,"accepted_namespace_list":["cid"]}]}`
+	GetAsNodesByServiceId(t, param, expected)
+}
+
+func TestQueryGetAsNodesInfoByServiceId(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["cid"]}]}`
+	GetAsNodesInfoByServiceId(t, param, expected)
+}
+
+func TestAS1UpdateServiceDestination(t *testing.T) {
+	var param did.UpdateServiceDestinationParam
+	param.ServiceID = serviceID1
+	param.MinAal = 1.4
+	param.MinIal = 1.5
+	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace2)
+	UpdateServiceDestination(t, param, AS1)
+}
+
+func TestQueryGetAsNodesByServiceIdAfterUpdated(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"accepted_namespace_list":["passport"]}]}`
+	GetAsNodesByServiceId(t, param, expected)
+}
+
+func TestQueryGetServicesByAsID(t *testing.T) {
+	var param = did.GetServicesByAsIDParam{
+		AS1,
+	}
+	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["cid"]}]}`
+	GetServicesByAsID(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

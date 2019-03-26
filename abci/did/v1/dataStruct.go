@@ -193,9 +193,10 @@ type DisableServiceParam struct {
 }
 
 type RegisterServiceDestinationParam struct {
-	ServiceID string  `json:"service_id"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
+	MinAal                float64  `json:"min_aal"`
+	MinIal                float64  `json:"min_ial"`
+	ServiceID             string   `json:"service_id"`
+	AcceptedNamespaceList []string `json:"accepted_namespace_list"`
 }
 
 type GetServiceDetailParam struct {
@@ -221,10 +222,11 @@ type GetAsNodesByServiceIdResult struct {
 }
 
 type ASNodeResult struct {
-	ID     string  `json:"node_id"`
-	Name   string  `json:"node_name"`
-	MinIal float64 `json:"min_ial"`
-	MinAal float64 `json:"min_aal"`
+	ID                    string   `json:"node_id"`
+	Name                  string   `json:"node_name"`
+	MinIal                float64  `json:"min_ial"`
+	MinAal                float64  `json:"min_aal"`
+	AcceptedNamespaceList []string `json:"accepted_namespace_list"`
 }
 
 type GetAsNodesByServiceIdWithNameResult struct {
@@ -515,9 +517,10 @@ type GetIdentityProofResult struct {
 }
 
 type UpdateServiceDestinationParam struct {
-	ServiceID string  `json:"service_id"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
+	ServiceID             string   `json:"service_id"`
+	MinIal                float64  `json:"min_ial"`
+	MinAal                float64  `json:"min_aal"`
+	AcceptedNamespaceList []string `json:"accepted_namespace_list"`
 }
 
 type UpdateServiceParam struct {
@@ -545,11 +548,12 @@ type DisableNodeParam struct {
 }
 
 type Service struct {
-	ServiceID string  `json:"service_id"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
-	Active    bool    `json:"active"`
-	Suspended bool    `json:"suspended"`
+	ServiceID             string   `json:"service_id"`
+	MinIal                float64  `json:"min_ial"`
+	MinAal                float64  `json:"min_aal"`
+	Active                bool     `json:"active"`
+	Suspended             bool     `json:"suspended"`
+	AcceptedNamespaceList []string `json:"accepted_namespace_list"`
 }
 
 type GetServicesByAsIDParam struct {
@@ -596,12 +600,13 @@ type IdpNode struct {
 }
 
 type ASWithMqNode struct {
-	ID        string       `json:"node_id"`
-	Name      string       `json:"name"`
-	MinIal    float64      `json:"min_ial"`
-	MinAal    float64      `json:"min_aal"`
-	PublicKey string       `json:"public_key"`
-	Mq        []MsqAddress `json:"mq"`
+	ID                    string       `json:"node_id"`
+	Name                  string       `json:"name"`
+	MinIal                float64      `json:"min_ial"`
+	MinAal                float64      `json:"min_aal"`
+	PublicKey             string       `json:"public_key"`
+	Mq                    []MsqAddress `json:"mq"`
+	AcceptedNamespaceList []string     `json:"accepted_namespace_list"`
 }
 
 type GetAsNodesInfoByServiceIdResult struct {
@@ -672,12 +677,13 @@ type IdpNodeBehindProxy struct {
 }
 
 type ASWithMqNodeBehindProxy struct {
-	NodeID    string  `json:"node_id"`
-	Name      string  `json:"name"`
-	MinIal    float64 `json:"min_ial"`
-	MinAal    float64 `json:"min_aal"`
-	PublicKey string  `json:"public_key"`
-	Proxy     struct {
+	NodeID                string   `json:"node_id"`
+	Name                  string   `json:"name"`
+	MinIal                float64  `json:"min_ial"`
+	MinAal                float64  `json:"min_aal"`
+	PublicKey             string   `json:"public_key"`
+	AcceptedNamespaceList []string `json:"accepted_namespace_list"`
+	Proxy                 struct {
 		NodeID    string       `json:"node_id"`
 		PublicKey string       `json:"public_key"`
 		Mq        []MsqAddress `json:"mq"`

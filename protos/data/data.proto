@@ -147,6 +147,7 @@ message Service {
   double min_aal = 3;
   bool active = 4;
   bool suspended = 5;
+  repeated string accepted_namespace_list = 6;
 }
 
 message ServiceDesList {
@@ -158,7 +159,8 @@ message ASNode {
   double min_ial = 2;
   double min_aal = 3;
   string service_id = 4;
-  bool active = 5;
+  repeated string accepted_namespace_list = 5;
+  bool active = 6;
 }
 
 message RPList {

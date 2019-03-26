@@ -239,6 +239,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	newService.MinAal = funcParam.MinAal
 	newService.MinIal = funcParam.MinIal
 	newService.Active = true
+	newService.AcceptedNamespaceList = funcParam.AcceptedNamespaceList
 	services.Services = append(services.Services, &newService)
 
 	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
@@ -269,6 +270,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.MinIal = funcParam.MinIal
 		newNode.MinAal = funcParam.MinAal
 		newNode.ServiceId = funcParam.ServiceID
+		newNode.AcceptedNamespaceList = funcParam.AcceptedNamespaceList
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
 		value, err := utils.ProtoDeterministicMarshal(&nodes)
@@ -283,6 +285,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		newNode.MinIal = funcParam.MinIal
 		newNode.MinAal = funcParam.MinAal
 		newNode.ServiceId = funcParam.ServiceID
+		newNode.AcceptedNamespaceList = funcParam.AcceptedNamespaceList
 		newNode.Active = true
 		nodes.Node = append(nodes.Node, &newNode)
 		value, err := utils.ProtoDeterministicMarshal(&nodes)
@@ -338,6 +341,9 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 			if funcParam.MinIal > 0 {
 				nodes.Node[index].MinIal = funcParam.MinIal
 			}
+			if len(funcParam.AcceptedNamespaceList) > 0 {
+				nodes.Node[index].AcceptedNamespaceList = funcParam.AcceptedNamespaceList
+			}
 			break
 		}
 	}
@@ -359,6 +365,9 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 			}
 			if funcParam.MinIal > 0 {
 				services.Services[index].MinIal = funcParam.MinIal
+			}
+			if len(funcParam.AcceptedNamespaceList) > 0 {
+				nodes.Node[index].AcceptedNamespaceList = funcParam.AcceptedNamespaceList
 			}
 			break
 		}

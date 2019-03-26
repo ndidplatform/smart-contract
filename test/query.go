@@ -299,7 +299,7 @@ func GetAsNodesByServiceId(t *testing.T, param did.GetAsNodesByServiceIdParam, e
 		return
 	}
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
