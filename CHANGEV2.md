@@ -146,7 +146,7 @@
       "max_ial": 3,
       "node_id": "CuQfyyhjGcCAzKREzHmL",
       "node_name": "IdP Number 1 from ...",
-      "mode": [2, 3] //array of available mode
+      "mode_list": [2, 3] //array of available mode
     }
   ]
 }

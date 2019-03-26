@@ -48,7 +48,7 @@ type User struct {
 	IdentityNamespace      string  `json:"identity_namespace"`
 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
 	Ial                    float64 `json:"ial"`
-	Mode                   []int64 `json:"mode"`
+	ModeList               []int64 `json:"mode_list"`
 	AccessorID             string  `json:"accessor_id"`
 	AccessorPublicKey      string  `json:"accessor_public_key"`
 	AccessorType           string  `json:"accessor_type"`
@@ -81,11 +81,11 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID     string  `json:"node_id"`
-	Name   string  `json:"node_name"`
-	MaxIal float64 `json:"max_ial"`
-	MaxAal float64 `json:"max_aal"`
-	Mode   []int64 `json:"mode"`
+	ID       string  `json:"node_id"`
+	Name     string  `json:"node_name"`
+	MaxIal   float64 `json:"max_ial"`
+	MaxAal   float64 `json:"max_aal"`
+	ModeList []int64 `json:"mode_list"`
 }
 
 type GetIdpNodesResult struct {
@@ -589,7 +589,7 @@ type IdpNode struct {
 	MaxAal    float64      `json:"max_aal"`
 	PublicKey string       `json:"public_key"`
 	Mq        []MsqAddress `json:"mq"`
-	Mode      []int64      `json:"mode"`
+	ModeList  []int64      `json:"mode_list"`
 }
 
 type ASWithMqNode struct {
@@ -659,7 +659,7 @@ type IdpNodeBehindProxy struct {
 	MaxIal    float64 `json:"max_ial"`
 	MaxAal    float64 `json:"max_aal"`
 	PublicKey string  `json:"public_key"`
-	Mode      []int64 `json:"mode"`
+	ModeList  []int64 `json:"mode_list"`
 	Proxy     struct {
 		NodeID    string       `json:"node_id"`
 		PublicKey string       `json:"public_key"`

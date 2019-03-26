@@ -182,7 +182,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				msqDesNode.Name = nodeDetail.NodeName
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
-				msqDesNode.Mode = append(msqDesNode.Mode, 1)
+				msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 				if len(funcParam.NodeIDList) == 0 {
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				} else {
@@ -239,7 +239,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			msqDesNode.Name = nodeDetail.NodeName
 			msqDesNode.MaxIal = nodeDetail.MaxIal
 			msqDesNode.MaxAal = nodeDetail.MaxAal
-			msqDesNode.Mode = idp.Mode
+			msqDesNode.ModeList = idp.Mode
 			if len(funcParam.NodeIDList) == 0 {
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			} else {
@@ -1208,7 +1208,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqDesNode.MaxAal = nodeDetail.MaxAal
 					msqDesNode.PublicKey = nodeDetail.PublicKey
 					msqDesNode.Mq = msq
-					msqDesNode.Mode = append(msqDesNode.Mode, 1)
+					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 					if len(funcParam.NodeIDList) == 0 {
 						returnNodes.Node = append(returnNodes.Node, msqDesNode)
 					} else {
@@ -1312,7 +1312,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.PublicKey = nodeDetail.PublicKey
 				msqDesNode.Mq = msq
-				msqDesNode.Mode = idp.Mode
+				msqDesNode.ModeList = idp.Mode
 				if len(funcParam.NodeIDList) == 0 {
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				} else {

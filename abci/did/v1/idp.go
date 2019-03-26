@@ -147,7 +147,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		accessor.Owner = nodeID
 		var idp data.IdPInRefGroup
 		idp.NodeId = nodeID
-		idp.Mode = append(idp.Mode, user.Mode...)
+		idp.Mode = append(idp.Mode, user.ModeList...)
 		idp.Accessors = append(idp.Accessors, &accessor)
 		idp.Ial = user.Ial
 		var identity data.IdentityInRefGroup
