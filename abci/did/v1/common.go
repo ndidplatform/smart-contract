@@ -1816,7 +1816,7 @@ func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQue
 	identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
 	_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
 	if refGroupCodeFromDB == nil {
-		return app.ReturnQuery(nil, "not found", app.state.Height)
+		refGroupCodeFromDB = []byte("")
 	}
 	var result GetReferenceGroupCodeResult
 	result.ReferenceGroupCode = string(refGroupCodeFromDB)
@@ -1827,3 +1827,23 @@ func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQue
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
+func (app *DIDApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
+	app.logger.Infof("GetReferenceGroupCodeByAccessorID, Parameter: %s", param)
+	var funcParam GetReferenceGroupCodeByAccessorIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(accessorToRefCodeKey))
+	if refGroupCodeFromDB == nil {
+		refGroupCodeFromDB = []byte("")
+	}
+	var result GetReferenceGroupCodeResult
+	result.ReferenceGroupCode = string(refGroupCodeFromDB)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}

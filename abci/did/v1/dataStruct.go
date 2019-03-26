@@ -776,3 +776,7 @@ type GetReferenceGroupCodeParam struct {
 type GetReferenceGroupCodeResult struct {
 	ReferenceGroupCode string `json:"reference_group_code"`
 }
+
+type GetReferenceGroupCodeByAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}

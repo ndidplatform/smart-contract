@@ -109,6 +109,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getChainHistory(param)
 	case "GetReferenceGroupCode":
 		return app.GetReferenceGroupCode(param)
+	case "GetReferenceGroupCodeByAccessorID":
+		return app.GetReferenceGroupCodeByAccessorID(param)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

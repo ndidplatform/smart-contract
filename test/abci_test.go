@@ -250,6 +250,19 @@ func TestQueryGetIdpNodes1ByIdentity2(t *testing.T) {
 	GetIdpNodesExpectString(t, param, expected)
 }
 
+func TestQueryGetReferenceGroupCodeByAccessorID1(t *testing.T) {
+	var param did.GetReferenceGroupCodeByAccessorIDParam
+	param.AccessorID = accessorID3.String()
+	var expected = `{"reference_group_code":""}`
+	GetReferenceGroupCodeByAccessorIDExpectString(t, param, expected)
+}
+func TestQueryGetReferenceGroupCodeByAccessorID2(t *testing.T) {
+	var param did.GetReferenceGroupCodeByAccessorIDParam
+	param.AccessorID = accessorID1.String()
+	var expected = `{"reference_group_code":"` + referenceGroupCode1.String() + `"}`
+	GetReferenceGroupCodeByAccessorIDExpectString(t, param, expected)
+}
+
 func TestIdPAddAccessorMethodWithInvalidParameter1(t *testing.T) {
 	var param did.AccessorMethod
 	h := sha256.New()
@@ -284,6 +297,12 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "success")
 }
 
+func TestQueryGetReferenceGroupCodeByAccessorID3(t *testing.T) {
+	var param did.GetReferenceGroupCodeByAccessorIDParam
+	param.AccessorID = accessorID3.String()
+	var expected = `{"reference_group_code":"` + referenceGroupCode1.String() + `"}`
+	GetReferenceGroupCodeByAccessorIDExpectString(t, param, expected)
+}
 func TestQueryGetReferenceGroupCode1(t *testing.T) {
 	var param did.GetReferenceGroupCodeParam
 	h := sha256.New()
