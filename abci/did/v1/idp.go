@@ -39,109 +39,61 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
+	}
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if foundThisNodeID == false {
+		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	var accessor data.Accessor
+	accessor.AccessorId = funcParam.AccessorID
+	accessor.AccessorType = funcParam.AccessorType
+	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
+	accessor.Active = true
+	accessor.Owner = nodeID
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			idp.Accessors = append(idp.Accessors, &accessor)
+			break
+		}
+	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeValue := refGroupCode
+	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
-	// // AccessorGroupID: must already exist
-	// accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
-	// _, chkAccessorGroupKeyExists := app.GetCommittedStateDB([]byte(accessorGroupKey))
-	// if chkAccessorGroupKeyExists == nil {
-	// 	return app.ReturnDeliverTxLog(code.AccessorGroupIDNotFound, "Accessor Group ID not found", "")
-	// }
-	// // AccessorID: must not duplicate
-	// accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	// _, chkAccessorKeyExists := app.GetCommittedStateDB([]byte(accessorKey))
-	// if chkAccessorKeyExists != nil {
-	// 	return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate Accessor ID", "")
-	// }
-	// // Request must be completed, can be used only once, special type
-	// var getRequestparam GetRequestParam
-	// getRequestparam.RequestID = funcParam.RequestID
-	// getRequestparamJSON, err := json.Marshal(getRequestparam)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// var requestDetail = app.getRequestDetail(string(getRequestparamJSON), app.state.Height, false)
-	// var requestDetailResult GetRequestDetailResult
-	// err = json.Unmarshal([]byte(requestDetail.Value), &requestDetailResult)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	// }
-	// // Check accept result >= min_idp
-	// acceptCount := 0
-	// for _, response := range requestDetailResult.Responses {
-	// 	// Check status is 'accept', valid IAL = true, valid Proof = true and valid signature = true
-	// 	if response.ValidIal == nil {
-	// 		continue
-	// 	}
-	// 	if response.ValidProof == nil {
-	// 		continue
-	// 	}
-	// 	if response.ValidSignature == nil {
-	// 		continue
-	// 	}
-	// 	if response.Status == "accept" && *response.ValidIal && *response.ValidProof && *response.ValidSignature {
-	// 		acceptCount++
-	// 	}
-	// }
-	// if acceptCount < requestDetailResult.MinIdp {
-	// 	return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
-	// }
-	// // check request is closed
-	// if !requestDetailResult.IsClosed {
-	// 	return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
-	// }
-	// if requestDetailResult.Mode != 3 {
-	// 	return app.ReturnDeliverTxLog(code.InvalidMode, "Onboard request must be mode 3", "")
-	// }
-	// if requestDetailResult.MinIdp < 1 {
-	// 	return app.ReturnDeliverTxLog(code.InvalidMinIdp, "Onboard request min_idp must be at least 1", "")
-	// }
-	// requestKey := "Request" + "|" + funcParam.RequestID
-	// _, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
-	// if requestValue == nil {
-	// 	return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	// }
-	// var request data.Request
-	// err = proto.Unmarshal([]byte(requestValue), &request)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	// }
-	// // check special type of Request && set can used only once
-	// if request.Purpose != "AddAccessor" || request.UseCount != 0 {
-	// 	return app.ReturnDeliverTxLog(code.RequestIsNotSpecial, "Request is not special", "")
-	// }
-	// // set use count
-	// request.UseCount = 1
-	// var accessor data.Accessor
-	// accessor.AccessorType = funcParam.AccessorType
-	// accessor.AccessorPublicKey = funcParam.AccessorPublicKey
-	// accessor.AccessorGroupId = funcParam.AccessorGroupID
-	// accessor.Active = true
-	// accessor.Owner = nodeID
-	// accessorJSON, err := utils.ProtoDeterministicMarshal(&accessor)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// // Add relation AccessorGroupID -> AccessorID
-	// accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
-	// _, accessorInGroupKeyValue := app.GetCommittedStateDB([]byte(accessorInGroupKey))
-	// var accessors data.AccessorInGroup
-	// err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	// }
-	// accessors.Accessors = append(accessors.Accessors, funcParam.AccessorID)
-	// accessorInGroupProtobuf, err := utils.ProtoDeterministicMarshal(&accessors)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// requestProtobuf, err := utils.ProtoDeterministicMarshal(&request)
-	// if err != nil {
-	// 	return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	// }
-	// app.SetVersionedStateDB([]byte(requestKey), []byte(requestProtobuf))
-	// app.SetStateDB([]byte(accessorInGroupKey), []byte(accessorInGroupProtobuf))
-	// app.SetStateDB([]byte(accessorKey), []byte(accessorJSON))
-	// return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *DIDApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
@@ -188,14 +140,16 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			}
 		}
 		var accessor data.Accessor
+		accessor.AccessorId = user.AccessorID
 		accessor.AccessorType = user.AccessorType
 		accessor.AccessorPublicKey = user.AccessorPublicKey
 		accessor.Active = true
 		accessor.Owner = nodeID
 		var idp data.IdPInRefGroup
 		idp.NodeId = nodeID
-		idp.Mode = append(idp.Mode, user.Mode)
+		idp.Mode = append(idp.Mode, user.Mode...)
 		idp.Accessors = append(idp.Accessors, &accessor)
+		idp.Ial = user.Ial
 		var identity data.IdentityInRefGroup
 		identity.Namespace = user.IdentityNamespace
 		identity.IdentifierHash = user.IdentityIdentifierHash
@@ -411,45 +365,45 @@ func (app *DIDApplication) declareIdentityProof(param string, nodeID string) typ
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("ClearRegisterIdentityTimeout, Parameter: %s", param)
-	var funcParam ClearRegisterIdentityTimeoutParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
-	_, msqDesValue := app.GetCommittedStateDB([]byte(msqDesKey))
-	if msqDesValue == nil {
-		return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
-	}
-	var nodes data.MsqDesList
-	err = proto.Unmarshal([]byte(msqDesValue), &nodes)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	// Check is not timeout
-	for index := range nodes.Nodes {
-		if nodes.Nodes[index].NodeId == nodeID {
-			if nodes.Nodes[index].TimeoutBlock <= app.CurrentBlock {
-				return app.ReturnDeliverTxLog(code.RegisterIdentityIsTimedOut, "Cannot clear register identity that is timed out", "")
-			}
-			break
-		}
-	}
-	for index := range nodes.Nodes {
-		if nodes.Nodes[index].NodeId == nodeID {
-			nodes.Nodes[index].TimeoutBlock = 0
-			break
-		}
-	}
-	msqDesJSON, err := utils.ProtoDeterministicMarshal(&nodes)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
-}
+// func (app *DIDApplication) clearRegisterIdentityTimeout(param string, nodeID string) types.ResponseDeliverTx {
+// 	app.logger.Infof("ClearRegisterIdentityTimeout, Parameter: %s", param)
+// 	var funcParam ClearRegisterIdentityTimeoutParam
+// 	err := json.Unmarshal([]byte(param), &funcParam)
+// 	if err != nil {
+// 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+// 	}
+// 	msqDesKey := "MsqDestination" + "|" + funcParam.HashID
+// 	_, msqDesValue := app.GetCommittedStateDB([]byte(msqDesKey))
+// 	if msqDesValue == nil {
+// 		return app.ReturnDeliverTxLog(code.HashIDNotFound, "Hash ID not found", "")
+// 	}
+// 	var nodes data.MsqDesList
+// 	err = proto.Unmarshal([]byte(msqDesValue), &nodes)
+// 	if err != nil {
+// 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+// 	}
+// 	// Check is not timeout
+// 	for index := range nodes.Nodes {
+// 		if nodes.Nodes[index].NodeId == nodeID {
+// 			if nodes.Nodes[index].TimeoutBlock <= app.CurrentBlock {
+// 				return app.ReturnDeliverTxLog(code.RegisterIdentityIsTimedOut, "Cannot clear register identity that is timed out", "")
+// 			}
+// 			break
+// 		}
+// 	}
+// 	for index := range nodes.Nodes {
+// 		if nodes.Nodes[index].NodeId == nodeID {
+// 			nodes.Nodes[index].TimeoutBlock = 0
+// 			break
+// 		}
+// 	}
+// 	msqDesJSON, err := utils.ProtoDeterministicMarshal(&nodes)
+// 	if err != nil {
+// 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+// 	}
+// 	app.SetStateDB([]byte(msqDesKey), []byte(msqDesJSON))
+// 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+// }
 
 // func (app *DIDApplication) revokeAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
 // 	app.logger.Infof("RevokeAccessorMethod, Parameter: %s", param)

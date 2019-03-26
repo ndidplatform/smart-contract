@@ -48,7 +48,7 @@ type User struct {
 	IdentityNamespace      string  `json:"identity_namespace"`
 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
 	Ial                    float64 `json:"ial"`
-	Mode                   int64   `json:"mode"`
+	Mode                   []int64 `json:"mode"`
 	AccessorID             string  `json:"accessor_id"`
 	AccessorPublicKey      string  `json:"accessor_public_key"`
 	AccessorType           string  `json:"accessor_type"`
@@ -361,11 +361,14 @@ type Accessor struct {
 }
 
 type AccessorMethod struct {
-	AccessorID        string `json:"accessor_id"`
-	AccessorType      string `json:"accessor_type"`
-	AccessorPublicKey string `json:"accessor_public_key"`
-	AccessorGroupID   string `json:"accessor_group_id"`
-	RequestID         string `json:"request_id"`
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	AccessorID             string `json:"accessor_id"`
+	AccessorPublicKey      string `json:"accessor_public_key"`
+	AccessorType           string `json:"accessor_type"`
+	Mode                   int64  `json:"mode"`
+	RequestID              string `json:"request_id"`
 }
 
 type CheckExistingIdentityParam struct {
@@ -586,6 +589,7 @@ type IdpNode struct {
 	MaxAal    float64      `json:"max_aal"`
 	PublicKey string       `json:"public_key"`
 	Mq        []MsqAddress `json:"mq"`
+	Mode      []int64      `json:"mode"`
 }
 
 type ASWithMqNode struct {
@@ -655,6 +659,7 @@ type IdpNodeBehindProxy struct {
 	MaxIal    float64 `json:"max_ial"`
 	MaxAal    float64 `json:"max_aal"`
 	PublicKey string  `json:"public_key"`
+	Mode      []int64 `json:"mode"`
 	Proxy     struct {
 		NodeID    string       `json:"node_id"`
 		PublicKey string       `json:"public_key"`
@@ -763,4 +768,17 @@ type IsInitEndedParam struct{}
 
 type IsInitEndedResult struct {
 	InitEnded bool `json:"init_ended"`
+}
+
+type GetReferenceGroupCodeParam struct {
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
+type GetReferenceGroupCodeResult struct {
+	ReferenceGroupCode string `json:"reference_group_code"`
+}
+
+type GetReferenceGroupCodeByAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
 }

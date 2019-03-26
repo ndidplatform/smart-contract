@@ -102,7 +102,7 @@
 ```
 
 
-## GetReferenceGroupCodeByAccessorId
+## GetReferenceGroupCodeByAccessorID
 
 ### Parameter
 

@@ -112,5 +112,8 @@ const (
 	NotExistValidator                         uint32 = 85
 	IdentityAlreadyExisted                    uint32 = 86
 	IdentityCannotBeEmpty                     uint32 = 87
+	GotRefGroupCodeAndIdentity                uint32 = 88
+	RefGroupNotFound                          uint32 = 89
+	IdentityNotFoundInThisIdP                 uint32 = 90
 	UnknownError                              uint32 = 999
 )

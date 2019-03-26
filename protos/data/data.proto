@@ -118,10 +118,11 @@ message Report {
 }
 
 message Accessor  {
-  string accessor_type = 1;
-  string accessor_public_key = 2;
-  bool active = 3;
-  string owner = 4;
+  string accessor_id = 1;
+  string accessor_type = 2;
+  string accessor_public_key = 3;
+  bool active = 4;
+  string owner = 5;
 }
 
 message MsqDesList {
@@ -193,6 +194,7 @@ message IdPInRefGroup {
   string node_id = 1;
   repeated int64 mode = 2;
   repeated Accessor accessors = 3;
+  double ial = 4;
 }
 
 message IdentityInRefGroup {
