@@ -48,7 +48,7 @@ type User struct {
 	IdentityNamespace      string  `json:"identity_namespace"`
 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
 	Ial                    float64 `json:"ial"`
-	Mode                   int64   `json:"mode"`
+	Mode                   []int64 `json:"mode"`
 	AccessorID             string  `json:"accessor_id"`
 	AccessorPublicKey      string  `json:"accessor_public_key"`
 	AccessorType           string  `json:"accessor_type"`
@@ -361,11 +361,14 @@ type Accessor struct {
 }
 
 type AccessorMethod struct {
-	AccessorID        string `json:"accessor_id"`
-	AccessorType      string `json:"accessor_type"`
-	AccessorPublicKey string `json:"accessor_public_key"`
-	AccessorGroupID   string `json:"accessor_group_id"`
-	RequestID         string `json:"request_id"`
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	AccessorID             string `json:"accessor_id"`
+	AccessorPublicKey      string `json:"accessor_public_key"`
+	AccessorType           string `json:"accessor_type"`
+	Mode                   int64  `json:"mode"`
+	RequestID              string `json:"request_id"`
 }
 
 type CheckExistingIdentityParam struct {

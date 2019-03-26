@@ -157,8 +157,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.disableServiceDestination(param, nodeID)
 	case "EnableServiceDestination":
 		return app.enableServiceDestination(param, nodeID)
-	case "ClearRegisterIdentityTimeout":
-		return app.clearRegisterIdentityTimeout(param, nodeID)
+	// case "ClearRegisterIdentityTimeout":
+	// 	return app.clearRegisterIdentityTimeout(param, nodeID)
 	case "SetTimeOutBlockRegisterIdentity":
 		return app.setTimeOutBlockRegisterIdentity(param, nodeID)
 	case "AddNodeToProxyNode":

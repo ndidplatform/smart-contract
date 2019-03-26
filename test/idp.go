@@ -146,7 +146,7 @@ func RegisterAccessor(t *testing.T, param did.RegisterAccessorParam, nodeID stri
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddAccessorMethod(t *testing.T, param did.AccessorMethod, nodeID string, valid bool) {
+func AddAccessorMethod(t *testing.T, param did.AccessorMethod, idpPrivK string, nodeID string, valid bool) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)

@@ -150,7 +150,7 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	user.IdentityNamespace = userNamespace
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
 	user.Ial = 3
-	user.Mode = 2
+	user.Mode = append(user.Mode, 2)
 	user.AccessorID = accessorID1.String()
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
@@ -202,8 +202,8 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	user.IdentityNamespace = userNamespace
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
 	user.Ial = 2.3
-	user.Mode = 2
-	user.AccessorID = accessorID1.String()
+	user.Mode = append(user.Mode, 2)
+	user.AccessorID = accessorID2.String()
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID1.String()
@@ -224,8 +224,8 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	user.IdentityNamespace = userNamespace2
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
 	user.Ial = 2.3
-	user.Mode = 2
-	user.AccessorID = accessorID1.String()
+	user.Mode = append(user.Mode, 2)
+	user.AccessorID = accessorID2.String()
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID1.String()
@@ -249,6 +249,16 @@ func TestQueryGetIdpNodes1ByIdentity2(t *testing.T) {
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"mode":[2]},{"node_id":"` + IdP2 + `","node_name":"IdP Number 2","max_ial":2.3,"max_aal":3,"mode":[2]}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
+
+// func TestIdPAddAccessorMethod(t *testing.T) {
+// 	var param did.AccessorMethod
+// 	param.ReferenceGroupCode = referenceGroupCode1.String()
+// 	param.AccessorID = accessorID3.String()
+// 	param.AccessorPublicKey = accessorPubKey1
+// 	param.AccessorType = "RSA2048"
+// 	param.RequestID = requestID1.String()
+// 	AddAccessorMethod(t, param, idpPrivK2, IdP2, true)
+// }
 
 // func TestQueryGetIdpNodesInfo1ByIdentity(t *testing.T) {
 // 	h := sha256.New()
