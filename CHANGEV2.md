@@ -4,7 +4,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "users": [
     {
@@ -12,7 +12,7 @@
       "identity_namespace": "citizenId",
       "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
       "ial": 3,
-      "mode": [2, 3], // allow only 2, 3
+      "mode_list": [2, 3], // allow only 2, 3
       "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
       "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2\\nfID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8\\nW0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju\\nEFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM\\njNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD\\n9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0\\nYQIDAQAB\\n-----END PUBLIC KEY-----",
       "accessor_type": "accessor_type",
@@ -29,7 +29,7 @@
 - Remove `hash_id`
 - Add `identity_namespace`
 - Add `identity_identifier_hash`
-- Add `mode`
+- Add `mode_list`
 - Add `accessor_id`
 - Add `accessor_public_key`
 - Add `accessor_type`
@@ -41,7 +41,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -65,12 +65,12 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
-  "mode": [2, 3], // allow only 2,3
+  "mode_list": [2, 3], // allow only 2,3
   "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
 }
 ```
@@ -86,7 +86,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
@@ -95,7 +95,7 @@
 
 ### Output
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd"
 }
@@ -106,7 +106,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
 }
@@ -114,7 +114,7 @@
 
 ### Output
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd"
 }
@@ -125,7 +125,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -138,7 +138,7 @@
 
 ### Output
 
-```javascript
+```json
 {
   "node": [
     {
@@ -163,7 +163,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "accessor_id_list": [
     "11d10976-aede-4ba0-9f44-fc0c96db1f32"
@@ -181,7 +181,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -195,7 +195,7 @@
 
 ### Parameter
 
-```javascript
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -219,7 +219,7 @@
 
 ### Parameter
 
-```sh
+```json
 {
   "min_aal": 1.2,
   "min_ial": 1.1,
@@ -239,7 +239,7 @@
 
 ### Parameter
 
-```sh
+```json
 {
   "min_aal": 1.5,
   "min_ial": 1.4,
@@ -259,7 +259,7 @@
 
 ### Expected Output
 
-```sh
+```json
 {
   "node": [
     {
@@ -284,7 +284,7 @@
 
 ### Expected Output
 
-```sh
+```json
 {
   "node": [
     {
@@ -316,7 +316,7 @@
 
 ### Expected Output
 
-```sh
+```json
 {
   "services": [
     {
@@ -362,7 +362,7 @@
 
 ### Parameter
 
-```sh
+```json
 {
   "aal": 3,
   "ial": 3,
@@ -382,7 +382,7 @@
 
 ### Parameter
 
-```sh
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -401,7 +401,7 @@
 
 ### Parameter
 
-```sh
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
@@ -410,18 +410,28 @@
 }
 ```
 
+### Expected Output
+
+```json
+{
+  "ial": 2.2,
+  "mode_list": [2, 3]
+}
+```
+
 **NOTE**
 
 - Remove `hash_id`
 - Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash`
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both, error)
+- Add `mode_list` to output
 
 
 ## UpdateIdentity
 
 ### Parameter
 
-```sh
+```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
