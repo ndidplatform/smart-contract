@@ -1806,3 +1806,24 @@ func contains(a string, list []string) bool {
 	return false
 }
 
+func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
+	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
+	var funcParam GetReferenceGroupCodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+	_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+	if refGroupCodeFromDB == nil {
+		return app.ReturnQuery(nil, "not found", app.state.Height)
+	}
+	var result GetReferenceGroupCodeResult
+	result.ReferenceGroupCode = string(refGroupCodeFromDB)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+

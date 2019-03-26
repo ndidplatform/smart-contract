@@ -284,6 +284,17 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "success")
 }
 
+func TestQueryGetReferenceGroupCode1(t *testing.T) {
+	var param did.GetReferenceGroupCodeParam
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var expected = `{"reference_group_code":"` + referenceGroupCode1.String() + `"}`
+	GetReferenceGroupCodeExpectString(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

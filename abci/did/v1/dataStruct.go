@@ -767,3 +767,12 @@ type IsInitEndedParam struct{}
 type IsInitEndedResult struct {
 	InitEnded bool `json:"init_ended"`
 }
+
+type GetReferenceGroupCodeParam struct {
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
+type GetReferenceGroupCodeResult struct {
+	ReferenceGroupCode string `json:"reference_group_code"`
+}
