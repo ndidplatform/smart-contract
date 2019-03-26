@@ -39,6 +39,60 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
+	}
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if foundThisNodeID == false {
+		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	var accessor data.Accessor
+	accessor.AccessorId = funcParam.AccessorID
+	accessor.AccessorType = funcParam.AccessorType
+	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
+	accessor.Active = true
+	accessor.Owner = nodeID
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			idp.Accessors = append(idp.Accessors, &accessor)
+			break
+		}
+	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeValue := refGroupCode
+	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -86,6 +140,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			}
 		}
 		var accessor data.Accessor
+		accessor.AccessorId = user.AccessorID
 		accessor.AccessorType = user.AccessorType
 		accessor.AccessorPublicKey = user.AccessorPublicKey
 		accessor.Active = true
