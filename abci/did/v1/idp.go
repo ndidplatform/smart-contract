@@ -97,6 +97,10 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	}
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
+	increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+	if increaseRequestUseCountResult.Code != code.OK {
+		return increaseRequestUseCountResult
+	}
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
