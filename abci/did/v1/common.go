@@ -675,7 +675,7 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(returnValue, "", app.state.Height)
+			return app.ReturnQuery(returnValue, "success", app.state.Height)
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
@@ -686,7 +686,7 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "", app.state.Height)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
@@ -695,7 +695,7 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "", app.state.Height)
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
 	result.Exist = true
 	returnValue, err := json.Marshal(result)
