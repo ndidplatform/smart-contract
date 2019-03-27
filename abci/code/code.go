@@ -117,5 +117,6 @@ const (
 	IdentityNotFoundInThisIdP                 uint32 = 90
 	InvalidPurpose                            uint32 = 91
 	RequestIsAlreadyUsed                      uint32 = 92
+	RefGroupCodeCannotBeEmpty                 uint32 = 93
 	UnknownError                              uint32 = 999
 )

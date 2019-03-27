@@ -126,6 +126,9 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	// Validate user's ial is <= node's max_ial
 	// Check for identity_namespace and identity_identifier_hash. If exist, error.
 	for _, user := range funcParam.Users {
+		if user.ReferenceGroupCode == "" {
+			return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
+		}
 		if user.IdentityNamespace == "" || user.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}

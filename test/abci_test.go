@@ -186,6 +186,28 @@ func TestIdP1CloseRequestForRegisterIdentity(t *testing.T) {
 	CloseRequestByIdP(t, param, idpPrivK, IdP1)
 }
 
+func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var user did.User
+	user.ReferenceGroupCode = ""
+	user.IdentityNamespace = userNamespace
+	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.Ial = 3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID1.String()
+	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID1.String()
+	var users []did.User
+	users = append(users, user)
+	var param = did.RegisterIdentityParam{
+		users,
+	}
+	RegisterIdentity(t, param, idpPrivK, IdP1, "Please input reference group code")
+}
+
 func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
