@@ -443,6 +443,31 @@
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both, error)
 
 
+## GetAllowedModeList
+
+### Expected Output
+```json
+{
+  "allowed_mode_list": [1, 2, 3]
+}
+```
+
+
+## SetAllowedModeList
+
+### Parameter
+
+```json
+{
+  "allowed_mode_list": [1, 2, 3]
+}
+```
+
+**NOTE**
+
+- Only request with mode in `allowed_mode_list` can be created.
+- Only NDID can update `allowed_mode_list`.
+
 ## Remove These
 
 - ClearRegisterIdentityTimeout 
