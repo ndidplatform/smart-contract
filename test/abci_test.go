@@ -26,6 +26,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"log"
+	"strings"
 	"testing"
 
 	did "github.com/ndidplatform/smart-contract/abci/did/v1"
@@ -363,7 +364,7 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
-	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorPublicKey = accessorPubKey2
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID2.String()
 	var param = user
@@ -381,7 +382,7 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
-	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorPublicKey = accessorPubKey2
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID2.String()
 	var param = user
@@ -423,7 +424,7 @@ func TestIdPAddAccessorMethodWithInvalidParameter1(t *testing.T) {
 	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
 	param.ReferenceGroupCode = referenceGroupCode1.String()
 	param.AccessorID = accessorID3.String()
-	param.AccessorPublicKey = accessorPubKey1
+	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID1.String()
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "Found reference group code and identity detail in parameter")
@@ -432,7 +433,7 @@ func TestIdPAddAccessorMethodWithInvalidParameter1(t *testing.T) {
 func TestIdPAddAccessorMethodWithInvalidParameter2(t *testing.T) {
 	var param did.AccessorMethod
 	param.AccessorID = accessorID3.String()
-	param.AccessorPublicKey = accessorPubKey1
+	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID1.String()
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "Reference group not found")
@@ -484,7 +485,7 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	var param did.AccessorMethod
 	param.ReferenceGroupCode = referenceGroupCode1.String()
 	param.AccessorID = accessorID3.String()
-	param.AccessorPublicKey = accessorPubKey1
+	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID3.String()
 	AddAccessorMethod(t, param, idpPrivK2, IdP2, "success")
@@ -713,6 +714,22 @@ func TestQueryGetIdpNodesInfoByRefGroupCodeAfterRevokeIdentityAssociation(t *tes
 	param.MinAal = 3
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"mode_list":[2]}]}`
 	GetIdpNodesInfo(t, param, expected)
+}
+
+func TestQueryGetAccessorKey1(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID1.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey1, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
+}
+
+func TestQueryGetAccessorKey2(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
 }
 
 // ---  Old test ---
