@@ -469,10 +469,12 @@ type UpdateNodeByNDIDParam struct {
 	MaxAal   float64 `json:"max_aal"`
 	NodeName string  `json:"node_name"`
 }
-
+ 
 type UpdateIdentityParam struct {
-	HashID string  `json:"hash_id"`
-	Ial    float64 `json:"ial"`
+	ReferenceGroupCode     string  `json:"reference_group_code"`
+	IdentityNamespace      string  `json:"identity_namespace"`
+	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
+	Ial                    float64 `json:"ial"`
 }
 
 type CloseRequestParam struct {
