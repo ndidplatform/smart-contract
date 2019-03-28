@@ -928,3 +928,18 @@ func GetReferenceGroupCodeByAccessorIDExpectString(t *testing.T, param did.GetRe
 	t.Logf("PASS: %s", fnName)
 }
 
+func GetAllowedModeListExpectString(t *testing.T, expected string) {
+	fnName := "GetAllowedModeList"
+	result, _ := queryTendermint([]byte(fnName), []byte(""))
+	resultObj, _ := result.(ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+

@@ -61,16 +61,12 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodeToken(param)
 	case "GetPriceFunc":
 		return app.getPriceFunc(param)
-	// case "GetUsedTokenReport":
-	// 	return app.getUsedTokenReport(param, height)
 	case "GetServiceDetail":
 		return app.getServiceDetail(param)
 	case "GetNamespaceList":
 		return app.getNamespaceList(param)
 	case "CheckExistingIdentity":
 		return app.checkExistingIdentity(param)
-	// case "GetAccessorGroupID":
-	// 	return app.getAccessorGroupID(param)
 	case "GetAccessorKey":
 		return app.getAccessorKey(param)
 	case "GetServiceList":
@@ -111,6 +107,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.GetReferenceGroupCode(param)
 	case "GetReferenceGroupCodeByAccessorID":
 		return app.GetReferenceGroupCodeByAccessorID(param)
+	case "GetAllowedModeList":
+		return app.GetAllowedModeList(param)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

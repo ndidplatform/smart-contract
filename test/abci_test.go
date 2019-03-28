@@ -732,6 +732,11 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 	GetAccessorKey(t, param, expected)
 }
 
+func TestQueryGetAllowedModeListExpectString(t *testing.T) {
+	var expected = `{"allowed_mode_list":[1,2,3]}`
+	GetAllowedModeListExpectString(t, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

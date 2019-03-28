@@ -801,3 +801,6 @@ type RevokeIdentityAssociationParam struct {
 	RequestID              string `json:"request_id"`
 }
 
+type GetAllowedModeListResult struct {
+	AllowedModeList []int64 `json:"allowed_mode_list"`
+}
