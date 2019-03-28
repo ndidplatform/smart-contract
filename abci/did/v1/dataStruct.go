@@ -469,7 +469,7 @@ type UpdateNodeByNDIDParam struct {
 	MaxAal   float64 `json:"max_aal"`
 	NodeName string  `json:"node_name"`
 }
- 
+
 type UpdateIdentityParam struct {
 	ReferenceGroupCode     string  `json:"reference_group_code"`
 	IdentityNamespace      string  `json:"identity_namespace"`
@@ -793,3 +793,11 @@ type GetReferenceGroupCodeResult struct {
 type GetReferenceGroupCodeByAccessorIDParam struct {
 	AccessorID string `json:"accessor_id"`
 }
+
+type RevokeIdentityAssociationParam struct {
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	RequestID              string `json:"request_id"`
+}
+

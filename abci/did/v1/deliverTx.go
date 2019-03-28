@@ -177,8 +177,6 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.disableServiceDestination(param, nodeID)
 	case "EnableServiceDestination":
 		return app.enableServiceDestination(param, nodeID)
-	// case "ClearRegisterIdentityTimeout":
-	// 	return app.clearRegisterIdentityTimeout(param, nodeID)
 	case "SetTimeOutBlockRegisterIdentity":
 		return app.setTimeOutBlockRegisterIdentity(param, nodeID)
 	case "AddNodeToProxyNode":
@@ -193,6 +191,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.EndInit(param, nodeID)
 	case "SetLastBlock":
 		return app.setLastBlock(param, nodeID)
+	case "RevokeIdentityAssociation":
+		return app.revokeIdentityAssociation(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
