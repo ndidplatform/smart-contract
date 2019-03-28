@@ -123,15 +123,38 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// Valid Mode
+	var validMode = map[int64]bool{
+		2: true,
+		3: true,
+	}
 	// Validate user's ial is <= node's max_ial
 	// Check for identity_namespace and identity_identifier_hash. If exist, error.
-	for _, user := range funcParam.Users {
+	for index, user := range funcParam.Users {
 		if user.ReferenceGroupCode == "" {
 			return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 		}
 		if user.IdentityNamespace == "" || user.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
+		var modeCount = map[int64]int{
+			2: 0,
+			3: 0,
+		}
+		for _, mode := range user.ModeList {
+			if validMode[mode] {
+				modeCount[mode] = modeCount[mode] + 1
+			} else {
+				return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on mode 2 or 3", "")
+			}
+		}
+		funcParam.Users[index].ModeList = make([]int64, 0)
+		for mode, count := range modeCount {
+			if count > 0 {
+				funcParam.Users[index].ModeList = append(funcParam.Users[index].ModeList, mode)
+			}
+		}
+		app.logger.Errorln(funcParam.Users[index].ModeList)
 		if user.Ial > nodeDetail.MaxIal {
 			return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
 		}
