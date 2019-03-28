@@ -30,17 +30,8 @@ import (
 	"github.com/ndidplatform/smart-contract/abci/utils"
 	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
 )
-
-var IsRefGroupMethod = map[string]bool{
-	"RegisterIdentity":       true,
-	"AddAccessor":            true,
-	"UpdateIdentityModeList": true,
-	"RevokeAccessor":         true,
-	"RevokeIdentity":         true,
-	"MergeReferenceGroup":    true,
-	"UpdateIdentity":         true,
-}
 
 func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
@@ -113,7 +104,12 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	}
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	var tags []cmn.KVPair
+	var tag cmn.KVPair
+	tag.Key = []byte("reference_group_code")
+	tag.Value = []byte(refGroupCode)
+	tags = append(tags, tag)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
 
 func (app *DIDApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
@@ -236,7 +232,12 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	var tags []cmn.KVPair
+	var tag cmn.KVPair
+	tag.Key = []byte("reference_group_code")
+	tag.Value = []byte(user.ReferenceGroupCode)
+	tags = append(tags, tag)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
 
 func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int64) types.ResponseDeliverTx {

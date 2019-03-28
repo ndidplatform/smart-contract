@@ -53,6 +53,28 @@ func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData
 	}
 }
 
+func (app *DIDApplication) ReturnDeliverTxLogWitgTag(code uint32, log string, specialTag []cmn.KVPair) types.ResponseDeliverTx {
+	var tags []cmn.KVPair
+	if code == 0 {
+		var tag cmn.KVPair
+		tag.Key = []byte("success")
+		tag.Value = []byte("true")
+		tags = append(tags, tag)
+	} else {
+		var tag cmn.KVPair
+		tag.Key = []byte("success")
+		tag.Value = []byte("false")
+		tags = append(tags, tag)
+	}
+	tags = append(tags, specialTag...)
+	return types.ResponseDeliverTx{
+		Code: code,
+		Log:  fmt.Sprintf(log),
+		Data: []byte(""),
+		Tags: tags,
+	}
+}
+
 // DeliverTxRouter is Pointer to function
 func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
 	// ---- check authorization ----
