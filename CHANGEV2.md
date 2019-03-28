@@ -173,7 +173,7 @@
 - Change function name from `RevokeAccessorMethod` to `RevokeAccessor`
 
 
-## RevokeIdentity (New)
+## RevokeIdentityAssociation (New)
 
 ### Parameter
 
