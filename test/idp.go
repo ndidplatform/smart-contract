@@ -201,8 +201,8 @@ func ClearRegisterIdentityTimeout(t *testing.T, param did.ClearRegisterIdentityT
 	t.Logf("PASS: %s", fnName)
 }
 
-func UpdateIdentity(t *testing.T, param did.UpdateIdentityParam, nodeID string) {
-	idpKey := getPrivateKeyFromString(idpPrivK2)
+func UpdateIdentity(t *testing.T, param did.UpdateIdentityParam, privKeyFile string, nodeID string) {
+	idpKey := getPrivateKeyFromString(privKeyFile)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {

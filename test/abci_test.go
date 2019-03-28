@@ -615,6 +615,29 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	GetServicesByAsID(t, param, expected)
 }
 
+func TestQueryGetIdentityInfoByRefGroupCodeBeforeUpdate(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.NodeID = IdP1
+	expected := `{"ial":3,"mode_list":[2]}`
+	GetIdentityInfo(t, param, expected)
+}
+
+func TestIdP1UpdateIdentity(t *testing.T) {
+	var param did.UpdateIdentityParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.Ial = 2.3
+	UpdateIdentity(t, param, idpPrivK, IdP1)
+}
+
+func TestQueryGetIdentityInfoByRefGroupCodeAfterUpdate(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.NodeID = IdP1
+	expected := `{"ial":2.3,"mode_list":[2]}`
+	GetIdentityInfo(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {
