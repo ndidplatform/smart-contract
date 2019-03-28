@@ -197,9 +197,11 @@ message IdPInRefGroup {
   repeated int64 mode = 2;
   repeated Accessor accessors = 3;
   double ial = 4;
+  bool active = 5;
 }
 
 message IdentityInRefGroup {
   string namespace = 1;
   string identifier_hash = 2;
+  bool active = 3;
 }
