@@ -32,6 +32,16 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
+var IsRefGroupMethod = map[string]bool{
+	"RegisterIdentity":       true,
+	"AddAccessor":            true,
+	"UpdateIdentityModeList": true,
+	"RevokeAccessor":         true,
+	"RevokeIdentity":         true,
+	"MergeReferenceGroup":    true,
+	"UpdateIdentity":         true,
+}
+
 func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
 	var funcParam AccessorMethod
@@ -128,108 +138,104 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		2: true,
 		3: true,
 	}
+	user := funcParam
 	// Validate user's ial is <= node's max_ial
 	// Check for identity_namespace and identity_identifier_hash. If exist, error.
-	for index, user := range funcParam.Users {
-		if user.ReferenceGroupCode == "" {
-			return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
-		}
-		if user.IdentityNamespace == "" || user.IdentityIdentifierHash == "" {
-			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
-		}
-		var modeCount = map[int64]int{
-			2: 0,
-			3: 0,
-		}
-		for _, mode := range user.ModeList {
-			if validMode[mode] {
-				modeCount[mode] = modeCount[mode] + 1
-			} else {
-				return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on mode 2 or 3", "")
-			}
-		}
-		funcParam.Users[index].ModeList = make([]int64, 0)
-		for mode, count := range modeCount {
-			if count > 0 {
-				funcParam.Users[index].ModeList = append(funcParam.Users[index].ModeList, mode)
-			}
-		}
-		app.logger.Errorln(funcParam.Users[index].ModeList)
-		if user.Ial > nodeDetail.MaxIal {
-			return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
-		}
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
-		if identityToRefCodeValue != nil {
-			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+	if user.ReferenceGroupCode == "" {
+		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
+	}
+	if user.IdentityNamespace == "" || user.IdentityIdentifierHash == "" {
+		return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
+	}
+	var modeCount = map[int64]int{
+		2: 0,
+		3: 0,
+	}
+	for _, mode := range user.ModeList {
+		if validMode[mode] {
+			modeCount[mode] = modeCount[mode] + 1
+		} else {
+			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on mode 2 or 3", "")
 		}
 	}
-	for _, user := range funcParam.Users {
-		refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
-		_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
-		var refGroup data.ReferenceGroup
-		// If referenceGroupCode already existed, add new identity to group
-		var minIdP int64
-		minIdP = 0
-		if refGroupValue != nil {
-			err := proto.Unmarshal(refGroupValue, &refGroup)
+	user.ModeList = make([]int64, 0)
+	for mode, count := range modeCount {
+		if count > 0 {
+			user.ModeList = append(user.ModeList, mode)
+		}
+	}
+	if user.Ial > nodeDetail.MaxIal {
+		return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
+	}
+	identityToRefCodeKey := "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
+	_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+	if identityToRefCodeValue != nil {
+		return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+	}
+	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	var refGroup data.ReferenceGroup
+	// If referenceGroupCode already existed, add new identity to group
+	var minIdP int64
+	minIdP = 0
+	if refGroupValue != nil {
+		err := proto.Unmarshal(refGroupValue, &refGroup)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// If have at least one node active
+		for _, idp := range refGroup.Idps {
+			nodeDetailKey := "NodeID" + "|" + idp.NodeId
+			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+			if nodeDetailValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
-			// If have at least one node active
-			for _, idp := range refGroup.Idps {
-				nodeDetailKey := "NodeID" + "|" + idp.NodeId
-				_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-				if nodeDetailValue == nil {
-					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-				if nodeDetail.Active {
-					minIdP = 1
-					break
-				}
+			if nodeDetail.Active {
+				minIdP = 1
+				break
 			}
 		}
-		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
-		}
-		var accessor data.Accessor
-		accessor.AccessorId = user.AccessorID
-		accessor.AccessorType = user.AccessorType
-		accessor.AccessorPublicKey = user.AccessorPublicKey
-		accessor.Active = true
-		accessor.Owner = nodeID
-		var idp data.IdPInRefGroup
-		idp.NodeId = nodeID
-		idp.Mode = append(idp.Mode, user.ModeList...)
-		idp.Accessors = append(idp.Accessors, &accessor)
-		idp.Ial = user.Ial
-		var identity data.IdentityInRefGroup
-		identity.Namespace = user.IdentityNamespace
-		identity.IdentifierHash = user.IdentityIdentifierHash
-		refGroup.Identities = append(refGroup.Identities, &identity)
-		refGroup.Idps = append(refGroup.Idps, &idp)
-		refGroupValue, err := utils.ProtoDeterministicMarshal(&refGroup)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-		}
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
-		identityToRefCodeValue := user.ReferenceGroupCode
-		accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
-		accessorToRefCodeValue := user.ReferenceGroupCode
-		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
-		if increaseRequestUseCountResult.Code != code.OK {
-			return increaseRequestUseCountResult
-		}
-		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
-		app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
-		app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	}
+	checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
+	if checkRequestResult.Code != code.OK {
+		return checkRequestResult
+	}
+	var accessor data.Accessor
+	accessor.AccessorId = user.AccessorID
+	accessor.AccessorType = user.AccessorType
+	accessor.AccessorPublicKey = user.AccessorPublicKey
+	accessor.Active = true
+	accessor.Owner = nodeID
+	var idp data.IdPInRefGroup
+	idp.NodeId = nodeID
+	idp.Mode = append(idp.Mode, user.ModeList...)
+	idp.Accessors = append(idp.Accessors, &accessor)
+	idp.Ial = user.Ial
+	var identity data.IdentityInRefGroup
+	identity.Namespace = user.IdentityNamespace
+	identity.IdentifierHash = user.IdentityIdentifierHash
+	refGroup.Identities = append(refGroup.Identities, &identity)
+	refGroup.Idps = append(refGroup.Idps, &idp)
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	identityToRefCodeKey = "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
+	identityToRefCodeValue = []byte(user.ReferenceGroupCode)
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
+	accessorToRefCodeValue := user.ReferenceGroupCode
+	increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+	if increaseRequestUseCountResult.Code != code.OK {
+		return increaseRequestUseCountResult
+	}
+	app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
+	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 

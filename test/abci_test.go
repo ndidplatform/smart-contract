@@ -190,7 +190,7 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
 	userHash := h.Sum(nil)
-	var user did.User
+	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = ""
 	user.IdentityNamespace = userNamespace
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
@@ -200,11 +200,7 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID1.String()
-	var users []did.User
-	users = append(users, user)
-	var param = did.RegisterIdentityParam{
-		users,
-	}
+	var param = user
 	RegisterIdentity(t, param, idpPrivK, IdP1, "Please input reference group code")
 }
 
@@ -212,7 +208,7 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
 	userHash := h.Sum(nil)
-	var user did.User
+	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
 	user.IdentityNamespace = userNamespace
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
@@ -222,11 +218,7 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID1.String()
-	var users []did.User
-	users = append(users, user)
-	var param = did.RegisterIdentityParam{
-		users,
-	}
+	var param = user
 	RegisterIdentity(t, param, idpPrivK, IdP1, "success")
 }
 
@@ -354,7 +346,7 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
 	userHash := h.Sum(nil)
-	var user did.User
+	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
 	user.IdentityNamespace = userNamespace
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
@@ -364,11 +356,7 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID2.String()
-	var users []did.User
-	users = append(users, user)
-	var param = did.RegisterIdentityParam{
-		users,
-	}
+	var param = user
 	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identity already existed")
 }
 
@@ -376,7 +364,7 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace2 + userID1))
 	userHash := h.Sum(nil)
-	var user did.User
+	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
 	user.IdentityNamespace = userNamespace2
 	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
@@ -386,11 +374,7 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	user.AccessorPublicKey = accessorPubKey1
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID2.String()
-	var users []did.User
-	users = append(users, user)
-	var param = did.RegisterIdentityParam{
-		users,
-	}
+	var param = user
 	RegisterIdentity(t, param, idpPrivK2, IdP2, "success")
 }
 

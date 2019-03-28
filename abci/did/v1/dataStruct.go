@@ -43,7 +43,7 @@ type GetNodeMasterPublicKeyResult struct {
 	MasterPublicKey string `json:"master_public_key"`
 }
 
-type User struct {
+type RegisterIdentityParam struct {
 	ReferenceGroupCode     string  `json:"reference_group_code"`
 	IdentityNamespace      string  `json:"identity_namespace"`
 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
@@ -55,9 +55,9 @@ type User struct {
 	RequestID              string  `json:"request_id"`
 }
 
-type RegisterIdentityParam struct {
-	Users []User `json:"users"`
-}
+// type RegisterIdentityParam struct {
+// 	Users []User `json:"users"`
+// }
 
 type Node struct {
 	Ial          float64 `json:"ial"`
