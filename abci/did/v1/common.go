@@ -1852,6 +1852,9 @@ func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQue
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
+	if string(refGroupCodeFromDB) == "" {
+		return app.ReturnQuery(returnValue, "not found", app.state.Height)
+	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
