@@ -7,8 +7,10 @@
 ```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
-  "identity_namespace": "citizenId",
-  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "idetitiy_list": [{
+    "identity_namespace": "citizenId",
+    "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  }],
   "ial": 3,
   "mode_list": [2, 3], // allow only 2, 3
   "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
@@ -23,15 +25,33 @@
 - Remove `first` property
 - Add `reference_group_code` property (string)
 - Remove `hash_id`
-- Add `identity_namespace`
-- Add `identity_identifier_hash`
+- Add all identity in `identity_list`.
+- All identity in `identity_list` MUST not exist.
 - Add `mode_list`
 - Add `accessor_id`
 - Add `accessor_public_key`
 - Add `accessor_type`
 - Add `request_id`
-- Check for `identity_namespace`+`identity_identifier_hash`. If exist, error.
 
+## AddIdentity
+
+### Parameter
+
+```json
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "idetitiy_list": [{
+    "identity_namespace": "citizenId",
+    "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  }],
+  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
+}
+```
+
+**NOTE**
+
+- `reference_group_code` MUST already exist.
+- All identity in `identity_list` MUST not exist.
 
 ## AddAccessor
 
