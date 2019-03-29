@@ -209,6 +209,7 @@
 - Input `reference_group_code_to_merge` or `identity_namespace_to_merge`+`identity_identifier_hash_to_merge` (able to input one or the other, if both, error)
 - If `reference_group_code` == `reference_group_code_to_merge`, error
 - If `identity_namespace` == `identity_namespace_to_merge` && `identity_identifier_hash` == `identity_identifier_hash_to_merge`, error
+- Mark old `reference_group_code` that it's merged (effectively disable)
 
 
 ## RegisterServiceDestination
