@@ -642,3 +642,74 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	tags = append(tags, tag)
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
+
+func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateIdentityModeList, Parameter: %s", param)
+	var funcParam UpdateIdentityModeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// Check IAL must less than Max IAL
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
+	}
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if foundThisNodeID == false {
+		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	for index, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			refGroup.Idps[index].Mode = funcParam.ModeList
+			break
+		}
+	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
+	var tags []cmn.KVPair
+	var tag cmn.KVPair
+	tag.Key = []byte("reference_group_code")
+	tag.Value = []byte(refGroupCode)
+	tags = append(tags, tag)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+}

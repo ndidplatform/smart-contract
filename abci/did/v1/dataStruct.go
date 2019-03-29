@@ -804,3 +804,12 @@ type RevokeIdentityAssociationParam struct {
 type GetAllowedModeListResult struct {
 	AllowedModeList []int64 `json:"allowed_mode_list"`
 }
+
+type UpdateIdentityModeListParam struct {
+	ReferenceGroupCode     string  `json:"reference_group_code"`
+	IdentityNamespace      string  `json:"identity_namespace"`
+	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
+	ModeList               []int64 `json:"mode_list"`
+	RequestID              string  `json:"request_id"`
+}
+
