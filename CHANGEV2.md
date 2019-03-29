@@ -445,6 +445,14 @@
 
 ## GetAllowedModeList
 
+### Parameter
+
+```json
+{
+  "purpose": "AddAccessor",
+}
+```
+
 ### Expected Output
 ```json
 {
@@ -459,7 +467,8 @@
 
 ```json
 {
-  "allowed_mode_list": [1, 2, 3]
+  "purpose": "",
+  "allowed_mode_list": [1, 2, 3],
 }
 ```
 
@@ -467,6 +476,7 @@
 
 - Only request with mode in `allowed_mode_list` can be created.
 - Only NDID can update `allowed_mode_list`.
+- Purpose for normal transaction is empty string.
 
 ## Remove These
 
