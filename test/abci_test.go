@@ -802,6 +802,30 @@ func TestQueryGetAccessorKey2AfterRevoke(t *testing.T) {
 	GetAccessorKey(t, param, expected)
 }
 
+func TestQueryGetIdentityInfoBeforeUpdateIdentityModeList(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.NodeID = IdP1
+	expected := `{"ial":2.3,"mode_list":[2]}`
+	GetIdentityInfo(t, param, expected)
+}
+
+func TestIdP1UpdateIdentityModeList(t *testing.T) {
+	var param did.UpdateIdentityModeListParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.ModeList = append(param.ModeList, 2)
+	param.ModeList = append(param.ModeList, 3)
+	UpdateIdentityModeList(t, param, idpPrivK, IdP1)
+}
+
+func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.NodeID = IdP1
+	expected := `{"ial":2.3,"mode_list":[2,3]}`
+	GetIdentityInfo(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {
