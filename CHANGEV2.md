@@ -52,6 +52,7 @@
 
 - `reference_group_code` MUST already exist.
 - All identity in `identity_list` MUST not exist.
+- IdP must already be associated with `reference_group_code`
 
 ## AddAccessor
 
