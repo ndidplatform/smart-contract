@@ -193,6 +193,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.setLastBlock(param, nodeID)
 	case "RevokeIdentityAssociation":
 		return app.revokeIdentityAssociation(param, nodeID)
+	case "RevokeAccessor":
+		return app.revokeAccessor(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

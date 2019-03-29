@@ -550,3 +550,95 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 	tags = append(tags, tag)
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
+
+func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RevokeAccessor, Parameter: %s", param)
+	var funcParam RevokeAccessorParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// check node is active
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	if !nodeDetail.Active {
+		return app.ReturnDeliverTxLog(code.NodeIsNotActive, "Node is not active", "")
+	}
+	// check all accessor ID have the same ref group code
+	firstRefGroup := ""
+	for index, accsesorID := range funcParam.AccessorIDList {
+		accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + accsesorID
+		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(accessorToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		}
+		if index == 0 {
+			firstRefGroup = string(refGroupCodeFromDB)
+		} else {
+			if string(refGroupCodeFromDB) != firstRefGroup {
+				return app.ReturnDeliverTxLog(code.AllAccessorMustHaveSameRefGroupCode, "All accessors must have same reference group code", "")
+			}
+		}
+	}
+	refGroupCode := firstRefGroup
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			accessorInIdP := make([]string, 0)
+			for _, accsesor := range idp.Accessors {
+				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
+			}
+			for _, accsesorID := range funcParam.AccessorIDList {
+				if !contains(accsesorID, accessorInIdP) {
+					return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
+				}
+				break
+			}
+		}
+	}
+	for iIdP, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			for _, accsesorID := range funcParam.AccessorIDList {
+				for iAcc, accsesor := range idp.Accessors {
+					if accsesor.AccessorId == accsesorID {
+						refGroup.Idps[iIdP].Accessors[iAcc].Active = false
+					}
+					break
+				}
+			}
+			break
+		}
+	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+	if increaseRequestUseCountResult.Code != code.OK {
+		return increaseRequestUseCountResult
+	}
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
+	var tags []cmn.KVPair
+	var tag cmn.KVPair
+	tag.Key = []byte("reference_group_code")
+	tag.Value = []byte(refGroupCode)
+	tags = append(tags, tag)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+}

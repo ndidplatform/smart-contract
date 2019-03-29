@@ -737,6 +737,71 @@ func TestQueryGetAllowedModeListExpectString(t *testing.T) {
 	GetAllowedModeListExpectString(t, expected)
 }
 
+func TestQueryGetAccessorKey2BeforeRevoke(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
+}
+
+func TestIdP2CreateRequestForRevokeAccessor(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID5.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "RevokeAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP1CreateIdpResponseForRevokeAccessor(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 3
+	param.RequestID = requestID5.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP2CloseRequestForRevokeAccessor(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID5.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2RevokeAccessor(t *testing.T) {
+	var param did.RevokeAccessorParam
+	param.RequestID = requestID5.String()
+	param.AccessorIDList = append(param.AccessorIDList, accessorID2.String())
+	RevokeAccessor(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetAccessorKey2AfterRevoke(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":false}`
+	GetAccessorKey(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

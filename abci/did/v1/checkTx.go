@@ -84,7 +84,7 @@ var IsMethod = map[string]bool{
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
-	"RevokeAccessorMethod":             true,
+	"RevokeAccessor":                   true,
 	"SetInitData":                      true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
@@ -599,7 +599,7 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"UpdateIdentity",
 		"DeclareIdentityProof",
 		"ClearRegisterIdentityTimeout",
-		"RevokeAccessorMethod",
+		"RevokeAccessor",
 		"RevokeIdentityAssociation":
 		return app.checkIsIDP(param, nodeID)
 	case "SignData",
