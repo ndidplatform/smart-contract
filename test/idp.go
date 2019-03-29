@@ -228,15 +228,15 @@ func UpdateIdentity(t *testing.T, param did.UpdateIdentityParam, privKeyFile str
 	t.Logf("PASS: %s", fnName)
 }
 
-func RevokeAccessorMethod(t *testing.T, param did.RevokeAccessorMethodParam, nodeID string, expected string) {
-	idpKey := getPrivateKeyFromString(idpPrivK)
+func RevokeAccessor(t *testing.T, param did.RevokeAccessorParam, privKeyFile string, nodeID string, expected string) {
+	idpKey := getPrivateKeyFromString(privKeyFile)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "RevokeAccessorMethod"
+	fnName := "RevokeAccessor"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
@@ -244,7 +244,6 @@ func RevokeAccessorMethod(t *testing.T, param did.RevokeAccessorMethodParam, nod
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-
 	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
 	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
 	resultObj, _ := result.(ResponseTx)

@@ -118,5 +118,7 @@ const (
 	InvalidPurpose                            uint32 = 91
 	RequestIsAlreadyUsed                      uint32 = 92
 	RefGroupCodeCannotBeEmpty                 uint32 = 93
+	AllAccessorMustHaveSameRefGroupCode       uint32 = 94
+	AccessorNotFoundInThisIdP                 uint32 = 95
 	UnknownError                              uint32 = 999
 )
