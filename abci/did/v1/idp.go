@@ -143,6 +143,16 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if user.ReferenceGroupCode == "" {
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 	}
+	// Check accessor
+	if user.AccessorID == "" {
+		return app.ReturnDeliverTxLog(code.AccessorIDCannotBeEmpty, "Please input accessor ID", "")
+	}
+	if user.AccessorPublicKey == "" {
+		return app.ReturnDeliverTxLog(code.AccessorPublicKeyCannotBeEmpty, "Please input accessor public key", "")
+	}
+	if user.AccessorType == "" {
+		return app.ReturnDeliverTxLog(code.AccessorTypeCannotBeEmpty, "Please input accessor type", "")
+	}
 	var modeCount = map[int64]int{
 		2: 0,
 		3: 0,
