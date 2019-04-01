@@ -90,6 +90,7 @@ var IsMethod = map[string]bool{
 	"SetLastBlock":                     true,
 	"RevokeIdentityAssociation":        true,
 	"UpdateIdentityModeList":           true,
+	"AddIdentity":                      true,
 }
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -602,7 +603,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"ClearRegisterIdentityTimeout",
 		"RevokeAccessor",
 		"RevokeIdentityAssociation",
-		"UpdateIdentityModeList":
+		"UpdateIdentityModeList",
+		"AddIdentity":
 		return app.checkIsIDP(param, nodeID)
 	case "SignData",
 		"RegisterServiceDestination",

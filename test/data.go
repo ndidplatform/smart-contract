@@ -24,6 +24,7 @@ package test
 
 var userNamespace = "cid"
 var userNamespace2 = "passport"
+var userNamespace3 = "some_id"
 
 var ndidPrivK = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zx

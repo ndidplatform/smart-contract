@@ -199,6 +199,17 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			}
 		}
 	}
+	// If mode list is not include 3, set min idp to 0
+	mode3 := false
+	for _, mode := range user.ModeList {
+		if mode == 3 {
+			mode3 = true
+			break
+		}
+	}
+	if !mode3 && minIdP == 1 {
+		minIdP = 0
+	}
 	checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
 	if checkRequestResult.Code != code.OK {
 		return checkRequestResult
@@ -314,7 +325,7 @@ func (app *DIDApplication) increaseRequestUseCount(requestID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetStateDB([]byte(requestKey), []byte(requestProtobuf))
+	app.SetVersionedStateDB([]byte(requestKey), []byte(requestProtobuf))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -728,3 +739,107 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 	tags = append(tags, tag)
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
+
+func (app *DIDApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("AddIdentity, Parameter: %s", param)
+	var funcParam AddIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	user := funcParam
+	// Check for identity_namespace and identity_identifier_hash. If exist, error.
+	if user.ReferenceGroupCode == "" {
+		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
+	}
+	for _, identity := range user.NewIdentityList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
+		}
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
+		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if identityToRefCodeValue != nil {
+			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+	}
+	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	var refGroup data.ReferenceGroup
+	// If referenceGroupCode already existed, add new identity to group
+	var minIdP int64
+	minIdP = 0
+	if refGroupValue != nil {
+		err := proto.Unmarshal(refGroupValue, &refGroup)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// If have at least one node active
+		for _, idp := range refGroup.Idps {
+			nodeDetailKey := "NodeID" + "|" + idp.NodeId
+			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+			if nodeDetailValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			if nodeDetail.Active {
+				minIdP = 1
+				break
+			}
+		}
+	}
+	checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdP)
+	if checkRequestResult.Code != code.OK {
+		return checkRequestResult
+	}
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if foundThisNodeID == false {
+		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	for _, identity := range user.NewIdentityList {
+		var newIdentity data.IdentityInRefGroup
+		newIdentity.Namespace = identity.IdentityNamespace
+		newIdentity.IdentifierHash = identity.IdentityIdentifierHash
+		refGroup.Identities = append(refGroup.Identities, &newIdentity)
+	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+	if increaseRequestUseCountResult.Code != code.OK {
+		return increaseRequestUseCountResult
+	}
+	for _, identity := range user.NewIdentityList {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
+		identityToRefCodeValue := []byte(user.ReferenceGroupCode)
+		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
+	}
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
+	var tags []cmn.KVPair
+	var tag cmn.KVPair
+	tag.Key = []byte("reference_group_code")
+	tag.Value = []byte(user.ReferenceGroupCode)
+	tags = append(tags, tag)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+}
+

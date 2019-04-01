@@ -834,6 +834,75 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 	GetIdentityInfo(t, param, expected)
 }
 
+func TestIdP2CreateRequestForAddIdentity(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID6.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "AddIdentity"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2CreateIdpResponseForAddIdentity(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 3
+	param.RequestID = requestID6.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP2CloseRequestForAddIdentity(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidProof = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID6.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2AddIdentity(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace3 + userID1))
+	userHash := h.Sum(nil)
+	var user did.AddIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace3
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.RequestID = requestID6.String()
+	var param = user
+	AddIdentity(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetIdentityInfoByIdentityAfterAddIdentity(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	h := sha256.New()
+	h.Write([]byte(userNamespace3 + userID1))
+	userHash := h.Sum(nil)
+	param.IdentityNamespace = userNamespace3
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	param.NodeID = IdP1
+	expected := `{"ial":2.3,"mode_list":[2,3]}`
+	GetIdentityInfo(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

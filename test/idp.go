@@ -308,3 +308,29 @@ func UpdateIdentityModeList(t *testing.T, param did.UpdateIdentityModeListParam,
 	t.Logf("PASS: %s", fnName)
 }
 
+func AddIdentity(t *testing.T, param did.AddIdentityParam, privKeyFile string, nodeID string, expected string) {
+	idpKey := getPrivateKeyFromString(privKeyFile)
+	idpNodeID := []byte(nodeID)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	fnName := "AddIdentity"
+	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	newhash := crypto.SHA256
+	pssh := newhash.New()
+	pssh.Write(PSSmessage)
+	hashed := pssh.Sum(nil)
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, idpKey, newhash, hashed)
+	result, _ := callTendermint([]byte(fnName), paramJSON, []byte(nonce), signature, idpNodeID)
+	resultObj, _ := result.(ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
