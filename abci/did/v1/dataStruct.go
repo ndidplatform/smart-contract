@@ -55,14 +55,14 @@ type GetNodeMasterPublicKeyResult struct {
 // 	RequestID              string  `json:"request_id"`
 // }
 
-type Idetitiy struct {
+type Identity struct {
 	IdentityNamespace      string `json:"identity_namespace"`
 	IdentityIdentifierHash string `json:"identity_identifier_hash"`
 }
 
 type RegisterIdentityParam struct {
 	ReferenceGroupCode string     `json:"reference_group_code"`
-	NewIdetitiyList    []Idetitiy `json:"new_idetitiy_list"`
+	NewIdentityList    []Identity `json:"new_identity_list"`
 	Ial                float64    `json:"ial"`
 	ModeList           []int64    `json:"mode_list"`
 	AccessorID         string     `json:"accessor_id"`

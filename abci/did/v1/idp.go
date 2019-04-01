@@ -160,7 +160,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			user.ModeList = append(user.ModeList, mode)
 		}
 	}
-	for _, identity := range user.NewIdetitiyList {
+	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
@@ -215,7 +215,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
 	idp.Active = true
-	for _, identity := range user.NewIdetitiyList {
+	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
 		newIdentity.Namespace = identity.IdentityNamespace
 		newIdentity.IdentifierHash = identity.IdentityIdentifierHash
@@ -241,7 +241,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if increaseRequestUseCountResult.Code != code.OK {
 		return increaseRequestUseCountResult
 	}
-	for _, identity := range user.NewIdetitiyList {
+	for _, identity := range user.NewIdentityList {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
 		identityToRefCodeValue := []byte(user.ReferenceGroupCode)
 		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))

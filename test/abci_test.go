@@ -203,10 +203,10 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = ""
-	var identity did.Idetitiy
+	var identity did.Identity
 	identity.IdentityNamespace = userNamespace
 	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
-	user.NewIdetitiyList = append(user.NewIdetitiyList, identity)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID1.String()
@@ -223,10 +223,10 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	var identity did.Idetitiy
+	var identity did.Identity
 	identity.IdentityNamespace = userNamespace
 	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
-	user.NewIdetitiyList = append(user.NewIdetitiyList, identity)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID1.String()
@@ -363,10 +363,10 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	var identity did.Idetitiy
+	var identity did.Identity
 	identity.IdentityNamespace = userNamespace
 	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
-	user.NewIdetitiyList = append(user.NewIdetitiyList, identity)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
@@ -383,10 +383,10 @@ func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	var identity did.Idetitiy
+	var identity did.Identity
 	identity.IdentityNamespace = userNamespace2
 	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
-	user.NewIdetitiyList = append(user.NewIdetitiyList, identity)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
