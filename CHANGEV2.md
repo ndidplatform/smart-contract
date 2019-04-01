@@ -7,7 +7,7 @@
 ```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
-  "idetitiy_list": [{
+  "new_idetitiy_list": [{
     "identity_namespace": "citizenId",
     "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   }],
@@ -40,7 +40,7 @@
 ```json
 {
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
-  "idetitiy_list": [{
+  "new_idetitiy_list": [{
     "identity_namespace": "citizenId",
     "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   }],
