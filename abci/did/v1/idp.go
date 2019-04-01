@@ -221,7 +221,16 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		newIdentity.IdentifierHash = identity.IdentityIdentifierHash
 		refGroup.Identities = append(refGroup.Identities, &newIdentity)
 	}
-	refGroup.Idps = append(refGroup.Idps, &idp)
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if !foundThisNodeID {
+		refGroup.Idps = append(refGroup.Idps, &idp)
+	}
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
