@@ -43,16 +43,32 @@ type GetNodeMasterPublicKeyResult struct {
 	MasterPublicKey string `json:"master_public_key"`
 }
 
+// type RegisterIdentityParam struct {
+// 	ReferenceGroupCode     string  `json:"reference_group_code"`
+// 	IdentityNamespace      string  `json:"identity_namespace"`
+// 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
+// 	Ial                    float64 `json:"ial"`
+// 	ModeList               []int64 `json:"mode_list"`
+// 	AccessorID             string  `json:"accessor_id"`
+// 	AccessorPublicKey      string  `json:"accessor_public_key"`
+// 	AccessorType           string  `json:"accessor_type"`
+// 	RequestID              string  `json:"request_id"`
+// }
+
+type Idetitiy struct {
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
 type RegisterIdentityParam struct {
-	ReferenceGroupCode     string  `json:"reference_group_code"`
-	IdentityNamespace      string  `json:"identity_namespace"`
-	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
-	Ial                    float64 `json:"ial"`
-	ModeList               []int64 `json:"mode_list"`
-	AccessorID             string  `json:"accessor_id"`
-	AccessorPublicKey      string  `json:"accessor_public_key"`
-	AccessorType           string  `json:"accessor_type"`
-	RequestID              string  `json:"request_id"`
+	ReferenceGroupCode string     `json:"reference_group_code"`
+	NewIdetitiyList    []Idetitiy `json:"new_idetitiy_list"`
+	Ial                float64    `json:"ial"`
+	ModeList           []int64    `json:"mode_list"`
+	AccessorID         string     `json:"accessor_id"`
+	AccessorPublicKey  string     `json:"accessor_public_key"`
+	AccessorType       string     `json:"accessor_type"`
+	RequestID          string     `json:"request_id"`
 }
 
 // type RegisterIdentityParam struct {

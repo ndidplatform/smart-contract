@@ -136,12 +136,12 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	user := funcParam
 	// Validate user's ial is <= node's max_ial
+	if user.Ial > nodeDetail.MaxIal {
+		return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
+	}
 	// Check for identity_namespace and identity_identifier_hash. If exist, error.
 	if user.ReferenceGroupCode == "" {
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
-	}
-	if user.IdentityNamespace == "" || user.IdentityIdentifierHash == "" {
-		return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 	}
 	var modeCount = map[int64]int{
 		2: 0,
@@ -160,13 +160,15 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			user.ModeList = append(user.ModeList, mode)
 		}
 	}
-	if user.Ial > nodeDetail.MaxIal {
-		return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
-	}
-	identityToRefCodeKey := "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
-	_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
-	if identityToRefCodeValue != nil {
-		return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+	for _, identity := range user.NewIdetitiyList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
+		}
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
+		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		if identityToRefCodeValue != nil {
+			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
 	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
@@ -213,24 +215,28 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
 	idp.Active = true
-	var identity data.IdentityInRefGroup
-	identity.Namespace = user.IdentityNamespace
-	identity.IdentifierHash = user.IdentityIdentifierHash
-	refGroup.Identities = append(refGroup.Identities, &identity)
+	for _, identity := range user.NewIdetitiyList {
+		var newIdentity data.IdentityInRefGroup
+		newIdentity.Namespace = identity.IdentityNamespace
+		newIdentity.IdentifierHash = identity.IdentityIdentifierHash
+		refGroup.Identities = append(refGroup.Identities, &newIdentity)
+	}
 	refGroup.Idps = append(refGroup.Idps, &idp)
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	identityToRefCodeKey = "identityToRefCodeKey" + "|" + user.IdentityNamespace + "|" + user.IdentityIdentifierHash
-	identityToRefCodeValue = []byte(user.ReferenceGroupCode)
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
 	accessorToRefCodeValue := user.ReferenceGroupCode
 	increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
 	if increaseRequestUseCountResult.Code != code.OK {
 		return increaseRequestUseCountResult
 	}
-	app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
+	for _, identity := range user.NewIdetitiyList {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
+		identityToRefCodeValue := []byte(user.ReferenceGroupCode)
+		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
+	}
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	var tags []cmn.KVPair
