@@ -217,6 +217,33 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	RegisterIdentity(t, param, idpPrivK, IdP1, "Please input reference group code")
 }
 
+func TestIdP1RegisterIdentityWithDuplicateNamespace(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	h2 := sha256.New()
+	h2.Write([]byte(userNamespace + userID2))
+	userHash2 := h.Sum(nil)
+	var user did.RegisterIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	var identity2 did.Identity
+	identity2.IdentityNamespace = userNamespace
+	identity2.IdentityIdentifierHash = hex.EncodeToString(userHash2)
+	user.NewIdentityList = append(user.NewIdentityList, identity2)
+	user.Ial = 3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID1.String()
+	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID1.String()
+	var param = user
+	RegisterIdentity(t, param, idpPrivK, IdP1, "Namespace in identity list are duplicated")
+}
+
 func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
@@ -375,6 +402,26 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	user.RequestID = requestID2.String()
 	var param = user
 	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identity already existed")
+}
+
+func TestIdP2RegisterIdentityWithDuplicatedNamespaceToExistedRefGroupExpectError(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+	var user did.RegisterIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.Ial = 2.3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID2.String()
+	user.AccessorPublicKey = accessorPubKey2
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID2.String()
+	var param = user
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "Namespace in identity list are duplicated")
 }
 
 func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {

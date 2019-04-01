@@ -120,5 +120,6 @@ const (
 	RefGroupCodeCannotBeEmpty                 uint32 = 93
 	AllAccessorMustHaveSameRefGroupCode       uint32 = 94
 	AccessorNotFoundInThisIdP                 uint32 = 95
+	DuplicatedNamespaceInIdentityList         uint32 = 96
 	UnknownError                              uint32 = 999
 )

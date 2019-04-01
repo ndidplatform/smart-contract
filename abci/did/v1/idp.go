@@ -160,6 +160,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			user.ModeList = append(user.ModeList, mode)
 		}
 	}
+	var namespaceCount = map[string]int{}
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
@@ -168,6 +169,12 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+	}
+	for _, count := range namespaceCount {
+		if count > 1 {
+			return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
@@ -226,6 +233,18 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
 	idp.Active = true
+	// Check duplicated namespace in ref group
+	foundDuplicatedNamespace := false
+	for _, identity := range user.NewIdentityList {
+		for _, idenInRefGroup := range refGroup.Identities {
+			if identity.IdentityNamespace == idenInRefGroup.Namespace {
+				foundDuplicatedNamespace = true
+			}
+		}
+	}
+	if foundDuplicatedNamespace {
+		return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
+	}
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
 		newIdentity.Namespace = identity.IdentityNamespace
@@ -762,6 +781,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	if user.ReferenceGroupCode == "" {
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 	}
+	var namespaceCount = map[string]int{}
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
@@ -770,6 +790,12 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+	}
+	for _, count := range namespaceCount {
+		if count > 1 {
+			return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
@@ -814,6 +840,18 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	}
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	// Check duplicated namespace in ref group
+	foundDuplicatedNamespace := false
+	for _, identity := range user.NewIdentityList {
+		for _, idenInRefGroup := range refGroup.Identities {
+			if identity.IdentityNamespace == idenInRefGroup.Namespace {
+				foundDuplicatedNamespace = true
+			}
+		}
+	}
+	if foundDuplicatedNamespace {
+		return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
 	}
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
