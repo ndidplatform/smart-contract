@@ -66,9 +66,16 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	foundThisNodeID := false
+	mode3 := false
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			foundThisNodeID = true
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
 			break
 		}
 	}
@@ -76,11 +83,18 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
 	}
 
-	minIdp := 1
-	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdp)
-	if checkRequestResult.Code != code.OK {
-		return checkRequestResult
+	if mode3 {
+		minIdp := 1
+		checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdp)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
+		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
 	}
+
 	var accessor data.Accessor
 	accessor.AccessorId = funcParam.AccessorID
 	accessor.AccessorType = funcParam.AccessorType
@@ -99,10 +113,6 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	}
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
-	increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-	if increaseRequestUseCountResult.Code != code.OK {
-		return increaseRequestUseCountResult
-	}
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	var tags []cmn.KVPair
