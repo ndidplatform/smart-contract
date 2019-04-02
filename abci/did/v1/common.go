@@ -433,7 +433,7 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 	res.IsClosed = request.Closed
 	res.IsTimedOut = request.TimedOut
 	res.MessageHash = request.RequestMessageHash
-	res.Mode = int(request.Mode)
+	res.Mode = request.Mode
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
@@ -503,18 +503,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 		newRow.Aal = float64(response.Aal)
 		newRow.Status = response.Status
 		newRow.Signature = response.Signature
-		newRow.IdentityProof = response.IdentityProof
-		newRow.PrivateProofHash = response.PrivateProofHash
 		newRow.IdpID = response.IdpId
-		if response.ValidProof != "" {
-			if response.ValidProof == "true" {
-				tValue := true
-				newRow.ValidProof = &tValue
-			} else {
-				fValue := false
-				newRow.ValidProof = &fValue
-			}
-		}
 		if response.ValidIal != "" {
 			if response.ValidIal == "true" {
 				tValue := true
@@ -537,7 +526,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	}
 	result.IsClosed = request.Closed
 	result.IsTimedOut = request.TimedOut
-	result.Mode = int(request.Mode)
+	result.Mode = request.Mode
 
 	// Set purpose
 	result.Purpose = request.Purpose
@@ -1056,24 +1045,6 @@ func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
 	}
 	var result GetDataSignatureResult
 	result.Signature = string(signDataValue)
-	returnValue, err := json.Marshal(result)
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
-}
-
-func (app *DIDApplication) getIdentityProof(param string) types.ResponseQuery {
-	app.logger.Infof("GetIdentityProof, Parameter: %s", param)
-	var funcParam GetIdentityProofParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
-	_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
-	if identityProofValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-	}
-	var result GetIdentityProofResult
-	result.IdentityProof = string(identityProofValue)
 	returnValue, err := json.Marshal(result)
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
@@ -1852,6 +1823,9 @@ func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQue
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
+	if string(refGroupCodeFromDB) == "" {
+		return app.ReturnQuery(returnValue, "not found", app.state.Height)
+	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
@@ -1878,14 +1852,38 @@ func (app *DIDApplication) GetReferenceGroupCodeByAccessorID(param string) types
 
 func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery {
 	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
+	var funcParam GetAllowedModeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
 	var result GetAllowedModeListResult
-	// TODO -> get allowed mode from stateDB
-	result.AllowedModeList = append(result.AllowedModeList, 1)
-	result.AllowedModeList = append(result.AllowedModeList, 2)
-	result.AllowedModeList = append(result.AllowedModeList, 3)
+	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
+
+func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []int32) {
+	allowedModeKey := "AllowedModeList" + "|" + purpose
+	var allowedModeList data.AllowedModeList
+	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))
+	if allowedModeValue == nil {
+		// return default value
+		if purpose != "RegisterIdentity" {
+			result = append(result, 1)
+		}
+		result = append(result, 2)
+		result = append(result, 3)
+		return result
+	}
+	err := proto.Unmarshal(allowedModeValue, &allowedModeList)
+	if err != nil {
+		return result
+	}
+	result = allowedModeList.Mode
+	return result
+}
+

@@ -61,8 +61,6 @@ const (
 	ServiceIDNotFound                         uint32 = 34
 	InvalidMode                               uint32 = 35
 	HashIDNotFound                            uint32 = 36
-	DuplicateIdentityProof                    uint32 = 37
-	WrongIdentityProof                        uint32 = 38
 	DuplicateASInDataRequest                  uint32 = 39
 	DuplicateAnsweredAsIDList                 uint32 = 40
 	DuplicateServiceIDInDataRequest           uint32 = 41
@@ -120,5 +118,9 @@ const (
 	RefGroupCodeCannotBeEmpty                 uint32 = 93
 	AllAccessorMustHaveSameRefGroupCode       uint32 = 94
 	AccessorNotFoundInThisIdP                 uint32 = 95
+	DuplicatedNamespaceInIdentityList         uint32 = 96
+	AccessorIDCannotBeEmpty                   uint32 = 97
+	AccessorPublicKeyCannotBeEmpty            uint32 = 98
+	AccessorTypeCannotBeEmpty                 uint32 = 99
 	UnknownError                              uint32 = 999
 )

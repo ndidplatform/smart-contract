@@ -57,7 +57,19 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.RequestTimeout = int64(funcParam.Timeout)
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash
-	request.Mode = int64(funcParam.Mode)
+	request.Mode = funcParam.Mode
+	// Check valid mode
+	allowedMode := app.GetAllowedModeFromStateDB("")
+	validMode := false
+	for _, mode := range allowedMode {
+		if mode == request.Mode {
+			validMode = true
+			break
+		}
+	}
+	if !validMode {
+		return app.ReturnDeliverTxLog(code.InvalidMode, "Must be create request on valid mode", "")
+	}
 	request.IdpIdList = funcParam.IdPIDList
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
@@ -221,13 +233,6 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
-				if valid.ValidProof != nil {
-					if *valid.ValidProof {
-						request.ResponseList[index].ValidProof = "true"
-					} else {
-						request.ResponseList[index].ValidProof = "false"
-					}
-				}
 				if valid.ValidIal != nil {
 					if *valid.ValidIal {
 						request.ResponseList[index].ValidIal = "true"
@@ -280,13 +285,6 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
-				if valid.ValidProof != nil {
-					if *valid.ValidProof {
-						request.ResponseList[index].ValidProof = "true"
-					} else {
-						request.ResponseList[index].ValidProof = "false"
-					}
-				}
 				if valid.ValidIal != nil {
 					if *valid.ValidIal {
 						request.ResponseList[index].ValidIal = "true"

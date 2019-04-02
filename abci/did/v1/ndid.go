@@ -62,6 +62,7 @@ var isNDIDMethod = map[string]bool{
 	"SetInitData":                      true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
+	"SetAllowedModeList":               true,
 }
 
 func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -970,7 +971,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	}
 	// Delete node proxy ID and proxy config
 	nodeDetail.ProxyNodeId = ""
-	nodeDetail.ProxyConfig = "" 
+	nodeDetail.ProxyConfig = ""
 	behindProxyNodeJSON, err := utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
@@ -1030,3 +1031,22 @@ func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDe
 	app.SetStateDB([]byte(initStateKey), []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
+
+func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetAllowedModeList, Parameter: %s", param)
+	var funcParam SetAllowedModeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	allowedModeKey := "AllowedModeList" + "|" + funcParam.Purpose
+	var allowedModeList data.AllowedModeList
+	allowedModeList.Mode = funcParam.AllowedModeList
+	allowedModeListByte, err := utils.ProtoDeterministicMarshal(&allowedModeList)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(allowedModeKey), allowedModeListByte)
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+

@@ -79,7 +79,7 @@ message Request {
   bool timed_out = 11;
   string purpose = 12;
   string owner = 13;
-  int64 mode = 14;
+  int32 mode = 14;
   int64 use_count = 15;
   int64 creation_block_height = 16;
   string chain_id = 17;
@@ -99,10 +99,7 @@ message Response {
   double aal = 2;
   string status = 3;
   string signature = 4;
-  string identity_proof = 5;
-  string private_proof_hash = 6;
   string idp_id = 7;
-  string valid_proof = 8;
   string valid_ial = 9;
   string valid_signature = 10;
 }
@@ -194,7 +191,7 @@ message ReferenceGroup {
 
 message IdPInRefGroup {
   string node_id = 1;
-  repeated int64 mode = 2;
+  repeated int32 mode = 2;
   repeated Accessor accessors = 3;
   double ial = 4;
   bool active = 5;
@@ -204,4 +201,8 @@ message IdentityInRefGroup {
   string namespace = 1;
   string identifier_hash = 2;
   bool active = 3;
+}
+
+message AllowedModeList {
+  repeated int32 mode = 1;
 }

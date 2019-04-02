@@ -203,8 +203,10 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = ""
-	user.IdentityNamespace = userNamespace
-	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID1.String()
@@ -215,14 +217,43 @@ func TestIdP1RegisterIdentityWithOutRefGroupCode(t *testing.T) {
 	RegisterIdentity(t, param, idpPrivK, IdP1, "Please input reference group code")
 }
 
+func TestIdP1RegisterIdentityWithDuplicateNamespace(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	h2 := sha256.New()
+	h2.Write([]byte(userNamespace + userID2))
+	userHash2 := h.Sum(nil)
+	var user did.RegisterIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	var identity2 did.Identity
+	identity2.IdentityNamespace = userNamespace
+	identity2.IdentityIdentifierHash = hex.EncodeToString(userHash2)
+	user.NewIdentityList = append(user.NewIdentityList, identity2)
+	user.Ial = 3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID1.String()
+	user.AccessorPublicKey = accessorPubKey1
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID1.String()
+	var param = user
+	RegisterIdentity(t, param, idpPrivK, IdP1, "Namespace in identity list are duplicated")
+}
+
 func TestIdP1RegisterIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	user.IdentityNamespace = userNamespace
-	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID1.String()
@@ -343,7 +374,6 @@ func TestIdP2CloseRequestForRegisterIdentity(t *testing.T) {
 	res1.IdpID = IdP1
 	tValue := true
 	res1.ValidIal = &tValue
-	res1.ValidProof = &tValue
 	res1.ValidSignature = &tValue
 	res = append(res, res1)
 	var param = did.CloseRequestParam{
@@ -359,8 +389,10 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	user.IdentityNamespace = userNamespace
-	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
@@ -371,14 +403,36 @@ func TestIdP2RegisterIdentityToExistedRefGroupExpectError(t *testing.T) {
 	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identity already existed")
 }
 
+func TestIdP2RegisterIdentityWithDuplicatedNamespaceToExistedRefGroupExpectError(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+	var user did.RegisterIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.Ial = 2.3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID2.String()
+	user.AccessorPublicKey = accessorPubKey2
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID2.String()
+	var param = user
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "Namespace in identity list are duplicated")
+}
+
 func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace2 + userID1))
 	userHash := h.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
-	user.IdentityNamespace = userNamespace2
-	user.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace2
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
 	user.Ial = 2.3
 	user.ModeList = append(user.ModeList, 2)
 	user.AccessorID = accessorID2.String()
@@ -471,7 +525,6 @@ func TestIdP2CloseRequestForrequestID3(t *testing.T) {
 	res1.IdpID = IdP1
 	tValue := true
 	res1.ValidIal = &tValue
-	res1.ValidProof = &tValue
 	res1.ValidSignature = &tValue
 	res = append(res, res1)
 	var param = did.CloseRequestParam{
@@ -690,7 +743,6 @@ func TestIdP2CloseRequestForRevokeIdentityAssociation(t *testing.T) {
 	res1.IdpID = IdP1
 	tValue := true
 	res1.ValidIal = &tValue
-	res1.ValidProof = &tValue
 	res1.ValidSignature = &tValue
 	res = append(res, res1)
 	var param = did.CloseRequestParam{
@@ -733,8 +785,9 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 }
 
 func TestQueryGetAllowedModeListExpectString(t *testing.T) {
+	var param did.GetAllowedModeListParam
 	var expected = `{"allowed_mode_list":[1,2,3]}`
-	GetAllowedModeListExpectString(t, expected)
+	GetAllowedModeListExpectString(t, param, expected)
 }
 
 func TestQueryGetAccessorKey2BeforeRevoke(t *testing.T) {
@@ -777,7 +830,6 @@ func TestIdP2CloseRequestForRevokeAccessor(t *testing.T) {
 	res1.IdpID = IdP1
 	tValue := true
 	res1.ValidIal = &tValue
-	res1.ValidProof = &tValue
 	res1.ValidSignature = &tValue
 	res = append(res, res1)
 	var param = did.CloseRequestParam{
@@ -824,6 +876,102 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 	param.NodeID = IdP1
 	expected := `{"ial":2.3,"mode_list":[2,3]}`
 	GetIdentityInfo(t, param, expected)
+}
+
+func TestIdP2CreateRequestForAddIdentity(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID6.String()
+	param.MinIdp = 1
+	param.MinIal = 3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "AddIdentity"
+	param.IdPIDList = append(param.IdPIDList, IdP1)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2CreateIdpResponseForAddIdentity(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 3
+	param.RequestID = requestID6.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK, IdP1)
+}
+
+func TestIdP2CloseRequestForAddIdentity(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID6.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2AddIdentity(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace3 + userID1))
+	userHash := h.Sum(nil)
+	var user did.AddIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace3
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.RequestID = requestID6.String()
+	var param = user
+	AddIdentity(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetIdentityInfoByIdentityAfterAddIdentity(t *testing.T) {
+	var param did.GetIdentityInfoParam
+	h := sha256.New()
+	h.Write([]byte(userNamespace3 + userID1))
+	userHash := h.Sum(nil)
+	param.IdentityNamespace = userNamespace3
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	param.NodeID = IdP1
+	expected := `{"ial":2.3,"mode_list":[2,3]}`
+	GetIdentityInfo(t, param, expected)
+}
+
+func TestQueryGetAllowedModeListBeforeSet(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	var expected = `{"allowed_mode_list":[2,3]}`
+	GetAllowedModeListExpectString(t, param, expected)
+}
+
+func TestNDIDSetAllowedModeList(t *testing.T) {
+	var param did.SetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	param.AllowedModeList = append(param.AllowedModeList, 3)
+	SetAllowedModeList(t, param)
+}
+
+func TestQueryGetAllowedModeListAfterSet(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	var expected = `{"allowed_mode_list":[3]}`
+	GetAllowedModeListExpectString(t, param, expected)
+}
+
+func TestQueryGetAllowedModeListForNormalTransaction(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = ""
+	var expected = `{"allowed_mode_list":[1,2,3]}`
+	GetAllowedModeListExpectString(t, param, expected)
 }
 
 // ---  Old test ---
@@ -1413,24 +1561,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	GetNodeToken(t, param, expected)
 // }
 
-// func TestIdPDeclareIdentityProof(t *testing.T) {
-// 	var param did.DeclareIdentityProofParam
-// 	param.RequestID = requestID1.String()
-// 	param.IdentityProof = "Magic"
-// 	DeclareIdentityProof(t, param, idpPrivK, IdP1)
-// }
-
-// func TestQueryGetIdentityProof(t *testing.T) {
-// 	var param = did.GetIdentityProofParam{
-// 		IdP1,
-// 		requestID1.String(),
-// 	}
-// 	var expected = did.GetIdentityProofResult{
-// 		"Magic",
-// 	}
-// 	GetIdentityProof(t, param, expected)
-// }
-
 // func TestIdPCreateIdpResponse(t *testing.T) {
 // 	var param = did.CreateIdpResponseParam{
 // 		requestID1.String(),
@@ -1496,25 +1626,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	CreateRequest(t, param, idpPrivK, IdP10)
 // }
 
-// func TestIdPDeclareIdentityProof2(t *testing.T) {
-// 	var param did.DeclareIdentityProofParam
-// 	param.RequestID = requestID2.String()
-// 	param.IdentityProof = "Magic"
-// 	DeclareIdentityProof(t, param, idpPrivK, IdP1)
-// }
-// func TestIdPCreateIdpResponseForSpecialRequest(t *testing.T) {
-// 	var param = did.CreateIdpResponseParam{
-// 		requestID2.String(),
-// 		3,
-// 		3,
-// 		"accept",
-// 		"signature",
-// 		"Magic",
-// 		"Magic",
-// 	}
-// 	CreateIdpResponse(t, param, idpPrivK, IdP1)
-// }
-
 // func TestNDIDSetPrice(t *testing.T) {
 // 	var param = did.SetPriceFuncParam{
 // 		"CreateRequest",
@@ -1541,14 +1652,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // // 	GetUsedTokenReport(t, param, expectedString)
 // // }
 
-// // func TestReportGetUsedTokenIdP(t *testing.T) {
-// // 	expectedString := `[{"method":"RegisterIdentity","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID1.String() + `"},{"method":"DeclareIdentityProof","price":1,"data":""},{"method":"CreateIdpResponse","price":1,"data":"` + requestID2.String() + `"}]`
-// // 	var param = did.GetUsedTokenReportParam{
-// // 		IdP1,
-// // 	}
-// // 	GetUsedTokenReport(t, param, expectedString)
-// // }
-
 // // func TestReportGetUsedTokenAS(t *testing.T) {
 // // 	var param = did.GetUsedTokenReportParam{
 // // 		AS1,
@@ -1556,30 +1659,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // // 	expectedString := `[{"method":"RegisterServiceDestination","price":1,"data":""},{"method":"UpdateServiceDestination","price":1,"data":""},{"method":"SetMqAddresses","price":1,"data":""},{"method":"SignData","price":1,"data":"` + requestID1.String() + `"}]`
 // // 	GetUsedTokenReport(t, param, expectedString)
 // // }
-
-// func TestQueryGetRequestDetail1(t *testing.T) {
-// 	var param = did.GetRequestParam{
-// 		requestID1.String(),
-// 	}
-// 	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":null,"valid_ial":null,"valid_signature":null}],"closed":false,"timed_out":false,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26,"creation_chain_id":"test-chain-NDID"}`
-// 	GetRequestDetail(t, param, expected)
-// }
-
-// func TestRPCloseRequest(t *testing.T) {
-// 	var res []did.ResponseValid
-// 	var res1 did.ResponseValid
-// 	res1.IdpID = IdP1
-// 	tValue := true
-// 	res1.ValidIal = &tValue
-// 	res1.ValidProof = &tValue
-// 	res1.ValidSignature = &tValue
-// 	res = append(res, res1)
-// 	var param = did.CloseRequestParam{
-// 		requestID1.String(),
-// 		res,
-// 	}
-// 	CloseRequest(t, param, RP1)
-// }
 
 // func TestQueryGetRequestClosed(t *testing.T) {
 // 	var param = did.GetRequestParam{
@@ -1592,14 +1671,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 		3,
 // 	}
 // 	GetRequest(t, param, expected)
-// }
-
-// func TestQueryGetRequestDetail2(t *testing.T) {
-// 	var param = did.GetRequestParam{
-// 		requestID1.String(),
-// 	}
-// 	var expected = `{"request_id":"` + requestID1.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":1,"request_params_hash":"hash","answered_as_id_list":["` + AS1 + `"],"received_data_from_list":["` + AS1 + `"]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":true,"valid_ial":true,"valid_signature":true}],"closed":true,"timed_out":false,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":26,"creation_chain_id":"test-chain-NDID"}`
-// 	GetRequestDetail(t, param, expected)
 // }
 
 // func TestCreateRequest(t *testing.T) {
@@ -1635,13 +1706,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	CreateRequest(t, param, rpPrivK, RP1)
 // }
 
-// func TestIdPDeclareIdentityProof3(t *testing.T) {
-// 	var param did.DeclareIdentityProofParam
-// 	param.RequestID = requestID3.String()
-// 	param.IdentityProof = "Magic"
-// 	DeclareIdentityProof(t, param, idpPrivK, IdP1)
-// }
-
 // func TestIdPCreateIdpResponse2(t *testing.T) {
 // 	var param = did.CreateIdpResponseParam{
 // 		requestID3.String(),
@@ -1653,30 +1717,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 		"Magic",
 // 	}
 // 	CreateIdpResponse(t, param, idpPrivK, IdP1)
-// }
-
-// func TestRPTimeOutRequest(t *testing.T) {
-// 	var res []did.ResponseValid
-// 	var res1 did.ResponseValid
-// 	res1.IdpID = IdP1
-// 	f := false
-// 	res1.ValidIal = &f
-// 	res1.ValidProof = &f
-// 	res1.ValidSignature = &f
-// 	res = append(res, res1)
-// 	var param = did.TimeOutRequestParam{
-// 		requestID3.String(),
-// 		res,
-// 	}
-// 	TimeOutRequest(t, param, RP1)
-// }
-
-// func TestQueryGetRequestDetail3(t *testing.T) {
-// 	var param = did.GetRequestParam{
-// 		requestID3.String(),
-// 	}
-// 	var expected = `{"request_id":"` + requestID3.String() + `","min_idp":1,"min_aal":3,"min_ial":3,"request_timeout":259200,"idp_id_list":["` + IdP1 + `"],"data_request_list":[{"service_id":"` + serviceID1 + `","as_id_list":["` + AS1 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]},{"service_id":"credit","as_id_list":["` + AS1 + `"],"min_as":2,"request_params_hash":"hash","answered_as_id_list":[],"received_data_from_list":[]}],"request_message_hash":"hash('Please allow...')","response_list":[{"ial":3,"aal":3,"status":"accept","signature":"signature","identity_proof":"Magic","private_proof_hash":"Magic","idp_id":"` + IdP1 + `","valid_proof":false,"valid_ial":false,"valid_signature":false}],"closed":false,"timed_out":true,"purpose":"","mode":3,"requester_node_id":"` + RP1 + `","creation_block_height":38,"creation_chain_id":"test-chain-NDID"}`
-// 	GetRequestDetail(t, param, expected)
 // }
 
 // func TestQueryGetRequestTimedOut(t *testing.T) {
@@ -1759,22 +1799,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	GetAccessorsInAccessorGroup(t, param, expected)
 // }
 
-// func TestIdPCloseRequest(t *testing.T) {
-// 	var res []did.ResponseValid
-// 	var res1 did.ResponseValid
-// 	res1.IdpID = IdP1
-// 	tValue := true
-// 	res1.ValidIal = &tValue
-// 	res1.ValidProof = &tValue
-// 	res1.ValidSignature = &tValue
-// 	res = append(res, res1)
-// 	var param = did.CloseRequestParam{
-// 		requestID2.String(),
-// 		res,
-// 	}
-// 	CloseRequestByIdP(t, param, IdP10)
-// }
-
 // func TestIdPAddAccessorMethod(t *testing.T) {
 // 	var param = did.AccessorMethod{
 // 		accessorID2.String(),
@@ -1836,13 +1860,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	CreateRequest(t, param, idpPrivK, IdP10)
 // }
 
-// func TestIdP10DeclareIdentityProof(t *testing.T) {
-// 	var param did.DeclareIdentityProofParam
-// 	param.RequestID = requestID5.String()
-// 	param.IdentityProof = "Magic"
-// 	DeclareIdentityProof(t, param, idpPrivK, IdP10)
-// }
-
 // func TestIdP10CreateIdpResponse(t *testing.T) {
 // 	var param = did.CreateIdpResponseParam{
 // 		requestID5.String(),
@@ -1854,22 +1871,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 		"Magic",
 // 	}
 // 	CreateIdpResponse(t, param, idpPrivK, IdP10)
-// }
-
-// func TestIdP10CloseRequest(t *testing.T) {
-// 	var res []did.ResponseValid
-// 	var res1 did.ResponseValid
-// 	res1.IdpID = IdP10
-// 	tValue := true
-// 	res1.ValidIal = &tValue
-// 	res1.ValidProof = &tValue
-// 	res1.ValidSignature = &tValue
-// 	res = append(res, res1)
-// 	var param = did.CloseRequestParam{
-// 		requestID5.String(),
-// 		res,
-// 	}
-// 	CloseRequestByIdP(t, param, IdP10)
 // }
 
 // func TestIdP10RevokeAccessorMethod(t *testing.T) {
@@ -2787,13 +2788,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	CreateRequest(t, param, rpPrivK, RP1)
 // }
 
-// func TestIdPDeclareIdentityProofForNewRequest(t *testing.T) {
-// 	var param did.DeclareIdentityProofParam
-// 	param.RequestID = requestID4.String()
-// 	param.IdentityProof = "Magic"
-// 	DeclareIdentityProof(t, param, idpPrivK2, IdP1)
-// }
-
 // func TestIdPCreateIdpResponseNewRequest(t *testing.T) {
 // 	var param = did.CreateIdpResponseParam{
 // 		requestID4.String(),
@@ -2988,15 +2982,6 @@ func TestQueryGetIdentityInfoAfterUpdateIdentityModeList(t *testing.T) {
 // 	param.ServiceID = serviceID1
 // 	expected := "not found"
 // 	GetDataSignature(t, param, expected)
-// }
-
-// func TestQueryGetIdentityProofInvaid(t *testing.T) {
-// 	var param = did.GetIdentityProofParam{
-// 		"IdP1-Invalid",
-// 		requestID1.String(),
-// 	}
-// 	expected := "not found"
-// 	GetIdentityProofExpectString(t, param, expected)
 // }
 
 // func TestQueryGetServicesByAsIDInvalid(t *testing.T) {
