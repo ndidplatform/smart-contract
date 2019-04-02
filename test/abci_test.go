@@ -967,6 +967,13 @@ func TestQueryGetAllowedModeListAfterSet(t *testing.T) {
 	GetAllowedModeListExpectString(t, param, expected)
 }
 
+func TestQueryGetAllowedModeListForNormalTransaction(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = ""
+	var expected = `{"allowed_mode_list":[1,2,3]}`
+	GetAllowedModeListExpectString(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

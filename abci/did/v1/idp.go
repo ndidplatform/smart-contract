@@ -130,9 +130,10 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Valid Mode
-	var validMode = map[int64]bool{
-		2: true,
-		3: true,
+	var validMode = map[int64]bool{}
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
+	for _, mode := range allowedMode {
+		validMode[mode] = true
 	}
 	user := funcParam
 	// Validate user's ial is <= node's max_ial
@@ -153,15 +154,15 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if user.AccessorType == "" {
 		return app.ReturnDeliverTxLog(code.AccessorTypeCannotBeEmpty, "Please input accessor type", "")
 	}
-	var modeCount = map[int64]int{
-		2: 0,
-		3: 0,
+	var modeCount = map[int64]int{}
+	for _, mode := range allowedMode {
+		modeCount[mode] = 0
 	}
 	for _, mode := range user.ModeList {
 		if validMode[mode] {
 			modeCount[mode] = modeCount[mode] + 1
 		} else {
-			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on mode 2 or 3", "")
+			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
 		}
 	}
 	user.ModeList = make([]int64, 0)
@@ -728,6 +729,29 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
+	}
+	// Valid Mode
+	var validMode = map[int64]bool{}
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
+	for _, mode := range allowedMode {
+		validMode[mode] = true
+	}
+	var modeCount = map[int64]int{}
+	for _, mode := range allowedMode {
+		modeCount[mode] = 0
+	}
+	for _, mode := range funcParam.ModeList {
+		if validMode[mode] {
+			modeCount[mode] = modeCount[mode] + 1
+		} else {
+			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
+		}
+	}
+	funcParam.ModeList = make([]int64, 0)
+	for mode, count := range modeCount {
+		if count > 0 {
+			funcParam.ModeList = append(funcParam.ModeList, mode)
+		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))

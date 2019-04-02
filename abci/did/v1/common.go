@@ -1858,30 +1858,32 @@ func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery 
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAllowedModeListResult
-	allowedModeKey := "AllowedModeList" + "|" + funcParam.Purpose
-	var allowedModeList data.AllowedModeList
-	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))
-	if allowedModeValue == nil {
-		// return default value
-		if funcParam.Purpose != "RegisterIdentity" {
-			result.AllowedModeList = append(result.AllowedModeList, 1)
-		}
-		result.AllowedModeList = append(result.AllowedModeList, 2)
-		result.AllowedModeList = append(result.AllowedModeList, 3)
-		returnValue, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
-	}
-	err = proto.Unmarshal(allowedModeValue, &allowedModeList)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	result.AllowedModeList = allowedModeList.Mode
+	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
+
+func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []int64) {
+	allowedModeKey := "AllowedModeList" + "|" + purpose
+	var allowedModeList data.AllowedModeList
+	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))
+	if allowedModeValue == nil {
+		// return default value
+		if purpose != "RegisterIdentity" {
+			result = append(result, 1)
+		}
+		result = append(result, 2)
+		result = append(result, 3)
+		return result
+	}
+	err := proto.Unmarshal(allowedModeValue, &allowedModeList)
+	if err != nil {
+		return result
+	}
+	result = allowedModeList.Mode
+	return result
+}
+

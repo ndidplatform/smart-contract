@@ -58,6 +58,18 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash
 	request.Mode = int64(funcParam.Mode)
+	// Check valid mode
+	allowedMode := app.GetAllowedModeFromStateDB("")
+	validMode := false
+	for _, mode := range allowedMode {
+		if mode == request.Mode {
+			validMode = true
+			break
+		}
+	}
+	if !validMode {
+		return app.ReturnDeliverTxLog(code.InvalidMode, "Must be create request on valid mode", "")
+	}
 	request.IdpIdList = funcParam.IdPIDList
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
