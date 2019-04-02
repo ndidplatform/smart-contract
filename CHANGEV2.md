@@ -589,9 +589,9 @@
 }
 ```
 
-## GetallowedMinIalForRegisterIdentityAtFirstIdp
+## GetAllowedMinIalForRegisterIdentityAtFirstIdp
 
-## Parameter
+### Expected Output
 
 ```json
 {
