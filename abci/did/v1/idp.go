@@ -75,9 +75,8 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
 	}
-	var minIdP int64
-	minIdP = 1
-	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdP)
+	minIdp := 1
+	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdp)
 	if checkRequestResult.Code != code.OK {
 		return checkRequestResult
 	}
@@ -194,32 +193,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
-	var minIdP int64
-	minIdP = 0
-	if refGroupValue != nil {
-		err := proto.Unmarshal(refGroupValue, &refGroup)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		// If have at least one node active
-		for _, idp := range refGroup.Idps {
-			nodeDetailKey := "NodeID" + "|" + idp.NodeId
-			_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
-			if nodeDetailValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-			}
-			var nodeDetail data.NodeDetail
-			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-			}
-			if nodeDetail.Active {
-				minIdP = 1
-				break
-			}
-		}
-	}
-	// If mode list is not include 3, set min idp to 0
+
 	mode3 := false
 	for _, mode := range user.ModeList {
 		if mode == 3 {
@@ -227,13 +201,36 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			break
 		}
 	}
-	if !mode3 && minIdP == 1 {
-		minIdP = 0
-	}
-	if minIdP > 0 {
-		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
+	if mode3 {
+		minIdp := 0
+		if refGroupValue != nil {
+			err := proto.Unmarshal(refGroupValue, &refGroup)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			}
+			// If have at least one node active
+			for _, idp := range refGroup.Idps {
+				nodeDetailKey := "NodeID" + "|" + idp.NodeId
+				_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+				if nodeDetailValue == nil {
+					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				}
+				var nodeDetail data.NodeDetail
+				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				}
+				if nodeDetail.Active {
+					minIdp = 1
+					break
+				}
+			}
+		}
+		if minIdp > 0 {
+			checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdp)
+			if checkRequestResult.Code != code.OK {
+				return checkRequestResult
+			}
 		}
 	}
 	var accessor data.Accessor
@@ -301,7 +298,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
 
-func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int64) types.ResponseDeliverTx {
+func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
 	requestKey := "Request" + "|" + requestID
 	_, requestValue := app.GetCommittedVersionedStateDB([]byte(requestKey), app.state.Height)
 	if requestValue == nil {
@@ -321,7 +318,7 @@ func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp
 	if !request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
 	}
-	var acceptCount int64
+	var acceptCount int
 	acceptCount = 0
 	for _, response := range request.ResponseList {
 		if response.ValidIal != "true" {
@@ -548,9 +545,8 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
 	}
-	var minIdP int64
-	minIdP = 1
-	checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeIdentityAssociation", minIdP)
+	minIdp := 1
+	checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeIdentityAssociation", minIdp)
 	if checkRequestResult.Code != code.OK {
 		return checkRequestResult
 	}
@@ -838,8 +834,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
-	var minIdP int64
-	minIdP = 0
+	minIdp := 0
 	if refGroupValue != nil {
 		err := proto.Unmarshal(refGroupValue, &refGroup)
 		if err != nil {
@@ -858,12 +853,12 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
 			if nodeDetail.Active {
-				minIdP = 1
+				minIdp = 1
 				break
 			}
 		}
 	}
-	checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdP)
+	checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdp)
 	if checkRequestResult.Code != code.OK {
 		return checkRequestResult
 	}
@@ -916,4 +911,3 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	tags = append(tags, tag)
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
 }
-
