@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"sort"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/abci/code"
@@ -171,6 +172,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			user.ModeList = append(user.ModeList, mode)
 		}
 	}
+	sort.Slice(user.ModeList, func(i, j int) bool { return user.ModeList[i] < user.ModeList[j] })
 	var namespaceCount = map[string]int{}
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
@@ -753,6 +755,7 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 			funcParam.ModeList = append(funcParam.ModeList, mode)
 		}
 	}
+	sort.Slice(funcParam.ModeList, func(i, j int) bool { return funcParam.ModeList[i] < funcParam.ModeList[j] })
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
