@@ -1881,11 +1881,33 @@ func (app *DIDApplication) GetReferenceGroupCodeByAccessorID(param string) types
 
 func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery {
 	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
+	var funcParam GetAllowedModeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
 	var result GetAllowedModeListResult
-	// TODO -> get allowed mode from stateDB
-	result.AllowedModeList = append(result.AllowedModeList, 1)
-	result.AllowedModeList = append(result.AllowedModeList, 2)
-	result.AllowedModeList = append(result.AllowedModeList, 3)
+	allowedModeKey := "AllowedModeList" + "|" + funcParam.Purpose
+	var allowedModeList data.AllowedModeList
+	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))
+	if allowedModeValue == nil {
+		// return default value
+		if funcParam.Purpose != "RegisterIdentity" {
+			result.AllowedModeList = append(result.AllowedModeList, 1)
+		}
+		result.AllowedModeList = append(result.AllowedModeList, 2)
+		result.AllowedModeList = append(result.AllowedModeList, 3)
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
+	}
+	err = proto.Unmarshal(allowedModeValue, &allowedModeList)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	result.AllowedModeList = allowedModeList.Mode
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)

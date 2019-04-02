@@ -788,8 +788,9 @@ func TestQueryGetAccessorKey2(t *testing.T) {
 }
 
 func TestQueryGetAllowedModeListExpectString(t *testing.T) {
+	var param did.GetAllowedModeListParam
 	var expected = `{"allowed_mode_list":[1,2,3]}`
-	GetAllowedModeListExpectString(t, expected)
+	GetAllowedModeListExpectString(t, param, expected)
 }
 
 func TestQueryGetAccessorKey2BeforeRevoke(t *testing.T) {
@@ -948,6 +949,27 @@ func TestQueryGetIdentityInfoByIdentityAfterAddIdentity(t *testing.T) {
 	param.NodeID = IdP1
 	expected := `{"ial":2.3,"mode_list":[2,3]}`
 	GetIdentityInfo(t, param, expected)
+}
+
+func TestQueryGetAllowedModeListBeforeSet(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	var expected = `{"allowed_mode_list":[2,3]}`
+	GetAllowedModeListExpectString(t, param, expected)
+}
+
+func TestNDIDSetAllowedModeList(t *testing.T) {
+	var param did.SetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	param.AllowedModeList = append(param.AllowedModeList, 3)
+	SetAllowedModeList(t, param)
+}
+
+func TestQueryGetAllowedModeListAfterSet(t *testing.T) {
+	var param did.GetAllowedModeListParam
+	param.Purpose = "RegisterIdentity"
+	var expected = `{"allowed_mode_list":[3]}`
+	GetAllowedModeListExpectString(t, param, expected)
 }
 
 // ---  Old test ---

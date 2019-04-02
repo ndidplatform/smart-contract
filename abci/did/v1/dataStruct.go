@@ -819,3 +819,11 @@ type UpdateIdentityModeListParam struct {
 	RequestID              string  `json:"request_id"`
 }
 
+type SetAllowedModeListParam struct {
+	Purpose         string  `json:"purpose"`
+	AllowedModeList []int64 `json:"allowed_mode_list"`
+}
+
+type GetAllowedModeListParam struct {
+	Purpose string `json:"purpose"`
+}

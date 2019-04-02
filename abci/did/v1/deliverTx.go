@@ -199,6 +199,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.updateIdentityModeList(param, nodeID)
 	case "AddIdentity":
 		return app.addIdentity(param, nodeID)
+	case "SetAllowedModeList":
+		return app.SetAllowedModeList(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

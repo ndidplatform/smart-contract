@@ -928,9 +928,13 @@ func GetReferenceGroupCodeByAccessorIDExpectString(t *testing.T, param did.GetRe
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetAllowedModeListExpectString(t *testing.T, expected string) {
+func GetAllowedModeListExpectString(t *testing.T, param did.GetAllowedModeListParam, expected string) {
 	fnName := "GetAllowedModeList"
-	result, _ := queryTendermint([]byte(fnName), []byte(""))
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := queryTendermint([]byte(fnName), paramJSON)
 	resultObj, _ := result.(ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
 	if resultObj.Result.Response.Log == expected {

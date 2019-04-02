@@ -205,3 +205,7 @@ message IdentityInRefGroup {
   string identifier_hash = 2;
   bool active = 3;
 }
+
+message AllowedModeList {
+  repeated int64 mode = 1;
+}

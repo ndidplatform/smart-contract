@@ -91,6 +91,7 @@ var IsMethod = map[string]bool{
 	"RevokeIdentityAssociation":        true,
 	"UpdateIdentityModeList":           true,
 	"AddIdentity":                      true,
+	"SetAllowedModeList":               true,
 }
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -592,7 +593,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"RemoveNodeFromProxyNode",
 		"SetInitData",
 		"EndInit",
-		"SetLastBlock":
+		"SetLastBlock",
+		"SetAllowedModeList":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessorMethod",
