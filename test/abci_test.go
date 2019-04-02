@@ -82,6 +82,45 @@ func TestInitNDID(t *testing.T) {
 	IsInitEnded(t, true)
 }
 
+func TestAddNamespace1(t *testing.T) {
+	var param did.Namespace
+	param.Namespace = userNamespace
+	param.Description = "Citizen ID"
+	param.AllowedIdentifierCountInReferenceGroup = 1
+	AddNamespace(t, param)
+}
+
+func TestAddNamespace2(t *testing.T) {
+	var param did.Namespace
+	param.Namespace = userNamespace2
+	param.Description = "Passport"
+	AddNamespace(t, param)
+}
+
+func TestAddNamespace3(t *testing.T) {
+	var param did.Namespace
+	param.Namespace = userNamespace3
+	param.Description = "Some ID"
+	AddNamespace(t, param)
+}
+
+func TestQueryGetNamespaceList(t *testing.T) {
+	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true}]`
+	GetNamespaceListExpectString(t, expected)
+}
+
+func TestSetAllowedIdentifierCountForNamespace(t *testing.T) {
+	var param did.SetAllowedIdentifierCountForNamespaceParam
+	param.Namespace = userNamespace3
+	param.AllowedIdentifierCountInReferenceGroup = 2
+	SetAllowedIdentifierCountForNamespace(t, param)
+}
+
+func TestQueryGetNamespaceListAfterSetAllowedIdentifierCountForNamespace(t *testing.T) {
+	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true,"allowed_identifier_count_in_reference_group":2}]`
+	GetNamespaceListExpectString(t, expected)
+}
+
 func TestRegisterNodeIDP1(t *testing.T) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpPublicKeyBytes, err := generatePublicKey(&idpKey.PublicKey)

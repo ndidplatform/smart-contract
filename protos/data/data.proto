@@ -34,6 +34,7 @@ message Namespace {
   string namespace = 1;
   string description = 2;
   bool active = 3;
+  int32 allowed_identifier_count_in_reference_group = 4;
 }
 
 message ServiceDetailList {

@@ -334,9 +334,10 @@ type RequestIDParam struct {
 }
 
 type Namespace struct {
-	Namespace   string `json:"namespace"`
-	Description string `json:"description"`
-	Active      bool   `json:"active"`
+	Namespace                              string `json:"namespace"`
+	Description                            string `json:"description"`
+	Active                                 bool   `json:"active"`
+	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
 }
 
 type DisableNamespaceParam struct {
@@ -809,3 +810,9 @@ type SetAllowedModeListParam struct {
 type GetAllowedModeListParam struct {
 	Purpose string `json:"purpose"`
 }
+
+type SetAllowedIdentifierCountForNamespaceParam struct {
+	Namespace                              string `json:"namespace"`
+	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
+}
+

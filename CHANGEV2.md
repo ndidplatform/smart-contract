@@ -516,7 +516,7 @@
 ```json
 {
   "namespace": "citizenId",
-  "allowed_identifier_count_in_reference_group": 1, 
+  "allowed_identifier_count_in_reference_group": 1
 }
 ```
 
@@ -532,7 +532,7 @@
 {
   "description": "Citizen ID",
   "namespace": "WsvGOEjoFqvXsvcfFVWm",
-  "allowed_identifier_count_in_reference_group": 1, 
+  "allowed_identifier_count_in_reference_group": 1
 }
 ```
 
@@ -566,7 +566,7 @@
     "namespace": "WsvGOEjoFqvXsvcfFVWm",
     "description": "Citizen ID",
     "active": true,
-    "allowed_identifier_count_in_reference_group": 1,
+    "allowed_identifier_count_in_reference_group": 1
   },
   {
     "namespace": "SJsMIeJcerfZpBfXkJgU",
