@@ -284,8 +284,9 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		refGroup.Identities = append(refGroup.Identities, &newIdentity)
 	}
 	foundThisNodeID := false
-	for _, idp := range refGroup.Idps {
+	for index, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
+			refGroup.Idps[index].Active = true
 			foundThisNodeID = true
 			break
 		}
