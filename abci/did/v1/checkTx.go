@@ -63,7 +63,7 @@ var IsMethod = map[string]bool{
 	"EnableNamespace":                       true,
 	"EnableService":                         true,
 	"RegisterIdentity":                      true,
-	"AddAccessor":                     true,
+	"AddAccessor":                           true,
 	"CreateIdpResponse":                     true,
 	"RegisterAccessor":                      true,
 	"UpdateIdentity":                        true,
@@ -92,6 +92,7 @@ var IsMethod = map[string]bool{
 	"AddIdentity":                           true,
 	"SetAllowedModeList":                    true,
 	"SetAllowedIdentifierCountForNamespace": true,
+	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
 }
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -595,7 +596,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"EndInit",
 		"SetLastBlock",
 		"SetAllowedModeList",
-		"SetAllowedIdentifierCountForNamespace":
+		"SetAllowedIdentifierCountForNamespace",
+		"SetAllowedMinIalForRegisterIdentityAtFirstIdp":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessor",

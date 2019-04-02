@@ -207,3 +207,7 @@ message IdentityInRefGroup {
 message AllowedModeList {
   repeated int32 mode = 1;
 }
+
+message AllowedMinIalForRegisterIdentityAtFirstIdp {
+  double min_ial = 1;
+}

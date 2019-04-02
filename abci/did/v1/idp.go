@@ -252,7 +252,12 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			return increaseRequestUseCountResult
 		}
 	}
-
+	// Check min_ial when RegisterIdentity when onboard as first IdP
+	if refGroupValue == nil {
+		if user.Ial < app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(false) {
+			return app.ReturnDeliverTxLog(code.IalMustBeGreaterOrEqualMinIal, "Ial must be greater or equal min ial when onboard as first IdP", "")
+		}
+	}
 	var accessor data.Accessor
 	accessor.AccessorId = user.AccessorID
 	accessor.AccessorType = user.AccessorType

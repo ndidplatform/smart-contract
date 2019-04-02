@@ -124,5 +124,6 @@ const (
 	AccessorTypeCannotBeEmpty                          uint32 = 99
 	InvalidNamespace                                   uint32 = 100
 	IdentifierCountIsGreaterThanAllowedIdentifierCount uint32 = 101
+	IalMustBeGreaterOrEqualMinIal                      uint32 = 102
 	UnknownError                                       uint32 = 999
 )

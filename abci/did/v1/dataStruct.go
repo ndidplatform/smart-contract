@@ -816,3 +816,10 @@ type SetAllowedIdentifierCountForNamespaceParam struct {
 	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
 }
 
+type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
+	MinIal float64 `json:"min_ial"`
+}
+
+type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
+	MinIal float64 `json:"min_ial"`
+}

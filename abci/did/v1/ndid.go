@@ -64,6 +64,7 @@ var isNDIDMethod = map[string]bool{
 	"SetLastBlock":                          true,
 	"SetAllowedModeList":                    true,
 	"SetAllowedIdentifierCountForNamespace": true,
+	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
 }
 
 func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -1080,6 +1081,24 @@ func (app *DIDApplication) SetAllowedIdentifierCountForNamespace(param string, n
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(allNamespaceKey), []byte(allNamespaceValue))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
+	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
+	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
+	allowedMinIal.MinIal = funcParam.MinIal
+	allowedMinIalByte, err := utils.ProtoDeterministicMarshal(&allowedMinIal)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(allowedMinIalKey), allowedMinIalByte)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 

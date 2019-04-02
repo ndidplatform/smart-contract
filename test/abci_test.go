@@ -83,6 +83,16 @@ func TestInitNDID(t *testing.T) {
 	IsInitEnded(t, true)
 }
 
+func TestNDIDSetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T) {
+	var param did.SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
+	param.MinIal = 2.3
+	SetAllowedMinIalForRegisterIdentityAtFirstIdp(t, param)
+}
+
+func TestQueryGetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T) {
+	var expected = `{"min_ial":2.3}`
+	GetAllowedMinIalForRegisterIdentityAtFirstIdpExpectString(t, expected)
+}
 func TestAddNamespace1(t *testing.T) {
 	var param did.Namespace
 	param.Namespace = userNamespace

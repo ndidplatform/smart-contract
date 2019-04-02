@@ -1936,3 +1936,34 @@ func (app *DIDApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommited
 	}
 	return result
 }
+
+func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {
+	app.logger.Infof("GetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
+	var result GetAllowedMinIalForRegisterIdentityAtFirstIdpResult
+	result.MinIal = app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(true)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(getFromCommitedState bool) float64 {
+	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
+	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
+	var allowedMinIalValue []byte
+	if getFromCommitedState {
+		_, allowedMinIalValue = app.GetCommittedStateDB([]byte(allowedMinIalKey))
+	} else {
+		_, allowedMinIalValue = app.GetStateDB([]byte(allowedMinIalKey))
+	}
+	if allowedMinIalValue == nil {
+		return 0
+	}
+	err := proto.Unmarshal(allowedMinIalValue, &allowedMinIal)
+	if err != nil {
+		return 0
+	}
+	return allowedMinIal.MinIal
+}
+

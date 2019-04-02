@@ -107,7 +107,10 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.GetReferenceGroupCodeByAccessorID(param)
 	case "GetAllowedModeList":
 		return app.GetAllowedModeList(param)
+	case "GetAllowedMinIalForRegisterIdentityAtFirstIdp":
+		return app.GetAllowedMinIalForRegisterIdentityAtFirstIdp(param)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
+
