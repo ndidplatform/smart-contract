@@ -231,6 +231,10 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			if checkRequestResult.Code != code.OK {
 				return checkRequestResult
 			}
+			increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+			if increaseRequestUseCountResult.Code != code.OK {
+				return increaseRequestUseCountResult
+			}
 		}
 	}
 	var accessor data.Accessor
@@ -279,10 +283,6 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
 	accessorToRefCodeValue := user.ReferenceGroupCode
-	increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
-	if increaseRequestUseCountResult.Code != code.OK {
-		return increaseRequestUseCountResult
-	}
 	for _, identity := range user.NewIdentityList {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
 		identityToRefCodeValue := []byte(user.ReferenceGroupCode)
