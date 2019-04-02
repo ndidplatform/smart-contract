@@ -433,7 +433,7 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 	res.IsClosed = request.Closed
 	res.IsTimedOut = request.TimedOut
 	res.MessageHash = request.RequestMessageHash
-	res.Mode = int(request.Mode)
+	res.Mode = request.Mode
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
@@ -526,7 +526,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	}
 	result.IsClosed = request.Closed
 	result.IsTimedOut = request.TimedOut
-	result.Mode = int(request.Mode)
+	result.Mode = request.Mode
 
 	// Set purpose
 	result.Purpose = request.Purpose
@@ -1866,7 +1866,7 @@ func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery 
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []int64) {
+func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []int32) {
 	allowedModeKey := "AllowedModeList" + "|" + purpose
 	var allowedModeList data.AllowedModeList
 	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))

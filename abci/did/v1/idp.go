@@ -131,7 +131,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Valid Mode
-	var validMode = map[int64]bool{}
+	var validMode = map[int32]bool{}
 	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
 	for _, mode := range allowedMode {
 		validMode[mode] = true
@@ -155,7 +155,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if user.AccessorType == "" {
 		return app.ReturnDeliverTxLog(code.AccessorTypeCannotBeEmpty, "Please input accessor type", "")
 	}
-	var modeCount = map[int64]int{}
+	var modeCount = map[int32]int{}
 	for _, mode := range allowedMode {
 		modeCount[mode] = 0
 	}
@@ -166,7 +166,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
 		}
 	}
-	user.ModeList = make([]int64, 0)
+	user.ModeList = make([]int32, 0)
 	for mode, count := range modeCount {
 		if count > 0 {
 			user.ModeList = append(user.ModeList, mode)
@@ -733,12 +733,12 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	// Valid Mode
-	var validMode = map[int64]bool{}
+	var validMode = map[int32]bool{}
 	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
 	for _, mode := range allowedMode {
 		validMode[mode] = true
 	}
-	var modeCount = map[int64]int{}
+	var modeCount = map[int32]int{}
 	for _, mode := range allowedMode {
 		modeCount[mode] = 0
 	}
@@ -749,7 +749,7 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
 		}
 	}
-	funcParam.ModeList = make([]int64, 0)
+	funcParam.ModeList = make([]int32, 0)
 	for mode, count := range modeCount {
 		if count > 0 {
 			funcParam.ModeList = append(funcParam.ModeList, mode)

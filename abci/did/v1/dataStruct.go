@@ -52,7 +52,7 @@ type RegisterIdentityParam struct {
 	ReferenceGroupCode string     `json:"reference_group_code"`
 	NewIdentityList    []Identity `json:"new_identity_list"`
 	Ial                float64    `json:"ial"`
-	ModeList           []int64    `json:"mode_list"`
+	ModeList           []int32    `json:"mode_list"`
 	AccessorID         string     `json:"accessor_id"`
 	AccessorPublicKey  string     `json:"accessor_public_key"`
 	AccessorType       string     `json:"accessor_type"`
@@ -91,7 +91,7 @@ type MsqDestinationNode struct {
 	Name     string  `json:"node_name"`
 	MaxIal   float64 `json:"max_ial"`
 	MaxAal   float64 `json:"max_aal"`
-	ModeList []int64 `json:"mode_list"`
+	ModeList []int32 `json:"mode_list"`
 }
 
 type GetIdpNodesResult struct {
@@ -127,7 +127,7 @@ type Request struct {
 	DataRequestList []DataRequest `json:"data_request_list"`
 	MessageHash     string        `json:"request_message_hash"`
 	Purpose         string        `json:"purpose"`
-	Mode            int           `json:"mode"`
+	Mode            int32         `json:"mode"`
 }
 
 type Response struct {
@@ -156,7 +156,7 @@ type GetRequestResult struct {
 	IsClosed    bool   `json:"closed"`
 	IsTimedOut  bool   `json:"timed_out"`
 	MessageHash string `json:"request_message_hash"`
-	Mode        int    `json:"mode"`
+	Mode        int32  `json:"mode"`
 }
 
 type GetRequestDetailResult struct {
@@ -172,7 +172,7 @@ type GetRequestDetailResult struct {
 	IsClosed            bool          `json:"closed"`
 	IsTimedOut          bool          `json:"timed_out"`
 	Purpose             string        `json:"purpose"`
-	Mode                int           `json:"mode"`
+	Mode                int32         `json:"mode"`
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`
 	CreationChainID     string        `json:"creation_chain_id"`
@@ -370,7 +370,7 @@ type AccessorMethod struct {
 	AccessorID             string `json:"accessor_id"`
 	AccessorPublicKey      string `json:"accessor_public_key"`
 	AccessorType           string `json:"accessor_type"`
-	Mode                   int64  `json:"mode"`
+	Mode                   int32  `json:"mode"`
 	RequestID              string `json:"request_id"`
 }
 
@@ -463,7 +463,7 @@ type GetIdentityInfoParam struct {
 
 type GetIdentityInfoResult struct {
 	Ial      float64 `json:"ial"`
-	ModeList []int64 `json:"mode_list"`
+	ModeList []int32 `json:"mode_list"`
 }
 
 type UpdateNodeByNDIDParam struct {
@@ -586,7 +586,7 @@ type IdpNode struct {
 	MaxAal    float64      `json:"max_aal"`
 	PublicKey string       `json:"public_key"`
 	Mq        []MsqAddress `json:"mq"`
-	ModeList  []int64      `json:"mode_list"`
+	ModeList  []int32      `json:"mode_list"`
 }
 
 type ASWithMqNode struct {
@@ -657,7 +657,7 @@ type IdpNodeBehindProxy struct {
 	MaxIal    float64 `json:"max_ial"`
 	MaxAal    float64 `json:"max_aal"`
 	PublicKey string  `json:"public_key"`
-	ModeList  []int64 `json:"mode_list"`
+	ModeList  []int32 `json:"mode_list"`
 	Proxy     struct {
 		NodeID    string       `json:"node_id"`
 		PublicKey string       `json:"public_key"`
@@ -790,20 +790,20 @@ type RevokeIdentityAssociationParam struct {
 }
 
 type GetAllowedModeListResult struct {
-	AllowedModeList []int64 `json:"allowed_mode_list"`
+	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
 type UpdateIdentityModeListParam struct {
 	ReferenceGroupCode     string  `json:"reference_group_code"`
 	IdentityNamespace      string  `json:"identity_namespace"`
 	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
-	ModeList               []int64 `json:"mode_list"`
+	ModeList               []int32 `json:"mode_list"`
 	RequestID              string  `json:"request_id"`
 }
 
 type SetAllowedModeListParam struct {
 	Purpose         string  `json:"purpose"`
-	AllowedModeList []int64 `json:"allowed_mode_list"`
+	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
 type GetAllowedModeListParam struct {

@@ -57,7 +57,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.RequestTimeout = int64(funcParam.Timeout)
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash
-	request.Mode = int64(funcParam.Mode)
+	request.Mode = funcParam.Mode
 	// Check valid mode
 	allowedMode := app.GetAllowedModeFromStateDB("")
 	validMode := false
