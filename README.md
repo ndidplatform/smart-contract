@@ -204,7 +204,7 @@ message Query {
 
 # Create transaction function
 
-## AddAccessorMethod
+## AddAccessor
 
 ### Parameter
 

@@ -118,7 +118,7 @@ func RegisterAccessor(t *testing.T, param did.RegisterAccessorParam, nodeID stri
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddAccessorMethod(t *testing.T, param did.AccessorMethod, idpPrivK string, nodeID string, expected string) {
+func AddAccessor(t *testing.T, param did.AccessorMethod, idpPrivK string, nodeID string, expected string) {
 	idpKey := getPrivateKeyFromString(idpPrivK)
 	idpNodeID := []byte(nodeID)
 	paramJSON, err := json.Marshal(param)
@@ -126,7 +126,7 @@ func AddAccessorMethod(t *testing.T, param did.AccessorMethod, idpPrivK string, 
 		fmt.Println("error:", err)
 	}
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
-	fnName := "AddAccessorMethod"
+	fnName := "AddAccessor"
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))

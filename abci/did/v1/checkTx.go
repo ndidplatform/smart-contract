@@ -63,7 +63,7 @@ var IsMethod = map[string]bool{
 	"EnableNamespace":                       true,
 	"EnableService":                         true,
 	"RegisterIdentity":                      true,
-	"AddAccessorMethod":                     true,
+	"AddAccessor":                     true,
 	"CreateIdpResponse":                     true,
 	"RegisterAccessor":                      true,
 	"UpdateIdentity":                        true,
@@ -484,7 +484,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
-	} else if method == "RegisterAccessor" || method == "AddAccessorMethod" {
+	} else if method == "RegisterAccessor" || method == "AddAccessor" {
 		checkCode, log := checkAccessorPubKey(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
@@ -598,7 +598,7 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"SetAllowedIdentifierCountForNamespace":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
-		"AddAccessorMethod",
+		"AddAccessor",
 		"CreateIdpResponse",
 		"RegisterAccessor",
 		"UpdateIdentity",

@@ -113,8 +113,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.registerNode(param, nodeID)
 	case "RegisterIdentity":
 		return app.registerIdentity(param, nodeID)
-	case "AddAccessorMethod":
-		return app.addAccessorMethod(param, nodeID)
+	case "AddAccessor":
+		return app.AddAccessor(param, nodeID)
 	case "CreateRequest":
 		return app.createRequest(param, nodeID)
 	case "CreateIdpResponse":

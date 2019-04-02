@@ -520,7 +520,7 @@ func TestIdPAddAccessorMethodWithInvalidParameter1(t *testing.T) {
 	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID1.String()
-	AddAccessorMethod(t, param, idpPrivK2, IdP2, "Found reference group code and identity detail in parameter")
+	AddAccessor(t, param, idpPrivK2, IdP2, "Found reference group code and identity detail in parameter")
 }
 
 func TestIdPAddAccessorMethodWithInvalidParameter2(t *testing.T) {
@@ -529,7 +529,7 @@ func TestIdPAddAccessorMethodWithInvalidParameter2(t *testing.T) {
 	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID1.String()
-	AddAccessorMethod(t, param, idpPrivK2, IdP2, "Reference group not found")
+	AddAccessor(t, param, idpPrivK2, IdP2, "Reference group not found")
 }
 
 func TestIdP2CreateRequestForAddAccessorMethod(t *testing.T) {
@@ -543,7 +543,7 @@ func TestIdP2CreateRequestForAddAccessorMethod(t *testing.T) {
 	param.DataRequestList = datas
 	param.MessageHash = "hash('Please allow...')"
 	param.Mode = 3
-	param.Purpose = "AddAccessorMethod"
+	param.Purpose = "AddAccessor"
 	param.IdPIDList = append(param.IdPIDList, IdP1)
 	CreateRequest(t, param, idpPrivK2, IdP2)
 }
@@ -580,7 +580,7 @@ func TestIdPAddAccessorMethod(t *testing.T) {
 	param.AccessorPublicKey = accessorPubKey2
 	param.AccessorType = "RSA2048"
 	param.RequestID = requestID3.String()
-	AddAccessorMethod(t, param, idpPrivK2, IdP2, "success")
+	AddAccessor(t, param, idpPrivK2, IdP2, "success")
 }
 
 func TestQueryGetReferenceGroupCodeByAccessorID3(t *testing.T) {
@@ -1846,7 +1846,7 @@ func TestQueryGetAllowedModeListForNormalTransaction(t *testing.T) {
 // 		accessorGroupID1.String(),
 // 		requestID2.String(),
 // 	}
-// 	AddAccessorMethod(t, param, IdP10, true)
+// 	AddAccessor(t, param, IdP10, true)
 // }
 
 // func TestIdPAddAccessorMethod2(t *testing.T) {
@@ -1857,7 +1857,7 @@ func TestQueryGetAllowedModeListForNormalTransaction(t *testing.T) {
 // 		accessorGroupID1.String(),
 // 		requestID2.String(),
 // 	}
-// 	AddAccessorMethod(t, param, IdP10, false)
+// 	AddAccessor(t, param, IdP10, false)
 // }
 
 // func TestQueryGetAccessorsInAccessorGroup_IdP1(t *testing.T) {

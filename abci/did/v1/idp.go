@@ -34,8 +34,8 @@ import (
 	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
-func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddAccessorMethod, Parameter: %s", param)
+func (app *DIDApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("AddAccessor, Parameter: %s", param)
 	var funcParam AccessorMethod
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -77,7 +77,7 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 	}
 	var minIdP int64
 	minIdP = 1
-	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessorMethod", minIdP)
+	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdP)
 	if checkRequestResult.Code != code.OK {
 		return checkRequestResult
 	}
