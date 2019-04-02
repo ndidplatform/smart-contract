@@ -75,6 +75,7 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
 	}
+
 	minIdp := 1
 	checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdp)
 	if checkRequestResult.Code != code.OK {
@@ -201,42 +202,41 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			break
 		}
 	}
-	if mode3 {
-		minIdp := 0
-		if refGroupValue != nil {
-			err := proto.Unmarshal(refGroupValue, &refGroup)
+	minIdp := 0
+	if refGroupValue != nil {
+		err := proto.Unmarshal(refGroupValue, &refGroup)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		// If have at least one node active
+		for _, idp := range refGroup.Idps {
+			nodeDetailKey := "NodeID" + "|" + idp.NodeId
+			_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+			if nodeDetailValue == nil {
+				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			}
+			var nodeDetail data.NodeDetail
+			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
-			// If have at least one node active
-			for _, idp := range refGroup.Idps {
-				nodeDetailKey := "NodeID" + "|" + idp.NodeId
-				_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
-				if nodeDetailValue == nil {
-					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-				if nodeDetail.Active {
-					minIdp = 1
-					break
-				}
-			}
-		}
-		if minIdp > 0 {
-			checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdp)
-			if checkRequestResult.Code != code.OK {
-				return checkRequestResult
-			}
-			increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
-			if increaseRequestUseCountResult.Code != code.OK {
-				return increaseRequestUseCountResult
+			if nodeDetail.Active {
+				minIdp = 1
+				break
 			}
 		}
 	}
+	if mode3 && minIdp > 0 {
+		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdp)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
+		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
+	}
+
 	var accessor data.Accessor
 	accessor.AccessorId = user.AccessorID
 	accessor.AccessorType = user.AccessorType
