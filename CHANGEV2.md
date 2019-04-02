@@ -578,3 +578,23 @@
 **NOTE**
 
 - if `allowed_identifier_count_in_reference_group` is not present, means unlimited
+
+## SetAllowedMinIalForRegisterIdentityAtFirstIdp
+
+## Parameter
+
+```json
+{
+  "min_ial": 2.3,
+}
+```
+
+## GetallowedMinIalForRegisterIdentityAtFirstIdp
+
+## Parameter
+
+```json
+{
+  "min_ial": 2.3,
+}
+```
