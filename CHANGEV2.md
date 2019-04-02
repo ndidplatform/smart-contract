@@ -507,3 +507,73 @@
 - DeclareIdentityProof
 - GetIdentityProof
 - `identity_proof` in `response_list` when calling GetRequestDetail
+
+## SetAllowedIdentifierCountForNamespace
+
+## Parameter
+
+```json
+{
+  "namespace": "citizenId",
+  "allowed_identifier_count_in_reference_group": 1, 
+}
+```
+
+**NOTE**
+
+- Only NDID can call this function
+
+## AddNamespace
+
+### Parameter
+
+```json
+{
+  "description": "Citizen ID",
+  "namespace": "WsvGOEjoFqvXsvcfFVWm",
+  "allowed_identifier_count_in_reference_group": 1, 
+}
+```
+
+**NOTE**
+
+- Only NDID can call this function
+- if `allowed_identifier_count_in_reference_group` is not present or 0, means unlimited
+
+### Expected Output
+
+```json
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## GetNamespaceList
+
+### Expected Output
+
+```json
+[
+  {
+    "namespace": "WsvGOEjoFqvXsvcfFVWm",
+    "description": "Citizen ID",
+    "active": true,
+    "allowed_identifier_count_in_reference_group": 1,
+  },
+  {
+    "namespace": "SJsMIeJcerfZpBfXkJgU",
+    "description": "Tel number",
+    "active": true,
+  }
+]
+```
+**NOTE**
+
+- if `allowed_identifier_count_in_reference_group` is not present, means unlimited
