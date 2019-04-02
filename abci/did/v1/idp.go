@@ -324,9 +324,6 @@ func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp
 		if response.ValidIal != "true" {
 			continue
 		}
-		if response.ValidProof != "true" {
-			continue
-		}
 		if response.ValidSignature != "true" {
 			continue
 		}

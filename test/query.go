@@ -304,50 +304,6 @@ func GetAsNodesByServiceId(t *testing.T, param did.GetAsNodesByServiceIdParam, e
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetIdentityProof(t *testing.T, param did.GetIdentityProofParam, expected did.GetIdentityProofResult) {
-	fnName := "GetIdentityProof"
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.GetIdentityProofResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
-func GetIdentityProofExpectString(t *testing.T, param did.GetIdentityProofParam, expected string) {
-	fnName := "GetIdentityProof"
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.GetIdentityProofResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	if resultObj.Result.Response.Log == expected {
-		t.Logf("PASS: %s", fnName)
-		return
-	}
-	if actual := res; !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
-	}
-	t.Logf("PASS: %s", fnName)
-}
-
 func GetPriceFunc(t *testing.T, param did.GetPriceFuncParam, expected did.GetPriceFuncResult) {
 	fnName := "GetPriceFunc"
 	paramJSON, err := json.Marshal(param)

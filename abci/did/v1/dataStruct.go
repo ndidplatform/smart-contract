@@ -131,16 +131,13 @@ type Request struct {
 }
 
 type Response struct {
-	Ial              float64 `json:"ial"`
-	Aal              float64 `json:"aal"`
-	Status           string  `json:"status"`
-	Signature        string  `json:"signature"`
-	IdentityProof    string  `json:"identity_proof"`
-	PrivateProofHash string  `json:"private_proof_hash"`
-	IdpID            string  `json:"idp_id"`
-	ValidProof       *bool   `json:"valid_proof"`
-	ValidIal         *bool   `json:"valid_ial"`
-	ValidSignature   *bool   `json:"valid_signature"`
+	Ial            float64 `json:"ial"`
+	Aal            float64 `json:"aal"`
+	Status         string  `json:"status"`
+	Signature      string  `json:"signature"`
+	IdpID          string  `json:"idp_id"`
+	ValidIal       *bool   `json:"valid_ial"`
+	ValidSignature *bool   `json:"valid_signature"`
 }
 
 type CreateIdpResponseParam struct {
@@ -495,7 +492,6 @@ type TimeOutRequestParam struct {
 
 type ResponseValid struct {
 	IdpID          string `json:"idp_id"`
-	ValidProof     *bool  `json:"valid_proof"`
 	ValidIal       *bool  `json:"valid_ial"`
 	ValidSignature *bool  `json:"valid_signature"`
 }
@@ -508,20 +504,6 @@ type GetDataSignatureParam struct {
 
 type GetDataSignatureResult struct {
 	Signature string `json:"signature"`
-}
-
-type DeclareIdentityProofParam struct {
-	IdentityProof string `json:"identity_proof"`
-	RequestID     string `json:"request_id"`
-}
-
-type GetIdentityProofParam struct {
-	IdpID     string `json:"idp_id"`
-	RequestID string `json:"request_id"`
-}
-
-type GetIdentityProofResult struct {
-	IdentityProof string `json:"identity_proof"`
 }
 
 type UpdateServiceDestinationParam struct {

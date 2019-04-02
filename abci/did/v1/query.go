@@ -83,8 +83,6 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getIdentityInfo(param)
 	case "GetDataSignature":
 		return app.getDataSignature(param)
-	case "GetIdentityProof":
-		return app.getIdentityProof(param)
 	case "GetServicesByAsID":
 		return app.getServicesByAsID(param)
 	case "GetIdpNodesInfo":

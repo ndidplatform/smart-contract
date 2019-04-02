@@ -221,13 +221,6 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
-				if valid.ValidProof != nil {
-					if *valid.ValidProof {
-						request.ResponseList[index].ValidProof = "true"
-					} else {
-						request.ResponseList[index].ValidProof = "false"
-					}
-				}
 				if valid.ValidIal != nil {
 					if *valid.ValidIal {
 						request.ResponseList[index].ValidIal = "true"
@@ -280,13 +273,6 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
-				if valid.ValidProof != nil {
-					if *valid.ValidProof {
-						request.ResponseList[index].ValidProof = "true"
-					} else {
-						request.ResponseList[index].ValidProof = "false"
-					}
-				}
 				if valid.ValidIal != nil {
 					if *valid.ValidIal {
 						request.ResponseList[index].ValidIal = "true"

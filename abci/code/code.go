@@ -61,8 +61,6 @@ const (
 	ServiceIDNotFound                         uint32 = 34
 	InvalidMode                               uint32 = 35
 	HashIDNotFound                            uint32 = 36
-	DuplicateIdentityProof                    uint32 = 37
-	WrongIdentityProof                        uint32 = 38
 	DuplicateASInDataRequest                  uint32 = 39
 	DuplicateAnsweredAsIDList                 uint32 = 40
 	DuplicateServiceIDInDataRequest           uint32 = 41

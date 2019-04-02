@@ -503,18 +503,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 		newRow.Aal = float64(response.Aal)
 		newRow.Status = response.Status
 		newRow.Signature = response.Signature
-		newRow.IdentityProof = response.IdentityProof
-		newRow.PrivateProofHash = response.PrivateProofHash
 		newRow.IdpID = response.IdpId
-		if response.ValidProof != "" {
-			if response.ValidProof == "true" {
-				tValue := true
-				newRow.ValidProof = &tValue
-			} else {
-				fValue := false
-				newRow.ValidProof = &fValue
-			}
-		}
 		if response.ValidIal != "" {
 			if response.ValidIal == "true" {
 				tValue := true
@@ -1056,24 +1045,6 @@ func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
 	}
 	var result GetDataSignatureResult
 	result.Signature = string(signDataValue)
-	returnValue, err := json.Marshal(result)
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
-}
-
-func (app *DIDApplication) getIdentityProof(param string) types.ResponseQuery {
-	app.logger.Infof("GetIdentityProof, Parameter: %s", param)
-	var funcParam GetIdentityProofParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	identityProofKey := "IdentityProof" + "|" + funcParam.RequestID + "|" + funcParam.IdpID
-	_, identityProofValue := app.GetCommittedStateDB([]byte(identityProofKey))
-	if identityProofValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-	}
-	var result GetIdentityProofResult
-	result.IdentityProof = string(identityProofValue)
 	returnValue, err := json.Marshal(result)
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }

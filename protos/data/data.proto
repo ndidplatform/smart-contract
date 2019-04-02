@@ -99,10 +99,7 @@ message Response {
   double aal = 2;
   string status = 3;
   string signature = 4;
-  string identity_proof = 5;
-  string private_proof_hash = 6;
   string idp_id = 7;
-  string valid_proof = 8;
   string valid_ial = 9;
   string valid_signature = 10;
 }
