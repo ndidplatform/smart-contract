@@ -48,14 +48,14 @@ func (app *DIDApplication) addAccessorMethod(param string, nodeID string) types.
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -120,7 +120,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -176,7 +176,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -188,7 +188,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
 	var minIdP int64
@@ -201,7 +201,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		// If have at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := "NodeID" + "|" + idp.NodeId
-			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+			_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 			if nodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
@@ -227,9 +227,11 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if !mode3 && minIdP == 1 {
 		minIdP = 0
 	}
-	checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
-	if checkRequestResult.Code != code.OK {
-		return checkRequestResult
+	if minIdP > 0 {
+		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdP)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
 	}
 	var accessor data.Accessor
 	accessor.AccessorId = user.AccessorID
@@ -399,7 +401,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	}
 	// Check AAL, IAL with MaxIalAal
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -458,7 +460,7 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 	}
 	// Check IAL must less than Max IAL
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -478,14 +480,14 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -531,7 +533,7 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -557,14 +559,14 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -615,7 +617,7 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	}
 	// check node is active
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -631,7 +633,7 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	firstRefGroup := ""
 	for index, accsesorID := range funcParam.AccessorIDList {
 		accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + accsesorID
-		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(accessorToRefCodeKey))
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(accessorToRefCodeKey))
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
@@ -645,7 +647,7 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	}
 	refGroupCode := firstRefGroup
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -707,7 +709,7 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 	}
 	// Check IAL must less than Max IAL
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -724,14 +726,14 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -777,7 +779,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -797,7 +799,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.GetCommittedStateDB([]byte(identityToRefCodeKey))
+		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -809,7 +811,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
-	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
 	var minIdP int64
@@ -822,7 +824,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		// If have at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := "NodeID" + "|" + idp.NodeId
-			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+			_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
 			if nodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
