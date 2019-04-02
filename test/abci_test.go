@@ -280,7 +280,7 @@ func TestIdP1RegisterIdentityWithDuplicateNamespace(t *testing.T) {
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID1.String()
 	var param = user
-	RegisterIdentity(t, param, idpPrivK, IdP1, "Namespace in identity list are duplicated")
+	RegisterIdentity(t, param, idpPrivK, IdP1, "Identifier count is greater than allowed identifier count")
 }
 
 func TestIdP1RegisterIdentityWithInvalidNamespace(t *testing.T) {

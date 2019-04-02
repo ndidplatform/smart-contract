@@ -200,9 +200,10 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
 	}
-	for _, count := range namespaceCount {
-		if count > 1 {
-			return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
+	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
+	for namespace, count := range namespaceCount {
+		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
+			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
@@ -845,9 +846,10 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
 	}
-	for _, count := range namespaceCount {
-		if count > 1 {
-			return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
+	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
+	for namespace, count := range namespaceCount {
+		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
+			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
 		}
 	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
