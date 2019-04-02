@@ -1887,3 +1887,27 @@ func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []i
 	return result
 }
 
+func (app *DIDApplication) GetNamespaceMap(getFromCommitedState bool) (result map[string]bool) {
+	result = make(map[string]bool, 0)
+	allNamespaceKey := "AllNamespace"
+	var allNamespaceValue []byte
+	if getFromCommitedState {
+		_, allNamespaceValue = app.GetCommittedStateDB([]byte(allNamespaceKey))
+	} else {
+		_, allNamespaceValue = app.GetStateDB([]byte(allNamespaceKey))
+	}
+	if allNamespaceValue == nil {
+		return result
+	}
+	var namespaces data.NamespaceList
+	err := proto.Unmarshal([]byte(allNamespaceValue), &namespaces)
+	if err != nil {
+		return result
+	}
+	for _, namespace := range namespaces.Namespaces {
+		if namespace.Active {
+			result[namespace.Namespace] = true
+		}
+	}
+	return result
+}

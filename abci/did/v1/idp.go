@@ -184,6 +184,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	sort.Slice(user.ModeList, func(i, j int) bool { return user.ModeList[i] < user.ModeList[j] })
 	var namespaceCount = map[string]int{}
+	validNamespace := app.GetNamespaceMap(false)
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
@@ -192,6 +193,10 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+		// check namespace is valid
+		if !validNamespace[identity.IdentityNamespace] {
+			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
 	}
@@ -824,6 +829,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 	}
 	var namespaceCount = map[string]int{}
+	validNamespace := app.GetNamespaceMap(false)
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
@@ -832,6 +838,10 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+		// check namespace is valid
+		if !validNamespace[identity.IdentityNamespace] {
+			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
 	}

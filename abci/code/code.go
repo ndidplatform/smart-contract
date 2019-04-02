@@ -122,5 +122,6 @@ const (
 	AccessorIDCannotBeEmpty                   uint32 = 97
 	AccessorPublicKeyCannotBeEmpty            uint32 = 98
 	AccessorTypeCannotBeEmpty                 uint32 = 99
+	InvalidNamespace                          uint32 = 100
 	UnknownError                              uint32 = 999
 )
