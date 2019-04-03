@@ -89,10 +89,6 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 		if checkRequestResult.Code != code.OK {
 			return checkRequestResult
 		}
-		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-		if increaseRequestUseCountResult.Code != code.OK {
-			return increaseRequestUseCountResult
-		}
 	}
 
 	var accessor data.Accessor
@@ -111,6 +107,14 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
+	if mode3 {
+		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
+	}
+
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
@@ -247,10 +251,6 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		if checkRequestResult.Code != code.OK {
 			return checkRequestResult
 		}
-		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
-		if increaseRequestUseCountResult.Code != code.OK {
-			return increaseRequestUseCountResult
-		}
 	}
 	// Check min_ial when RegisterIdentity when onboard as first IdP
 	if refGroupValue == nil {
@@ -303,6 +303,14 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
+	if mode3 && minIdp > 0 {
+		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
+	}
+
 	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + user.AccessorID
 	accessorToRefCodeValue := user.ReferenceGroupCode
 	for _, identity := range user.NewIdentityList {
@@ -703,10 +711,6 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 		if checkRequestResult.Code != code.OK {
 			return checkRequestResult
 		}
-		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-		if increaseRequestUseCountResult.Code != code.OK {
-			return increaseRequestUseCountResult
-		}
 	}
 
 	for iIdP, idp := range refGroup.Idps {
@@ -726,6 +730,14 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
+	if mode3 {
+		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
+	}
+
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	var tags []cmn.KVPair
 	var tag cmn.KVPair
