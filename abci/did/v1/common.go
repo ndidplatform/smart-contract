@@ -1755,16 +1755,28 @@ func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
 	}
 	var result GetAccessorOwnerResult
 	result.NodeID = ""
-	key := "Accessor" + "|" + funcParam.AccessorID
-	_, value := app.GetCommittedStateDB([]byte(key))
-	// If value == nil set log = "not found"
-	if value == nil {
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(accessorToRefCodeKey))
+	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	var accessor data.Accessor
-	err = proto.Unmarshal([]byte(value), &accessor)
-	if err == nil {
-		result.NodeID = accessor.Owner
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCodeFromDB)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		for _, accessor := range idp.Accessors {
+			if accessor.AccessorId == funcParam.AccessorID {
+				result.NodeID = idp.NodeId
+				break
+			}
+		}
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
