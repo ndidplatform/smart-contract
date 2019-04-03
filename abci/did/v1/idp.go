@@ -684,7 +684,16 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 					break
 				}
 			}
-			break
+			accessorInIdP := make([]string, 0)
+			for _, accsesor := range idp.Accessors {
+				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
+			}
+			for _, accsesorID := range funcParam.AccessorIDList {
+				if !contains(accsesorID, accessorInIdP) {
+					return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
+				}
+				break
+			}
 		}
 	}
 
@@ -700,20 +709,6 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 		}
 	}
 
-	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			accessorInIdP := make([]string, 0)
-			for _, accsesor := range idp.Accessors {
-				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
-			}
-			for _, accsesorID := range funcParam.AccessorIDList {
-				if !contains(accsesorID, accessorInIdP) {
-					return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
-				}
-				break
-			}
-		}
-	}
 	for iIdP, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			for _, accsesorID := range funcParam.AccessorIDList {
