@@ -77,8 +77,6 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodeInfo(param)
 	case "CheckExistingAccessorID":
 		return app.checkExistingAccessorID(param)
-	case "CheckExistingAccessorGroupID":
-		return app.checkExistingAccessorGroupID(param)
 	case "GetIdentityInfo":
 		return app.getIdentityInfo(param)
 	case "GetDataSignature":
@@ -93,8 +91,6 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodesBehindProxyNode(param)
 	case "GetNodeIDList":
 		return app.getNodeIDList(param)
-	case "GetAccessorsInAccessorGroup":
-		return app.getAccessorsInAccessorGroup(param)
 	case "GetAccessorOwner":
 		return app.getAccessorOwner(param)
 	case "IsInitEnded":

@@ -792,47 +792,29 @@ func (app *DIDApplication) checkExistingAccessorID(param string) types.ResponseQ
 	}
 	var result CheckExistingResult
 	result.Exist = false
-	accessorKey := "Accessor" + "|" + funcParam.AccessorID
-	_, accessorValue := app.GetCommittedStateDB([]byte(accessorKey))
-	if accessorValue == nil {
-		returnValue, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	_, refGroupCodeFromDB := app.GetCommittedStateDB([]byte(accessorToRefCodeKey))
+	if refGroupCodeFromDB == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	refGroupKey := "RefGroupCode" + "|" + string(refGroupCodeFromDB)
+	_, refGroupValue := app.GetCommittedStateDB([]byte(refGroupKey))
+	if refGroupValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		for _, accessor := range idp.Accessors {
+			if accessor.AccessorId == funcParam.AccessorID {
+				result.Exist = true
+				break
+			}
 		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
 	}
-	var accessor data.Accessor
-	err = proto.Unmarshal([]byte(accessorValue), &accessor)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	result.Exist = true
-	returnValue, err := json.Marshal(result)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
-}
-
-func (app *DIDApplication) checkExistingAccessorGroupID(param string) types.ResponseQuery {
-	app.logger.Infof("CheckExistingAccessorGroupID, Parameter: %s", param)
-	var funcParam CheckExistingAccessorGroupIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	var result CheckExistingResult
-	result.Exist = false
-	accessorGroupKey := "AccessorGroup" + "|" + funcParam.AccessorGroupID
-	_, accessorGroupValue := app.GetCommittedStateDB([]byte(accessorGroupKey))
-	if accessorGroupValue == nil {
-		returnValue, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
-	}
-	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1694,56 +1676,6 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
-}
-
-func (app *DIDApplication) getAccessorsInAccessorGroup(param string) types.ResponseQuery {
-	app.logger.Infof("GetAccessorsInAccessorGroup, Parameter: %s", param)
-	var funcParam GetAccessorsInAccessorGroupParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	var result GetAccessorsInAccessorGroupResult
-	result.AccessorList = make([]string, 0)
-	if funcParam.AccessorGroupID == "" {
-		returnValue, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(returnValue, "not found", app.state.Height)
-	}
-	accessorInGroupKey := "AccessorInGroup" + "|" + funcParam.AccessorGroupID
-	_, accessorInGroupKeyValue := app.GetCommittedStateDB([]byte(accessorInGroupKey))
-	var accessors data.AccessorInGroup
-	err = proto.Unmarshal(accessorInGroupKeyValue, &accessors)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-	// If IdpID == "", return all accessors in group
-	if funcParam.IdpID == "" {
-		for _, accessor := range accessors.Accessors {
-			result.AccessorList = append(result.AccessorList, accessor)
-		}
-	} else {
-		// filter by owner of accessor
-		for _, accessor := range accessors.Accessors {
-			accessorKey := "Accessor" + "|" + accessor
-			_, accessorValue := app.GetCommittedStateDB([]byte(accessorKey))
-			var accessorObj data.Accessor
-			err := proto.Unmarshal(accessorValue, &accessorObj)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-			}
-			if accessorObj.Owner == funcParam.IdpID {
-				result.AccessorList = append(result.AccessorList, accessor)
-			}
-		}
-	}
-	returnValue, err := json.Marshal(result)
-	if len(result.AccessorList) > 0 {
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
-	}
-	return app.ReturnQuery(returnValue, "not found", app.state.Height)
 }
 
 func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
