@@ -292,6 +292,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	for index, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			refGroup.Idps[index].Active = true
+			refGroup.Idps[index].Mode = funcParam.ModeList
 			foundThisNodeID = true
 			break
 		}
