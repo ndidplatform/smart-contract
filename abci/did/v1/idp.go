@@ -674,6 +674,32 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == nodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+			break
+		}
+	}
+
+	if mode3 {
+		minIdp := 1
+		checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeAccessor", minIdp)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
+		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
+	}
+
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			accessorInIdP := make([]string, 0)
@@ -704,10 +730,6 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-	if increaseRequestUseCountResult.Code != code.OK {
-		return increaseRequestUseCountResult
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	var tags []cmn.KVPair
