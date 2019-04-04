@@ -598,3 +598,40 @@
   "min_ial": 2.3,
 }
 ```
+
+## CloseRequest
+
+### Parameter
+
+```json
+{
+  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "response_valid_list": [
+    {
+      "idp_id": "CuQfyyhjGcCAzKREzHmL",
+      "valid_ial": true,
+      "valid_aal": true,
+      "valid_proof": true,
+      "valid_signature": true
+    }
+  ]
+}
+```
+
+## TimeOutRequest
+
+### Parameter
+
+```json
+{
+  "request_id": "04db0ddf-4d3f-4b40-93b0-af418ad8a2d7",
+  "response_valid_list": [
+    {
+      "idp_id": "CuQfyyhjGcCAzKREzHmL",
+      "valid_aal": false,
+      "valid_proof": false,
+      "valid_signature": false
+    }
+  ]
+}
+```
