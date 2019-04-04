@@ -1889,7 +1889,11 @@ func (app *DIDApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommited
 	}
 	for _, namespace := range namespaces.Namespaces {
 		if namespace.Active {
-			result[namespace.Namespace] = int(namespace.AllowedIdentifierCountInReferenceGroup)
+			if namespace.AllowedIdentifierCountInReferenceGroup == -1 {
+				result[namespace.Namespace] = 0
+			} else {
+				result[namespace.Namespace] = int(namespace.AllowedIdentifierCountInReferenceGroup)
+			}
 		}
 	}
 	return result

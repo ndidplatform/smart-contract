@@ -503,12 +503,13 @@
 - Purpose for normal transaction is empty string.
 
 
-## SetAllowedIdentifierCountForNamespace
+## UpdateNamespace
 
 ## Parameter
 
 ```json
 {
+  "description": "Citizen ID",
   "namespace": "citizenId",
   "allowed_identifier_count_in_reference_group": 1
 }
@@ -517,6 +518,7 @@
 **NOTE**
 
 - Only NDID can call this function
+- if `allowed_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
 
 ## AddNamespace
 
@@ -533,7 +535,7 @@
 **NOTE**
 
 - Only NDID can call this function
-- if `allowed_identifier_count_in_reference_group` is not present or 0, means unlimited
+- if `allowed_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
 
 ### Expected Output
 

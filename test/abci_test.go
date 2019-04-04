@@ -120,11 +120,11 @@ func TestQueryGetNamespaceList(t *testing.T) {
 	GetNamespaceListExpectString(t, expected)
 }
 
-func TestSetAllowedIdentifierCountForNamespace(t *testing.T) {
-	var param did.SetAllowedIdentifierCountForNamespaceParam
+func TestNDIDUpdateNamespace(t *testing.T) {
+	var param did.UpdateNamespaceParam
 	param.Namespace = userNamespace3
 	param.AllowedIdentifierCountInReferenceGroup = 2
-	SetAllowedIdentifierCountForNamespace(t, param)
+	UpdateNamespace(t, param)
 }
 
 func TestQueryGetNamespaceListAfterSetAllowedIdentifierCountForNamespace(t *testing.T) {
@@ -745,7 +745,7 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
 		AS1,
 	}
-	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["passport"]}]}`
 	GetServicesByAsID(t, param, expected)
 }
 

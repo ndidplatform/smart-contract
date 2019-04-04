@@ -201,8 +201,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.addIdentity(param, nodeID)
 	case "SetAllowedModeList":
 		return app.SetAllowedModeList(param, nodeID)
-	case "SetAllowedIdentifierCountForNamespace":
-		return app.SetAllowedIdentifierCountForNamespace(param, nodeID)
+	case "UpdateNamespace":
+		return app.updateNamespace(param, nodeID)
 	case "SetAllowedMinIalForRegisterIdentityAtFirstIdp":
 		return app.SetAllowedMinIalForRegisterIdentityAtFirstIdp(param, nodeID)
 	default:
