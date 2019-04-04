@@ -289,10 +289,17 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		refGroup.Identities = append(refGroup.Identities, &newIdentity)
 	}
 	foundThisNodeID := false
-	for index, idp := range refGroup.Idps {
+	for iIdp, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
-			refGroup.Idps[index].Active = true
-			refGroup.Idps[index].Mode = funcParam.ModeList
+			refGroup.Idps[iIdp].Active = true
+			refGroup.Idps[iIdp].Mode = funcParam.ModeList
+			for iAcc, accessor := range refGroup.Idps[iIdp].Accessors {
+				if accessor.AccessorId == funcParam.AccessorID {
+					refGroup.Idps[iIdp].Accessors[iAcc].AccessorType = user.AccessorType
+					refGroup.Idps[iIdp].Accessors[iAcc].AccessorPublicKey = user.AccessorPublicKey
+					refGroup.Idps[iIdp].Accessors[iAcc].Active = true
+				}
+			}
 			foundThisNodeID = true
 			break
 		}
@@ -621,9 +628,12 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 			return checkRequestResult
 		}
 	}
-	for index, idp := range refGroup.Idps {
+	for iIdP, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
-			refGroup.Idps[index].Active = false
+			refGroup.Idps[iIdP].Active = false
+			for iAcc := range idp.Accessors {
+				refGroup.Idps[iIdP].Accessors[iAcc].Active = false
+			}
 			break
 		}
 	}
