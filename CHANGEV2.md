@@ -694,6 +694,23 @@
 - Remove `identity_proof`, `private_proof_hash`, `valid_proof` from `response_list`
 
 
+## UpdateNode
+
+### Parameter
+
+```json
+{
+  "master_public_key": "",
+  "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n",
+  "supported_request_message_type_list": ["application/pdf", "image/png"] // For IdP node only, "text/plain" must be supported and it is always on the list
+}
+```
+
+**NOTE**
+
+- Add `supported_request_message_type_list` (IdP nodes only)
+
+
 ## Remove these functions
 
 - ClearRegisterIdentityTimeout 
