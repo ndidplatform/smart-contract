@@ -605,7 +605,6 @@
     {
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
       "valid_ial": true,
-      "valid_aal": true,
       "valid_signature": true
     }
   ]
@@ -615,7 +614,6 @@
 **NOTE**
 
 - Remove `valid_proof`
-- Add `valid_aal`
 
 
 ## TimeOutRequest
@@ -629,7 +627,6 @@
     {
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
       "valid_ial": false,
-      "valid_aal": false,
       "valid_signature": false
     }
   ]
@@ -639,7 +636,6 @@
 **NOTE**
 
 - Remove `valid_proof`
-- Add `valid_aal`
 
 
 ## GetRequestDetail
@@ -683,7 +679,6 @@
       "signature": "signature",
       "status": "accept",
       "valid_ial": null,
-      "valid_aal": null,
       "valid_signature": null
     }
   ],
@@ -697,7 +692,6 @@
 **NOTE**
 
 - Remove `identity_proof`, `private_proof_hash`, `valid_proof` from `response_list`
-- Add `valid_aal` to `response_list`
 
 
 ## Remove these functions
