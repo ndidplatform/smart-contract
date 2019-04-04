@@ -149,7 +149,8 @@
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "min_aal": 3,
   "min_ial": 3,
-  "node_id_list": [] //array of string
+  "node_id_list": [], //array of string
+  "supported_request_message_type_list": [] //array of string
 }
 ```
 
@@ -174,7 +175,54 @@
 
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error when `identity_namespace`+`identity_identifier_hash` is not in that reference_group_code?)
 - Remove `hash_id`
-- Add `mode` to result of `GetIdpNodesInfo`
+- Add `supported_request_message_type_list`
+
+
+## GetIdpNodesInfo
+
+### Parameter
+
+```json
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "min_aal": 3,
+  "min_ial": 3,
+  "node_id_list": [], //array of string
+  "supported_request_message_type_list": [] //array of string
+}
+```
+
+### Expected Output
+
+```json
+{
+  "node": [
+    {
+      "max_aal": 3,
+      "max_ial": 3,
+      "mode_list": [2, 3], //array of available mode
+      "supported_request_message_type_list": ["text/plain", "application/pdf"],
+      "mq": [
+        {
+          "ip": "192.168.3.99",
+          "port": 8000
+        }
+      ],
+      "name": "IdP Number 1 from ...",
+      "node_id": "CuQfyyhjGcCAzKREzHmL",
+      "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\\njwIDAQAB\\n-----END PUBLIC KEY-----\\n"
+    }
+  ]
+}
+```
+
+**NOTE**
+
+- Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error when `identity_namespace`+`identity_identifier_hash` is not in that reference_group_code?)
+- Remove `hash_id`
+- Add `mode_list`
 - Add `supported_request_message_type_list`
 
 
@@ -646,7 +694,7 @@
 
 ### Expected Output
 
-```sh
+```json
 {
   "closed": false,
   "data_request_list": [
