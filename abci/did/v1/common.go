@@ -1810,7 +1810,7 @@ func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery 
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAllowedModeListResult
-	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose)
+	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose, true)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1818,10 +1818,16 @@ func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery 
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string) (result []int32) {
+func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string, getFromCommitedState bool) (result []int32) {
 	allowedModeKey := "AllowedModeList" + "|" + purpose
 	var allowedModeList data.AllowedModeList
-	_, allowedModeValue := app.GetCommittedStateDB([]byte(allowedModeKey))
+	var allowedModeValue []byte
+	if getFromCommitedState {
+		_, allowedModeValue = app.GetCommittedStateDB([]byte(allowedModeKey))
+	} else {
+		_, allowedModeValue = app.GetStateDB([]byte(allowedModeKey))
+	}
+
 	if allowedModeValue == nil {
 		// return default value
 		if purpose != "RegisterIdentity" {
