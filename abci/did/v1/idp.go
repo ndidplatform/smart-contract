@@ -146,7 +146,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	// Valid Mode
 	var validMode = map[int32]bool{}
-	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", false)
 	for _, mode := range allowedMode {
 		validMode[mode] = true
 	}
@@ -783,7 +783,7 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 	}
 	// Valid Mode
 	var validMode = map[int32]bool{}
-	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity")
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", false)
 	for _, mode := range allowedMode {
 		validMode[mode] = true
 	}
