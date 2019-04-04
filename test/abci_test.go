@@ -120,11 +120,11 @@ func TestQueryGetNamespaceList(t *testing.T) {
 	GetNamespaceListExpectString(t, expected)
 }
 
-func TestSetAllowedIdentifierCountForNamespace(t *testing.T) {
-	var param did.SetAllowedIdentifierCountForNamespaceParam
+func TestNDIDUpdateNamespace(t *testing.T) {
+	var param did.UpdateNamespaceParam
 	param.Namespace = userNamespace3
 	param.AllowedIdentifierCountInReferenceGroup = 2
-	SetAllowedIdentifierCountForNamespace(t, param)
+	UpdateNamespace(t, param)
 }
 
 func TestQueryGetNamespaceListAfterSetAllowedIdentifierCountForNamespace(t *testing.T) {

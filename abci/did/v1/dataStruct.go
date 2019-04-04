@@ -811,11 +811,6 @@ type GetAllowedModeListParam struct {
 	Purpose string `json:"purpose"`
 }
 
-type SetAllowedIdentifierCountForNamespaceParam struct {
-	Namespace                              string `json:"namespace"`
-	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
-}
-
 type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
 	MinIal float64 `json:"min_ial"`
 }
@@ -823,3 +818,10 @@ type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
 type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
 	MinIal float64 `json:"min_ial"`
 }
+
+type UpdateNamespaceParam struct {
+	Namespace                              string `json:"namespace"`
+	Description                            string `json:"description"`
+	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
+}
+

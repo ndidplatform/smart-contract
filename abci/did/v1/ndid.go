@@ -35,35 +35,35 @@ import (
 )
 
 var isNDIDMethod = map[string]bool{
-	"InitNDID":                              true,
-	"RegisterNode":                          true,
-	"AddNodeToken":                          true,
-	"ReduceNodeToken":                       true,
-	"SetNodeToken":                          true,
-	"SetPriceFunc":                          true,
-	"AddNamespace":                          true,
-	"DisableNamespace":                      true,
-	"SetValidator":                          true,
-	"AddService":                            true,
-	"DisableService":                        true,
-	"UpdateNodeByNDID":                      true,
-	"UpdateService":                         true,
-	"RegisterServiceDestinationByNDID":      true,
-	"DisableNode":                           true,
-	"DisableServiceDestinationByNDID":       true,
-	"EnableNode":                            true,
-	"EnableServiceDestinationByNDID":        true,
-	"EnableNamespace":                       true,
-	"EnableService":                         true,
-	"SetTimeOutBlockRegisterIdentity":       true,
-	"AddNodeToProxyNode":                    true,
-	"UpdateNodeProxyNode":                   true,
-	"RemoveNodeFromProxyNode":               true,
-	"SetInitData":                           true,
-	"EndInit":                               true,
-	"SetLastBlock":                          true,
-	"SetAllowedModeList":                    true,
-	"SetAllowedIdentifierCountForNamespace": true,
+	"InitNDID":                         true,
+	"RegisterNode":                     true,
+	"AddNodeToken":                     true,
+	"ReduceNodeToken":                  true,
+	"SetNodeToken":                     true,
+	"SetPriceFunc":                     true,
+	"AddNamespace":                     true,
+	"DisableNamespace":                 true,
+	"SetValidator":                     true,
+	"AddService":                       true,
+	"DisableService":                   true,
+	"UpdateNodeByNDID":                 true,
+	"UpdateService":                    true,
+	"RegisterServiceDestinationByNDID": true,
+	"DisableNode":                      true,
+	"DisableServiceDestinationByNDID":  true,
+	"EnableNode":                       true,
+	"EnableServiceDestinationByNDID":   true,
+	"EnableNamespace":                  true,
+	"EnableService":                    true,
+	"SetTimeOutBlockRegisterIdentity":  true,
+	"AddNodeToProxyNode":               true,
+	"UpdateNodeProxyNode":              true,
+	"RemoveNodeFromProxyNode":          true,
+	"SetInitData":                      true,
+	"EndInit":                          true,
+	"SetLastBlock":                     true,
+	"SetAllowedModeList":               true,
+	"UpdateNamespace":                  true,
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
 }
 
@@ -235,7 +235,9 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 	var newNamespace data.Namespace
 	newNamespace.Namespace = funcParam.Namespace
 	newNamespace.Description = funcParam.Description
-	newNamespace.AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
+	if funcParam.AllowedIdentifierCountInReferenceGroup != 0 {
+		newNamespace.AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
+	}
 	// set active flag
 	newNamespace.Active = true
 	namespaces.Namespaces = append(namespaces.Namespaces, &newNamespace)
@@ -1053,37 +1055,6 @@ func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetAllowedIdentifierCountForNamespace(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetAllowedIdentifierCountForNamespace, Parameter: %s", param)
-	var funcParam SetAllowedIdentifierCountForNamespaceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	allNamespaceKey := "AllNamespace"
-	_, allNamespaceValue := app.GetStateDB([]byte(allNamespaceKey))
-	if allNamespaceValue == nil {
-		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
-	}
-	var namespaces data.NamespaceList
-	err = proto.Unmarshal([]byte(allNamespaceValue), &namespaces)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	for index, namespace := range namespaces.Namespaces {
-		if namespace.Namespace == funcParam.Namespace {
-			namespaces.Namespaces[index].AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
-			break
-		}
-	}
-	allNamespaceValue, err = utils.ProtoDeterministicMarshal(&namespaces)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	app.SetStateDB([]byte(allNamespaceKey), []byte(allNamespaceValue))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
-}
-
 func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
@@ -1102,3 +1073,38 @@ func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param s
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+func (app *DIDApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("UpdateNamespace, Parameter: %s", param)
+	var funcParam UpdateNamespaceParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	allNamespaceKey := "AllNamespace"
+	_, allNamespaceValue := app.GetStateDB([]byte(allNamespaceKey))
+	if allNamespaceValue == nil {
+		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
+	}
+	var namespaces data.NamespaceList
+	err = proto.Unmarshal([]byte(allNamespaceValue), &namespaces)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	for index, namespace := range namespaces.Namespaces {
+		if namespace.Namespace == funcParam.Namespace {
+			if funcParam.Description != "" {
+				namespaces.Namespaces[index].Description = funcParam.Description
+			}
+			if funcParam.AllowedIdentifierCountInReferenceGroup != 0 {
+				namespaces.Namespaces[index].AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
+			}
+			break
+		}
+	}
+	allNamespaceValue, err = utils.ProtoDeterministicMarshal(&namespaces)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(allNamespaceKey), []byte(allNamespaceValue))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}

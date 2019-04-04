@@ -887,14 +887,14 @@ func SetAllowedModeList(t *testing.T, param did.SetAllowedModeListParam) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func SetAllowedIdentifierCountForNamespace(t *testing.T, param did.SetAllowedIdentifierCountForNamespaceParam) {
+func UpdateNamespace(t *testing.T, param did.UpdateNamespaceParam) {
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 	ndidKey := getPrivateKeyFromString(ndidPrivK)
 	ndidNodeID := []byte("NDID")
-	fnName := "SetAllowedIdentifierCountForNamespace"
+	fnName := "UpdateNamespace"
 	nonce := base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
