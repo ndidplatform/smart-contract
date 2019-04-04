@@ -238,6 +238,10 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			if !idp.Active {
 				continue
 			}
+			// check Ial > min ial
+			if idp.Ial < funcParam.MinIal {
+				continue
+			}
 			var msqDesNode MsqDestinationNode
 			msqDesNode.ID = idp.NodeId
 			msqDesNode.Name = nodeDetail.NodeName
@@ -1255,6 +1259,10 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 			// check IdP has Association with Identity
 			if !idp.Active {
+				continue
+			}
+			// check Ial > min ial
+			if idp.Ial < funcParam.MinIal {
 				continue
 			}
 			// If node is behind proxy
