@@ -500,14 +500,6 @@
 - Only NDID can update `allowed_mode_list`.
 - Purpose for normal transaction is empty string.
 
-## Remove These
-
-- ClearRegisterIdentityTimeout 
-- SetTimeOutBlockRegisterIdentity
-- RegisterAccessor
-- DeclareIdentityProof
-- GetIdentityProof
-- `identity_proof` in `response_list` when calling GetRequestDetail
 
 ## SetAllowedIdentifierCountForNamespace
 
@@ -579,6 +571,7 @@
 
 - if `allowed_identifier_count_in_reference_group` is not present, means unlimited
 
+
 ## SetAllowedMinIalForRegisterIdentityAtFirstIdp
 
 ## Parameter
@@ -589,6 +582,7 @@
 }
 ```
 
+
 ## GetAllowedMinIalForRegisterIdentityAtFirstIdp
 
 ### Expected Output
@@ -598,6 +592,7 @@
   "min_ial": 2.3,
 }
 ```
+
 
 ## CloseRequest
 
@@ -611,12 +606,17 @@
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
       "valid_ial": true,
       "valid_aal": true,
-      "valid_proof": true,
       "valid_signature": true
     }
   ]
 }
 ```
+
+**NOTE**
+
+- Remove `valid_proof`
+- Add `valid_aal`
+
 
 ## TimeOutRequest
 
@@ -628,10 +628,82 @@
   "response_valid_list": [
     {
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
+      "valid_ial": false,
       "valid_aal": false,
-      "valid_proof": false,
       "valid_signature": false
     }
   ]
 }
 ```
+
+**NOTE**
+
+- Remove `valid_proof`
+- Add `valid_aal`
+
+
+## GetRequestDetail
+
+### Expected Output
+
+```sh
+{
+  "closed": false,
+  "data_request_list": [
+    {
+      "answered_as_id_list": [
+        "XckRuCmVliLThncSTnfG"
+      ],
+      "as_id_list": [],
+      "min_as": 1,
+      "received_data_from_list": [
+        "XckRuCmVliLThncSTnfG"
+      ],
+      "request_params_hash": "hash",
+      "service_id": "LlUXaAYeAoVDiQziKPMc"
+    }
+  ],
+  "min_aal": 3,
+  "min_ial": 3,
+  "min_idp": 1,
+  "mode": 3,
+  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "request_message_hash": "hash('Please allow...')",
+  "request_timeout": 259200,
+  "idp_id_list": [
+    "lvEzsuTcZvIRvZyrdEsi",
+    "njHtYuHHxCvzzofcpwon"
+  ],
+  "requester_node_id": "nfhwDGTTeRdMeXzAgLij",
+  "response_list": [
+    {
+      "aal": 3,
+      "ial": 3,
+      "idp_id": "CuQfyyhjGcCAzKREzHmL",
+      "signature": "signature",
+      "status": "accept",
+      "valid_ial": null,
+      "valid_aal": null,
+      "valid_signature": null
+    }
+  ],
+  "purpose": "",
+  "timed_out": false,
+  "creation_block_height": 50,
+  "creation_chain_id": "test-chain-NDID"
+}
+```
+
+**NOTE**
+
+- Remove `identity_proof`, `private_proof_hash`, `valid_proof` from `response_list`
+- Add `valid_aal` to `response_list`
+
+
+## Remove these functions
+
+- ClearRegisterIdentityTimeout 
+- SetTimeOutBlockRegisterIdentity
+- RegisterAccessor
+- DeclareIdentityProof
+- GetIdentityProof
