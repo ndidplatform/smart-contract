@@ -576,11 +576,6 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
 	}
-	minIdp := 1
-	checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeIdentityAssociation", minIdp)
-	if checkRequestResult.Code != code.OK {
-		return checkRequestResult
-	}
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
@@ -603,14 +598,28 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	foundThisNodeID := false
+	mode3 := false
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			foundThisNodeID = true
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
 			break
 		}
 	}
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	if mode3 {
+		minIdp := 1
+		checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeIdentityAssociation", minIdp)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
 	}
 	for index, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
@@ -622,9 +631,11 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-	if increaseRequestUseCountResult.Code != code.OK {
-		return increaseRequestUseCountResult
+	if mode3 {
+		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	var tags []cmn.KVPair
@@ -917,19 +928,28 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 			}
 		}
 	}
-	checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdp)
-	if checkRequestResult.Code != code.OK {
-		return checkRequestResult
-	}
 	foundThisNodeID := false
+	mode3 := false
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
 			foundThisNodeID = true
 			break
 		}
 	}
 	if foundThisNodeID == false {
 		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+	if mode3 {
+		checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdp)
+		if checkRequestResult.Code != code.OK {
+			return checkRequestResult
+		}
 	}
 	// Check duplicated namespace in ref group
 	foundDuplicatedNamespace := false
@@ -953,9 +973,11 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
-	if increaseRequestUseCountResult.Code != code.OK {
-		return increaseRequestUseCountResult
+	if mode3 {
+		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
+		if increaseRequestUseCountResult.Code != code.OK {
+			return increaseRequestUseCountResult
+		}
 	}
 	for _, identity := range user.NewIdentityList {
 		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
