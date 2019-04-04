@@ -348,7 +348,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 		}
 	}
 
-	// Update PrivideService
+	// Update ProvideService
 	provideServiceKey := "ProvideService" + "|" + nodeID
 	_, provideServiceValue := app.GetStateDB([]byte(provideServiceKey))
 	var services data.ServiceList
@@ -367,7 +367,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 				services.Services[index].MinIal = funcParam.MinIal
 			}
 			if len(funcParam.AcceptedNamespaceList) > 0 {
-				nodes.Node[index].AcceptedNamespaceList = funcParam.AcceptedNamespaceList
+				services.Services[index].AcceptedNamespaceList = funcParam.AcceptedNamespaceList
 			}
 			break
 		}

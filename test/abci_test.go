@@ -745,7 +745,7 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
 		AS1,
 	}
-	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["passport"]}]}`
 	GetServicesByAsID(t, param, expected)
 }
 
