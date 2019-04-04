@@ -163,7 +163,8 @@
       "max_ial": 3,
       "node_id": "CuQfyyhjGcCAzKREzHmL",
       "node_name": "IdP Number 1 from ...",
-      "mode_list": [2, 3] //array of available mode
+      "mode_list": [2, 3], //array of available mode
+      "supported_request_message_type_list": ["text/plain", "application/pdf"]
     }
   ]
 }
@@ -174,6 +175,7 @@
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error when `identity_namespace`+`identity_identifier_hash` is not in that reference_group_code?)
 - Remove `hash_id`
 - Add `mode` to result of `GetIdpNodesInfo`
+- Add `supported_request_message_type_list`
 
 
 ## RevokeAccessor
@@ -702,13 +704,68 @@
 {
   "master_public_key": "",
   "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n",
-  "supported_request_message_type_list": ["application/pdf", "image/png"] // For IdP node only, "text/plain" must be supported and it is always on the list
+  "supported_request_message_type_list": ["text/plain", "application/pdf"] // For IdP node only, "text/plain" must be supported always
 }
 ```
 
 **NOTE**
 
 - Add `supported_request_message_type_list` (IdP nodes only)
+- `"text/plain"` must always be present in `supported_request_message_type_list` array
+
+
+## GetNodeInfo
+
+### Expected Output
+
+```json
+{
+  "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\\nDQIDAQAB\\n-----END PUBLIC KEY-----\\n",
+  "max_aal": 2.4,
+  "max_ial": 2.3,
+  "supported_request_message_type_list": ["text/plain", "application/pdf"],
+  "mq": [
+    {
+      "ip": "192.168.3.99",
+      "port": 8000
+    }
+  ],
+  "node_name": "IdP Number 1 from ...",
+  "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n",
+  "role": "IdP"
+}
+```
+
+**NOTE**
+
+- Add `supported_request_message_type_list` to IdP nodes
+
+
+## GetNodesBehindProxyNode
+
+### Expected Output
+
+```json
+{
+  "nodes": [
+    {
+      "config": "KEY_ON_PROXY",
+      "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\\njwIDAQAB\\n-----END PUBLIC KEY-----\\n",
+      "max_aal": 3,
+      "max_ial": 3,
+      "supported_request_message_type_list": ["text/plain", "application/pdf"],
+      "node_id": "BLUbbuoywxSirpxDIPgW",
+      "node_name": "IdP6BehindProxy1",
+      "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\\njwIDAQAB\\n-----END PUBLIC KEY-----\\n",
+      "role": "IdP"
+    }
+  ]
+}
+```
+
+**NOTE**
+
+- Add `supported_request_message_type_list` to IdP nodes
 
 
 ## Remove these functions
