@@ -718,6 +718,7 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 		if idp.NodeId == nodeID {
 			for _, accsesorID := range funcParam.AccessorIDList {
 				for iAcc, accsesor := range idp.Accessors {
+					// app.logger.Debugf("Acces:%s", args)
 					if accsesor.AccessorId == accsesorID {
 						refGroup.Idps[iIdP].Accessors[iAcc].Active = false
 						break
