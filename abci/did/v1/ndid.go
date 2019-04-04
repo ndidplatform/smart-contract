@@ -125,10 +125,11 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	nodeDetail.NodeName = funcParam.NodeName
 	nodeDetail.Role = funcParam.Role
 	nodeDetail.Active = true
-	// if node is IdP, set max_aal, min_ial
+	// if node is IdP, set max_aal, min_ial and supported_request_message_type_list
 	if funcParam.Role == "IdP" {
 		nodeDetail.MaxAal = funcParam.MaxAal
 		nodeDetail.MaxIal = funcParam.MaxIal
+		nodeDetail.SupportedRequestMessageTypeList = append(make([]string, 0), "text/plain")
 	}
 	// if node is IdP, add node id to IdPList
 	var idpsList data.IdPList

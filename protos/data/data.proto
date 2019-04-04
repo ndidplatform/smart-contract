@@ -15,6 +15,7 @@ message NodeDetail {
   bool active = 8;
   string proxy_node_id = 9;
   string proxy_config = 10;
+  repeated string supported_request_message_type_list = 11;
 }
   
 message MQ {
