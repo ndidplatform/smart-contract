@@ -1135,6 +1135,17 @@ func TestQueryGetNodeInfoAfterUpdateNode(t *testing.T) {
 	GetNodeInfo(t, param, expected)
 }
 
+func TestQueryGetIdpNodesInfoWithSupportedRequestMessageTypeListFilter(t *testing.T) {
+	var param did.GetIdpNodesParam
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.MinIal = 2.3
+	param.MinAal = 3
+	param.SupportedRequestMessageTypeList = append(param.SupportedRequestMessageTypeList, "text/plain")
+	param.SupportedRequestMessageTypeList = append(param.SupportedRequestMessageTypeList, "application/pdf")
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"mode_list":[2,3],"supported_request_message_type_list":["text/plain","application/pdf"]}]}`
+	GetIdpNodesInfo(t, param, expected)
+}
+
 // ---  Old test ---
 
 // func TestInitNDID(t *testing.T) {

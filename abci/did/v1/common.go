@@ -177,6 +177,25 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					nodeDetail.MaxAal >= funcParam.MinAal) {
 					continue
 				}
+				// Filter by node_id_list
+				if len(funcParam.NodeIDList) > 0 {
+					if !contains(idp, funcParam.NodeIDList) {
+						continue
+					}
+				}
+				// Filter by supported_request_message_type_list
+				if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+					// foundSupported := false
+					supportedCount := 0
+					for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
+						if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+							supportedCount++
+						}
+					}
+					if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+						continue
+					}
+				}
 				var msqDesNode MsqDestinationNode
 				msqDesNode.ID = idp
 				msqDesNode.Name = nodeDetail.NodeName
@@ -184,13 +203,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 				msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
-				if len(funcParam.NodeIDList) == 0 {
-					returnNodes.Node = append(returnNodes.Node, msqDesNode)
-				} else {
-					if contains(msqDesNode.ID, funcParam.NodeIDList) {
-						returnNodes.Node = append(returnNodes.Node, msqDesNode)
-					}
-				}
+				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}
 		}
 	} else {
@@ -243,6 +256,25 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			if idp.Ial < funcParam.MinIal {
 				continue
 			}
+			// Filter by node_id_list
+			if len(funcParam.NodeIDList) > 0 {
+				if !contains(idp.NodeId, funcParam.NodeIDList) {
+					continue
+				}
+			}
+			// Filter by supported_request_message_type_list
+			if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+				// foundSupported := false
+				supportedCount := 0
+				for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
+					if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+						supportedCount++
+					}
+				}
+				if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+					continue
+				}
+			}
 			var msqDesNode MsqDestinationNode
 			msqDesNode.ID = idp.NodeId
 			msqDesNode.Name = nodeDetail.NodeName
@@ -250,13 +282,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			msqDesNode.MaxAal = nodeDetail.MaxAal
 			msqDesNode.ModeList = idp.Mode
 			msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
-			if len(funcParam.NodeIDList) == 0 {
-				returnNodes.Node = append(returnNodes.Node, msqDesNode)
-			} else {
-				if contains(msqDesNode.ID, funcParam.NodeIDList) {
-					returnNodes.Node = append(returnNodes.Node, msqDesNode)
-				}
-			}
+			returnNodes.Node = append(returnNodes.Node, msqDesNode)
 		}
 	}
 	value, err := json.Marshal(returnNodes)
@@ -1174,6 +1200,25 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					nodeDetail.MaxAal >= funcParam.MinAal) {
 					continue
 				}
+				// Filter by node_id_list
+				if len(funcParam.NodeIDList) > 0 {
+					if !contains(idp, funcParam.NodeIDList) {
+						continue
+					}
+				}
+				// Filter by supported_request_message_type_list
+				if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+					// foundSupported := false
+					supportedCount := 0
+					for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
+						if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+							supportedCount++
+						}
+					}
+					if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+						continue
+					}
+				}
 				// If node is behind proxy
 				if nodeDetail.ProxyNodeId != "" {
 					proxyNodeID := nodeDetail.ProxyNodeId
@@ -1228,13 +1273,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
 					msqDesNode.Mq = msq
 					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
-					if len(funcParam.NodeIDList) == 0 {
-						returnNodes.Node = append(returnNodes.Node, msqDesNode)
-					} else {
-						if contains(msqDesNode.NodeID, funcParam.NodeIDList) {
-							returnNodes.Node = append(returnNodes.Node, msqDesNode)
-						}
-					}
+					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				}
 			}
 		}
@@ -1287,6 +1326,25 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			// check Ial > min ial
 			if idp.Ial < funcParam.MinIal {
 				continue
+			}
+			// Filter by node_id_list
+			if len(funcParam.NodeIDList) > 0 {
+				if !contains(idp.NodeId, funcParam.NodeIDList) {
+					continue
+				}
+			}
+			// Filter by supported_request_message_type_list
+			if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+				// foundSupported := false
+				supportedCount := 0
+				for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
+					if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+						supportedCount++
+					}
+				}
+				if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+					continue
+				}
 			}
 			// If node is behind proxy
 			if nodeDetail.ProxyNodeId != "" {
@@ -1342,13 +1400,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
 				msqDesNode.Mq = msq
 				msqDesNode.ModeList = idp.Mode
-				if len(funcParam.NodeIDList) == 0 {
-					returnNodes.Node = append(returnNodes.Node, msqDesNode)
-				} else {
-					if contains(msqDesNode.NodeID, funcParam.NodeIDList) {
-						returnNodes.Node = append(returnNodes.Node, msqDesNode)
-					}
-				}
+				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}
 		}
 	}

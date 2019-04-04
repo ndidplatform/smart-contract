@@ -78,12 +78,13 @@ type MsqDestination struct {
 }
 
 type GetIdpNodesParam struct {
-	ReferenceGroupCode     string   `json:"reference_group_code"`
-	IdentityNamespace      string   `json:"identity_namespace"`
-	IdentityIdentifierHash string   `json:"identity_identifier_hash"`
-	MinAal                 float64  `json:"min_aal"`
-	MinIal                 float64  `json:"min_ial"`
-	NodeIDList             []string `json:"node_id_list"`
+	ReferenceGroupCode              string   `json:"reference_group_code"`
+	IdentityNamespace               string   `json:"identity_namespace"`
+	IdentityIdentifierHash          string   `json:"identity_identifier_hash"`
+	MinAal                          float64  `json:"min_aal"`
+	MinIal                          float64  `json:"min_ial"`
+	NodeIDList                      []string `json:"node_id_list"`
+	SupportedRequestMessageTypeList []string `json:"supported_request_message_type_list"`
 }
 
 type MsqDestinationNode struct {
