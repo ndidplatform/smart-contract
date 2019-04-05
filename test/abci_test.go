@@ -490,7 +490,7 @@ func TestIdP2RegisterIdentityWithDuplicatedNamespaceToExistedRefGroupExpectError
 	user.AccessorType = "RSA2048"
 	user.RequestID = requestID2.String()
 	var param = user
-	RegisterIdentity(t, param, idpPrivK2, IdP2, "Namespace in identity list are duplicated")
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identifier count is greater than allowed identifier count")
 }
 
 func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
