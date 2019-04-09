@@ -147,7 +147,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	var returnNodes GetIdpNodesResult
-	returnNodes.Node = make([]MsqDestinationNode, 0)
+	returnNodes.Node = make([]interface{}, 0)
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
 		idpsKey := "IdPList"
 		_, idpsValue := app.GetCommittedStateDB([]byte(idpsKey))
@@ -201,7 +201,6 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				msqDesNode.Name = nodeDetail.NodeName
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
-				msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}
@@ -287,7 +286,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					continue
 				}
 			}
-			var msqDesNode MsqDestinationNode
+			var msqDesNode MsqDestinationNodeWithModeList
 			msqDesNode.ID = idp.NodeId
 			msqDesNode.Name = nodeDetail.NodeName
 			msqDesNode.MaxIal = nodeDetail.MaxIal
@@ -1254,7 +1253,6 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 						}
 					}
 					msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
-					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				} else {
 					var msq []MsqAddress
@@ -1272,7 +1270,6 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqDesNode.PublicKey = nodeDetail.PublicKey
 					msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 					msqDesNode.Mq = msq
-					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				}
 			}
@@ -1376,7 +1373,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				if !proxyNode.Active {
 					continue
 				}
-				var msqDesNode IdpNodeBehindProxy
+				var msqDesNode IdpNodeBehindProxyWithModeList
 				msqDesNode.NodeID = idp.NodeId
 				msqDesNode.Name = nodeDetail.NodeName
 				msqDesNode.MaxIal = nodeDetail.MaxIal
@@ -1404,7 +1401,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqAddress.Port = mq.Port
 					msq = append(msq, msqAddress)
 				}
-				var msqDesNode IdpNode
+				var msqDesNode IdpNodeWithModeList
 				msqDesNode.NodeID = idp.NodeId
 				msqDesNode.Name = nodeDetail.NodeName
 				msqDesNode.MaxIal = nodeDetail.MaxIal

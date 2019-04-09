@@ -369,7 +369,7 @@ func TestQueryGetIdpNodesForMode1(t *testing.T) {
 	var param did.GetIdpNodesParam
 	param.MinIal = 3
 	param.MinAal = 3
-	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"mode_list":[1],"supported_request_message_data_url_type_list":[]}]}`
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"supported_request_message_data_url_type_list":[]}]}`
 	GetIdpNodesExpectString(t, param, expected)
 }
 
@@ -377,7 +377,7 @@ func TestQueryGetIdpNodesInfoForMode1(t *testing.T) {
 	var param did.GetIdpNodesParam
 	param.MinIal = 3
 	param.MinAal = 3
-	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"mode_list":[1],"supported_request_message_data_url_type_list":[]}]}`
+	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"supported_request_message_data_url_type_list":[]}]}`
 	GetIdpNodesInfo(t, param, expected)
 }
 

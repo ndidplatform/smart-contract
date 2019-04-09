@@ -146,22 +146,22 @@ func GetIdpNodes(t *testing.T, param did.GetIdpNodesParam, expected []did.MsqDes
 	t.Logf("PASS: %s", fnName)
 }
 
-func GetIdpNodesForDisable(t *testing.T, param did.GetIdpNodesParam) (expected []did.MsqDestinationNode) {
-	fnName := "GetIdpNodes"
-	paramJSON, err := json.Marshal(param)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	result, _ := queryTendermint([]byte(fnName), paramJSON)
-	resultObj, _ := result.(ResponseQuery)
-	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.GetIdpNodesResult
-	err = json.Unmarshal(resultString, &res)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	return res.Node
-}
+// func GetIdpNodesForDisable(t *testing.T, param did.GetIdpNodesParam) (expected []did.MsqDestinationNode) {
+// 	fnName := "GetIdpNodes"
+// 	paramJSON, err := json.Marshal(param)
+// 	if err != nil {
+// 		fmt.Println("error:", err)
+// 	}
+// 	result, _ := queryTendermint([]byte(fnName), paramJSON)
+// 	resultObj, _ := result.(ResponseQuery)
+// 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+// 	var res did.GetIdpNodesResult
+// 	err = json.Unmarshal(resultString, &res)
+// 	if err != nil {
+// 		log.Fatal(err.Error())
+// 	}
+// 	return res.Node
+// }
 
 func GetIdpNodesExpectString(t *testing.T, param did.GetIdpNodesParam, expected string) {
 	fnName := "GetIdpNodes"

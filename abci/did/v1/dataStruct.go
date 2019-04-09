@@ -88,7 +88,7 @@ type GetIdpNodesParam struct {
 	ModeList                               []int32  `json:"mode_list"`
 }
 
-type MsqDestinationNode struct {
+type MsqDestinationNodeWithModeList struct {
 	ID                                     string   `json:"node_id"`
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
@@ -97,8 +97,16 @@ type MsqDestinationNode struct {
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
+type MsqDestinationNode struct {
+	ID                                     string   `json:"node_id"`
+	Name                                   string   `json:"node_name"`
+	MaxIal                                 float64  `json:"max_ial"`
+	MaxAal                                 float64  `json:"max_aal"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+}
+
 type GetIdpNodesResult struct {
-	Node []MsqDestinationNode `json:"node"`
+	Node []interface{} `json:"node"`
 }
 
 type GetAccessorMethodParam struct {
@@ -592,6 +600,16 @@ type IdpNode struct {
 	MaxAal                                 float64      `json:"max_aal"`
 	PublicKey                              string       `json:"public_key"`
 	Mq                                     []MsqAddress `json:"mq"`
+	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
+}
+
+type IdpNodeWithModeList struct {
+	NodeID                                 string       `json:"node_id"`
+	Name                                   string       `json:"name"`
+	MaxIal                                 float64      `json:"max_ial"`
+	MaxAal                                 float64      `json:"max_aal"`
+	PublicKey                              string       `json:"public_key"`
+	Mq                                     []MsqAddress `json:"mq"`
 	ModeList                               []int32      `json:"mode_list"`
 	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
 }
@@ -660,6 +678,21 @@ type RemoveNodeFromProxyNode struct {
 }
 
 type IdpNodeBehindProxy struct {
+	NodeID                                 string   `json:"node_id"`
+	Name                                   string   `json:"name"`
+	MaxIal                                 float64  `json:"max_ial"`
+	MaxAal                                 float64  `json:"max_aal"`
+	PublicKey                              string   `json:"public_key"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	Proxy                                  struct {
+		NodeID    string       `json:"node_id"`
+		PublicKey string       `json:"public_key"`
+		Mq        []MsqAddress `json:"mq"`
+		Config    string       `json:"config"`
+	} `json:"proxy"`
+}
+
+type IdpNodeBehindProxyWithModeList struct {
 	NodeID                                 string   `json:"node_id"`
 	Name                                   string   `json:"name"`
 	MaxIal                                 float64  `json:"max_ial"`
