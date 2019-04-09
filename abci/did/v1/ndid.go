@@ -239,6 +239,9 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 	if funcParam.AllowedIdentifierCountInReferenceGroup != 0 {
 		newNamespace.AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
 	}
+	if funcParam.AllowedActiveIdentifierCountInReferenceGroup != 0 {
+		newNamespace.AllowedActiveIdentifierCountInReferenceGroup = funcParam.AllowedActiveIdentifierCountInReferenceGroup
+	}
 	// set active flag
 	newNamespace.Active = true
 	namespaces.Namespaces = append(namespaces.Namespaces, &newNamespace)
@@ -1098,6 +1101,9 @@ func (app *DIDApplication) updateNamespace(param string, nodeID string) types.Re
 			}
 			if funcParam.AllowedIdentifierCountInReferenceGroup != 0 {
 				namespaces.Namespaces[index].AllowedIdentifierCountInReferenceGroup = funcParam.AllowedIdentifierCountInReferenceGroup
+			}
+			if funcParam.AllowedActiveIdentifierCountInReferenceGroup != 0 {
+				namespaces.Namespaces[index].AllowedActiveIdentifierCountInReferenceGroup = funcParam.AllowedActiveIdentifierCountInReferenceGroup
 			}
 			break
 		}
