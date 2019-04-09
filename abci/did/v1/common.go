@@ -275,6 +275,18 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					continue
 				}
 			}
+			// Filter by mode_list
+			if len(funcParam.ModeList) > 0 {
+				supportedModeCount := 0
+				for _, mode := range idp.Mode {
+					if containsInt32(mode, funcParam.ModeList) {
+						supportedModeCount++
+					}
+				}
+				if supportedModeCount < len(funcParam.ModeList) {
+					continue
+				}
+			}
 			var msqDesNode MsqDestinationNode
 			msqDesNode.ID = idp.NodeId
 			msqDesNode.Name = nodeDetail.NodeName
@@ -1242,6 +1254,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 						}
 					}
 					msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
+					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
 				} else {
 					var msq []MsqAddress
@@ -1333,6 +1346,18 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					continue
 				}
 			}
+			// Filter by mode_list
+			if len(funcParam.ModeList) > 0 {
+				supportedModeCount := 0
+				for _, mode := range idp.Mode {
+					if containsInt32(mode, funcParam.ModeList) {
+						supportedModeCount++
+					}
+				}
+				if supportedModeCount < len(funcParam.ModeList) {
+					continue
+				}
+			}
 			// If node is behind proxy
 			if nodeDetail.ProxyNodeId != "" {
 				proxyNodeID := nodeDetail.ProxyNodeId
@@ -1369,6 +1394,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					}
 				}
 				msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
+				msqDesNode.ModeList = idp.Mode
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			} else {
 				var msq []MsqAddress
@@ -1814,6 +1840,15 @@ func (app *DIDApplication) getChainHistory(param string) types.ResponseQuery {
 }
 
 func contains(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func containsInt32(a int32, list []int32) bool {
 	for _, b := range list {
 		if b == a {
 			return true

@@ -381,6 +381,20 @@ func TestQueryGetIdpNodesInfoForMode1(t *testing.T) {
 	GetIdpNodesInfo(t, param, expected)
 }
 
+func TestQueryGetIdpNodes1ByIdentityWithInvalidMode(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID1))
+	userHash := h.Sum(nil)
+	var param did.GetIdpNodesParam
+	param.IdentityNamespace = userNamespace
+	param.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	param.MinIal = 3
+	param.MinAal = 3
+	param.ModeList = append(param.ModeList, 3)
+	var expected = `{"node":[]}`
+	GetIdpNodesExpectString(t, param, expected)
+}
+
 func TestQueryGetIdpNodes1ByIdentity(t *testing.T) {
 	h := sha256.New()
 	h.Write([]byte(userNamespace + userID1))

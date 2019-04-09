@@ -150,7 +150,8 @@
   "min_aal": 3,
   "min_ial": 3,
   "node_id_list": [], //array of string
-  "supported_request_message_data_url_type_list": [] //array of string
+  "supported_request_message_data_url_type_list": [], //array of string
+  "mode_list": [3]
 }
 ```
 
@@ -190,7 +191,8 @@
   "min_aal": 3,
   "min_ial": 3,
   "node_id_list": [], //array of string
-  "supported_request_message_data_url_type_list": [] //array of string
+  "supported_request_message_data_url_type_list": [], //array of string
+  "mode_list": [3]
 }
 ```
 

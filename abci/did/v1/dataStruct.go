@@ -85,6 +85,7 @@ type GetIdpNodesParam struct {
 	MinIal                                 float64  `json:"min_ial"`
 	NodeIDList                             []string `json:"node_id_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	ModeList                               []int32  `json:"mode_list"`
 }
 
 type MsqDestinationNode struct {
