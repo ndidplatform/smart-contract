@@ -25,14 +25,6 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:fed20bf7f0da387c96d4cfc140a95572e5aba4bb984beb7de910e090ae39849b"
-  name = "github.com/ethereum/go-ethereum"
-  packages = ["crypto/secp256k1"]
-  pruneopts = "UT"
-  revision = "c942700427557e3ff6de3aaf6b916e2f056c1ec2"
-  version = "v1.8.23"
-
-[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -73,7 +65,7 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:35621fe20f140f05a0c4ef662c26c0ab4ee50bca78aa30fe87d33120bd28165e"
+  digest = "1:95e1006e41c641abd2f365dfa0f1213c04da294e7cd5f0bf983af234b775db64"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -84,11 +76,11 @@
     "types",
   ]
   pruneopts = "UT"
-  revision = "636bf0302bc95575d69441b25a2603156ffdddf1"
-  version = "v1.1.1"
+  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
+  version = "v1.2.1"
 
 [[projects]]
-  digest = "1:17fe264ee908afc795734e8c4e63db2accabaf57326dbf21763a7d6b86096260"
+  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -98,8 +90,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
-  revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
-  version = "v1.1.0"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
 
 [[projects]]
   digest = "1:e4f5819333ac698d294fe04dbf640f84719658d5c7ce195b10060cc37292ce79"
@@ -365,7 +357,7 @@
   version = "v0.14.1"
 
 [[projects]]
-  digest = "1:a49094ddc4eef1fa97d03c3c52c3f298508336adf8096c4e93eb4cd9235549bf"
+  digest = "1:26b3c3164f80c4c4a45f79397c6244ef05ed42fa9249faabb6ad8ff3da615b35"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/client",
@@ -385,6 +377,7 @@
     "crypto/multisig",
     "crypto/multisig/bitarray",
     "crypto/secp256k1",
+    "crypto/secp256k1/internal/secp256k1",
     "crypto/tmhash",
     "evidence",
     "libs/autofile",
@@ -427,8 +420,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "976819537d199aa43c6ad55ec4e8958323322bb0"
-  version = "v0.30.2"
+  revision = "6cc3f4d87cae6589aef0ac2b4707f1ebc8a669b2"
+  version = "v0.31.3"
 
 [[projects]]
   digest = "1:7167a54e830f17b9e1795cdcacd30dada3cfd6ff6f9c2548f7b7141c7fd66527"
