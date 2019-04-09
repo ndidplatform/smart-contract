@@ -1,10 +1,11 @@
 {
-  "genesis_time": "2018-11-05T08:25:50.660806Z",
+  "genesis_time": "2019-04-09T08:37:36.170775Z",
   "chain_id": "test-chain-NDID",
   "consensus_params": {
-    "block_size": {
-      "max_bytes": "1048576",
-      "max_gas": "-1"
+    "block": {
+      "max_bytes": "22020096",
+      "max_gas": "-1",
+      "time_iota_ms": "1000"
     },
     "evidence": {
       "max_age": "100000"
@@ -17,10 +18,10 @@
   },
   "validators": [
     {
-      "address": "ECD03BA3F0EFAD8ABBC7E61B1F7C35D119E113D9",
+      "address": "86123C049FB521F4CF44386AC1F62E652184790D",
       "pub_key": {
         "type": "tendermint/PubKeyEd25519",
-        "value": "aEb1CRRd5Uz0Qx/KZgx5T0kiGfYoP3Y9N52yHTswAd0="
+        "value": "kRKM3mkPlogAhWLARAoE9nG+i+fFbZLQDMZoS1O50So="
       },
       "power": "10",
       "name": ""
