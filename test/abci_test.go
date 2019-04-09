@@ -640,7 +640,7 @@ func TestNDIDAddService(t *testing.T) {
 	AddService(t, param)
 }
 
-func TestRegisterNodeAS(t *testing.T) {
+func TestRegisterNodeAS1(t *testing.T) {
 	asKey := getPrivateKeyFromString(asPrivK)
 	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
 	if err != nil {
@@ -739,6 +739,13 @@ func TestQueryGetAsNodesByServiceIdAfterUpdated(t *testing.T) {
 	param.ServiceID = serviceID1
 	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"accepted_namespace_list":["passport"]}]}`
 	GetAsNodesByServiceId(t, param, expected)
+}
+
+func TestQueryGetAsNodesInfoByServiceIdAfterUpdated(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["passport"]}]}`
+	GetAsNodesInfoByServiceId(t, param, expected)
 }
 
 func TestQueryGetServicesByAsID(t *testing.T) {
@@ -1144,6 +1151,75 @@ func TestQueryGetIdpNodesInfoWithSupportedRequestMessageTypeListFilter(t *testin
 	param.SupportedRequestMessageTypeList = append(param.SupportedRequestMessageTypeList, "application/pdf")
 	var expected = `{"node":[{"node_id":"` + IdP1 + `","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\nPwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"mode_list":[2,3],"supported_request_message_type_list":["text/plain","application/pdf"]}]}`
 	GetIdpNodesInfo(t, param, expected)
+}
+
+func TestRegisterNodeAS2(t *testing.T) {
+	asKey := getPrivateKeyFromString(asPrivK2)
+	asPublicKeyBytes, err := generatePublicKey(&asKey.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	asKey2 := getPrivateKeyFromString(allMasterKey)
+	asPublicKeyBytes2, err := generatePublicKey(&asKey2.PublicKey)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	var param did.RegisterNode
+	param.NodeName = "AS2"
+	param.NodeID = AS2
+	param.PublicKey = string(asPublicKeyBytes)
+	param.MasterPublicKey = string(asPublicKeyBytes2)
+	param.Role = "AS"
+	RegisterNode(t, param)
+}
+
+func TestSetNodeTokenAS2(t *testing.T) {
+	var param = did.SetNodeTokenParam{
+		AS2,
+		100.0,
+	}
+	SetNodeToken(t, param)
+}
+
+func TestAS2SetMqAddresses(t *testing.T) {
+	var mq did.MsqAddress
+	mq.IP = "192.168.3.102"
+	mq.Port = 8000
+	var param did.SetMqAddressesParam
+	param.Addresses = make([]did.MsqAddress, 0)
+	param.Addresses = append(param.Addresses, mq)
+	SetMqAddresses(t, param, asPrivK2, AS2)
+}
+
+func TestASRegisterServiceDestinationByNDIDForAS2(t *testing.T) {
+	var param = did.RegisterServiceDestinationByNDIDParam{
+		serviceID1,
+		AS2,
+	}
+	RegisterServiceDestinationByNDID(t, param)
+}
+
+func TestAS2RegisterServiceDestination(t *testing.T) {
+	var param did.RegisterServiceDestinationParam
+	param.ServiceID = serviceID1
+	param.MinAal = 1.1
+	param.MinIal = 1.2
+	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace)
+	RegisterServiceDestination(t, param, asPrivK2, AS2, "success")
+}
+
+func TestQueryGetAsNodesByServiceId2(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"accepted_namespace_list":["passport"]},{"node_id":"` + AS2 + `","node_name":"AS2","min_ial":1.2,"min_aal":1.1,"accepted_namespace_list":["cid"]}]}`
+	GetAsNodesByServiceId(t, param, expected)
+}
+
+func TestQueryGetAsNodesInfoByServiceId2(t *testing.T) {
+	var param did.GetAsNodesByServiceIdParam
+	param.ServiceID = serviceID1
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["passport"]},{"node_id":"` + AS2 + `","name":"AS2","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzhJ5PP3dfQtpw9p0Kphb\n30gg9jpgsv425D5pzZaH00zPgYfNTVZWfrLlTtc/ja8dbHvyDaCyzFD++Vr1vtmS\nSs9/j8ZhTJrTYHoiHvfG1ulTl1QdgwOcrKhpfhhjnCVCPOYjptgac/KPjhT7uiuY\nwB6axafx+RqPQqwQQhmuuxmTyy69l/cqezDtYCYUJVA6nV29ZaaF1VjWoE05PK16\n8mcB5quBdE6Vkc4n2k0wxaaTd/s9LPy6STXtz5IBXH2Gy5RP0TGeXO6iur/ZSM2z\n/3vQkTMjY/mkDduGioXcB6ieNgVv3XYbZg4VJEDSuOpRZReKcgLXvwk3CqZZdZRR\njQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["cid"]}]}`
+	GetAsNodesInfoByServiceId(t, param, expected)
 }
 
 // ---  Old test ---
