@@ -125,6 +125,5 @@ const (
 	InvalidNamespace                                   uint32 = 100
 	IdentifierCountIsGreaterThanAllowedIdentifierCount uint32 = 101
 	IalMustBeGreaterOrEqualMinIal                      uint32 = 102
-	TextPlainMustBeSupportedAlways                     uint32 = 103
 	UnknownError                                       uint32 = 999
 )

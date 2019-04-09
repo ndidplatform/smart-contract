@@ -183,16 +183,16 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 						continue
 					}
 				}
-				// Filter by supported_request_message_type_list
-				if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+				// Filter by supported_request_message_data_url_type_list
+				if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 					// foundSupported := false
 					supportedCount := 0
-					for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
-						if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+					for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+						if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
 							supportedCount++
 						}
 					}
-					if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+					if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 						continue
 					}
 				}
@@ -202,7 +202,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
-				msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}
 		}
@@ -262,16 +262,16 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					continue
 				}
 			}
-			// Filter by supported_request_message_type_list
-			if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+			// Filter by supported_request_message_data_url_type_list
+			if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 				// foundSupported := false
 				supportedCount := 0
-				for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
-					if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+				for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+					if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
 						supportedCount++
 					}
 				}
-				if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+				if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 					continue
 				}
 			}
@@ -281,7 +281,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			msqDesNode.MaxIal = nodeDetail.MaxIal
 			msqDesNode.MaxAal = nodeDetail.MaxAal
 			msqDesNode.ModeList = idp.Mode
-			msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+			msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 			returnNodes.Node = append(returnNodes.Node, msqDesNode)
 		}
 	}
@@ -653,19 +653,6 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
-	// Check supported_request_message_type_list has 'text/plain'
-	if len(funcParam.SupportedRequestMessageTypeList) > 0 {
-		foundTextPlain := false
-		for _, supportedType := range funcParam.SupportedRequestMessageTypeList {
-			if supportedType == "text/plain" {
-				foundTextPlain = true
-				break
-			}
-		}
-		if !foundTextPlain {
-			return app.ReturnDeliverTxLog(code.TextPlainMustBeSupportedAlways, "text/plain must be supported always", "")
-		}
-	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(value), &nodeDetail)
 	if err != nil {
@@ -679,9 +666,9 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	if funcParam.PublicKey != "" {
 		nodeDetail.PublicKey = funcParam.PublicKey
 	}
-	// update SupportedRequestMessageTypeList
-	if len(funcParam.SupportedRequestMessageTypeList) > 0 {
-		nodeDetail.SupportedRequestMessageTypeList = funcParam.SupportedRequestMessageTypeList
+	// update SupportedRequestMessageDataUrlTypeList
+	if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
+		nodeDetail.SupportedRequestMessageDataUrlTypeList = funcParam.SupportedRequestMessageDataUrlTypeList
 	}
 	nodeDetailValue, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
@@ -912,7 +899,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 			result.Role = nodeDetail.Role
 			result.MaxIal = nodeDetail.MaxIal
 			result.MaxAal = nodeDetail.MaxAal
-			result.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+			result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 			result.Proxy.NodeID = string(proxyNodeID)
 			result.Proxy.NodeName = proxyNode.NodeName
 			result.Proxy.PublicKey = proxyNode.PublicKey
@@ -964,7 +951,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		result.Role = nodeDetail.Role
 		result.MaxIal = nodeDetail.MaxIal
 		result.MaxAal = nodeDetail.MaxAal
-		result.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+		result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 		if nodeDetail.Mq != nil {
 			for _, mq := range nodeDetail.Mq {
 				var msq MsqAddress
@@ -1206,16 +1193,16 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 						continue
 					}
 				}
-				// Filter by supported_request_message_type_list
-				if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+				// Filter by supported_request_message_data_url_type_list
+				if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 					// foundSupported := false
 					supportedCount := 0
-					for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
-						if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+					for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+						if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
 							supportedCount++
 						}
 					}
-					if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+					if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 						continue
 					}
 				}
@@ -1243,7 +1230,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqDesNode.MaxIal = nodeDetail.MaxIal
 					msqDesNode.MaxAal = nodeDetail.MaxAal
 					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+					msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 					msqDesNode.Proxy.NodeID = string(proxyNodeID)
 					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 					if proxyNode.Mq != nil {
@@ -1270,7 +1257,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					msqDesNode.MaxIal = nodeDetail.MaxIal
 					msqDesNode.MaxAal = nodeDetail.MaxAal
 					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+					msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 					msqDesNode.Mq = msq
 					msqDesNode.ModeList = append(msqDesNode.ModeList, 1)
 					returnNodes.Node = append(returnNodes.Node, msqDesNode)
@@ -1333,16 +1320,16 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					continue
 				}
 			}
-			// Filter by supported_request_message_type_list
-			if len(funcParam.SupportedRequestMessageTypeList) > 0 {
+			// Filter by supported_request_message_data_url_type_list
+			if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 				// foundSupported := false
 				supportedCount := 0
-				for _, supportedType := range nodeDetail.SupportedRequestMessageTypeList {
-					if contains(supportedType, funcParam.SupportedRequestMessageTypeList) {
+				for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+					if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
 						supportedCount++
 					}
 				}
-				if supportedCount < len(funcParam.SupportedRequestMessageTypeList) {
+				if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 					continue
 				}
 			}
@@ -1370,7 +1357,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.PublicKey = nodeDetail.PublicKey
-				msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 				msqDesNode.Proxy.NodeID = string(proxyNodeID)
 				msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
 				if proxyNode.Mq != nil {
@@ -1397,7 +1384,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				msqDesNode.MaxIal = nodeDetail.MaxIal
 				msqDesNode.MaxAal = nodeDetail.MaxAal
 				msqDesNode.PublicKey = nodeDetail.PublicKey
-				msqDesNode.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 				msqDesNode.Mq = msq
 				msqDesNode.ModeList = idp.Mode
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
@@ -1624,7 +1611,7 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
 			row.Config = nodeDetail.ProxyConfig
-			row.SupportedRequestMessageTypeList = nodeDetail.SupportedRequestMessageTypeList
+			row.SupportedRequestMessageDataUrlTypeList = nodeDetail.SupportedRequestMessageDataUrlTypeList
 			result.Nodes = append(result.Nodes, row)
 		} else {
 			var row ASorRPBehindProxy
