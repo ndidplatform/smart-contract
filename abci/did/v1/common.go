@@ -403,7 +403,7 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 			nodeDetail.NodeName,
 			storedData.Node[index].MinIal,
 			storedData.Node[index].MinAal,
-			storedData.Node[index].AcceptedNamespaceList,
+			storedData.Node[index].SupportedNamespaceList,
 		}
 		result.Node = append(result.Node, newRow)
 	}
@@ -1146,7 +1146,7 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 			newRow.MinIal = services.Services[index].MinIal
 			newRow.ServiceID = services.Services[index].ServiceId
 			newRow.Suspended = services.Services[index].Suspended
-			newRow.AcceptedNamespaceList = services.Services[index].AcceptedNamespaceList
+			newRow.SupportedNamespaceList = services.Services[index].SupportedNamespaceList
 			result.Services = append(result.Services, newRow)
 		}
 	}
@@ -1543,7 +1543,7 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 			as.MinIal = storedData.Node[index].MinIal
 			as.MinAal = storedData.Node[index].MinAal
 			as.PublicKey = nodeDetail.PublicKey
-			as.AcceptedNamespaceList = storedData.Node[index].AcceptedNamespaceList
+			as.SupportedNamespaceList = storedData.Node[index].SupportedNamespaceList
 			as.Proxy.NodeID = string(proxyNodeID)
 			as.Proxy.PublicKey = proxyNode.PublicKey
 			if proxyNode.Mq != nil {
@@ -1571,7 +1571,7 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 				storedData.Node[index].MinAal,
 				nodeDetail.PublicKey,
 				msqAddress,
-				storedData.Node[index].AcceptedNamespaceList,
+				storedData.Node[index].SupportedNamespaceList,
 			}
 			result.Node = append(result.Node, newRow)
 		}

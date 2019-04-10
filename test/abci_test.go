@@ -723,21 +723,21 @@ func TestASRegisterServiceDestination(t *testing.T) {
 	param.ServiceID = serviceID1
 	param.MinAal = 1.1
 	param.MinIal = 1.2
-	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace)
+	param.SupportedNamespaceList = append(param.SupportedNamespaceList, userNamespace)
 	RegisterServiceDestination(t, param, asPrivK, AS1, "success")
 }
 
 func TestQueryGetAsNodesByServiceId(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.2,"min_aal":1.1,"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.2,"min_aal":1.1,"supported_namespace_list":["cid"]}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestQueryGetAsNodesInfoByServiceId(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["cid"]}]}`
 	GetAsNodesInfoByServiceId(t, param, expected)
 }
 
@@ -746,21 +746,21 @@ func TestAS1UpdateServiceDestination(t *testing.T) {
 	param.ServiceID = serviceID1
 	param.MinAal = 1.4
 	param.MinIal = 1.5
-	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace2)
+	param.SupportedNamespaceList = append(param.SupportedNamespaceList, userNamespace2)
 	UpdateServiceDestination(t, param, AS1)
 }
 
 func TestQueryGetAsNodesByServiceIdAfterUpdated(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"accepted_namespace_list":["passport"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"supported_namespace_list":["passport"]}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestQueryGetAsNodesInfoByServiceIdAfterUpdated(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["passport"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["passport"]}]}`
 	GetAsNodesInfoByServiceId(t, param, expected)
 }
 
@@ -768,7 +768,7 @@ func TestQueryGetServicesByAsID(t *testing.T) {
 	var param = did.GetServicesByAsIDParam{
 		AS1,
 	}
-	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"accepted_namespace_list":["passport"]}]}`
+	var expected = `{"services":[{"service_id":"` + serviceID1 + `","min_ial":1.5,"min_aal":1.4,"active":true,"suspended":false,"supported_namespace_list":["passport"]}]}`
 	GetServicesByAsID(t, param, expected)
 }
 
@@ -1220,21 +1220,21 @@ func TestAS2RegisterServiceDestination(t *testing.T) {
 	param.ServiceID = serviceID1
 	param.MinAal = 1.1
 	param.MinIal = 1.2
-	param.AcceptedNamespaceList = append(param.AcceptedNamespaceList, userNamespace)
+	param.SupportedNamespaceList = append(param.SupportedNamespaceList, userNamespace)
 	RegisterServiceDestination(t, param, asPrivK2, AS2, "success")
 }
 
 func TestQueryGetAsNodesByServiceId2(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"accepted_namespace_list":["passport"]},{"node_id":"` + AS2 + `","node_name":"AS2","min_ial":1.2,"min_aal":1.1,"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","node_name":"AS1","min_ial":1.5,"min_aal":1.4,"supported_namespace_list":["passport"]},{"node_id":"` + AS2 + `","node_name":"AS2","min_ial":1.2,"min_aal":1.1,"supported_namespace_list":["cid"]}]}`
 	GetAsNodesByServiceId(t, param, expected)
 }
 
 func TestQueryGetAsNodesInfoByServiceId2(t *testing.T) {
 	var param did.GetAsNodesByServiceIdParam
 	param.ServiceID = serviceID1
-	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["passport"]},{"node_id":"` + AS2 + `","name":"AS2","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzhJ5PP3dfQtpw9p0Kphb\n30gg9jpgsv425D5pzZaH00zPgYfNTVZWfrLlTtc/ja8dbHvyDaCyzFD++Vr1vtmS\nSs9/j8ZhTJrTYHoiHvfG1ulTl1QdgwOcrKhpfhhjnCVCPOYjptgac/KPjhT7uiuY\nwB6axafx+RqPQqwQQhmuuxmTyy69l/cqezDtYCYUJVA6nV29ZaaF1VjWoE05PK16\n8mcB5quBdE6Vkc4n2k0wxaaTd/s9LPy6STXtz5IBXH2Gy5RP0TGeXO6iur/ZSM2z\n/3vQkTMjY/mkDduGioXcB6ieNgVv3XYbZg4VJEDSuOpRZReKcgLXvwk3CqZZdZRR\njQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"accepted_namespace_list":["cid"]}]}`
+	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["passport"]},{"node_id":"` + AS2 + `","name":"AS2","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzhJ5PP3dfQtpw9p0Kphb\n30gg9jpgsv425D5pzZaH00zPgYfNTVZWfrLlTtc/ja8dbHvyDaCyzFD++Vr1vtmS\nSs9/j8ZhTJrTYHoiHvfG1ulTl1QdgwOcrKhpfhhjnCVCPOYjptgac/KPjhT7uiuY\nwB6axafx+RqPQqwQQhmuuxmTyy69l/cqezDtYCYUJVA6nV29ZaaF1VjWoE05PK16\n8mcB5quBdE6Vkc4n2k0wxaaTd/s9LPy6STXtz5IBXH2Gy5RP0TGeXO6iur/ZSM2z\n/3vQkTMjY/mkDduGioXcB6ieNgVv3XYbZg4VJEDSuOpRZReKcgLXvwk3CqZZdZRR\njQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["cid"]}]}`
 	GetAsNodesInfoByServiceId(t, param, expected)
 }
 
