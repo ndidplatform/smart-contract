@@ -561,7 +561,8 @@
 {
   "description": "Citizen ID",
   "namespace": "citizenId",
-  "allowed_identifier_count_in_reference_group": 1
+  "allowed_identifier_count_in_reference_group": 1,
+  "allowed_active_identifier_count_in_reference_group": 1
 }
 ```
 
@@ -569,6 +570,7 @@
 
 - Only NDID can call this function
 - if `allowed_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
+- if `allowed_active_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
 
 ## AddNamespace
 
@@ -578,7 +580,8 @@
 {
   "description": "Citizen ID",
   "namespace": "WsvGOEjoFqvXsvcfFVWm",
-  "allowed_identifier_count_in_reference_group": 1
+  "allowed_identifier_count_in_reference_group": 1,
+  "allowed_active_identifier_count_in_reference_group": 1
 }
 ```
 
@@ -586,6 +589,7 @@
 
 - Only NDID can call this function
 - if `allowed_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
+- if `allowed_active_identifier_count_in_reference_group` is not present or 0 or -1, means unlimited
 
 ### Expected Output
 
@@ -612,7 +616,8 @@
     "namespace": "WsvGOEjoFqvXsvcfFVWm",
     "description": "Citizen ID",
     "active": true,
-    "allowed_identifier_count_in_reference_group": 1
+    "allowed_identifier_count_in_reference_group": 1,
+    "allowed_active_identifier_count_in_reference_group": 1
   },
   {
     "namespace": "SJsMIeJcerfZpBfXkJgU",
@@ -624,6 +629,7 @@
 **NOTE**
 
 - if `allowed_identifier_count_in_reference_group` is not present, means unlimited
+- if `allowed_active_identifier_count_in_reference_group` is not present, means unlimited
 
 
 ## SetAllowedMinIalForRegisterIdentityAtFirstIdp

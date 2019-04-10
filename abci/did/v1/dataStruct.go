@@ -345,10 +345,11 @@ type RequestIDParam struct {
 }
 
 type Namespace struct {
-	Namespace                              string `json:"namespace"`
-	Description                            string `json:"description"`
-	Active                                 bool   `json:"active"`
-	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
+	Namespace                                    string `json:"namespace"`
+	Description                                  string `json:"description"`
+	Active                                       bool   `json:"active"`
+	AllowedIdentifierCountInReferenceGroup       int32  `json:"allowed_identifier_count_in_reference_group"`
+	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
 type DisableNamespaceParam struct {
@@ -862,8 +863,9 @@ type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
 }
 
 type UpdateNamespaceParam struct {
-	Namespace                              string `json:"namespace"`
-	Description                            string `json:"description"`
-	AllowedIdentifierCountInReferenceGroup int32  `json:"allowed_identifier_count_in_reference_group"`
+	Namespace                                    string `json:"namespace"`
+	Description                                  string `json:"description"`
+	AllowedIdentifierCountInReferenceGroup       int32  `json:"allowed_identifier_count_in_reference_group"`
+	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 

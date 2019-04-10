@@ -98,6 +98,7 @@ func TestAddNamespace1(t *testing.T) {
 	param.Namespace = userNamespace
 	param.Description = "Citizen ID"
 	param.AllowedIdentifierCountInReferenceGroup = 1
+	param.AllowedActiveIdentifierCountInReferenceGroup = 1
 	AddNamespace(t, param)
 }
 
@@ -116,7 +117,7 @@ func TestAddNamespace3(t *testing.T) {
 }
 
 func TestQueryGetNamespaceList(t *testing.T) {
-	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true}]`
+	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1,"allowed_active_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true}]`
 	GetNamespaceListExpectString(t, expected)
 }
 
@@ -124,11 +125,12 @@ func TestNDIDUpdateNamespace(t *testing.T) {
 	var param did.UpdateNamespaceParam
 	param.Namespace = userNamespace3
 	param.AllowedIdentifierCountInReferenceGroup = 2
+	param.AllowedActiveIdentifierCountInReferenceGroup = 2
 	UpdateNamespace(t, param)
 }
 
 func TestQueryGetNamespaceListAfterSetAllowedIdentifierCountForNamespace(t *testing.T) {
-	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true,"allowed_identifier_count_in_reference_group":2}]`
+	expected := `[{"namespace":"cid","description":"Citizen ID","active":true,"allowed_identifier_count_in_reference_group":1,"allowed_active_identifier_count_in_reference_group":1},{"namespace":"passport","description":"Passport","active":true},{"namespace":"some_id","description":"Some ID","active":true,"allowed_identifier_count_in_reference_group":2,"allowed_active_identifier_count_in_reference_group":2}]`
 	GetNamespaceListExpectString(t, expected)
 }
 
