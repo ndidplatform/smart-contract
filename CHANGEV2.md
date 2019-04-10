@@ -294,7 +294,7 @@
   "min_aal": 1.2,
   "min_ial": 1.1,
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "accepted_namespace_list": [
+  "supported_namespace_list": [
     "citizenId"
   ]
 }
@@ -302,7 +302,7 @@
 
 **NOTE**
 
-- Add `accepted_namespace_list`
+- Add `supported_namespace_list`
 
 
 ## UpdateServiceDestination
@@ -314,7 +314,7 @@
   "min_aal": 1.5,
   "min_ial": 1.4,
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "accepted_namespace_list": [
+  "supported_namespace_list": [
     "citizenId"
   ]
 }
@@ -322,7 +322,7 @@
 
 **NOTE**
 
-- Add `accepted_namespace_list`
+- Add `supported_namespace_list`
 
 
 ## GetAsNodesByServiceId
@@ -337,7 +337,7 @@
       "min_ial": 1.4,
       "node_id": "XckRuCmVliLThncSTnfG",
       "node_name": "AS1",
-      "accepted_namespace_list": [
+      "supported_namespace_list": [
         "citizenId"
       ]
     }
@@ -347,7 +347,7 @@
 
 **NOTE**
 
-- Add `accepted_namespace_list`
+- Add `supported_namespace_list`
 
 
 ## GetAsNodesInfoByServiceId
@@ -369,7 +369,7 @@
       "name": "AS1",
       "node_id": "XckRuCmVliLThncSTnfG",
       "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\\ndQIDAQAB\\n-----END PUBLIC KEY-----\\n",
-      "accepted_namespace_list": [
+      "supported_namespace_list": [
         "citizenId"
       ]
     }
@@ -379,7 +379,7 @@
 
 **NOTE**
 
-- Add `accepted_namespace_list`
+- Add `supported_namespace_list`
 
 
 ## GetServicesByAsID
@@ -394,7 +394,7 @@
       "min_aal": 1.1,
       "min_ial": 1.1,
       "service_id": "AFLHeKQVLNQOkIOxoNid",
-      "accepted_namespace_list": [
+      "supported_namespace_list": [
         "citizenId"
       ],
       "suspended": false
@@ -404,7 +404,7 @@
       "min_aal": 2.2,
       "min_ial": 2.2,
       "service_id": "qvyfrfJRsfaesnDsYHbH",
-      "accepted_namespace_list": [
+      "supported_namespace_list": [
         "citizenId"
       ],
       "suspended": false
@@ -414,7 +414,7 @@
       "min_aal": 3.3,
       "min_ial": 3.3,
       "service_id": "JTFHqDoJRccWcikcJqnL",
-      "accepted_namespace_list": [
+      "supported_namespace_list": [
         "citizenId"
       ],
       "suspended": false
@@ -425,7 +425,7 @@
 
 **NOTE**
 
-- Add `accepted_namespace_list`
+- Add `supported_namespace_list`
 
 
 ## CreateIdpResponse
