@@ -16,7 +16,7 @@ moniker = "AS1"
 fast_sync = true
 
 # Database backend: leveldb | memdb | cleveldb
-db_backend = "leveldb"
+db_backend = "goleveldb"
 
 # Database directory
 db_dir = "data"
@@ -152,7 +152,7 @@ addr_book_file = "config/addrbook.json"
 
 # Set true for strict address routability rules
 # Set false for private or local networks
-addr_book_strict = true
+addr_book_strict = false
 
 # Maximum number of inbound peers
 max_num_inbound_peers = 40
@@ -194,12 +194,12 @@ dial_timeout = "3s"
 ##### mempool configuration options #####
 [mempool]
 
-recheck = true
+recheck = false
 broadcast = true
 wal_dir = ""
 
 # Maximum number of transactions in the mempool
-size = 10000
+size = 50000
 
 # Limit the total size of all txs in the mempool.
 # This only accounts for raw transactions (e.g. given 1MB transactions and
