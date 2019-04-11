@@ -32,7 +32,7 @@ RUN wget -qO /usr/local/bin/dep https://github.com/golang/dep/releases/download/
 
 COPY Gopkg.toml Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/
 WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract
-RUN dep ensure --vendor-only
+RUN dep ensure -vendor-only -v
 
 COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
