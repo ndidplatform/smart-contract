@@ -357,7 +357,7 @@
   version = "v0.14.1"
 
 [[projects]]
-  digest = "1:26b3c3164f80c4c4a45f79397c6244ef05ed42fa9249faabb6ad8ff3da615b35"
+  digest = "1:3cc8f40c387145eb38974786b11d25ef99041a0fc308227022237a1807db3acf"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/client",
@@ -420,8 +420,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "6cc3f4d87cae6589aef0ac2b4707f1ebc8a669b2"
-  version = "v0.31.3"
+  revision = "79e9f205782f1adb94b4150561e414280115cf4e"
+  version = "v0.31.2"
 
 [[projects]]
   digest = "1:7167a54e830f17b9e1795cdcacd30dada3cfd6ff6f9c2548f7b7141c7fd66527"
@@ -557,6 +557,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/jmhodges/levigo",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
