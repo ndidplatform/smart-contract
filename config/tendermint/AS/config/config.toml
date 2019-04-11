@@ -152,7 +152,7 @@ addr_book_file = "config/addrbook.json"
 
 # Set true for strict address routability rules
 # Set false for private or local networks
-addr_book_strict = false
+addr_book_strict = true
 
 # Maximum number of inbound peers
 max_num_inbound_peers = 40
