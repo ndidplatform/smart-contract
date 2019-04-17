@@ -204,17 +204,19 @@ message Query {
 
 # Create transaction function
 
-## AddAccessor
+## AddAccessor 
 
 ### Parameter
 
 ```sh
 {
-  "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815",
-  "accessor_id": "07938aa2-2aaf-4bb5-9ccd-33700581e870",
-  "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhdKdvawPO8XXroiAGkxF\\nfLRCqvk4X2iAMStq1ADjmPPWhKgF/ssU9LBdHKHPPX1+NMOX29gOL3ZCxfZamKO6\\nAbODt1e0bVfblWWMq5uMwzNrFo4nKas74SLJwiMg0vtn1NnHU4QTTrMYmGqRf2WZ\\nIN9Iro4LytUTLEBCpimWM2hodO8I60bANAO0gI96BzAWMleoioOzWlq6JKkiDsj7\\n8EjCI/bY1T/v4F7rg2FxrIH/BH4TUDy88pIvAYy4nNEyGyr8KzMm1cKxOgnJI8On\\nwT8HrAJQ58T3HCCiCrKAohkYBWITPk3cmqGfOKrqZ2DI+a6URofMVvQFlwfYvqU6\\n5QIDAQAB\\n-----END PUBLIC KEY-----",
-  "accessor_type": "accessor_type_2",
-  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
+  "reference_group_code": "0821573f-6aff-49ad-b17b-5586774e07c5",
+  "identity_namespace": "cid",
+  "identity_identifier_hash": "766f1de3e522f22a16fe520312051e68d9cbf1b177e702cee827f0107752a418",
+  "accessor_id": "dd1158c8-5833-48f9-95d5-b28193bb993a",
+  "accessor_public_key": "-----BEGIN PUBLIC KEY-----nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhdKdvawPO8XXroiAGkxFnfLRCqvk4X2iAMStq1ADjmPPWhKgF/ssU9LBdHKHPPX1+NMOX29gOL3ZCxfZamKO6nAbODt1e0bVfblWWMq5uMwzNrFo4nKas74SLJwiMg0vtn1NnHU4QTTrMYmGqRf2WZnIN9Iro4LytUTLEBCpimWM2hodO8I60bANAO0gI96BzAWMleoioOzWlq6JKkiDsj7n8EjCI/bY1T/v4F7rg2FxrIH/BH4TUDy88pIvAYy4nNEyGyr8KzMm1cKxOgnJI8OnnwT8HrAJQ58T3HCCiCrKAohkYBWITPk3cmqGfOKrqZ2DI+a6URofMVvQFlwfYvqU6n5QIDAQABn-----END PUBLIC KEY-----",
+  "accessor_type": "RSA2048",
+  "request_id": "099ffff6-60b0-431f-b72a-167848febe1b"
 }
 ```
 
@@ -239,8 +241,10 @@ message Query {
 
 ```sh
 {
+  "namespace": "cid",
   "description": "Citizen ID",
-  "namespace": "WsvGOEjoFqvXsvcfFVWm"
+  "allowed_identifier_count_in_reference_group": 1,
+  "allowed_active_identifier_count_in_reference_group": 1
 }
 ```
 
@@ -340,43 +344,17 @@ message Query {
 }
 ```
 
-## ClearRegisterIdentityTimeout
-
-### Parameter
-
-```sh
-{
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6"
-}
-```
-
-### Expected Output
-
-```sh
-{
-  "code": 0,
-  "log": "success",
-  "tags": [
-    {
-      "key": "success",
-      "value": "true"
-    }
-  ]
-}
-```
-
 ## CloseRequest
 
 ### Parameter
 
 ```sh
 {
-  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
+  "request_id": "ca3c69a9-d67c-4e85-878a-ab5d8e0df32b",
   "response_valid_list": [
     {
-      "idp_id": "CuQfyyhjGcCAzKREzHmL",
+      "idp_id": "fJjCNCYyDxHrfMrbZGCu",
       "valid_ial": true,
-      "valid_proof": true,
       "valid_signature": true
     }
   ]
@@ -404,11 +382,9 @@ message Query {
 
 ```sh
 {
+  "request_id": "46a08787-6014-42d1-a6cf-1094e4cf2cb8",
   "aal": 3,
   "ial": 3,
-  "identity_proof": "Magic",
-  "private_proof_hash": "Magic",
-  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
   "signature": "signature",
   "status": "accept"
 }
@@ -457,32 +433,6 @@ message Query {
   "request_message_hash": "hash('Please allow...')",
   "request_timeout": 259200,
   "purpose": "AddAccessor"
-}
-```
-
-### Expected Output
-
-```sh
-{
-  "code": 0,
-  "log": "success",
-  "tags": [
-    {
-      "key": "success",
-      "value": "true"
-    }
-  ]
-}
-```
-
-## DeclareIdentityProof
-
-### Parameter
-
-```sh
-{
-  "identity_proof": "Magic",
-  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
 }
 ```
 
@@ -807,47 +757,23 @@ message Query {
 }
 ```
 
-## RegisterAccessor
-
-### Parameter
-
-```sh
-{
-  "accessor_group_id": "0d855490-0723-4e0d-b39b-3f230c68f815",
-  "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
-  "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2\\nfID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8\\nW0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju\\nEFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM\\njNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD\\n9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0\\nYQIDAQAB\\n-----END PUBLIC KEY-----",
-  "accessor_type": "accessor_type"
-}
-```
-
-### Expected Output
-
-```sh
-{
-  "code": 0,
-  "log": "success",
-  "tags": [
-    {
-      "key": "success",
-      "value": "true"
-    }
-  ]
-}
-```
-
 ## RegisterIdentity
 
 ### Parameter
 
 ```sh
 {
-  "users": [
-    {
-      "first": true,
-      "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
-      "ial": 3
-    }
-  ]
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "new_identity_list": [{
+    "identity_namespace": "citizenId",
+    "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  }],
+  "ial": 3,
+  "mode_list": [2, 3], // allow only 2, 3
+  "accessor_id": "11267a29-2196-4400-8b67-7424519b87ec",
+  "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7BjIuleY9/5ObFl0w+U2\\nfID4cC8v3yIaOjsImXYNon04TZ6lHs8gNvrR1Q0MRtGTugL8XJPj3tw1AbHj01L8\\nW0HwKpFQxhwvGzi0Sesb9Lhn9aA4MCmfMG7PwLGzgdeHR7TVl7VhKx7gedyYIdju\\nEFzAtsJYO1plhUfFv6gdg/05VOjFTtVdWtwKgjUesmuv1ieZDj64krDS84Hka0gM\\njNKm4+mX8HGUPEkHUziyBpD3MwAzyA+I+Z90khDBox/+p+DmlXuzMNTHKE6bwesD\\n9ro1+LVKqjR/GjSZDoxL13c+Va2a9Dvd2zUoSVcDwNJzSJtBrxMT/yoNhlUjqlU0\\nYQIDAQAB\\n-----END PUBLIC KEY-----",
+  "accessor_type": "accessor_type",
+  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
 }
 ```
 
@@ -905,7 +831,10 @@ message Query {
 {
   "min_aal": 1.2,
   "min_ial": 1.1,
-  "service_id": "LlUXaAYeAoVDiQziKPMc"
+  "service_id": "LlUXaAYeAoVDiQziKPMc",
+  "supported_namespace_list": [
+    "citizenId"
+  ]
 }
 ```
 
@@ -1084,31 +1013,6 @@ message Query {
 }
 ```
 
-## SetTimeOutBlockRegisterIdentity
-
-### Parameter
-
-```sh
-{
-  "time_out_block": 100
-}
-```
-
-### Expected Output
-
-```sh
-{
-  "code": 0,
-  "log": "success",
-  "tags": [
-    {
-      "key": "success",
-      "value": "true"
-    }
-  ]
-}
-```
-
 ## SetValidator
 
 ### Parameter
@@ -1173,7 +1077,6 @@ message Query {
     {
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
       "valid_ial": false,
-      "valid_proof": false,
       "valid_signature": false
     }
   ]
@@ -1201,7 +1104,9 @@ message Query {
 
 ```sh
 {
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "ial": 2.2
 }
 ```
@@ -1228,7 +1133,8 @@ message Query {
 ```sh
 {
   "master_public_key": "",
-  "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n"
+  "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n",
+  "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"] // For IdP node only, "text/plain" must be supported always
 }
 ```
 
@@ -1308,10 +1214,12 @@ message Query {
 
 ```sh
 {
+  "min_aal": 1.5,
+  "min_ial": 1.4,
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "service_name": "Bank statement (ย้อนหลัง 3 เดือน)",
-  "data_schema": "string",
-  "data_schema_version": "string"
+  "supported_namespace_list": [
+    "citizenId"
+  ]
 }
 ```
 
@@ -1338,7 +1246,10 @@ message Query {
 {
   "min_aal": 1.5,
   "min_ial": 1.4,
-  "service_id": "LlUXaAYeAoVDiQziKPMc"
+  "service_id": "LlUXaAYeAoVDiQziKPMc",
+  "supported_namespace_list": [
+    "citizenId"
+  ]
 }
 ```
 
@@ -1357,7 +1268,7 @@ message Query {
 }
 ```
 
-## RevokeAccessorMethod
+## RevokeAccessor
 
 ### Parameter
 
@@ -1392,6 +1303,172 @@ message Query {
 ```sh
 {
   "block_height": 0
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## AddIdentity
+
+### Parameter
+
+```sh
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "new_identity_list": [{
+    "identity_namespace": "citizenId",
+    "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  }],
+  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## UpdateIdentityModeList
+
+### Parameter
+
+```json
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "mode_list": [2, 3], // allow only 2,3
+  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## RevokeIdentityAssociation
+
+### Parameter
+
+```json
+{
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## SetAllowedModeList
+
+### Parameter
+
+```json
+{
+  "purpose": "",
+  "allowed_mode_list": [1, 2, 3],
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## UpdateNamespace
+
+### Parameter
+
+```json
+{
+  "description": "Citizen ID",
+  "namespace": "citizenId",
+  "allowed_identifier_count_in_reference_group": 1,
+  "allowed_active_identifier_count_in_reference_group": 1
+}
+```
+
+### Expected Output
+
+```sh
+{
+  "code": 0,
+  "log": "success",
+  "tags": [
+    {
+      "key": "success",
+      "value": "true"
+    }
+  ]
+}
+```
+
+## SetAllowedMinIalForRegisterIdentityAtFirstIdp
+
+### Parameter
+
+```json
+{
+  "min_ial": 2.3,
 }
 ```
 
@@ -1454,7 +1531,9 @@ message Query {
 
 ```sh
 {
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6"
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
 }
 ```
 
@@ -1523,7 +1602,10 @@ message Query {
       "min_aal": 1.5,
       "min_ial": 1.4,
       "node_id": "XckRuCmVliLThncSTnfG",
-      "node_name": "AS1"
+      "node_name": "AS1",
+      "supported_namespace_list": [
+        "citizenId"
+      ]
     }
   ]
 }
@@ -1556,7 +1638,10 @@ message Query {
       ],
       "name": "AS1",
       "node_id": "XckRuCmVliLThncSTnfG",
-      "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\\ndQIDAQAB\\n-----END PUBLIC KEY-----\\n"
+      "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\\ndQIDAQAB\\n-----END PUBLIC KEY-----\\n",
+      "supported_namespace_list": [
+        "citizenId"
+      ]
     }
   ]
 }
@@ -1588,7 +1673,9 @@ message Query {
 
 ```sh
 {
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "node_id": "CuQfyyhjGcCAzKREzHmL"
 }
 ```
@@ -1597,26 +1684,8 @@ message Query {
 
 ```sh
 {
-  "ial": 2.2
-}
-```
-
-## GetIdentityProof
-
-### Parameter
-
-```sh
-{
-  "idp_id": "CuQfyyhjGcCAzKREzHmL",
-  "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
-}
-```
-
-### Expected Output
-
-```sh
-{
-  "identity_proof": "Magic"
+  "ial": 2.2,
+  "mode_list": [2, 3]
 }
 ```
 
@@ -1626,10 +1695,14 @@ message Query {
 
 ```sh
 {
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "min_aal": 3,
   "min_ial": 3,
-  "node_id_list": null
+  "node_id_list": [],
+  "supported_request_message_data_url_type_list": [],
+  "mode_list": [3]
 }
 ```
 
@@ -1642,7 +1715,9 @@ message Query {
       "max_aal": 3,
       "max_ial": 3,
       "node_id": "CuQfyyhjGcCAzKREzHmL",
-      "node_name": "IdP Number 1 from ..."
+      "node_name": "IdP Number 1 from ...",
+      "mode_list": [2, 3],
+      "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"]
     }
   ]
 }
@@ -1654,10 +1729,14 @@ message Query {
 
 ```sh
 {
-  "hash_id": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
+  "identity_namespace": "citizenId",
+  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
   "min_aal": 3,
   "min_ial": 3,
-  "node_id_list": null
+  "node_id_list": [], //array of string
+  "supported_request_message_data_url_type_list": [], //array of string
+  "mode_list": [3]
 }
 ```
 
@@ -1669,6 +1748,8 @@ message Query {
     {
       "max_aal": 3,
       "max_ial": 3,
+      "mode_list": [2, 3], //array of available mode
+      "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"],
       "mq": [
         {
           "ip": "192.168.3.99",
@@ -1719,12 +1800,14 @@ message Query {
   {
     "namespace": "WsvGOEjoFqvXsvcfFVWm",
     "description": "Citizen ID",
-    "active": true
+    "active": true,
+    "allowed_identifier_count_in_reference_group": 1,
+    "allowed_active_identifier_count_in_reference_group": 1
   },
   {
     "namespace": "SJsMIeJcerfZpBfXkJgU",
     "description": "Tel number",
-    "active": true
+    "active": true,
   }
 ]
 ```
@@ -1774,6 +1857,7 @@ message Query {
   "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\\nDQIDAQAB\\n-----END PUBLIC KEY-----\\n",
   "max_aal": 2.4,
   "max_ial": 2.3,
+  "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"],
   "mq": [
     {
       "ip": "192.168.3.99",
@@ -1842,6 +1926,7 @@ message Query {
       "master_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\\njwIDAQAB\\n-----END PUBLIC KEY-----\\n",
       "max_aal": 3,
       "max_ial": 3,
+      "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"],
       "node_id": "BLUbbuoywxSirpxDIPgW",
       "node_name": "IdP6BehindProxy1",
       "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\\njwIDAQAB\\n-----END PUBLIC KEY-----\\n",
@@ -1953,13 +2038,10 @@ message Query {
     {
       "aal": 3,
       "ial": 3,
-      "identity_proof": "Magic",
       "idp_id": "CuQfyyhjGcCAzKREzHmL",
-      "private_proof_hash": "Magic",
       "signature": "signature",
       "status": "accept",
       "valid_ial": null,
-      "valid_proof": null,
       "valid_signature": null
     }
   ],
@@ -2032,6 +2114,9 @@ message Query {
       "min_aal": 1.1,
       "min_ial": 1.1,
       "service_id": "AFLHeKQVLNQOkIOxoNid",
+      "supported_namespace_list": [
+        "citizenId"
+      ],
       "suspended": false
     },
     {
@@ -2039,6 +2124,9 @@ message Query {
       "min_aal": 2.2,
       "min_ial": 2.2,
       "service_id": "qvyfrfJRsfaesnDsYHbH",
+      "supported_namespace_list": [
+        "citizenId"
+      ],
       "suspended": false
     },
     {
@@ -2046,6 +2134,9 @@ message Query {
       "min_aal": 3.3,
       "min_ial": 3.3,
       "service_id": "JTFHqDoJRccWcikcJqnL",
+      "supported_namespace_list": [
+        "citizenId"
+      ],
       "suspended": false
     }
   ]

@@ -554,7 +554,7 @@
 
 ## UpdateNamespace
 
-## Parameter
+### Parameter
 
 ```json
 {
@@ -630,10 +630,9 @@
 - if `allowed_identifier_count_in_reference_group` is not present, means unlimited
 - if `allowed_active_identifier_count_in_reference_group` is not present, means unlimited
 
-
 ## SetAllowedMinIalForRegisterIdentityAtFirstIdp
 
-## Parameter
+### Parameter
 
 ```json
 {

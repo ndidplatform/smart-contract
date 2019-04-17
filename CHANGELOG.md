@@ -20,7 +20,7 @@ BREAKING CHANGES:
 - [DeliverTx] Remove `valid_proof` property from `response_valid_list` in parameters of `CloseRequest`.
 - [DeliverTx] Remove `valid_proof` property from `response_valid_list` in parameters of `TimeOutRequest`.
 - [DeliverTx] Add `supported_request_message_data_url_type_list` property to parameters of `UpdateNode` (IdP nodes only).
-- [DeliverTx] Add new functions (`AddIdentity`, `UpdateIdentityModeList`, `RevokeIdentityAssociation`, `MergeReferenceGroup`, `SetAllowedModeList`, `UpdateNamespace` and `SetAllowedMinIalForRegisterIdentityAtFirstIdp`).
+- [DeliverTx] Add new functions (`AddIdentity`, `UpdateIdentityModeList`, `RevokeIdentityAssociation`, `SetAllowedModeList`, `UpdateNamespace` and `SetAllowedMinIalForRegisterIdentityAtFirstIdp`).
 - [DeliverTx] Remove `ClearRegisterIdentityTimeout`, `SetTimeOutBlockRegisterIdentity`, `RegisterAccessor` and `DeclareIdentityProof` function.
 - [Query] Remove `hash_id` property from parameters of `GetIdpNodes`.
 - [Query] Add `mode_list` and `supported_request_message_data_url_type_list` property to parameters of `GetIdpNodes`.
