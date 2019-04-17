@@ -118,7 +118,6 @@ const (
 	RefGroupCodeCannotBeEmpty                          uint32 = 93
 	AllAccessorMustHaveSameRefGroupCode                uint32 = 94
 	AccessorNotFoundInThisIdP                          uint32 = 95
-	DuplicatedNamespaceInIdentityList                  uint32 = 96
 	AccessorIDCannotBeEmpty                            uint32 = 97
 	AccessorPublicKeyCannotBeEmpty                     uint32 = 98
 	AccessorTypeCannotBeEmpty                          uint32 = 99

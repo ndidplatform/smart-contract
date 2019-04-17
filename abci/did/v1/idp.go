@@ -879,29 +879,6 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	if user.ReferenceGroupCode == "" {
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 	}
-	var namespaceCount = map[string]int{}
-	validNamespace := app.GetNamespaceMap(false)
-	for _, identity := range user.NewIdentityList {
-		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
-			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
-		}
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
-		if identityToRefCodeValue != nil {
-			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
-		}
-		// check namespace is valid
-		if !validNamespace[identity.IdentityNamespace] {
-			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
-		}
-		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
-	}
-	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
-	for namespace, count := range namespaceCount {
-		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
-			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
-		}
-	}
 	refGroupKey := "RefGroupCode" + "|" + user.ReferenceGroupCode
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	var refGroup data.ReferenceGroup
@@ -930,6 +907,33 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 			}
 		}
 	}
+	// Check number of Identifier in new list and old list in stateDB
+	var namespaceCount = map[string]int{}
+	validNamespace := app.GetNamespaceMap(false)
+	for _, identity := range user.NewIdentityList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
+		}
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + identity.IdentityNamespace + "|" + identity.IdentityIdentifierHash
+		_, identityToRefCodeValue := app.GetStateDB([]byte(identityToRefCodeKey))
+		if identityToRefCodeValue != nil {
+			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+		}
+		// check namespace is valid
+		if !validNamespace[identity.IdentityNamespace] {
+			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
+		}
+		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+	}
+	for _, identity := range refGroup.Identities {
+		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
+	}
+	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
+	for namespace, count := range namespaceCount {
+		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
+			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
+		}
+	}
 	foundThisNodeID := false
 	mode3 := false
 	for _, idp := range refGroup.Idps {
@@ -952,18 +956,6 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		if checkRequestResult.Code != code.OK {
 			return checkRequestResult
 		}
-	}
-	// Check duplicated namespace in ref group
-	foundDuplicatedNamespace := false
-	for _, identity := range user.NewIdentityList {
-		for _, idenInRefGroup := range refGroup.Identities {
-			if identity.IdentityNamespace == idenInRefGroup.Namespace {
-				foundDuplicatedNamespace = true
-			}
-		}
-	}
-	if foundDuplicatedNamespace {
-		return app.ReturnDeliverTxLog(code.DuplicatedNamespaceInIdentityList, "Namespace in identity list are duplicated", "")
 	}
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
