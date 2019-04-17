@@ -6,6 +6,42 @@ BREAKING CHANGES:
 
 - Change underlying data structure for app state storage.
 - Remove IAVL dependency.
+- [DeliverTx] Remove `first` and `hash_id` property from parameters of `RegisterIdentity`.
+- [DeliverTx] Add `reference_group_code`, `new_identity_list`, `mode_list`, `accessor_id`, `accessor_public_key`, `accessor_type` and `request_id` property to parameters of `RegisterIdentity`.
+- [DeliverTx] Remove `accessor_group_id` property from parameters of `AddAccessor`.
+- [DeliverTx] Add `identity_namespace`, `identity_identifier_hash`, and `reference_group_code` property to parameters of `AddAccessor`.
+- [DeliverTx] Change function name from `RevokeAccessorMethod` to `RevokeAccessor`.
+- [DeliverTx] Add `supported_namespace_list` property to parameters of `RegisterServiceDestination`.
+- [DeliverTx] Add `supported_namespace_list` property to parameters of `UpdateServiceDestination`.
+- [DeliverTx] Remove `identity_proof` and `private_proof_hash` property from parameters of `CreateIdpResponse`.
+- [DeliverTx] Remove `hash_id` property from parameters of `UpdateIdentity`.
+- [DeliverTx] Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash` property to parameters of `UpdateIdentity`.
+- [DeliverTx] Add `allowed_identifier_count_in_reference_group` and `allowed_active_identifier_count_in_reference_group` property to parameters of `AddNamespace`.
+- [DeliverTx] Remove `valid_proof` property from `response_valid_list` in parameters of `CloseRequest`.
+- [DeliverTx] Remove `valid_proof` property from `response_valid_list` in parameters of `TimeOutRequest`.
+- [DeliverTx] Add `supported_request_message_data_url_type_list` property to parameters of `UpdateNode` (IdP nodes only).
+- [DeliverTx] Add new functions (`AddIdentity`, `UpdateIdentityModeList`, `RevokeIdentityAssociation`, `MergeReferenceGroup`, `SetAllowedModeList`, `UpdateNamespace` and `SetAllowedMinIalForRegisterIdentityAtFirstIdp`).
+- [DeliverTx] Remove `ClearRegisterIdentityTimeout`, `SetTimeOutBlockRegisterIdentity`, `RegisterAccessor` and `DeclareIdentityProof` function.
+- [Query] Remove `hash_id` property from parameters of `GetIdpNodes`.
+- [Query] Add `mode_list` and `supported_request_message_data_url_type_list` property to parameters of `GetIdpNodes`.
+- [Query] Add `supported_request_message_data_url_type_list` property to list of `node` in result of `GetIdpNodes`.
+- [Query] Remove `hash_id` property from parameters of `GetIdpNodesInfo`.
+- [Query] Add `mode_list` and `supported_request_message_data_url_type_list` property to parameters of `GetIdpNodesInfo`.
+- [Query] Add `supported_request_message_data_url_type_list` property to list of `node` in result of `GetIdpNodesInfo`.
+- [Query] Add `supported_namespace_list` property to parameters of `GetAsNodesByServiceId`.
+- [Query] Add `supported_namespace_list` property to parameters of `GetAsNodesInfoByServiceId`.
+- [Query] Add `supported_namespace_list` property to parameters of `GetServicesByAsID`.
+- [Query] Remove `hash_id` property from parameters of `CheckExistingIdentity`.
+- [Query] Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash` property to parameters of `CheckExistingIdentity`.
+- [Query] Remove `hash_id` property from parameters of `GetIdentityInfo`.
+- [Query] Add `reference_group_code`, `identity_namespace` and `identity_identifier_hash` property to parameters of `GetIdentityInfo`.
+- [Query] Add `mode_list` property to result of `GetIdentityInfo`.
+- [Query] Add `allowed_identifier_count_in_reference_group` and `allowed_active_identifier_count_in_reference_group` property to result of `GetNamespaceList`.
+- [Query] Remove `identity_proof`, `private_proof_hash`, `valid_proof` from `response_list` in result of `GetIdentityInfo`.
+- [Query] Add `supported_request_message_data_url_type_list` property to result of `GetNodeInfo` (IdP nodes only).
+- [Query] Add `supported_request_message_data_url_type_list` property to result of `GetNodesBehindProxyNode` (IdP nodes only).
+- [Query] Add new function (`GetReferenceGroupCode`, `GetReferenceGroupCodeByAccessorID`, `GetAllowedModeList` and `GetAllowedMinIalForRegisterIdentityAtFirstIdp`).
+- [Query] Remove `GetIdentityProof` function.
 
 IMPROVEMENTS:
 
