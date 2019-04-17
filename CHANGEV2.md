@@ -23,15 +23,15 @@
 **NOTE**
 
 - Remove `first` property
-- Add `reference_group_code` property (string)
 - Remove `hash_id`
-- Add all identity in `identity_list`.
-- All identity in `identity_list` MUST not exist.
+- Add `reference_group_code` property (string)
+- Add all identity in `new_identity_list`.
 - Add `mode_list`
 - Add `accessor_id`
 - Add `accessor_public_key`
 - Add `accessor_type`
 - Add `request_id`
+- All identity in `new_identity_list` MUST not exist.
 
 ## AddIdentity
 
@@ -51,7 +51,7 @@
 **NOTE**
 
 - `reference_group_code` MUST already exist.
-- All identity in `identity_list` MUST not exist.
+- All identity in `new_identity_list` MUST not exist.
 - IdP must already be associated with `reference_group_code`
 
 ## AddAccessor
@@ -176,6 +176,7 @@
 
 - Input `reference_group_code` or `identity_namespace`+`identity_identifier_hash` (able to input one or the other, if both then error when `identity_namespace`+`identity_identifier_hash` is not in that reference_group_code?)
 - Remove `hash_id`
+- Add `mode_list`
 - Add `supported_request_message_data_url_type_list`
 
 
@@ -258,7 +259,6 @@
   "request_id": "edaec8df-7865-4473-8707-054dd0cffe2d"
 }
 ```
-
 
 ## MergeReferenceGroup (New)
 
@@ -534,7 +534,6 @@
 }
 ```
 
-
 ## SetAllowedModeList
 
 ### Parameter
@@ -642,7 +641,6 @@
 }
 ```
 
-
 ## GetAllowedMinIalForRegisterIdentityAtFirstIdp
 
 ### Expected Output
@@ -652,7 +650,6 @@
   "min_ial": 2.3,
 }
 ```
-
 
 ## CloseRequest
 
@@ -674,7 +671,6 @@
 **NOTE**
 
 - Remove `valid_proof`
-
 
 ## TimeOutRequest
 
@@ -823,7 +819,6 @@
 **NOTE**
 
 - Add `supported_request_message_data_url_type_list` to IdP nodes
-
 
 ## Remove these functions
 
