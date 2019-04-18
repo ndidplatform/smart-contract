@@ -678,7 +678,7 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 		nodeDetail.PublicKey = funcParam.PublicKey
 	}
 	// update SupportedRequestMessageDataUrlTypeList and Role of node ID is IdP
-	if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 && string(app.getRoleFromNodeID(nodeID)) == "IdP" {
+	if funcParam.SupportedRequestMessageDataUrlTypeList != nil && string(app.getRoleFromNodeID(nodeID)) == "IdP" {
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = funcParam.SupportedRequestMessageDataUrlTypeList
 	}
 	nodeDetailValue, err := utils.ProtoDeterministicMarshal(&nodeDetail)
