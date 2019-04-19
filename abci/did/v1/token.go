@@ -265,9 +265,9 @@ func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.Re
 	if !app.checkTokenAccount(funcParam.NodeID) {
 		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
 	}
-	errCode, _ := app.reduceToken(funcParam.NodeID, funcParam.Amount)
+	errCode, errLog := app.reduceToken(funcParam.NodeID, funcParam.Amount)
 	if errCode != code.OK {
-		return app.ReturnDeliverTxLog(errCode, err.Error(), "")
+		return app.ReturnDeliverTxLog(errCode, errLog, "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
