@@ -1,11 +1,12 @@
 # Changelog
 
-## TBD
+## 2.0.0 (April 23, 2018)
 
 BREAKING CHANGES:
 
 - Change underlying data structure for app state storage.
 - Remove IAVL dependency.
+- Change DeliverTx logic for `recheck = false`.
 
 IMPROVEMENTS:
 
