@@ -4,8 +4,6 @@
 
 BREAKING CHANGES:
 
-- Change underlying data structure for app state storage.
-- Remove IAVL dependency.
 - [DeliverTx] Remove `first` and `hash_id` property from parameters of `RegisterIdentity`.
 - [DeliverTx] Add `reference_group_code`, `new_identity_list`, `mode_list`, `accessor_id`, `accessor_public_key`, `accessor_type` and `request_id` property to parameters of `RegisterIdentity`.
 - [DeliverTx] Remove `accessor_group_id` property from parameters of `AddAccessor`.
@@ -46,6 +44,18 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
 - Update Tendermint version to v0.31.5.
+
+## 2.0.0 (April 23, 2019)
+
+BREAKING CHANGES:
+
+- Change underlying data structure for app state storage.
+- Remove IAVL dependency.
+- Change DeliverTx logic for `recheck = false`.
+
+IMPROVEMENTS:
+
+- Update Tendermint version to v0.30.2.
 - Add Prometheus support.
 
 ## 1.0.0 (December 7, 2018)
