@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 (April 23, 2018)
+## 2.0.0 (April 23, 2019)
 
 BREAKING CHANGES:
 
