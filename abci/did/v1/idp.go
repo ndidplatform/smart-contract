@@ -707,14 +707,20 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 				}
 			}
 			accessorInIdP := make([]string, 0)
+			activeAccessorCount := 0
 			for _, accsesor := range idp.Accessors {
 				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
+				if accsesor.Active {
+					activeAccessorCount++
+				}
 			}
 			for _, accsesorID := range funcParam.AccessorIDList {
 				if !contains(accsesorID, accessorInIdP) {
 					return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
 				}
-				break
+			}
+			if activeAccessorCount-len(funcParam.AccessorIDList) < 1 {
+				return app.ReturnDeliverTxLog(code.CannotRevokeAllAccessorsInThisIdP, "Cannot revoke all accessors in this IdP", "")
 			}
 		}
 	}

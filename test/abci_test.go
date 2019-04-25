@@ -996,19 +996,11 @@ func TestIdP2CloseRequestForRevokeAccessor(t *testing.T) {
 	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
 }
 
-func TestIdP2RevokeAccessor(t *testing.T) {
+func TestIdP2RevokeAccessorLastAccessorExpectError(t *testing.T) {
 	var param did.RevokeAccessorParam
 	param.RequestID = requestID5.String()
 	param.AccessorIDList = append(param.AccessorIDList, accessorID2.String())
-	RevokeAccessor(t, param, idpPrivK2, IdP2, "success")
-}
-
-func TestQueryGetAccessorKey2AfterRevoke(t *testing.T) {
-	var param = did.GetAccessorGroupIDParam{
-		accessorID2.String(),
-	}
-	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":false}`
-	GetAccessorKey(t, param, expected)
+	RevokeAccessor(t, param, idpPrivK2, IdP2, "Cannot revoke all accessors in this IdP")
 }
 
 func TestQueryGetIdentityInfoBeforeUpdateIdentityModeList(t *testing.T) {
