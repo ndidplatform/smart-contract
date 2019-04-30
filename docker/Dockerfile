@@ -77,13 +77,13 @@ RUN apk update && apk add --no-cache bash curl jq snappy-dev && rm -rf /var/cach
 COPY --from=builder /usr/local/lib /usr/local/lib
 
 COPY --from=builder /go/bin/abci /usr/bin/did-tendermint
-COPY docker/start-node.sh /usr/bin/
 RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
 
 # Change owner to nobodoy:nogroup and permission to 640
-RUN chown -R nobody:nogroup /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
-RUN chmod -R 740 /usr/bin/start-node.sh /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
+RUN chown -R nobody:nogroup /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
+RUN chmod -R 740 /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
 
 USER nobody
-ENTRYPOINT ["start-node.sh"]
+ENTRYPOINT ["did-tendermint"]
+CMD ["node"]
 STOPSIGNAL SIGTERM
