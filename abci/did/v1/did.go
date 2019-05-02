@@ -340,6 +340,22 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 		}
 	}()
 
+	app.logger.Infof(">>> ABCI Query; path:%s", reqQuery.Path)
+
+	if strings.HasPrefix(reqQuery.Path, "/p2p/filter/id/") {
+		nodeID := string(reqQuery.Path[len("/p2p/filter/id/"):len(reqQuery.Path)])
+		app.logger.Infof(">>> nodeId: %s", nodeID)
+
+		// if nodeID == "c82ffee2afd9acbb41b7138751786c521c952f38" {
+		if nodeID == "837b445de4174c92e260bb9106ba9ac51ef021f6" {
+			app.logger.Infof(">>> block peer: %s", nodeID)
+			res.Code = 1
+			res.Log = "blocked peer"
+			res.Height = app.state.Height
+			return res
+		}
+	}
+
 	var query protoTm.Query
 	err := proto.Unmarshal(reqQuery.Data, &query)
 	if err != nil {

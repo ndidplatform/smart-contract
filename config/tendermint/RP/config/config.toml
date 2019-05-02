@@ -53,7 +53,7 @@ prof_laddr = ""
 
 # If true, query the ABCI app on connecting to a new peer
 # so the app can decide if we should keep the connection or not
-filter_peers = false
+filter_peers = true
 
 ##### advanced configuration options #####
 
