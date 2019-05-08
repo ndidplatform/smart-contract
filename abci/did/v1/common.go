@@ -1046,7 +1046,7 @@ func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
 	}
 	for _, idp := range refGroup.Idps {
-		if funcParam.NodeID == idp.NodeId {
+		if funcParam.NodeID == idp.NodeId && idp.Active {
 			result.Ial = idp.Ial
 			result.ModeList = idp.Mode
 			break
