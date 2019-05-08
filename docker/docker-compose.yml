@@ -6,10 +6,13 @@ services:
     image: ndidplatform/did-tendermint:latest
     environment:
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - genesis
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -24,10 +27,13 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -42,10 +48,13 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -60,10 +69,13 @@ services:
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
