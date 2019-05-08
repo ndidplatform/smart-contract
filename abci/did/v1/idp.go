@@ -217,7 +217,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 			}
-			if nodeDetail.Active {
+			if nodeDetail.Active && idp.Active {
 				minIdp = 1
 				break
 			}
