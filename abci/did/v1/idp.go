@@ -293,12 +293,17 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 		if idp.NodeId == nodeID {
 			refGroup.Idps[iIdp].Active = true
 			refGroup.Idps[iIdp].Mode = funcParam.ModeList
+			foundAccessorInThisGroup := false
 			for iAcc, accessor := range refGroup.Idps[iIdp].Accessors {
 				if accessor.AccessorId == funcParam.AccessorID {
 					refGroup.Idps[iIdp].Accessors[iAcc].AccessorType = user.AccessorType
 					refGroup.Idps[iIdp].Accessors[iAcc].AccessorPublicKey = user.AccessorPublicKey
 					refGroup.Idps[iIdp].Accessors[iAcc].Active = true
+					foundAccessorInThisGroup = true
 				}
+			}
+			if !foundAccessorInThisGroup {
+				refGroup.Idps[iIdp].Accessors = append(refGroup.Idps[iIdp].Accessors, &accessor)
 			}
 			foundThisNodeID = true
 			break
