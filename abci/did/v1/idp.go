@@ -237,6 +237,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
+	var checkDuplicateNamespaceAndHash = map[string]int{}
 	validNamespace := app.GetNamespaceMap(false)
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
@@ -252,6 +253,13 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
+	}
+	// Check duplicate count
+	for _, count := range checkDuplicateNamespaceAndHash {
+		if count > 1 {
+			return app.ReturnDeliverTxLog(code.DuplicateIdentifier, "There are duplicate identifier", "")
+		}
 	}
 	for _, identity := range refGroup.Identities {
 		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
@@ -915,6 +923,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	}
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
+	var checkDuplicateNamespaceAndHash = map[string]int{}
 	validNamespace := app.GetNamespaceMap(false)
 	for _, identity := range user.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
@@ -930,6 +939,13 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
+	}
+	// Check duplicate count
+	for _, count := range checkDuplicateNamespaceAndHash {
+		if count > 1 {
+			return app.ReturnDeliverTxLog(code.DuplicateIdentifier, "There are duplicate identifier", "")
+		}
 	}
 	for _, identity := range refGroup.Identities {
 		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1

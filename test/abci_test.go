@@ -275,7 +275,7 @@ func TestIdP1RegisterIdentityWithDuplicateNamespace(t *testing.T) {
 	userHash := h.Sum(nil)
 	h2 := sha256.New()
 	h2.Write([]byte(userNamespace + userID2))
-	userHash2 := h.Sum(nil)
+	userHash2 := h2.Sum(nil)
 	var user did.RegisterIdentityParam
 	user.ReferenceGroupCode = referenceGroupCode1.String()
 	var identity did.Identity
@@ -507,6 +507,27 @@ func TestIdP2RegisterIdentityWithDuplicatedNamespaceToExistedRefGroupExpectError
 	user.RequestID = requestID2.String()
 	var param = user
 	RegisterIdentity(t, param, idpPrivK2, IdP2, "Identifier count is greater than allowed identifier count")
+}
+
+func TestIdP2RegisterIdentityWithDuplicatedIdentifierExpectError(t *testing.T) {
+	h := sha256.New()
+	h.Write([]byte(userNamespace + userID2))
+	userHash := h.Sum(nil)
+	var user did.RegisterIdentityParam
+	user.ReferenceGroupCode = referenceGroupCode1.String()
+	var identity did.Identity
+	identity.IdentityNamespace = userNamespace
+	identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.NewIdentityList = append(user.NewIdentityList, identity)
+	user.Ial = 2.3
+	user.ModeList = append(user.ModeList, 2)
+	user.AccessorID = accessorID2.String()
+	user.AccessorPublicKey = accessorPubKey2
+	user.AccessorType = "RSA2048"
+	user.RequestID = requestID2.String()
+	var param = user
+	RegisterIdentity(t, param, idpPrivK2, IdP2, "There are duplicate identifier")
 }
 
 func TestIdP2RegisterIdentityToExistedRefGroup(t *testing.T) {
