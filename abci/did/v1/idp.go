@@ -44,6 +44,12 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
 	}
+	// Check duplicate accessor ID
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	_, refGroupCodeFromDB := app.GetStateDB([]byte(accessorToRefCodeKey))
+	if refGroupCodeFromDB != nil {
+		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
+	}
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
@@ -115,7 +121,7 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 		}
 	}
 
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeKey = "accessorToRefCodeKey" + "|" + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
