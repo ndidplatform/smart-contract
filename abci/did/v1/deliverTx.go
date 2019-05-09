@@ -205,6 +205,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.updateNamespace(param, nodeID)
 	case "SetAllowedMinIalForRegisterIdentityAtFirstIdp":
 		return app.SetAllowedMinIalForRegisterIdentityAtFirstIdp(param, nodeID)
+	case "RevokeAndAddAccessor":
+		return app.revokeAndAddAccessor(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

@@ -93,6 +93,7 @@ var IsMethod = map[string]bool{
 	"SetAllowedModeList":               true,
 	"UpdateNamespace":                  true,
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
+	"RevokeAndAddAccessor":                          true,
 }
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -608,7 +609,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"RevokeAccessor",
 		"RevokeIdentityAssociation",
 		"UpdateIdentityModeList",
-		"AddIdentity":
+		"AddIdentity",
+		"RevokeAndAddAccessor":
 		return app.checkIsIDP(param, nodeID)
 	case "SignData",
 		"RegisterServiceDestination",

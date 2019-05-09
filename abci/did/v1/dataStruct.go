@@ -869,3 +869,15 @@ type UpdateNamespaceParam struct {
 	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
+type RevokeAndAddAccessorParam struct {
+	RevokeAccessorIDList   []string `json:"revoke_accessor_id_list"`
+	ReferenceGroupCode     string   `json:"reference_group_code"`
+	IdentityNamespace      string   `json:"identity_namespace"`
+	IdentityIdentifierHash string   `json:"identity_identifier_hash"`
+	AccessorID             string   `json:"accessor_id"`
+	AccessorPublicKey      string   `json:"accessor_public_key"`
+	AccessorType           string   `json:"accessor_type"`
+	Mode                   int32    `json:"mode"`
+	RequestID              string   `json:"request_id"`
+}
+
