@@ -810,7 +810,7 @@ func GetAccessorOwner(t *testing.T, param did.GetAccessorOwnerParam, expected st
 		return
 	}
 	if actual := string(resultString); !reflect.DeepEqual(actual, expected) {
-		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

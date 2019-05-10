@@ -57,13 +57,16 @@ var requestID4 = uuid.NewV4()
 var requestID5 = uuid.NewV4()
 var requestID6 = uuid.NewV4()
 var requestID7 = uuid.NewV4()
+var requestID8 = uuid.NewV4()
+var requestID9 = uuid.NewV4()
+
 var namespaceID1 = RandStringRunes(20)
 var namespaceID2 = RandStringRunes(20)
 var accessorID1 = uuid.NewV4()
 var accessorID2 = uuid.NewV4()
 var accessorID3 = uuid.NewV4()
-
-// var accessorGroupID1 = uuid.NewV4()
+var accessorID4 = uuid.NewV4()
+var accessorID5 = uuid.NewV4()
 
 var serviceID3 = RandStringRunes(20)
 var serviceID4 = RandStringRunes(20)
@@ -1249,6 +1252,141 @@ func TestQueryGetAsNodesInfoByServiceId2(t *testing.T) {
 	param.ServiceID = serviceID1
 	var expected = `{"node":[{"node_id":"` + AS1 + `","name":"AS1","min_ial":1.5,"min_aal":1.4,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApT8lXT9CDRZZkvhZLBD6\n6o7igZf6sj/o0XooaTuy2HuCt6yEO8jt7nx0XkEFyx4bH4/tZNsKdok7DU75MjqQ\nrdqGwpogvkZ3uUahwE9ZgOj6h4fq9l1Au8lxvAIp+b2BDRxttbHp9Ls9nK47B3Zu\niD02QknUNiPFvf+BWIoC8oe6AbyctnV+GTsC/H3jY3BD9ox2XKSE4/xaDMgC+SBU\n3pqukT35tgOcvcSAMVJJ06B3uyk19MzK3MVMm8b4sHFQ76UEpDOtQZrmKR1PH0gV\nFt93/0FPOH3m4o+9+1OStP51Un4oH3o80aw5g0EJzDpuv/+Sheec4+0PVTq0K6kj\ndQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["passport"]},{"node_id":"` + AS2 + `","name":"AS2","min_ial":1.2,"min_aal":1.1,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzhJ5PP3dfQtpw9p0Kphb\n30gg9jpgsv425D5pzZaH00zPgYfNTVZWfrLlTtc/ja8dbHvyDaCyzFD++Vr1vtmS\nSs9/j8ZhTJrTYHoiHvfG1ulTl1QdgwOcrKhpfhhjnCVCPOYjptgac/KPjhT7uiuY\nwB6axafx+RqPQqwQQhmuuxmTyy69l/cqezDtYCYUJVA6nV29ZaaF1VjWoE05PK16\n8mcB5quBdE6Vkc4n2k0wxaaTd/s9LPy6STXtz5IBXH2Gy5RP0TGeXO6iur/ZSM2z\n/3vQkTMjY/mkDduGioXcB6ieNgVv3XYbZg4VJEDSuOpRZReKcgLXvwk3CqZZdZRR\njQIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.102","port":8000}],"supported_namespace_list":["cid"]}]}`
 	GetAsNodesInfoByServiceId(t, param, expected)
+}
+
+func TestIdP2CreateRequestForAddAccessor4(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID8.String()
+	param.MinIdp = 1
+	param.MinIal = 2.3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "AddAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP2)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2CreateIdpResponseForAddAccessor4(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 2.3
+	param.RequestID = requestID8.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2CloseRequestForAddAccessor4(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP1
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID8.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdPAddAccessorMethodForAddAccessor4(t *testing.T) {
+	var param did.AccessorMethod
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.AccessorID = accessorID4.String()
+	param.AccessorPublicKey = accessorPubKey2
+	param.AccessorType = "RSA2048"
+	param.RequestID = requestID3.String()
+	AddAccessor(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetAccessorKeyBeforeRevokeAndAddAccessor1(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
+}
+
+func TestQueryGetAccessorKeyBeforeRevokeAndAddAccessor2(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID4.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
+}
+
+func TestIdP2CreateRequestForRevokeAndAddAccessor(t *testing.T) {
+	var datas []did.DataRequest
+	var param did.Request
+	param.RequestID = requestID9.String()
+	param.MinIdp = 1
+	param.MinIal = 2.3
+	param.MinAal = 3
+	param.Timeout = 259200
+	param.DataRequestList = datas
+	param.MessageHash = "hash('Please allow...')"
+	param.Mode = 3
+	param.Purpose = "RevokeAndAddAccessor"
+	param.IdPIDList = append(param.IdPIDList, IdP2)
+	CreateRequest(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP1CreateIdpResponseForRevokeAndAddAccessor(t *testing.T) {
+	var param did.CreateIdpResponseParam
+	param.Aal = 3
+	param.Ial = 2.3
+	param.RequestID = requestID9.String()
+	param.Signature = "signature"
+	param.Status = "accept"
+	CreateIdpResponse(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2CloseRequestForRevokeAndAddAccessor(t *testing.T) {
+	var res []did.ResponseValid
+	var res1 did.ResponseValid
+	res1.IdpID = IdP2
+	tValue := true
+	res1.ValidIal = &tValue
+	res1.ValidSignature = &tValue
+	res = append(res, res1)
+	var param = did.CloseRequestParam{
+		requestID9.String(),
+		res,
+	}
+	CloseRequestByIdP(t, param, idpPrivK2, IdP2)
+}
+
+func TestIdP2RevokeAndAddAccessor(t *testing.T) {
+	var param did.RevokeAndAddAccessorParam
+	param.RevokeAccessorIDList = append(make([]string, 0), accessorID2.String())
+	param.ReferenceGroupCode = referenceGroupCode1.String()
+	param.AccessorID = accessorID5.String()
+	param.AccessorPublicKey = accessorPubKey2
+	param.AccessorType = "RSA2048"
+	param.RequestID = requestID9.String()
+	RevokeAndAddAccessor(t, param, idpPrivK2, IdP2, "success")
+}
+
+func TestQueryGetAccessorKeyAfterRevokeAndAddAccessor1(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID2.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":false}`
+	GetAccessorKey(t, param, expected)
+}
+
+func TestQueryGetAccessorKeyAfterRevokeAndAddAccessor2(t *testing.T) {
+	var param = did.GetAccessorGroupIDParam{
+		accessorID4.String(),
+	}
+	var expected = `{"accessor_public_key":"` + strings.Replace(accessorPubKey2, "\n", "\\n", -1) + `","active":true}`
+	GetAccessorKey(t, param, expected)
 }
 
 // ---  Old test ---

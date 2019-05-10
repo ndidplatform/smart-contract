@@ -1057,7 +1057,22 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 			}
 		}
 	}
-	refGroupCode := firstRefGroup
+	refGroupCodeFromRevokeList := firstRefGroup
+	// Check ref group code from revoke list and new accessor are same ref group
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
+		if refGroupCodeFromDB == nil {
+			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	if refGroupCodeFromRevokeList != refGroupCode {
+		return app.ReturnDeliverTxLog(code.AllAccessorMustHaveSameRefGroupCode, "All accessors must have same reference group code", "")
+	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
 	if refGroupValue == nil {
@@ -1120,14 +1135,6 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	if mode3 {
-		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
-		if increaseRequestUseCountResult.Code != code.OK {
-			return increaseRequestUseCountResult
-		}
-	}
-	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-
 	// Add new accessor
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
@@ -1137,26 +1144,6 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	_, refGroupCodeFromDB := app.GetStateDB([]byte(accessorToRefCodeKey))
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
-	}
-	refGroupCode = ""
-	if funcParam.ReferenceGroupCode != "" {
-		refGroupCode = funcParam.ReferenceGroupCode
-	} else {
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
-		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
-		}
-		refGroupCode = string(refGroupCodeFromDB)
-	}
-	refGroupKey = "RefGroupCode" + "|" + string(refGroupCode)
-	_, refGroupValue = app.GetStateDB([]byte(refGroupKey))
-	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
-	}
-	err = proto.Unmarshal(refGroupValue, &refGroup)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	foundThisNodeID := false
 	mode3 = false
@@ -1187,16 +1174,17 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 			break
 		}
 	}
-	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
 	if mode3 {
 		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
 		if increaseRequestUseCountResult.Code != code.OK {
 			return increaseRequestUseCountResult
 		}
 	}
+	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
 	accessorToRefCodeKey = "accessorToRefCodeKey" + "|" + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
