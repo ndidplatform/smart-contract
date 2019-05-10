@@ -126,5 +126,6 @@ const (
 	IalMustBeGreaterOrEqualMinIal                      uint32 = 102
 	CannotRevokeAllAccessorsInThisIdP                  uint32 = 103
 	DuplicateIdentifier                                uint32 = 104
+	NewModeListMustBeHigherThanCurrentModeList         uint32 = 105
 	UnknownError                                       uint32 = 999
 )

@@ -865,6 +865,12 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 	}
 	for index, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
+			// Check new mode list is higher than current mode list
+			maxCurrentMode := MaxInt32(refGroup.Idps[index].Mode)
+			maxNewMode := MaxInt32(funcParam.ModeList)
+			if maxCurrentMode > maxNewMode {
+				return app.ReturnDeliverTxLog(code.NewModeListMustBeHigherThanCurrentModeList, "New mode list must be higher than current mode list", "")
+			}
 			refGroup.Idps[index].Mode = funcParam.ModeList
 			break
 		}
@@ -1195,4 +1201,14 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	tag.Value = []byte(refGroupCode)
 	tags = append(tags, tag)
 	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+}
+
+func MaxInt32(v []int32) int32 {
+	var m int32
+	for i, e := range v {
+		if i == 0 || e < m {
+			m = e
+		}
+	}
+	return m
 }
