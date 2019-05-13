@@ -59,7 +59,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.RequestMessageHash = funcParam.MessageHash
 	request.Mode = funcParam.Mode
 	// Check valid mode
-	allowedMode := app.GetAllowedModeFromStateDB("", false)
+	allowedMode := app.GetAllowedModeFromStateDB(funcParam.Purpose, false)
 	validMode := false
 	for _, mode := range allowedMode {
 		if mode == request.Mode {
