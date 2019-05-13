@@ -1047,26 +1047,11 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	if !nodeDetail.Active {
 		return app.ReturnDeliverTxLog(code.NodeIsNotActive, "Node is not active", "")
 	}
-	// Check ref group code from revoke accessor ID and new accessor are same ref group
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.RevokeAccessorID
-	_, refGroupCodeFromDB := app.GetStateDB([]byte(accessorToRefCodeKey))
-	if refGroupCodeFromDB == nil {
+	// Get ref group code from revoking accessor ID
+	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.RevokingAccessorID
+	_, refGroupCode := app.GetStateDB([]byte(accessorToRefCodeKey))
+	if refGroupCode == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
-	}
-	refGroupCodeFromRevokeAccessorID := string(refGroupCodeFromDB)
-	refGroupCode := ""
-	if funcParam.ReferenceGroupCode != "" {
-		refGroupCode = funcParam.ReferenceGroupCode
-	} else {
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.GetStateDB([]byte(identityToRefCodeKey))
-		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
-		}
-		refGroupCode = string(refGroupCodeFromDB)
-	}
-	if refGroupCodeFromRevokeAccessorID != refGroupCode {
-		return app.ReturnDeliverTxLog(code.AllAccessorMustHaveSameRefGroupCode, "All accessors must have same reference group code", "")
 	}
 	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
 	_, refGroupValue := app.GetStateDB([]byte(refGroupKey))
@@ -1095,7 +1080,7 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 					activeAccessorCount++
 				}
 			}
-			if !contains(funcParam.RevokeAccessorID, accessorInIdP) {
+			if !contains(funcParam.RevokingAccessorID, accessorInIdP) {
 				return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
 			}
 		}
@@ -1110,7 +1095,7 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	for iIdP, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
 			for iAcc, accsesor := range idp.Accessors {
-				if accsesor.AccessorId == funcParam.RevokeAccessorID {
+				if accsesor.AccessorId == funcParam.RevokingAccessorID {
 					refGroup.Idps[iIdP].Accessors[iAcc].Active = false
 					break
 				}
@@ -1122,13 +1107,9 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	// Add new accessor
-	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
-		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
-	}
 	// Check duplicate accessor ID
 	accessorToRefCodeKey = "accessorToRefCodeKey" + "|" + funcParam.AccessorID
-	_, refGroupCodeFromDB = app.GetStateDB([]byte(accessorToRefCodeKey))
+	_, refGroupCodeFromDB := app.GetStateDB([]byte(accessorToRefCodeKey))
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
 	}

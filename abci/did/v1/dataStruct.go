@@ -869,13 +869,10 @@ type UpdateNamespaceParam struct {
 }
 
 type RevokeAndAddAccessorParam struct {
-	RevokeAccessorID       string `json:"revoke_accessor_id"`
-	ReferenceGroupCode     string `json:"reference_group_code"`
-	IdentityNamespace      string `json:"identity_namespace"`
-	IdentityIdentifierHash string `json:"identity_identifier_hash"`
-	AccessorID             string `json:"accessor_id"`
-	AccessorPublicKey      string `json:"accessor_public_key"`
-	AccessorType           string `json:"accessor_type"`
-	RequestID              string `json:"request_id"`
+	RevokingAccessorID string `json:"revoking_accessor_id"`
+	AccessorID         string `json:"accessor_id"`
+	AccessorPublicKey  string `json:"accessor_public_key"`
+	AccessorType       string `json:"accessor_type"`
+	RequestID          string `json:"request_id"`
 }
 

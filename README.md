@@ -1493,10 +1493,7 @@ message Query {
 
 ```json
 {
-  "revoke_accessor_id": "11d10976-aede-4ba0-9f44-fc0c96db1f32", 
-  "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
-  "identity_namespace": "citizenId",
-  "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
+  "revoke_accessor_id": "11d10976-aede-4ba0-9f44-fc0c96db1f32",
   "accessor_id": "07938aa2-2aaf-4bb5-9ccd-33700581e870",
   "accessor_public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhdKdvawPO8XXroiAGkxF\\nfLRCqvk4X2iAMStq1ADjmPPWhKgF/ssU9LBdHKHPPX1+NMOX29gOL3ZCxfZamKO6\\nAbODt1e0bVfblWWMq5uMwzNrFo4nKas74SLJwiMg0vtn1NnHU4QTTrMYmGqRf2WZ\\nIN9Iro4LytUTLEBCpimWM2hodO8I60bANAO0gI96BzAWMleoioOzWlq6JKkiDsj7\\n8EjCI/bY1T/v4F7rg2FxrIH/BH4TUDy88pIvAYy4nNEyGyr8KzMm1cKxOgnJI8On\\nwT8HrAJQ58T3HCCiCrKAohkYBWITPk3cmqGfOKrqZ2DI+a6URofMVvQFlwfYvqU6\\n5QIDAQAB\\n-----END PUBLIC KEY-----",
   "accessor_type": "accessor_type_2",
