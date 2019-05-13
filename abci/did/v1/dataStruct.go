@@ -384,7 +384,6 @@ type AccessorMethod struct {
 	AccessorID             string `json:"accessor_id"`
 	AccessorPublicKey      string `json:"accessor_public_key"`
 	AccessorType           string `json:"accessor_type"`
-	Mode                   int32  `json:"mode"`
 	RequestID              string `json:"request_id"`
 }
 
