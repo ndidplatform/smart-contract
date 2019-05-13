@@ -1364,7 +1364,7 @@ func TestIdP2CloseRequestForRevokeAndAddAccessor(t *testing.T) {
 
 func TestIdP2RevokeAndAddAccessor(t *testing.T) {
 	var param did.RevokeAndAddAccessorParam
-	param.RevokeAccessorIDList = append(make([]string, 0), accessorID2.String())
+	param.RevokeAccessorID = accessorID2.String()
 	param.ReferenceGroupCode = referenceGroupCode1.String()
 	param.AccessorID = accessorID5.String()
 	param.AccessorPublicKey = accessorPubKey2
