@@ -1493,9 +1493,7 @@ message Query {
 
 ```json
 {
-  "revoke_accessor_id_list": [
-    "11d10976-aede-4ba0-9f44-fc0c96db1f32"
-  ],
+  "revoke_accessor_id": "11d10976-aede-4ba0-9f44-fc0c96db1f32", 
   "reference_group_code": "aaaaa-bbbbb-ccccc-ddddd",
   "identity_namespace": "citizenId",
   "identity_identifier_hash": "c765a80f1ee71299c361c1b4cb4d9c36b44061a526348a71287ea0a97cea80f6",
