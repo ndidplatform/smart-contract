@@ -33,6 +33,15 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
+var modeFunctionMap = map[string]bool{
+	"RegisterIdentity":          true,
+	"AddIdentity":               true,
+	"AddAccessor":               true,
+	"RevokeAccessor":            true,
+	"RevokeIdentityAssociation": true,
+	"UpdateIdentityModeList":    true,
+}
+
 func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
@@ -1927,7 +1936,7 @@ func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string, getFromComm
 
 	if allowedModeValue == nil {
 		// return default value
-		if purpose != "RegisterIdentity" {
+		if !modeFunctionMap[purpose] {
 			result = append(result, 1)
 		}
 		result = append(result, 2)
