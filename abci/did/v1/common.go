@@ -40,6 +40,7 @@ var modeFunctionMap = map[string]bool{
 	"RevokeAccessor":            true,
 	"RevokeIdentityAssociation": true,
 	"UpdateIdentityModeList":    true,
+	"RevokeAndAddAccessor":      true,
 }
 
 func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
