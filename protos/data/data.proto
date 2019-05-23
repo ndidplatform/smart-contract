@@ -102,9 +102,9 @@ message Response {
   double aal = 2;
   string status = 3;
   string signature = 4;
-  string idp_id = 7;
-  string valid_ial = 9;
-  string valid_signature = 10;
+  string idp_id = 5;
+  string valid_ial = 6;
+  string valid_signature = 7;
 }
 
 message ReportList {
