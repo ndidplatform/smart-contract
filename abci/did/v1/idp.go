@@ -36,7 +36,7 @@ import (
 
 func (app *DIDApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessor, Parameter: %s", param)
-	var funcParam AccessorMethod
+	var funcParam AddAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

@@ -34,7 +34,7 @@ import (
 
 func (app *DIDApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
-	var funcParam Request
+	var funcParam CreateRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

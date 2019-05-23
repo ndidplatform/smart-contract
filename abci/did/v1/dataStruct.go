@@ -128,7 +128,7 @@ type DataRequest struct {
 	ReceivedDataFromList []string `json:"received_data_from_list"`
 }
 
-type Request struct {
+type CreateRequestParam struct {
 	RequestID       string        `json:"request_id"`
 	MinIdp          int           `json:"min_idp"`
 	MinAal          float64       `json:"min_aal"`
@@ -377,7 +377,7 @@ type Accessor struct {
 	Owner             string `json:"owner"`
 }
 
-type AccessorMethod struct {
+type AddAccessorParam struct {
 	ReferenceGroupCode     string `json:"reference_group_code"`
 	IdentityNamespace      string `json:"identity_namespace"`
 	IdentityIdentifierHash string `json:"identity_identifier_hash"`
