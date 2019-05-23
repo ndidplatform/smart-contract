@@ -1,1 +1,1 @@
-module github.com/ndidplatform/smart-contract
+module github.com/ndidplatform/smart-contract/v3
