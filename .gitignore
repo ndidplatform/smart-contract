@@ -25,6 +25,3 @@ config/tendermint/IdP/config/write-file-atomic*
 config/tendermint/RP/config/write-file-atomic*
 config/tendermint/AS/config/write-file-atomic*
 config/tendermint/AS2/config/write-file-atomic*
-
-#
-data/
