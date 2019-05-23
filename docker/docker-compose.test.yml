@@ -3,14 +3,17 @@ services:
 
   # genesis node
   tm-ndid:
-    image: ndidplatform/did-tendermint:latest
+    image: ndidplatform/did-tendermint:${DOCKER_TAG:-latest}
     environment:
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
       - DEV_ENV=${DEV_ENV:-true}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - genesis
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -21,15 +24,18 @@ services:
 
   # secondary nodes
   tm-idp:
-    image: ndidplatform/did-tendermint:latest
+    image: ndidplatform/did-tendermint:${DOCKER_TAG:-latest}
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
       - DEV_ENV=${DEV_ENV:-true}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -40,15 +46,18 @@ services:
     depends_on:
       - tm-ndid
   tm-rp:
-    image: ndidplatform/did-tendermint:latest
+    image: ndidplatform/did-tendermint:${DOCKER_TAG:-latest}
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
       - DEV_ENV=${DEV_ENV:-true}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
@@ -59,15 +68,18 @@ services:
     depends_on:
       - tm-ndid
   tm-as:
-    image: ndidplatform/did-tendermint:latest
+    image: ndidplatform/did-tendermint:${DOCKER_TAG:-latest}
     environment:
       - SEED_HOSTNAME=tm-ndid
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
       - DEV_ENV=${DEV_ENV:-true}
+    entrypoint: /usr/bin/start-node.sh
     command: 
       - secondary
       - --p2p.laddr=tcp://0.0.0.0:${TM_P2P_PORT:-47000}
       - --rpc.laddr=tcp://0.0.0.0:${TM_RPC_PORT:-45000}
+    volumes:
+      - ./start-node.sh:/usr/bin/start-node.sh:ro
     security_opt:
       - no-new-privileges
     ports:
