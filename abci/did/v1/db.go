@@ -27,8 +27,8 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/abci/utils"
-	"github.com/ndidplatform/smart-contract/protos/data"
+	"github.com/ndidplatform/smart-contract/v3/abci/utils"
+	"github.com/ndidplatform/smart-contract/v3/protos/data"
 )
 
 func (app *DIDApplication) SetStateDB(key, value []byte) {

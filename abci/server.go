@@ -42,7 +42,7 @@ import (
 
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/abci/did"
+	"github.com/ndidplatform/smart-contract/v3/abci/did"
 )
 
 type loggerWriter struct{}

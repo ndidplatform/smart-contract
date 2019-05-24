@@ -25,8 +25,8 @@ package did
 // "encoding/json"
 
 // "github.com/golang/protobuf/proto"
-// "github.com/ndidplatform/smart-contract/abci/utils"
-// pbData "github.com/ndidplatform/smart-contract/protos/data"
+// "github.com/ndidplatform/smart-contract/v3/abci/utils"
+// pbData "github.com/ndidplatform/smart-contract/v3/protos/data"
 // "github.com/tendermint/tendermint/abci/types"
 
 // FIXME: Need a more efficient way to store Tx report

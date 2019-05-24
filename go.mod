@@ -1,4 +1,4 @@
-module github.com/ndidplatform/smart-contract
+module github.com/ndidplatform/smart-contract/v3
 
 require (
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
