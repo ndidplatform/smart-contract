@@ -27,8 +27,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v3/test/data"
-	"github.com/ndidplatform/smart-contract/v3/test/utils"
+	"github.com/ndidplatform/smart-contract/abci/did/v1"
+	"github.com/ndidplatform/smart-contract/test/data"
+	"github.com/ndidplatform/smart-contract/test/utils"
 )
 
 func RegisterServiceDestination(t *testing.T, nodeID, privK string, param did.RegisterServiceDestinationParam, expected string) {

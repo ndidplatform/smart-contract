@@ -27,9 +27,9 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v3/abci/code"
-	"github.com/ndidplatform/smart-contract/v3/abci/utils"
-	"github.com/ndidplatform/smart-contract/v3/protos/data"
+	"github.com/ndidplatform/smart-contract/abci/code"
+	"github.com/ndidplatform/smart-contract/abci/utils"
+	"github.com/ndidplatform/smart-contract/protos/data"
 	"github.com/tendermint/tendermint/abci/types"
 )
 
