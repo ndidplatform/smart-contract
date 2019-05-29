@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 3.0.0 (May 29, 2019)
 
 BREAKING CHANGES:
 
