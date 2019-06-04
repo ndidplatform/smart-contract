@@ -566,6 +566,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/jmhodges/levigo",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
