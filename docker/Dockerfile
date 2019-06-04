@@ -47,7 +47,7 @@ ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go install \
     -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
-    -tags "gcc"
+    -tags "cleveldb"
 
 
 FROM alpine:3.9
