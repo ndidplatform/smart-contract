@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine3.8 as builder
+FROM golang:1.12-alpine3.9 as builder
 
 # This is the release of dep to pull in.
 ENV DEP_VERSION v0.4.1
@@ -50,7 +50,7 @@ RUN go install \
     -tags "gcc"
 
 
-FROM alpine:3.8
+FROM alpine:3.9
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
 ENV ABCI_DB_DIR_PATH=/DID
