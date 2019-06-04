@@ -1,5 +1,5 @@
 diff --git a/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go b/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
-index 9a4358f6..bbb33a36 100644
+index 79ee5ccb..8d81628c 100644
 --- a/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
 +++ b/vendor/github.com/tendermint/tendermint/libs/db/go_level_db.go
 @@ -7,6 +7,7 @@ import (
@@ -9,8 +9,8 @@ index 9a4358f6..bbb33a36 100644
 +	"github.com/syndtr/goleveldb/leveldb/filter"
  	"github.com/syndtr/goleveldb/leveldb/iterator"
  	"github.com/syndtr/goleveldb/leveldb/opt"
- 
-@@ -33,6 +34,16 @@ func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
+ )
+@@ -31,6 +32,16 @@ func NewGoLevelDB(name string, dir string) (*GoLevelDB, error) {
  
  func NewGoLevelDBWithOpts(name string, dir string, o *opt.Options) (*GoLevelDB, error) {
  	dbPath := filepath.Join(dir, name+".db")
