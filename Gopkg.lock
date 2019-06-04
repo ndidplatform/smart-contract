@@ -25,6 +25,14 @@
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:5f7414cf41466d4b4dd7ec52b2cd3e481e08cfd11e7e24fef730c0e483e88bb1"
+  name = "github.com/etcd-io/bbolt"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "63597a96ec0ad9e6d43c3fc81e809909e0237461"
+  version = "v1.3.2"
+
+[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -357,7 +365,7 @@
   version = "v0.14.1"
 
 [[projects]]
-  digest = "1:71cf830df66747d68f718ff39af6914bdd74c695ae68de1cfe06f57d7f18a622"
+  digest = "1:1cd9bce13249d4953ba385554e1c23bed6b4f15670a559c44acc21a8242cf5e0"
   name = "github.com/tendermint/tendermint"
   packages = [
     "abci/client",
@@ -397,6 +405,7 @@
     "lite/errors",
     "lite/proxy",
     "mempool",
+    "mock",
     "node",
     "p2p",
     "p2p/conn",
@@ -420,8 +429,8 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "d2eab536ac1071b1b5f64283572397606326eb73"
-  version = "v0.31.5"
+  revision = "8fb2c2a0e824d68a1c057e02b4897b085e3a855a"
+  version = "v0.31.7"
 
 [[projects]]
   digest = "1:7167a54e830f17b9e1795cdcacd30dada3cfd6ff6f9c2548f7b7141c7fd66527"
@@ -557,6 +566,7 @@
   input-imports = [
     "github.com/gogo/protobuf/proto",
     "github.com/golang/protobuf/proto",
+    "github.com/jmhodges/levigo",
     "github.com/prometheus/client_golang/prometheus",
     "github.com/satori/go.uuid",
     "github.com/sirupsen/logrus",
