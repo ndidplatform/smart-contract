@@ -934,6 +934,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 				}
 			}
 			result.Proxy.Config = nodeDetail.ProxyConfig
+			result.Active = nodeDetail.Active
 			value, err := json.Marshal(result)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -958,6 +959,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 			}
 		}
 		result.Proxy.Config = nodeDetail.ProxyConfig
+		result.Active = nodeDetail.Active
 		value, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -981,6 +983,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 				result.Mq = append(result.Mq, msq)
 			}
 		}
+		result.Active = nodeDetail.Active
 		value, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1000,6 +1003,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 			result.Mq = append(result.Mq, msq)
 		}
 	}
+	result.Active = nodeDetail.Active
 	value, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -2035,4 +2039,3 @@ func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStat
 	}
 	return allowedMinIal.MinIal
 }
-

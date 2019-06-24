@@ -204,7 +204,7 @@ message Query {
 
 # Create transaction function
 
-## AddAccessor 
+## AddAccessor
 
 ### Parameter
 
@@ -1415,7 +1415,7 @@ message Query {
 ```json
 {
   "purpose": "",
-  "allowed_mode_list": [1, 2, 3],
+  "allowed_mode_list": [1, 2, 3]
 }
 ```
 
@@ -1468,7 +1468,7 @@ message Query {
 
 ```json
 {
-  "min_ial": 2.3,
+  "min_ial": 2.3
 }
 ```
 
@@ -1895,7 +1895,8 @@ message Query {
   ],
   "node_name": "IdP Number 1 from ...",
   "public_key": "-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArdcKj/gAetVyg6Nn2lDi\\nm/UJYQsQCav60EVbECm5EVT8WgnpzO+GrRyBtxqWUdtGar7d6orLh1RX1ikU7Yx2\\nSA8Xlf+ZDaCELba/85Nb+IppLBdPywixgumoto9G9dDGSnPkHAlq5lXXA1eeUS7j\\niU1lf37lwTZaO0COAuu8Vt9GcwYPh7SSf4/eXabQGbo/TMUVpXX1w5N1A07Qh5DG\\nr/ZKzEE9/5bJJJRS635OA2T4gIY9XRWYiTxtiZz6AFCxP92Cjz/sNvSc/Cuvwi15\\nycS4C35tjM8iT5djsRcR+MJeXyvurkaYgMGJTDIWub/A5oavVD3VwusZZNZvpDpD\\nPwIDAQAB\\n-----END PUBLIC KEY-----\\n",
-  "role": "IdP"
+  "role": "IdP",
+  "active": true
 }
 ```
 
