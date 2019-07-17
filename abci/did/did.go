@@ -70,21 +70,21 @@ func (app *DIDApplicationInterface) SetOption(req types.RequestSetOption) types.
 	return app.appV1.SetOption(req)
 }
 
-func (app *DIDApplicationInterface) CheckTx(tx []byte) types.ResponseCheckTx {
+func (app *DIDApplicationInterface) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
 	switch {
 	case app.CurrentBlock >= 0:
-		return app.appV1.CheckTx(tx)
+		return app.appV1.CheckTx(req)
 	default:
-		return app.appV1.CheckTx(tx)
+		return app.appV1.CheckTx(req)
 	}
 }
 
-func (app *DIDApplicationInterface) DeliverTx(tx []byte) types.ResponseDeliverTx {
+func (app *DIDApplicationInterface) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
 	switch {
 	case app.CurrentBlock >= 0:
-		return app.appV1.DeliverTx(tx)
+		return app.appV1.DeliverTx(req)
 	default:
-		return app.appV1.DeliverTx(tx)
+		return app.appV1.DeliverTx(req)
 	}
 }
 

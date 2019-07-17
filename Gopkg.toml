@@ -8,7 +8,7 @@
 
 [[override]]
   name = "github.com/tendermint/tendermint"
-  version = "=v0.31.7"
+  version = "=v0.32.1"
 
 [[override]]
   name = "github.com/syndtr/goleveldb"
