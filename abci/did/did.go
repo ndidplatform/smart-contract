@@ -45,7 +45,7 @@ type DIDApplicationInterface struct {
 func NewDIDApplicationInterface() *DIDApplicationInterface {
 	logger := logrus.WithFields(logrus.Fields{"module": "abci-app"})
 
-	var dbType = getEnv("ABCI_DB_TYPE", "leveldb")
+	var dbType = getEnv("ABCI_DB_TYPE", "goleveldb")
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 
 	if err := cmn.EnsureDir(dbDir, 0700); err != nil {
