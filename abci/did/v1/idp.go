@@ -125,12 +125,12 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	accessorToRefCodeValue := refGroupCode
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
@@ -339,12 +339,12 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	}
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(user.ReferenceGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(user.ReferenceGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
@@ -563,12 +563,12 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string) types.ResponseDeliverTx {
@@ -659,12 +659,12 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 		}
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -779,12 +779,12 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	}
 
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
@@ -880,12 +880,12 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
@@ -1018,12 +1018,12 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 		app.SetStateDB([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
 	}
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(user.ReferenceGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(user.ReferenceGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -1157,12 +1157,12 @@ func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) typ
 	accessorToRefCodeValue := refGroupCode
 	app.SetStateDB([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.SetStateDB([]byte(refGroupKey), []byte(refGroupValue))
-	var tags []cmn.KVPair
-	var tag cmn.KVPair
-	tag.Key = []byte("reference_group_code")
-	tag.Value = []byte(refGroupCode)
-	tags = append(tags, tag)
-	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", tags)
+	var attributes []cmn.KVPair
+	var attribute cmn.KVPair
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
+	attributes = append(attributes, attribute)
+	return app.ReturnDeliverTxLogWitgTag(code.OK, "success", attributes)
 }
 
 func MaxInt32(v []int32) int32 {
