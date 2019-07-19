@@ -21,15 +21,15 @@ Tendermint bundled with ABCI app
 
     sudo apt-get install libsnappy-dev
 
-    wget https://github.com/google/leveldb/archive/v1.20.tar.gz && \
-      tar -zxvf v1.20.tar.gz && \
-      cd leveldb-1.20/ && \
+    wget https://github.com/google/leveldb/archive/1.22.tar.gz && \
+      tar -zxvf 1.22.tar.gz && \
+      cd leveldb-1.22/ && \
       make && \
       sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
       cd include/ && \
       sudo cp -r leveldb /usr/local/include/ && \
       sudo ldconfig && \
-      rm -f v1.20.tar.gz
+      rm -f 1.22.tar.gz
     ```
 
   - macOS (Homebrew)
@@ -41,31 +41,30 @@ Tendermint bundled with ABCI app
 
 ## Setup
 
-1.  Create a directory for the project
+1.  Clone the project
 
     ```sh
-    mkdir -p $GOPATH/src/github.com/ndidplatform/smart-contract
+    git clone https://github.com/ndidplatform/smart-contract.git
     ```
 
-2.  Clone the project
+2.  Build or run
 
     ```sh
-    git clone https://github.com/ndidplatform/smart-contract.git $GOPATH/src/github.com/ndidplatform/smart-contract
+    cd smart-contract
+
+    # Build (See Build section in README.md)
+
+    # Run
+    ./did-tendermint
     ```
 
-3.  Get dependency (tendermint ABCI)
-
-    ```sh
-    cd $GOPATH/src/github.com/ndidplatform/smart-contract
-    dep ensure
-    ```
-
-4.  (Optional) Patch Tendermint LevelDB adapters
+<!-- Cannot be done with Go module? -->
+<!-- 3.  (Optional) Patch Tendermint LevelDB adapters
 
     ```sh
     git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_goleveldb_bloom_filter.patch && \
     git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_cleveldb_cache_and_bloom_filter.patch
-    ```
+    ``` -->
 
 **Environment variable options**
 
