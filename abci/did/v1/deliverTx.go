@@ -59,7 +59,7 @@ func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData
 	}
 }
 
-func (app *DIDApplication) ReturnDeliverTxLogWitgTag(code uint32, log string, additionalAttributes []cmn.KVPair) types.ResponseDeliverTx {
+func (app *DIDApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []cmn.KVPair) types.ResponseDeliverTx {
 	var attributes []cmn.KVPair
 	if code == 0 {
 		var attribute cmn.KVPair
