@@ -93,6 +93,7 @@ type MsqDestinationNodeWithModeList struct {
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	Ial                                    float64  `json:"ial"`
 	ModeList                               []int32  `json:"mode_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
@@ -455,6 +456,7 @@ type GetNodeInfoResult struct {
 	NodeName        string       `json:"node_name"`
 	Role            string       `json:"role"`
 	Mq              []MsqAddress `json:"mq"`
+	Active          bool         `json:"active"`
 }
 
 type GetNodeInfoIdPResult struct {
@@ -466,6 +468,7 @@ type GetNodeInfoIdPResult struct {
 	MaxAal                                 float64      `json:"max_aal"`
 	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
 	Mq                                     []MsqAddress `json:"mq"`
+	Active                                 bool         `json:"active"`
 }
 
 type GetIdentityInfoParam struct {
@@ -610,6 +613,7 @@ type IdpNodeWithModeList struct {
 	MaxAal                                 float64      `json:"max_aal"`
 	PublicKey                              string       `json:"public_key"`
 	Mq                                     []MsqAddress `json:"mq"`
+	Ial                                    float64      `json:"ial"`
 	ModeList                               []int32      `json:"mode_list"`
 	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
 }
@@ -647,6 +651,7 @@ type GetNodeInfoResultRPandASBehindProxy struct {
 		Mq              []MsqAddress `json:"mq"`
 		Config          string       `json:"config"`
 	} `json:"proxy"`
+	Active bool `json:"active"`
 }
 
 type GetNodeInfoResultIdPandASBehindProxy struct {
@@ -665,6 +670,7 @@ type GetNodeInfoResultIdPandASBehindProxy struct {
 		Mq              []MsqAddress `json:"mq"`
 		Config          string       `json:"config"`
 	} `json:"proxy"`
+	Active bool `json:"active"`
 }
 
 type UpdateNodeProxyNodeParam struct {
@@ -875,4 +881,3 @@ type RevokeAndAddAccessorParam struct {
 	AccessorType       string `json:"accessor_type"`
 	RequestID          string `json:"request_id"`
 }
-
