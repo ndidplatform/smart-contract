@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine3.9 as builder
+FROM golang:1.12-alpine3.10 as builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
@@ -8,19 +8,8 @@ RUN apk update && apk add --no-cache --virtual .build-deps \
         git \
         openssl \
         snappy-dev \
+        leveldb-dev \
         ca-certificates
-
-# Install LevelDB
-WORKDIR /
-RUN wget -q https://github.com/google/leveldb/archive/v1.20.tar.gz && \
-    tar -zxvf v1.20.tar.gz && \
-    cd leveldb-1.20/ && \
-    make
-RUN cp -r /leveldb-1.20/out-static/lib* /leveldb-1.20/out-shared/lib* /usr/local/lib/ && \
-    mkdir -p /usr/local/include/leveldb && \
-    cp -r /leveldb-1.20/include/leveldb /usr/local/include/ && \
-    ldconfig /usr/local/lib && \
-    rm -f /v1.20.tar.gz
 
 WORKDIR /ndidplatform/smart-contract
 COPY go.mod go.sum /ndidplatform/smart-contract/
@@ -38,13 +27,13 @@ COPY .git /ndidplatform/smart-contract/.git
 ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go build \
-    -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
+    -ldflags "-X github.com/ndidplatform/smart-contract/v4/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
     -tags "cleveldb" \
     -o ./did-tendermint \
     ./abci
 
 
-FROM alpine:3.9
+FROM alpine:3.10
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 ENV TERM=xterm-256color
 ENV ABCI_DB_DIR_PATH=/DID
@@ -65,7 +54,7 @@ COPY --from=builder /var/cache/apk /var/cache/apk
 # deploying tendermint with Kubernetes. It is nice to have bash so the users
 # could execute bash commands.
 # Install snappy lib used by LevelDB
-RUN apk update && apk add --no-cache bash curl jq snappy-dev && rm -rf /var/cache/apk
+RUN apk update && apk add --no-cache bash curl snappy leveldb && rm -rf /var/cache/apk
 
 # Copy compiled LevelDB lib
 COPY --from=builder /usr/local/lib /usr/local/lib
