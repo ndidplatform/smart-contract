@@ -1,9 +1,5 @@
 FROM golang:1.12-alpine3.9 as builder
 
-# This is the release of dep to pull in.
-ENV DEP_VERSION v0.4.1
-ENV DEP_SHA256SUM 31144e465e52ffbc0035248a10ddea61a09bf28b00784fd3fdd9882c8cbb2315
-
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
         g++ \
@@ -11,7 +7,8 @@ RUN apk update && apk add --no-cache --virtual .build-deps \
         make \
         git \
         openssl \
-        snappy-dev
+        snappy-dev \
+        ca-certificates
 
 # Install LevelDB
 WORKDIR /
@@ -25,29 +22,26 @@ RUN cp -r /leveldb-1.20/out-static/lib* /leveldb-1.20/out-shared/lib* /usr/local
     ldconfig /usr/local/lib && \
     rm -f /v1.20.tar.gz
 
-# Install dep
-RUN wget -qO /usr/local/bin/dep https://github.com/golang/dep/releases/download/${DEP_VERSION}/dep-linux-amd64 && \
-    echo "${DEP_SHA256SUM}  /usr/local/bin/dep" | sha256sum -c && \
-    chmod +x /usr/local/bin/dep
+WORKDIR /ndidplatform/smart-contract
+COPY go.mod go.sum /ndidplatform/smart-contract/
+COPY COPYING /ndidplatform/smart-contract/
+COPY abci /ndidplatform/smart-contract/abci
+COPY protos /ndidplatform/smart-contract/protos
+COPY .git /ndidplatform/smart-contract/.git
 
-COPY Gopkg.toml Gopkg.lock $GOPATH/src/github.com/ndidplatform/smart-contract/
-WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract
-RUN dep ensure -vendor-only -v
+# COPY patches /ndidplatform/smart-contract/patches
 
-COPY abci $GOPATH/src/github.com/ndidplatform/smart-contract/abci
-COPY protos $GOPATH/src/github.com/ndidplatform/smart-contract/protos
-COPY .git $GOPATH/src/github.com/ndidplatform/smart-contract/.git
-COPY patches $GOPATH/src/github.com/ndidplatform/smart-contract/patches
+# Cannot be done with Go modules?
+# RUN git apply /ndidplatform/smart-contract/patches/tm_goleveldb_bloom_filter.patch && \
+#     git apply /ndidplatform/smart-contract/patches/tm_cleveldb_cache_and_bloom_filter.patch
 
-RUN git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_goleveldb_bloom_filter.patch && \
-    git apply $GOPATH/src/github.com/ndidplatform/smart-contract/patches/tm_cleveldb_cache_and_bloom_filter.patch
-
-WORKDIR $GOPATH/src/github.com/ndidplatform/smart-contract/abci
 ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
-RUN go install \
+RUN go build \
     -ldflags "-X github.com/ndidplatform/smart-contract/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
-    -tags "cleveldb"
+    -tags "cleveldb" \
+    -o ./did-tendermint \
+    ./abci
 
 
 FROM alpine:3.9
@@ -76,7 +70,7 @@ RUN apk update && apk add --no-cache bash curl jq snappy-dev && rm -rf /var/cach
 # Copy compiled LevelDB lib
 COPY --from=builder /usr/local/lib /usr/local/lib
 
-COPY --from=builder /go/bin/abci /usr/bin/did-tendermint
+COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
 RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
 
 # Change owner to nobodoy:nogroup and permission to 640

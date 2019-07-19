@@ -33,12 +33,12 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/abci/code"
-	"github.com/ndidplatform/smart-contract/abci/version"
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 
-	protoTm "github.com/ndidplatform/smart-contract/protos/tendermint"
+	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
