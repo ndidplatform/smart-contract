@@ -21,15 +21,15 @@ Tendermint bundled with ABCI app
 
     sudo apt-get install libsnappy-dev
 
-    wget https://github.com/google/leveldb/archive/1.22.tar.gz && \
-      tar -zxvf 1.22.tar.gz && \
-      cd leveldb-1.22/ && \
+    wget https://github.com/google/leveldb/archive/v1.20.tar.gz && \
+      tar -zxvf v1.20.tar.gz && \
+      cd leveldb-1.20/ && \
       make && \
       sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
       cd include/ && \
       sudo cp -r leveldb /usr/local/include/ && \
       sudo ldconfig && \
-      rm -f 1.22.tar.gz
+      rm -f v1.20.tar.gz
     ```
 
   - macOS (Homebrew)
