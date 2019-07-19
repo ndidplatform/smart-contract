@@ -301,6 +301,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			msqDesNode.Name = nodeDetail.NodeName
 			msqDesNode.MaxIal = nodeDetail.MaxIal
 			msqDesNode.MaxAal = nodeDetail.MaxAal
+			msqDesNode.Ial = idp.Ial
 			msqDesNode.ModeList = idp.Mode
 			msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 			returnNodes.Node = append(returnNodes.Node, msqDesNode)
@@ -1423,6 +1424,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				msqDesNode.PublicKey = nodeDetail.PublicKey
 				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 				msqDesNode.Mq = msq
+				msqDesNode.Ial = idp.Ial
 				msqDesNode.ModeList = idp.Mode
 				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}

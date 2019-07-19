@@ -1745,6 +1745,7 @@ message Query {
       "max_ial": 3,
       "node_id": "CuQfyyhjGcCAzKREzHmL",
       "node_name": "IdP Number 1 from ...",
+      "ial": 3,
       "mode_list": [2, 3],
       "supported_request_message_data_url_type_list": ["text/plain", "application/pdf"]
     }
@@ -1765,6 +1766,7 @@ message Query {
   "min_ial": 3,
   "node_id_list": [], //array of string
   "supported_request_message_data_url_type_list": [], //array of string
+  "ial": 3,
   "mode_list": [3]
 }
 ```

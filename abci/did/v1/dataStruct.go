@@ -93,6 +93,7 @@ type MsqDestinationNodeWithModeList struct {
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	Ial                                    float64  `json:"ial"`
 	ModeList                               []int32  `json:"mode_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
@@ -612,6 +613,7 @@ type IdpNodeWithModeList struct {
 	MaxAal                                 float64      `json:"max_aal"`
 	PublicKey                              string       `json:"public_key"`
 	Mq                                     []MsqAddress `json:"mq"`
+	Ial                                    float64      `json:"ial"`
 	ModeList                               []int32      `json:"mode_list"`
 	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
 }
