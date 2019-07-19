@@ -56,9 +56,6 @@ COPY --from=builder /var/cache/apk /var/cache/apk
 # Install snappy lib used by LevelDB
 RUN apk update && apk add --no-cache bash curl snappy leveldb && rm -rf /var/cache/apk
 
-# Copy compiled LevelDB lib
-COPY --from=builder /usr/local/lib /usr/local/lib
-
 COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
 RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
 
