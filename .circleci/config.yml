@@ -41,13 +41,16 @@ jobs:
             -o ./did-tendermint \
             ./abci
       - run:
+          name: Reset Tendermint data
+          command: |
+            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all
+      - run:
           name: Start Tendermint with ABCI app
           command: |
-            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all \
             ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
           background: true
 
-      - run: sleep 10
+      - run: sleep 15
       - run:
           name: Test ABCI app
           command: |
