@@ -3,11 +3,11 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.12
-    working_directory: /ndidplatform/smart-contract
+    working_directory: ~/ndidplatform/smart-contract
     steps:
       - checkout
       - run:
-          name: Install tools and snappy
+          name: Install tools, snappy, and leveldb
           command: |
             sudo apt-get update && sudo apt-get install -y --no-install-recommends \
                     g++ \
@@ -15,7 +15,8 @@ jobs:
                     make \
                     git \
                     libsnappy-dev \
-                    libleveldb-dev
+                    libleveldb-dev \
+                    ca-certificates
       # - run:
       #     name: Install LevelDB
       #     command: |
@@ -28,7 +29,11 @@ jobs:
       #       sudo cp -r include/leveldb /usr/local/include/ && \
       #       sudo ldconfig /usr/local/lib
       - run:
-          name: Start Tendermint with ABCI
+          name: Download go modules
+          command: |
+            go mod download
+      - run:
+          name: Start Tendermint with ABCI app
           command: |
             go run ./abci --home ./config/tendermint/IdP unsafe_reset_all
             CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB \
@@ -38,15 +43,15 @@ jobs:
             ./abci --home ./config/tendermint/IdP node
           background: true
 
-      - run: sleep 15
+      - run: sleep 10
       - run:
-          name: Test ABCI
+          name: Test ABCI app
           command: |
             cd test
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
     docker:
-      - image: circleci/node:carbon
+      - image: circleci/golang:1.12
     steps:
       - checkout
       - setup_remote_docker
@@ -73,7 +78,7 @@ jobs:
             docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
-      - image: circleci/node:carbon
+      - image: circleci/golang:1.12
     steps:
       - checkout
       - setup_remote_docker
