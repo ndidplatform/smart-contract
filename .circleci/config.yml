@@ -33,14 +33,18 @@ jobs:
           command: |
             go mod download
       - run:
-          name: Start Tendermint with ABCI app
+          name: Build Tendermint with ABCI app
           command: |
-            go run ./abci --home ./config/tendermint/IdP unsafe_reset_all
-            CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB \
-            go run \
+            go build \
             -ldflags "-X github.com/ndidplatform/smart-contract/v4/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
             -tags "cleveldb" \
-            ./abci --home ./config/tendermint/IdP node
+            -o ./did-tendermint \
+            ./abci
+      - run:
+          name: Start Tendermint with ABCI app
+          command: |
+            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all \
+            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 10
