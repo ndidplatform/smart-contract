@@ -1,5 +1,17 @@
 #!/bin/sh
 
+if ! which su-exec; then
+  rm -rf /var/cache/apk
+  mkdir -p /var/cache/apk
+  apk update
+  apk add 'su-exec>=0.2' jq;
+fi
+
+if [ "$(id -u)" = '0' ]; then
+  exec su-exec 65534 "$0" "$@"
+  exit 0;
+fi
+
 TMHOME=${TMHOME:-/tendermint}
 TM_RPC_PORT=${TM_RPC_PORT:-45000}
 TM_P2P_PORT=${TM_P2P_PORT:-47000}
