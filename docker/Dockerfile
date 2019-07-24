@@ -54,7 +54,7 @@ COPY --from=builder /var/cache/apk /var/cache/apk
 # deploying tendermint with Kubernetes. It is nice to have bash so the users
 # could execute bash commands.
 # Install snappy lib used by LevelDB
-RUN apk update && apk add --no-cache bash curl jq snappy leveldb && rm -rf /var/cache/apk
+RUN apk update && apk add --no-cache bash curl snappy leveldb && rm -rf /var/cache/apk
 
 COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
 RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
