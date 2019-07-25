@@ -6,6 +6,11 @@ IMPROVEMENTS:
 
 - Use Go modules instead of dep.
 - Update Tendermint version to v0.32.1.
+- [Docker] Update leveldb version to 1.22.
+
+OTHERS:
+
+- [Docker] Remove `jq` from docker image.
 
 ## 3.0.0 (May 29, 2019)
 
