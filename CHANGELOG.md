@@ -2,15 +2,12 @@
 
 ## TBD
 
-BREAKING CHANGES:
-
-- [Query] Add `active` property to result of `GetNodeInfo`.
-- [Query] Add `ial` property to result of `GetIdpNodes` and `GetIdpNodesInfo`.
-
 IMPROVEMENTS:
 
 - Use Go modules instead of dep.
 - Update Tendermint version to v0.32.1.
+- [Query] Add `active` property to result of `GetNodeInfo`.
+- [Query] Add `ial` property to result of `GetIdpNodes` and `GetIdpNodesInfo`.
 - [Docker] Update leveldb version to 1.22.
 
 OTHERS:
