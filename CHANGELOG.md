@@ -2,6 +2,11 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- [Query] Add `active` property to result of `GetNodeInfo`.
+- [Query] Add `ial` property to result of `GetIdpNodes` and `GetIdpNodesInfo`.
+
 IMPROVEMENTS:
 
 - Use Go modules instead of dep.
