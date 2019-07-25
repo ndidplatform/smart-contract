@@ -59,7 +59,7 @@ RUN apk update && apk add --no-cache bash curl snappy leveldb && rm -rf /var/cac
 COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
 RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
 
-# Change owner to nobodoy:nogroup and permission to 640
+# Change owner to nobody:nogroup and permission to 740
 RUN chown -R nobody:nogroup /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
 RUN chmod -R 740 /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
 
