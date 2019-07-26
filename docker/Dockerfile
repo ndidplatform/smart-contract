@@ -35,13 +35,10 @@ RUN go build \
 
 FROM alpine:3.10
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
-ENV TERM=xterm-256color
+
+# Data directory for ABCI to store state.
 ENV ABCI_DB_DIR_PATH=/DID
 
-# Tendermint will be looking for genesis file in /tendermint (unless you change
-# `genesis_file` in config.toml). You can put your config.toml and private
-# validator file into /tendermint.
-#
 # The /tendermint/data dir is used by tendermint to store state.
 ENV TMHOME /tendermint
 
@@ -50,20 +47,17 @@ RUN umask 027 && echo "umask 0027" >> /etc/profile
 
 COPY --from=builder /var/cache/apk /var/cache/apk
 
-# jq and curl used for extracting `pub_key` from private validator while
-# deploying tendermint with Kubernetes. It is nice to have bash so the users
-# could execute bash commands.
-# Install snappy lib used by LevelDB
-RUN apk update && apk add --no-cache bash curl snappy leveldb && rm -rf /var/cache/apk
+# Install snappy lib used by LevelDB.
+# Install bash shell for convenience.
+RUN apk add --no-cache \
+      bash \
+      leveldb \
+      snappy \
+      tzdata && \
+    rm -rf /var/cache/apk
 
 COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
-RUN mkdir -p ${TMHOME} ${ABCI_DB_DIR_PATH}
+COPY docker/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
 
-# Change owner to nobody:nogroup and permission to 740
-RUN chown -R nobody:nogroup /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
-RUN chmod -R 740 /usr/bin/did-tendermint ${TMHOME} ${ABCI_DB_DIR_PATH}
-
-USER nobody
-ENTRYPOINT ["did-tendermint"]
-CMD ["node"]
-STOPSIGNAL SIGTERM
+ENTRYPOINT [ "/usr/bin/docker-entrypoint.sh", "did-tendermint" ]
+CMD [ "node" ]

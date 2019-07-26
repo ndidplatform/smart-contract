@@ -1,15 +1,11 @@
 #!/bin/sh
 
-if ! which su-exec; then
-  rm -rf /var/cache/apk
+# Install jq and curl as they are required by this script
+if ! which jq || ! which curl; then
   mkdir -p /var/cache/apk
   apk update
-  apk add 'su-exec>=0.2' jq;
-fi
-
-if [ "$(id -u)" = '0' ]; then
-  exec su-exec 65534 "$0" "$@"
-  exit 0;
+  apk add --no-cache curl jq
+  rm -rf /var/cache/apk
 fi
 
 TMHOME=${TMHOME:-/tendermint}
