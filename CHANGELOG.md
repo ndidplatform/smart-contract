@@ -1,6 +1,10 @@
 # Changelog
 
-## TBD
+## 4.0.0 (August 1, 2019)
+
+BREAKING CHANGES:
+
+- Tendermint v0.32.1.
 
 IMPROVEMENTS:
 
