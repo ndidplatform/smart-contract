@@ -211,16 +211,19 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 		signatureStr := string(signature)
 		val, exist := app.verifiedSignatures[signatureStr]
 		if exist {
-			app.logger.Debugf("Found verified sigature")
+			app.logger.Debugf("Found verified signature")
 			delete(app.verifiedSignatures, signatureStr)
 			if val != nodeID {
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
 			}
 		} else {
-			app.logger.Debugf("Verified sigature could not be found, re-verifying signature")
+			app.logger.Debugf("Verified signature could not be found, re-verifying signature")
 			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-			if err != nil || verifyResult == false {
+			if err != nil {
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+			if verifyResult == false {
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid signature", "")
 			}
 		}
 
@@ -305,8 +308,11 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 			}
 
 			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-			if err != nil || verifyResult == false {
+			if err != nil {
 				return ReturnCheckTx(code.VerifySignatureError, err.Error())
+			}
+			if verifyResult == false {
+				return ReturnCheckTx(code.VerifySignatureError, "Invalid signature")
 			}
 			app.verifiedSignatures[string(signature)] = nodeID
 
