@@ -266,6 +266,27 @@ func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	}
 }
 
+func (app *DIDApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string) (string, uint32, string) {
+	var publicKey string
+	if method == "InitNDID" {
+		publicKey = getPublicKeyInitNDID(param)
+		if publicKey == "" {
+			return publicKey, code.CannotGetPublicKeyFromParam, "Can not get public key from parameter"
+		}
+	} else if method == "UpdateNode" {
+		publicKey = app.getMasterPublicKeyFromNodeID(nodeID)
+		if publicKey == "" {
+			return publicKey, code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID"
+		}
+	} else {
+		publicKey = app.getPublicKeyFromNodeID(nodeID)
+		if publicKey == "" {
+			return publicKey, code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID"
+		}
+	}
+	return publicKey, code.OK, ""
+}
+
 func getPublicKeyInitNDID(param string) string {
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -462,24 +483,6 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 	// 	return nonceDupResult
 	// }
 
-	var publicKey string
-	if method == "InitNDID" {
-		publicKey = getPublicKeyInitNDID(param)
-		if publicKey == "" {
-			return ReturnCheckTx(code.CannotGetPublicKeyFromParam, "Can not get public key from parameter")
-		}
-	} else if method == "UpdateNode" {
-		publicKey = app.getMasterPublicKeyFromNodeID(nodeID)
-		if publicKey == "" {
-			return ReturnCheckTx(code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID")
-		}
-	} else {
-		publicKey = app.getPublicKeyFromNodeID(nodeID)
-		if publicKey == "" {
-			return ReturnCheckTx(code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID")
-		}
-	}
-
 	// Check pub key
 	if method == "InitNDID" || method == "RegisterNode" || method == "UpdateNode" {
 		checkCode, log := checkNodePubKeys(param)
@@ -530,11 +533,6 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
 			}
 		}
-	}
-
-	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-	if err != nil || verifyResult == false {
-		return ReturnCheckTx(code.VerifySignatureError, err.Error())
 	}
 
 	var result types.ResponseCheckTx

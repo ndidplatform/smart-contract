@@ -73,6 +73,7 @@ type DIDApplication struct {
 	HashData                 []byte
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
+	verifiedSignatures       map[string]string
 }
 
 func loadState(db dbm.DB) State {
@@ -120,6 +121,7 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		UncommittedState:         make(map[string][]byte),
 		UncommittedVersionsState: make(map[string][]int64),
 		ValUpdates:               make(map[string]types.ValidatorUpdate),
+		verifiedSignatures:       make(map[string]string),
 	}
 }
 
@@ -200,6 +202,28 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
 	if method != "" {
+		// Check signature
+		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID)
+		if retCode != code.OK {
+			return app.ReturnDeliverTxLog(retCode, retLog, "")
+		}
+
+		signatureStr := string(signature)
+		val, exist := app.verifiedSignatures[signatureStr]
+		if exist {
+			app.logger.Debugf("Found verified sigature")
+			delete(app.verifiedSignatures, signatureStr)
+			if val != nodeID {
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+		} else {
+			app.logger.Debugf("Verified sigature could not be found, re-verifying signature")
+			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+			if err != nil || verifyResult == false {
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+		}
+
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value))
 		go recordDeliverTxDurationMetrics(startTime, method)
@@ -274,6 +298,18 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
 		// Check has function in system
 		if IsMethod[method] {
+			// Check signature
+			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID)
+			if retCode != code.OK {
+				return ReturnCheckTx(retCode, retLog)
+			}
+
+			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+			if err != nil || verifyResult == false {
+				return ReturnCheckTx(code.VerifySignatureError, err.Error())
+			}
+			app.verifiedSignatures[string(signature)] = nodeID
+
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 			go recordCheckTxDurationMetrics(startTime, method)
 			if result.Code != code.OK {
