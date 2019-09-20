@@ -313,6 +313,7 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 			go recordCheckTxDurationMetrics(startTime, method)
 			if result.Code != code.OK {
+				delete(app.verifiedSignatures, string(signature))
 				go recordCheckTxFailMetrics(method)
 			}
 			return result
