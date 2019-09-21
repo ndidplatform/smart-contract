@@ -197,6 +197,7 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 		duration := time.Since(startTime)
 		go recordDeliverTxDurationMetrics(duration, method)
 	}()
+
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
@@ -298,12 +299,6 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 		duration := time.Since(startTime)
 		go recordCheckTxDurationMetrics(duration, method)
 	}()
-
-	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
-	// Set checkTx state for each node's available token or token difference
-	// Deduct used token if passed
-	// Error response if not enough
-	// Adjust difference on Commit()
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
