@@ -68,8 +68,7 @@ var (
 		[]string{"function"})
 )
 
-func recordCheckTxDurationMetrics(startTime time.Time, fName string) {
-	duration := time.Since(startTime)
+func recordCheckTxDurationMetrics(duration time.Duration, fName string) {
 	checkTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
 }
 
@@ -112,8 +111,7 @@ var (
 	)
 )
 
-func recordDeliverTxDurationMetrics(startTime time.Time, fName string) {
-	duration := time.Since(startTime)
+func recordDeliverTxDurationMetrics(duration time.Duration, fName string) {
 	deliverTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
 }
 

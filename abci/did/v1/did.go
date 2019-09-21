@@ -193,69 +193,80 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 	go recordDeliverTxMetrics(method)
 
 	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		go recordDeliverTxDurationMetrics(duration, method)
+	}()
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
-		go recordDeliverTxDurationMetrics(startTime, method)
 		go recordDeliverTxFailMetrics(method)
 		return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
 	}
 
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" {
-		// Check signature
-		_, nodeKeyUpdateExist := app.nodeKeyUpdate[nodeID]
-
-		signatureStr := string(signature)
-		verifiedSigNodeID, verifiedSigResultExist := app.verifiedSignatures[signatureStr]
-
-		var signatureReverificationNeeded bool
-		if nodeKeyUpdateExist {
-			app.logger.Debugf("Node key updated, cached verified Tx signature result will not be used")
-			signatureReverificationNeeded = true
-		} else if !verifiedSigResultExist {
-			app.logger.Debugf("Cached verified Tx signature result could not be found")
-			signatureReverificationNeeded = true
-		} else {
-			signatureReverificationNeeded = false
-		}
-
-		if signatureReverificationNeeded {
-			app.logger.Debugf("Verifying Tx signature")
-			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
-			if retCode != code.OK {
-				return app.ReturnDeliverTxLog(retCode, retLog, "")
-			}
-			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
-			}
-			if verifyResult == false {
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
-			}
-		} else {
-			app.logger.Debugf("Found verified Tx signature result")
-			if verifiedSigNodeID != nodeID {
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
-			}
-		}
-
-		if verifiedSigResultExist {
-			delete(app.verifiedSignatures, signatureStr)
-		}
-
-		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
-		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value))
-		go recordDeliverTxDurationMetrics(startTime, method)
-		if result.Code != code.OK {
-			go recordDeliverTxFailMetrics(method)
-		}
-		return result
+	if method == "" {
+		go recordDeliverTxFailMetrics(method)
+		return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 	}
-	go recordDeliverTxDurationMetrics(startTime, method)
-	go recordDeliverTxFailMetrics(method)
-	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
+
+	// Check signature
+	_, nodeKeyUpdateExist := app.nodeKeyUpdate[nodeID]
+
+	signatureStr := string(signature)
+	verifiedSigNodeID, verifiedSigResultExist := app.verifiedSignatures[signatureStr]
+
+	var signatureReverificationNeeded bool
+	if nodeKeyUpdateExist {
+		app.logger.Debugf("Node key updated, cached verified Tx signature result will not be used")
+		signatureReverificationNeeded = true
+	} else if !verifiedSigResultExist {
+		app.logger.Debugf("Cached verified Tx signature result could not be found")
+		signatureReverificationNeeded = true
+	} else {
+		signatureReverificationNeeded = false
+	}
+
+	if signatureReverificationNeeded {
+		app.logger.Debugf("Verifying Tx signature")
+		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+		if retCode != code.OK {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(retCode, retLog, "")
+		}
+		verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+		if err != nil {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+		}
+		if verifyResult == false {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
+		}
+	} else {
+		app.logger.Debugf("Found verified Tx signature result")
+		if verifiedSigNodeID != nodeID {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+		}
+	}
+
+	if verifiedSigResultExist {
+		delete(app.verifiedSignatures, signatureStr)
+	}
+
+	result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
+	app.logger.Infof(
+		`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`,
+		result.Code,
+		result.Log,
+		string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value),
+	)
+	if result.Code != code.OK {
+		go recordDeliverTxFailMetrics(method)
+	}
+	return result
 }
 
 func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.ResponseCheckTx) {
@@ -283,6 +294,10 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	startTime := time.Now()
+	defer func() {
+		duration := time.Since(startTime)
+		go recordCheckTxDurationMetrics(duration, method)
+	}()
 
 	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
 	// Set checkTx state for each node's available token or token difference
@@ -295,7 +310,6 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	if nonceDup {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		go recordCheckTxDurationMetrics(startTime, method)
 		go recordCheckTxFailMetrics(method)
 		return res
 	}
@@ -307,50 +321,50 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
-		go recordCheckTxDurationMetrics(startTime, method)
 		go recordCheckTxFailMetrics(method)
 		return res
 	}
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
-		// Check has function in system
-		if IsMethod[method] {
-			// Check signature
-			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
-			if retCode != code.OK {
-				return ReturnCheckTx(retCode, retLog)
-			}
-
-			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-			if err != nil {
-				return ReturnCheckTx(code.VerifySignatureError, err.Error())
-			}
-			if verifyResult == false {
-				return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
-			}
-			app.verifiedSignatures[string(signature)] = nodeID
-
-			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
-			go recordCheckTxDurationMetrics(startTime, method)
-			if result.Code != code.OK {
-				delete(app.verifiedSignatures, string(signature))
-				go recordCheckTxFailMetrics(method)
-			}
-			return result
-		}
-		res.Code = code.UnknownMethod
-		res.Log = "Unknown method name"
-		go recordCheckTxDurationMetrics(startTime, method)
+	if method == "" || param == "" || nonce == nil || signature == nil || nodeID == "" {
+		res.Code = code.InvalidTransactionFormat
+		res.Log = "Invalid transaction format"
 		go recordCheckTxFailMetrics(method)
 		return res
 	}
-	res.Code = code.InvalidTransactionFormat
-	res.Log = "Invalid transaction format"
-	go recordCheckTxDurationMetrics(startTime, method)
-	go recordCheckTxFailMetrics(method)
-	return res
+
+	// Check has function in system
+	if !IsMethod[method] {
+		res.Code = code.UnknownMethod
+		res.Log = "Unknown method name"
+		go recordCheckTxFailMetrics(method)
+		return res
+	}
+
+	// Check signature
+	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
+	if retCode != code.OK {
+		return ReturnCheckTx(retCode, retLog)
+	}
+
+	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+	if err != nil {
+		go recordCheckTxFailMetrics(method)
+		return ReturnCheckTx(code.VerifySignatureError, err.Error())
+	}
+	if verifyResult == false {
+		go recordCheckTxFailMetrics(method)
+		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
+	}
+	app.verifiedSignatures[string(signature)] = nodeID
+
+	result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
+	if result.Code != code.OK {
+		delete(app.verifiedSignatures, string(signature))
+		go recordCheckTxFailMetrics(method)
+	}
+	return result
 }
 
 func hash(data []byte) []byte {
