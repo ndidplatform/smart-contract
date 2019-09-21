@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- Save Tx signature check results in CheckTx and use them in DeliverTx - Attempt to reduce DeliverTx time and CPU consumption.
+
 ## 4.0.0 (August 1, 2019)
 
 BREAKING CHANGES:
