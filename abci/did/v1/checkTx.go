@@ -463,7 +463,9 @@ func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
 	return ReturnCheckTx(code.OK, "")
 }
 
-// CheckTxRouter is Pointer to function
+// CheckTxRouter check if Tx is valid
+// TODO: add parameter "committedState" (bool) since both CheckTx and DeliverTx call this function
+// CheckTx must get committed state while DeliverTx must get uncommitted state
 func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseCheckTx {
 
 	// ---- Check current block <= last block ----

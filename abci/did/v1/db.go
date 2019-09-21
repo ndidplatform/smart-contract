@@ -31,6 +31,8 @@ import (
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 
+// TODO: Refactor as app.DB or simply change function names (e.g. SetStateDB to SetDBState, GetCommittedVersionedStateDB to GetDBCommittedVersionedState)
+
 func (app *DIDApplication) SetStateDB(key, value []byte) {
 	app.HashData = append(app.HashData, key...)
 	app.HashData = append(app.HashData, value...)
