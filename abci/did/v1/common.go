@@ -683,10 +683,12 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	// update MasterPublicKey
 	if funcParam.MasterPublicKey != "" {
 		nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+		app.nodeKeyUpdate[nodeID] = true
 	}
 	// update PublicKey
 	if funcParam.PublicKey != "" {
 		nodeDetail.PublicKey = funcParam.PublicKey
+		app.nodeKeyUpdate[nodeID] = true
 	}
 	// update SupportedRequestMessageDataUrlTypeList and Role of node ID is IdP
 	if funcParam.SupportedRequestMessageDataUrlTypeList != nil && string(app.getRoleFromNodeID(nodeID)) == "IdP" {

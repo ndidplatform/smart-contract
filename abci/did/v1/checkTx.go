@@ -266,7 +266,7 @@ func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	}
 }
 
-func (app *DIDApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string) (string, uint32, string) {
+func (app *DIDApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string, committedState bool) (string, uint32, string) {
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
@@ -274,12 +274,12 @@ func (app *DIDApplication) getNodePublicKeyForSignatureVerification(method strin
 			return publicKey, code.CannotGetPublicKeyFromParam, "Can not get public key from parameter"
 		}
 	} else if method == "UpdateNode" {
-		publicKey = app.getMasterPublicKeyFromNodeID(nodeID)
+		publicKey = app.getMasterPublicKeyFromNodeID(nodeID, committedState)
 		if publicKey == "" {
 			return publicKey, code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID"
 		}
 	} else {
-		publicKey = app.getPublicKeyFromNodeID(nodeID)
+		publicKey = app.getPublicKeyFromNodeID(nodeID, committedState)
 		if publicKey == "" {
 			return publicKey, code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID"
 		}
@@ -296,9 +296,14 @@ func getPublicKeyInitNDID(param string) string {
 	return funcParam.PublicKey
 }
 
-func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
+func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string, committedState bool) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(key))
+	} else {
+		_, value = app.GetStateDB([]byte(key))
+	}
 	if value == nil {
 		return ""
 	}
@@ -310,9 +315,14 @@ func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 	return nodeDetail.MasterPublicKey
 }
 
-func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
+func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string, committedState bool) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(key))
+	} else {
+		_, value = app.GetStateDB([]byte(key))
+	}
 	if value == nil {
 		return ""
 	}

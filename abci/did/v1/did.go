@@ -74,6 +74,7 @@ type DIDApplication struct {
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
 	verifiedSignatures       map[string]string
+	nodeKeyUpdate            map[string]bool
 }
 
 func loadState(db dbm.DB) State {
@@ -122,6 +123,7 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		UncommittedVersionsState: make(map[string][]int64),
 		ValUpdates:               make(map[string]types.ValidatorUpdate),
 		verifiedSignatures:       make(map[string]string),
+		nodeKeyUpdate:            make(map[string]bool),
 	}
 }
 
@@ -203,28 +205,44 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 
 	if method != "" {
 		// Check signature
-		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID)
-		if retCode != code.OK {
-			return app.ReturnDeliverTxLog(retCode, retLog, "")
-		}
+		_, nodeKeyUpdateExist := app.nodeKeyUpdate[nodeID]
 
 		signatureStr := string(signature)
-		val, exist := app.verifiedSignatures[signatureStr]
-		if exist {
-			app.logger.Debugf("Found verified signature")
-			delete(app.verifiedSignatures, signatureStr)
-			if val != nodeID {
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
-			}
+		verifiedSigNodeID, verifiedSigResultExist := app.verifiedSignatures[signatureStr]
+
+		var signatureReverificationNeeded bool
+		if nodeKeyUpdateExist {
+			app.logger.Debugf("Node key updated, cached verified Tx signature result will not be used")
+			signatureReverificationNeeded = true
+		} else if !verifiedSigResultExist {
+			app.logger.Debugf("Cached verified Tx signature result could not be found")
+			signatureReverificationNeeded = true
 		} else {
-			app.logger.Debugf("Verified signature could not be found, re-verifying signature")
+			signatureReverificationNeeded = false
+		}
+
+		if signatureReverificationNeeded {
+			app.logger.Debugf("Verifying Tx signature")
+			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+			if retCode != code.OK {
+				return app.ReturnDeliverTxLog(retCode, retLog, "")
+			}
 			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
 			}
 			if verifyResult == false {
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid signature", "")
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
 			}
+		} else {
+			app.logger.Debugf("Found verified Tx signature result")
+			if verifiedSigNodeID != nodeID {
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+		}
+
+		if verifiedSigResultExist {
+			delete(app.verifiedSignatures, signatureStr)
 		}
 
 		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
@@ -272,8 +290,6 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	// Error response if not enough
 	// Adjust difference on Commit()
 
-	// TODO: Check for node's key change
-
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
 	if nonceDup {
@@ -302,7 +318,7 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 		// Check has function in system
 		if IsMethod[method] {
 			// Check signature
-			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID)
+			publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
 			if retCode != code.OK {
 				return ReturnCheckTx(retCode, retLog)
 			}
@@ -312,7 +328,7 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 				return ReturnCheckTx(code.VerifySignatureError, err.Error())
 			}
 			if verifyResult == false {
-				return ReturnCheckTx(code.VerifySignatureError, "Invalid signature")
+				return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 			}
 			app.verifiedSignatures[string(signature)] = nodeID
 
@@ -354,6 +370,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		delete(app.checkTxNonceState, key)
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
+	app.nodeKeyUpdate = make(map[string]bool)
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
