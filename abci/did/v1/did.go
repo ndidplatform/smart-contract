@@ -74,7 +74,6 @@ type DIDApplication struct {
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
 	verifiedSignatures       map[string]string
-	nodeKeyUpdate            map[string]bool
 }
 
 func loadState(db dbm.DB) State {
@@ -123,7 +122,6 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		UncommittedVersionsState: make(map[string][]int64),
 		ValUpdates:               make(map[string]types.ValidatorUpdate),
 		verifiedSignatures:       make(map[string]string),
-		nodeKeyUpdate:            make(map[string]bool),
 	}
 }
 
@@ -212,29 +210,26 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 	}
 
 	// Check signature
-	_, nodeKeyUpdateExist := app.nodeKeyUpdate[nodeID]
-
-	signatureStr := string(signature)
-	verifiedSigNodeID, verifiedSigResultExist := app.verifiedSignatures[signatureStr]
-
-	var signatureReverificationNeeded bool
-	if nodeKeyUpdateExist {
-		app.logger.Debugf("Node key updated, cached verified Tx signature result will not be used")
-		signatureReverificationNeeded = true
-	} else if !verifiedSigResultExist {
-		app.logger.Debugf("Cached verified Tx signature result could not be found")
-		signatureReverificationNeeded = true
-	} else {
-		signatureReverificationNeeded = false
+	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+	if retCode != code.OK {
+		go recordDeliverTxFailMetrics(method)
+		return app.ReturnDeliverTxLog(retCode, retLog, "")
 	}
 
-	if signatureReverificationNeeded {
-		app.logger.Debugf("Verifying Tx signature")
-		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
-		if retCode != code.OK {
+	verifiedSignatureKey := string(signature) + "|" + nodeID
+	verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures[verifiedSignatureKey]
+
+	if verifiedSigResultExist {
+		app.logger.Debugf("Found cached verified Tx signature result")
+		delete(app.verifiedSignatures, verifiedSignatureKey)
+		if verifiedSigNodePubKey != publicKey {
+			app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
 			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(retCode, retLog, "")
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
 		}
+	} else {
+		app.logger.Debugf("Cached verified Tx signature result could not be found")
+		app.logger.Debugf("Verifying Tx signature")
 		verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
 		if err != nil {
 			go recordDeliverTxFailMetrics(method)
@@ -244,16 +239,6 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 			go recordDeliverTxFailMetrics(method)
 			return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
 		}
-	} else {
-		app.logger.Debugf("Found verified Tx signature result")
-		if verifiedSigNodeID != nodeID {
-			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
-		}
-	}
-
-	if verifiedSigResultExist {
-		delete(app.verifiedSignatures, signatureStr)
 	}
 
 	result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
@@ -351,11 +336,12 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 		go recordCheckTxFailMetrics(method)
 		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 	}
-	app.verifiedSignatures[string(signature)] = nodeID
+	verifiedSignatureKey := string(signature) + "|" + nodeID
+	app.verifiedSignatures[verifiedSignatureKey] = publicKey
 
 	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
 	if result.Code != code.OK {
-		delete(app.verifiedSignatures, string(signature))
+		delete(app.verifiedSignatures, verifiedSignatureKey)
 		go recordCheckTxFailMetrics(method)
 	}
 	return result
@@ -378,7 +364,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		delete(app.checkTxNonceState, key)
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
-	app.nodeKeyUpdate = make(map[string]bool)
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
