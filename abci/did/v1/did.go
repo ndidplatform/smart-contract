@@ -38,6 +38,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 
+	"github.com/ndidplatform/smart-contract/v4/protos/data"
 	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
@@ -74,7 +75,6 @@ type DIDApplication struct {
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
 	verifiedSignatures       map[string]string
-	nodeKeyUpdate            map[string]bool
 }
 
 func loadState(db dbm.DB) State {
@@ -123,7 +123,6 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 		UncommittedVersionsState: make(map[string][]int64),
 		ValUpdates:               make(map[string]types.ValidatorUpdate),
 		verifiedSignatures:       make(map[string]string),
-		nodeKeyUpdate:            make(map[string]bool),
 	}
 }
 
@@ -213,23 +212,22 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 	}
 
 	// Check signature
-	_, nodeKeyUpdateExist := app.nodeKeyUpdate[nodeID]
-
-	signatureStr := string(signature)
-	verifiedSigNodeID, verifiedSigResultExist := app.verifiedSignatures[signatureStr]
-
-	var signatureReverificationNeeded bool
-	if nodeKeyUpdateExist {
-		app.logger.Debugf("Node key updated, cached verified Tx signature result will not be used")
-		signatureReverificationNeeded = true
-	} else if !verifiedSigResultExist {
-		app.logger.Debugf("Cached verified Tx signature result could not be found")
-		signatureReverificationNeeded = true
-	} else {
-		signatureReverificationNeeded = false
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+	if nodeDetailValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	if signatureReverificationNeeded {
+	signatureStr := string(signature)
+	verifiedSigNodeIDAndPublicKey, verifiedSigResultExist := app.verifiedSignatures[signatureStr+"|"+nodeID]
+
+	if !verifiedSigResultExist {
+		app.logger.Debugf("Cached verified Tx signature result could not be found")
 		app.logger.Debugf("Verifying Tx signature")
 		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
 		if retCode != code.OK {
@@ -247,14 +245,14 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 		}
 	} else {
 		app.logger.Debugf("Found verified Tx signature result")
-		if verifiedSigNodeID != nodeID {
+		if verifiedSigNodeIDAndPublicKey != nodeID+"|"+nodeDetail.PublicKey {
 			go recordDeliverTxFailMetrics(method)
 			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
 		}
 	}
 
 	if verifiedSigResultExist {
-		delete(app.verifiedSignatures, signatureStr)
+		delete(app.verifiedSignatures, signatureStr+"|"+nodeID)
 	}
 
 	result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
@@ -352,11 +350,11 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 		go recordCheckTxFailMetrics(method)
 		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 	}
-	app.verifiedSignatures[string(signature)] = nodeID
+	app.verifiedSignatures[string(signature)+"|"+nodeID] = nodeID + "|" + publicKey
 
 	result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 	if result.Code != code.OK {
-		delete(app.verifiedSignatures, string(signature))
+		delete(app.verifiedSignatures, string(signature)+"|"+nodeID)
 		go recordCheckTxFailMetrics(method)
 	}
 	return result
@@ -379,7 +377,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		delete(app.checkTxNonceState, key)
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
-	app.nodeKeyUpdate = make(map[string]bool)
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
