@@ -98,7 +98,7 @@ var IsMethod = map[string]bool{
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
 	key := "MasterNDID"
-	exist := app.HasStateDB([]byte(key))
+	exist := app.HasCommittedStateDB([]byte(key))
 	if exist {
 		// NDID node (first node of the network) is already existed
 		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
@@ -108,7 +108,7 @@ func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.Re
 
 func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	_, value := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -123,9 +123,14 @@ func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) ty
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
+func (app *DIDApplication) checkNDID(param string, nodeID string, committedState bool) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(nodeDetailKey))
+	} else {
+		_, value = app.GetStateDB([]byte(nodeDetailKey))
+	}
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -139,7 +144,7 @@ func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	_, value := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -153,7 +158,7 @@ func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	_, value := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -167,7 +172,7 @@ func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	_, value := app.GetCommittedStateDB([]byte(nodeDetailKey))
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -180,7 +185,7 @@ func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 }
 
 func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
-	ok := app.checkNDID(param, nodeID)
+	ok := app.checkNDID(param, nodeID, true)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
 	}
@@ -211,7 +216,7 @@ func (app *DIDApplication) checkIsRPorIdP(param string, nodeID string) types.Res
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string) types.ResponseCheckTx {
+func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string, committedState bool) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
@@ -219,7 +224,12 @@ func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string) type
 	}
 	// Check request is existed
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
+	var requestValue []byte
+	if committedState {
+		_, requestValue = app.GetCommittedVersionedStateDB([]byte(requestKey), 0)
+	} else {
+		_, requestValue = app.GetVersionedStateDB([]byte(requestKey), 0)
+	}
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
@@ -423,9 +433,14 @@ var IsMasterKeyMethod = map[string]bool{
 	"UpdateNode": true,
 }
 
-func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
+func (app *DIDApplication) checkCanCreateTx(committedState bool) types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB([]byte(initStateKey))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(initStateKey))
+	} else {
+		_, value = app.GetStateDB([]byte(initStateKey))
+	}
 	if string(value) == "" {
 		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
@@ -435,18 +450,28 @@ func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
+func (app *DIDApplication) checkCanSetInitData(committedState bool) types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB([]byte(initStateKey))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(initStateKey))
+	} else {
+		_, value = app.GetStateDB([]byte(initStateKey))
+	}
 	if string(value) != "true" {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
+func (app *DIDApplication) checkLastBlock(committedState bool) types.ResponseCheckTx {
 	lastBlockKey := "lastBlock"
-	_, value := app.GetStateDB([]byte(lastBlockKey))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(lastBlockKey))
+	} else {
+		_, value = app.GetStateDB([]byte(lastBlockKey))
+	}
 	if string(value) == "" {
 		value = []byte("-1")
 	}
@@ -466,11 +491,11 @@ func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
 // CheckTxRouter check if Tx is valid
 // TODO: add parameter "committedState" (bool) since both CheckTx and DeliverTx call this function
 // CheckTx must get committed state while DeliverTx must get uncommitted state
-func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseCheckTx {
+func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
 
 	// ---- Check current block <= last block ----
 	if method != "SetLastBlock" {
-		result := app.checkLastBlock()
+		result := app.checkLastBlock(committedState)
 		if result.Code != code.OK {
 			return result
 		}
@@ -478,12 +503,12 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 
 	// ---- Check can set init data ----
 	if method == "SetInitData" {
-		return app.checkCanSetInitData()
+		return app.checkCanSetInitData(committedState)
 	}
 
 	// ---- Check is in init state ----
 	if method != "InitNDID" && method != "EndInit" {
-		result := app.checkCanCreateTx()
+		result := app.checkCanCreateTx(committedState)
 		if result.Code != code.OK {
 			return result
 		}
@@ -510,13 +535,18 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 
 	// If method is not 'InitNDID' then check node is active
 	if method != "InitNDID" {
-		if !app.getActiveStatusByNodeID(nodeID) {
+		if !app.getActiveStatusByNodeID(nodeID, committedState) {
 			return ReturnCheckTx(code.NodeIsNotActive, "Node is not active")
 		}
 
 		// Get node detail by NodeID
 		nodeDetailKey := "NodeID" + "|" + nodeID
-		_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+		var nodeDetailValue []byte
+		if committedState {
+			_, nodeDetailValue = app.GetCommittedStateDB([]byte(nodeDetailKey))
+		} else {
+			_, nodeDetailValue = app.GetStateDB([]byte(nodeDetailKey))
+		}
 		// If node not found then return code.NodeIDNotFound
 		if nodeDetailValue == nil {
 			return ReturnCheckTx(code.NodeIDNotFound, "Node ID not found")
@@ -532,7 +562,12 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))
+			var proxyNodeDetailValue []byte
+			if committedState {
+				_, proxyNodeDetailValue = app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
+			} else {
+				_, proxyNodeDetailValue = app.GetStateDB([]byte(proxyNodeDetailKey))
+			}
 			if proxyNodeDetailValue == nil {
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
 			}
@@ -551,7 +586,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 
 	// special case checkIsOwnerRequest
 	if IsCheckOwnerRequestMethod[method] {
-		result = app.checkIsOwnerRequest(param, nodeID)
+		result = app.checkIsOwnerRequest(param, nodeID, committedState)
 	} else if IsMasterKeyMethod[method] {
 		// If verifyResult is true, return true
 		return ReturnCheckTx(code.OK, "")
@@ -560,9 +595,9 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 	}
 	// check token for create Tx
 	if result.Code == code.OK {
-		if !app.checkNDID(param, nodeID) && method != "InitNDID" {
-			needToken := app.getTokenPriceByFunc(method)
-			nodeToken, err := app.getToken(nodeID)
+		if !app.checkNDID(param, nodeID, committedState) && method != "InitNDID" {
+			needToken := app.getTokenPriceByFunc(method, committedState)
+			nodeToken, err := app.getToken(nodeID, committedState)
 			if err != nil {
 				result.Code = code.TokenAccountNotFound
 				result.Log = "token account not found"
@@ -637,9 +672,14 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 	}
 }
 
-func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
+func (app *DIDApplication) getActiveStatusByNodeID(nodeID string, committedState bool) bool {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(key))
+	} else {
+		_, value = app.GetStateDB([]byte(key))
+	}
 	if value == nil {
 		return false
 	}

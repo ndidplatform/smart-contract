@@ -184,6 +184,10 @@ func (app *DIDApplication) HasStateDB(key []byte) bool {
 	return app.state.db.Has(key)
 }
 
+func (app *DIDApplication) HasCommittedStateDB(key []byte) bool {
+	return app.state.db.Has(key)
+}
+
 func (app *DIDApplication) HasVersionedStateDB(key []byte) bool {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
@@ -193,6 +197,12 @@ func (app *DIDApplication) HasVersionedStateDB(key []byte) bool {
 		return true
 	}
 
+	return app.state.db.Has(versionsKey)
+}
+
+func (app *DIDApplication) HasCommittedVersionedStateDB(key []byte) bool {
+	versionsKeyStr := string(key) + "|versions"
+	versionsKey := []byte(versionsKeyStr)
 	return app.state.db.Has(versionsKey)
 }
 

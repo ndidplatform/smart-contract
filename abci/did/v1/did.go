@@ -169,7 +169,6 @@ func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEnd
 }
 
 func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.ResponseDeliverTx) {
-
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -354,7 +353,7 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	}
 	app.verifiedSignatures[string(signature)] = nodeID
 
-	result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
+	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
 	if result.Code != code.OK {
 		delete(app.verifiedSignatures, string(signature))
 		go recordCheckTxFailMetrics(method)
@@ -400,7 +399,6 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 }
 
 func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
-
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {

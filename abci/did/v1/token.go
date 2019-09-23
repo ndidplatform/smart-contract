@@ -34,9 +34,14 @@ import (
 	data "github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 
-func (app *DIDApplication) getTokenPriceByFunc(fnName string) float64 {
+func (app *DIDApplication) getTokenPriceByFunc(fnName string, committedState bool) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	_, value := app.GetCommittedStateDB([]byte(key))
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(key))
+	} else {
+		_, value = app.GetStateDB([]byte(key))
+	}
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
@@ -103,14 +108,14 @@ func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
+func (app *DIDApplication) getPriceFunc(param string, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	price := app.getTokenPriceByFunc(funcParam.Func)
+	price := app.getTokenPriceByFunc(funcParam.Func, committedState)
 	var res = GetPriceFuncResult{
 		price,
 	}
@@ -178,23 +183,14 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode
 	return code.OK, ""
 }
 
-func (app *DIDApplication) getToken(nodeID string) (float64, error) {
+func (app *DIDApplication) getToken(nodeID string, committedState bool) (float64, error) {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
-	if value == nil {
-		return 0, errors.New("token account not found")
+	var value []byte
+	if committedState {
+		_, value = app.GetCommittedStateDB([]byte(key))
+	} else {
+		_, value = app.GetStateDB([]byte(key))
 	}
-	var token data.Token
-	err := proto.Unmarshal(value, &token)
-	if err != nil {
-		return 0, errors.New("token account not found")
-	}
-	return token.Amount, nil
-}
-
-func (app *DIDApplication) getTokenCommitted(nodeID string) (float64, error) {
-	key := "Token" + "|" + nodeID
-	_, value := app.GetCommittedStateDB([]byte(key))
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}
@@ -272,14 +268,14 @@ func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.Re
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) getNodeToken(param string) types.ResponseQuery {
+func (app *DIDApplication) getNodeToken(param string, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.Height)
 	}
-	tokenAmount, err := app.getTokenCommitted(funcParam.NodeID)
+	tokenAmount, err := app.getToken(funcParam.NodeID, committedState)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}

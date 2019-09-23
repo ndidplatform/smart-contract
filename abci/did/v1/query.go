@@ -58,9 +58,9 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 	case "GetMqAddresses":
 		return app.getMqAddresses(param)
 	case "GetNodeToken":
-		return app.getNodeToken(param)
+		return app.getNodeToken(param, true)
 	case "GetPriceFunc":
-		return app.getPriceFunc(param)
+		return app.getPriceFunc(param, true)
 	case "GetServiceDetail":
 		return app.getServiceDetail(param)
 	case "GetNamespaceList":
@@ -109,4 +109,3 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
-
