@@ -24,31 +24,85 @@ package did
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
+	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 // TODO: Refactor as app.DB or simply change function names (e.g. SetStateDB to SetDBState, GetCommittedVersionedStateDB to GetDBCommittedVersionedState)
 
-func (app *DIDApplication) SetStateDB(key, value []byte) {
-	app.HashData = append(app.HashData, key...)
-	app.HashData = append(app.HashData, value...)
+var (
+	appStateMetadataKey = []byte("stateKey")
+	// nonceKeyPrefix  = []byte("nonce:")
+)
 
-	app.UncommittedState[string(key)] = value
+type AppStateMetadata struct {
+	Height  int64  `json:"height"`
+	AppHash []byte `json:"app_hash"`
 }
 
-func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
+type AppState struct {
+	AppStateMetadata
+	db                       dbm.DB
+	CurrentBlock             int64
+	HashData                 []byte
+	uncommittedState         map[string][]byte
+	uncommittedVersionsState map[string][]int64
+}
+
+func NewAppState(db dbm.DB) (appState AppState) {
+	appStateMetadata := loadAppStateMetadata(db)
+	// "CurrentBlock" init by BeginBlock
+	appState = AppState{
+		AppStateMetadata:         appStateMetadata,
+		db:                       db,
+		HashData:                 make([]byte, 0),
+		uncommittedState:         make(map[string][]byte),
+		uncommittedVersionsState: make(map[string][]int64),
+	}
+	return appState
+}
+
+func loadAppStateMetadata(db dbm.DB) AppStateMetadata {
+	appStateMetadataBytes := db.Get(appStateMetadataKey)
+	var appStateMetadata AppStateMetadata
+	if len(appStateMetadataBytes) != 0 {
+		err := json.Unmarshal(appStateMetadataBytes, &appStateMetadata)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return appStateMetadata
+}
+
+func (appState *AppState) SaveMetadata() {
+	appStateMetadataBytes, err := json.Marshal(appState.AppStateMetadata)
+	if err != nil {
+		panic(err)
+	}
+	appState.db.Set(appStateMetadataKey, appStateMetadataBytes)
+}
+
+func (appState *AppState) Set(key, value []byte) {
+	appState.HashData = append(appState.HashData, key...)
+	appState.HashData = append(appState.HashData, value...)
+
+	appState.uncommittedState[string(key)] = value
+}
+
+func (appState *AppState) SetVersioned(key, value []byte) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
 	var versions []int64
 	var existInUncommittedState bool
-	versions, existInUncommittedState = app.UncommittedVersionsState[versionsKeyStr]
+	versions, existInUncommittedState = appState.uncommittedVersionsState[versionsKeyStr]
 	if !existInUncommittedState {
-		keyVersionsProtobuf := app.state.db.Get(versionsKey)
+		keyVersionsProtobuf := appState.db.Get(versionsKey)
 		if keyVersionsProtobuf != nil {
 			var keyVersions data.KeyVersions
 			err := proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
@@ -59,44 +113,65 @@ func (app *DIDApplication) SetVersionedStateDB(key, value []byte) {
 		}
 	}
 
-	if len(versions) == 0 || versions[len(versions)-1] != app.CurrentBlock {
-		app.HashData = append(app.HashData, versionsKey...)
+	if len(versions) == 0 || versions[len(versions)-1] != appState.CurrentBlock {
+		appState.HashData = append(appState.HashData, versionsKey...)
 		versionBytes := make([]byte, 8)
 		for _, version := range versions {
 			binary.BigEndian.PutUint64(versionBytes, uint64(version))
-			app.HashData = append(app.HashData, versionBytes...)
+			appState.HashData = append(appState.HashData, versionBytes...)
 		}
 
-		app.UncommittedVersionsState[versionsKeyStr] = append(versions, app.CurrentBlock)
+		appState.uncommittedVersionsState[versionsKeyStr] = append(versions, appState.CurrentBlock)
 	}
 
-	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(app.CurrentBlock, 10)
+	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(appState.CurrentBlock, 10)
 
-	app.HashData = append(app.HashData, key...)
-	app.HashData = append(app.HashData, value...)
+	appState.HashData = append(appState.HashData, key...)
+	appState.HashData = append(appState.HashData, value...)
 
-	app.UncommittedState[keyWithVersionStr] = value
+	appState.uncommittedState[keyWithVersionStr] = value
 }
 
-func (app *DIDApplication) GetStateDB(key []byte) (err error, value []byte) {
+func (appState *AppState) Get(key []byte, committed bool) (err error, value []byte) {
+	if committed {
+		return appState.getCommitted(key)
+	} else {
+		return appState.get(key)
+	}
+}
+
+func (appState *AppState) get(key []byte) (err error, value []byte) {
 	var existInUncommittedState bool
-	value, existInUncommittedState = app.UncommittedState[string(key)]
+	value, existInUncommittedState = appState.uncommittedState[string(key)]
 	if !existInUncommittedState {
-		value = app.state.db.Get(key)
+		value = appState.db.Get(key)
 	}
 
 	return nil, value
 }
 
-func (app *DIDApplication) GetVersionedStateDB(key []byte, height int64) (err error, value []byte) {
+func (appState *AppState) getCommitted(key []byte) (err error, value []byte) {
+	value = appState.db.Get(key)
+	return nil, value
+}
+
+func (appState *AppState) GetVersioned(key []byte, height int64, committed bool) (err error, value []byte) {
+	if committed {
+		return appState.getCommittedVersioned(key, height)
+	} else {
+		return appState.getVersioned(key, height)
+	}
+}
+
+func (appState *AppState) getVersioned(key []byte, height int64) (err error, value []byte) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
 	var versions []int64
 	var existInUncommittedState bool
-	versions, existInUncommittedState = app.UncommittedVersionsState[versionsKeyStr]
+	versions, existInUncommittedState = appState.uncommittedVersionsState[versionsKeyStr]
 	if !existInUncommittedState {
-		keyVersionsProtobuf := app.state.db.Get(versionsKey)
+		keyVersionsProtobuf := appState.db.Get(versionsKey)
 		if keyVersionsProtobuf != nil {
 			var keyVersions data.KeyVersions
 			err = proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
@@ -126,26 +201,21 @@ func (app *DIDApplication) GetVersionedStateDB(key []byte, height int64) (err er
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(version, 10)
 
 	if existInUncommittedState {
-		value = app.UncommittedState[keyWithVersionStr]
+		value = appState.uncommittedState[keyWithVersionStr]
 	} else {
 		keyWithVersion := []byte(keyWithVersionStr)
-		value = app.state.db.Get(keyWithVersion)
+		value = appState.db.Get(keyWithVersion)
 	}
 
 	return nil, value
 }
 
-func (app *DIDApplication) GetCommittedStateDB(key []byte) (err error, value []byte) {
-	value = app.state.db.Get(key)
-	return nil, value
-}
-
-func (app *DIDApplication) GetCommittedVersionedStateDB(key []byte, height int64) (err error, value []byte) {
+func (appState *AppState) getCommittedVersioned(key []byte, height int64) (err error, value []byte) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
 	var versions []int64
-	keyVersionsProtobuf := app.state.db.Get(versionsKey)
+	keyVersionsProtobuf := appState.db.Get(versionsKey)
 	var keyVersions data.KeyVersions
 	err = proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
 	if err != nil {
@@ -172,63 +242,79 @@ func (app *DIDApplication) GetCommittedVersionedStateDB(key []byte, height int64
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(version, 10)
 	keyWithVersion := []byte(keyWithVersionStr)
 
-	value = app.state.db.Get(keyWithVersion)
+	value = appState.db.Get(keyWithVersion)
 	return nil, value
 }
 
-func (app *DIDApplication) HasStateDB(key []byte) bool {
-	_, existInUncommittedState := app.UncommittedState[string(key)]
+func (appState *AppState) Has(key []byte, committed bool) bool {
+	if committed {
+		return appState.hasCommitted(key)
+	} else {
+		return appState.has(key)
+	}
+}
+
+func (appState *AppState) has(key []byte) bool {
+	_, existInUncommittedState := appState.uncommittedState[string(key)]
 	if existInUncommittedState {
 		return true
 	}
-	return app.state.db.Has(key)
+	return appState.db.Has(key)
 }
 
-func (app *DIDApplication) HasCommittedStateDB(key []byte) bool {
-	return app.state.db.Has(key)
+func (appState *AppState) hasCommitted(key []byte) bool {
+	return appState.db.Has(key)
 }
 
-func (app *DIDApplication) HasVersionedStateDB(key []byte) bool {
+func (appState *AppState) HasVersioned(key []byte, committed bool) bool {
+	if committed {
+		return appState.hasCommittedVersioned(key)
+	} else {
+		return appState.hasVersioned(key)
+	}
+}
+
+func (appState *AppState) hasVersioned(key []byte) bool {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
-	_, existInUncommittedState := app.UncommittedVersionsState[versionsKeyStr]
+	_, existInUncommittedState := appState.uncommittedVersionsState[versionsKeyStr]
 	if existInUncommittedState {
 		return true
 	}
 
-	return app.state.db.Has(versionsKey)
+	return appState.db.Has(versionsKey)
 }
 
-func (app *DIDApplication) HasCommittedVersionedStateDB(key []byte) bool {
+func (appState *AppState) hasCommittedVersioned(key []byte) bool {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
-	return app.state.db.Has(versionsKey)
+	return appState.db.Has(versionsKey)
 }
 
-func (app *DIDApplication) DeleteStateDB(key []byte) {
-	if !app.HasStateDB(key) {
+func (appState *AppState) Delete(key []byte) {
+	if !appState.has(key) {
 		return
 	}
-	app.HashData = append(app.HashData, key...)
-	app.HashData = append(app.HashData, []byte("delete")...) // Remove or replace with something else?
+	appState.HashData = append(appState.HashData, key...)
+	appState.HashData = append(appState.HashData, []byte("delete")...) // Remove or replace with something else?
 
-	app.UncommittedState[string(key)] = nil
+	appState.uncommittedState[string(key)] = nil
 }
 
-func (app *DIDApplication) DeleteVersionedStateDB(key []byte) {
-	if !app.HasVersionedStateDB(key) {
+func (appState *AppState) DeleteVersioned(key []byte) {
+	if !appState.hasVersioned(key) {
 		return
 	}
-	app.SetVersionedStateDB(key, nil)
+	appState.SetVersioned(key, nil)
 }
 
-func (app *DIDApplication) SaveDBState() {
-	batch := app.state.db.NewBatch()
+func (appState *AppState) Save() {
+	batch := appState.db.NewBatch()
 	defer batch.Close()
 
-	for key := range app.UncommittedState {
-		value := app.UncommittedState[key]
+	for key := range appState.uncommittedState {
+		value := appState.uncommittedState[key]
 		if value != nil {
 			batch.Set([]byte(key), value)
 		} else {
@@ -236,8 +322,8 @@ func (app *DIDApplication) SaveDBState() {
 		}
 	}
 
-	for key := range app.UncommittedVersionsState {
-		versions := app.UncommittedVersionsState[key]
+	for key := range appState.uncommittedVersionsState {
+		versions := appState.uncommittedVersionsState[key]
 		var keyVersions data.KeyVersions
 		keyVersions.Versions = versions
 		value, err := utils.ProtoDeterministicMarshal(&keyVersions)
@@ -249,6 +335,6 @@ func (app *DIDApplication) SaveDBState() {
 
 	batch.WriteSync()
 
-	app.UncommittedState = make(map[string][]byte)
-	app.UncommittedVersionsState = make(map[string][]int64)
+	appState.uncommittedState = make(map[string][]byte)
+	appState.uncommittedVersionsState = make(map[string][]int64)
 }

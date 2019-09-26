@@ -36,12 +36,7 @@ import (
 
 func (app *DIDApplication) getTokenPriceByFunc(fnName string, committedState bool) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	var value []byte
-	if committedState {
-		_, value = app.GetCommittedStateDB([]byte(key))
-	} else {
-		_, value = app.GetStateDB([]byte(key))
-	}
+	_, value := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
@@ -62,7 +57,7 @@ func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) err
 	if err != nil {
 		return err
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
@@ -71,12 +66,12 @@ func (app *DIDApplication) createTokenAccount(nodeID string) {
 	var token data.Token
 	token.Amount = 0
 	value, _ := utils.ProtoDeterministicMarshal(&token)
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 }
 
 func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	_, value := app.state.Get([]byte(key), false)
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -90,7 +85,7 @@ func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	if err != nil {
 		return errors.New("token account not found")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
@@ -128,7 +123,7 @@ func (app *DIDApplication) getPriceFunc(param string, committedState bool) types
 
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	_, value := app.state.Get([]byte(key), false)
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -142,13 +137,13 @@ func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	if err != nil {
 		return errors.New("token account not found")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
 func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	_, value := app.state.Get([]byte(key), false)
 	if value == nil {
 		return false
 	}
@@ -162,7 +157,7 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 
 func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	_, value := app.state.Get([]byte(key), false)
 	if value == nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
@@ -179,18 +174,13 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode
 	if err != nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return code.OK, ""
 }
 
 func (app *DIDApplication) getToken(nodeID string, committedState bool) (float64, error) {
 	key := "Token" + "|" + nodeID
-	var value []byte
-	if committedState {
-		_, value = app.GetCommittedStateDB([]byte(key))
-	} else {
-		_, value = app.GetStateDB([]byte(key))
-	}
+	_, value := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}

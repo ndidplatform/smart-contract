@@ -25,7 +25,6 @@ package did
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -42,17 +41,6 @@ import (
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
-var (
-	stateKey = []byte("stateKey")
-	// nonceKeyPrefix  = []byte("nonce:")
-)
-
-type State struct {
-	db      dbm.DB
-	Height  int64  `json:"height"`
-	AppHash []byte `json:"app_hash"`
-}
-
 // func prefixNonceKey(nonceKey []byte) []byte {
 // 	return append(nonceKeyPrefix, nonceKey...)
 // }
@@ -61,40 +49,15 @@ var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state                    State
-	checkTxNonceState        map[string][]byte
-	deliverTxNonceState      map[string][]byte
-	ValUpdates               map[string]types.ValidatorUpdate
-	logger                   *logrus.Entry
-	Version                  string
-	AppProtocolVersion       uint64
-	CurrentBlock             int64
-	CurrentChain             string
-	HashData                 []byte
-	UncommittedState         map[string][]byte
-	UncommittedVersionsState map[string][]int64
-	verifiedSignatures       map[string]string
-}
-
-func loadState(db dbm.DB) State {
-	stateBytes := db.Get(stateKey)
-	var state State
-	if len(stateBytes) != 0 {
-		err := json.Unmarshal(stateBytes, &state)
-		if err != nil {
-			panic(err)
-		}
-	}
-	state.db = db
-	return state
-}
-
-func saveState(state State) {
-	stateBytes, err := json.Marshal(state)
-	if err != nil {
-		panic(err)
-	}
-	state.db.Set(stateKey, stateBytes)
+	state               AppState
+	checkTxNonceState   map[string][]byte
+	deliverTxNonceState map[string][]byte
+	ValUpdates          map[string]types.ValidatorUpdate
+	logger              *logrus.Entry
+	Version             string
+	AppProtocolVersion  uint64
+	CurrentChain        string
+	verifiedSignatures  map[string]string
 }
 
 func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
@@ -106,22 +69,20 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	}()
 	// var state State
 	// state.db = db
-	state := loadState(db)
+	appState := NewAppState(db)
 
 	ABCIVersion := version.Version
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:                    state,
-		checkTxNonceState:        make(map[string][]byte),
-		deliverTxNonceState:      make(map[string][]byte),
-		logger:                   logger,
-		Version:                  ABCIVersion,
-		AppProtocolVersion:       ABCIProtocolVersion,
-		UncommittedState:         make(map[string][]byte),
-		UncommittedVersionsState: make(map[string][]int64),
-		ValUpdates:               make(map[string]types.ValidatorUpdate),
-		verifiedSignatures:       make(map[string]string),
+		state:               appState,
+		checkTxNonceState:   make(map[string][]byte),
+		deliverTxNonceState: make(map[string][]byte),
+		logger:              logger,
+		Version:             ABCIVersion,
+		AppProtocolVersion:  ABCIProtocolVersion,
+		ValUpdates:          make(map[string]types.ValidatorUpdate),
+		verifiedSignatures:  make(map[string]string),
 	}
 }
 
@@ -131,7 +92,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
-	app.CurrentBlock = app.state.Height
+	app.state.CurrentBlock = app.state.Height
 	return res
 }
 
@@ -149,7 +110,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
-	app.CurrentBlock = req.Header.Height
+	app.state.CurrentBlock = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make(map[string]types.ValidatorUpdate, 0)
@@ -356,7 +317,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 
-	app.SaveDBState()
+	app.state.Save()
 	app.state.Height = app.state.Height + 1
 	go recordDBSaveDurationMetrics(startTime)
 
@@ -367,17 +328,17 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
-	if len(app.HashData) > 0 {
-		app.HashData = append(app.state.AppHash, app.HashData...)
-		app.state.AppHash = hash(app.HashData)
+	if len(app.state.HashData) > 0 {
+		app.state.HashData = append(app.state.AppHash, app.state.HashData...)
+		app.state.AppHash = hash(app.state.HashData)
 	}
 	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
 
-	app.HashData = make([]byte, 0)
+	app.state.HashData = make([]byte, 0)
 
 	// Save state
-	saveState(app.state)
+	app.state.SaveMetadata()
 
 	go recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: appHash}
