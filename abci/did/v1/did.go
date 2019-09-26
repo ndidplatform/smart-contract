@@ -319,7 +319,8 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 
 	app.state.Save()
 	app.state.Height = app.state.Height + 1
-	go recordDBSaveDurationMetrics(startTime)
+	dbSaveDuration := time.Since(startTime)
+	go recordDBSaveDurationMetrics(dbSaveDuration)
 
 	for key := range app.deliverTxNonceState {
 		delete(app.checkTxNonceState, key)
@@ -333,14 +334,16 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 		app.state.AppHash = hash(app.state.HashData)
 	}
 	appHash := app.state.AppHash
-	go recordAppHashDurationMetrics(appHashStartTime)
+	appHashDuration := time.Since(appHashStartTime)
+	go recordAppHashDurationMetrics(appHashDuration)
 
 	app.state.HashData = make([]byte, 0)
 
 	// Save state
 	app.state.SaveMetadata()
 
-	go recordCommitDurationMetrics(startTime)
+	duration := time.Since(startTime)
+	go recordCommitDurationMetrics(duration)
 	return types.ResponseCommit{Data: appHash}
 }
 
@@ -364,6 +367,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 
 	startTime := time.Now()
 	go recordQueryMetrics(method)
+	defer func() {
+		duration := time.Since(startTime)
+		go recordQueryDurationMetrics(duration, method)
+	}()
 
 	app.logger.Infof("Query: %s", method)
 
@@ -372,12 +379,10 @@ func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.Respons
 		height = app.state.Height
 	}
 
-	if method != "" {
-		go recordQueryDurationMetrics(startTime, method)
-		return app.QueryRouter(method, param, height)
+	if method == "" {
+		return app.ReturnQuery(nil, "method can't be empty", app.state.Height)
 	}
-	go recordQueryDurationMetrics(startTime, method)
-	return app.ReturnQuery(nil, "method can't empty", app.state.Height)
+	return app.QueryRouter(method, param, height)
 }
 
 func getEnv(key, defaultValue string) string {
