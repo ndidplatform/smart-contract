@@ -33,8 +33,6 @@ import (
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
-// TODO: Refactor as app.DB or simply change function names (e.g. SetStateDB to SetDBState, GetCommittedVersionedStateDB to GetDBCommittedVersionedState)
-
 var (
 	appStateMetadataKey = []byte("stateKey")
 	// nonceKeyPrefix  = []byte("nonce:")
