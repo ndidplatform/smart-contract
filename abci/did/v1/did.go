@@ -24,7 +24,6 @@ package did
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"runtime"
@@ -238,7 +237,6 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 
 	go recordCheckTxMetrics(method)
 
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
@@ -255,9 +253,10 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 	}
 
 	// Check duplicate nonce in checkTx stateDB
-	_, exist := app.checkTxNonceState[nonceBase64]
+	nonceStr := string(nonce)
+	_, exist := app.checkTxNonceState[nonceStr]
 	if !exist {
-		app.checkTxNonceState[nonceBase64] = []byte(nil)
+		app.checkTxNonceState[nonceStr] = []byte(nil)
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"

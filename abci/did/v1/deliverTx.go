@@ -23,7 +23,6 @@
 package did
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
@@ -112,8 +111,8 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	// Set used nonce to stateDB
 	emptyValue := make([]byte, 0)
 	app.state.Set([]byte(nonce), emptyValue)
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	app.deliverTxNonceState[nonceBase64] = []byte(nil)
+	nonceStr := string(nonce)
+	app.deliverTxNonceState[nonceStr] = []byte(nil)
 	return result
 }
 
