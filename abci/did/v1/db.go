@@ -54,7 +54,7 @@ type AppState struct {
 
 func NewAppState(db dbm.DB) (appState AppState) {
 	appStateMetadata := loadAppStateMetadata(db)
-	// "CurrentBlock" init by BeginBlock
+	// "CurrentBlock" init by app.BeginBlock()
 	appState = AppState{
 		AppStateMetadata:         appStateMetadata,
 		db:                       db,
