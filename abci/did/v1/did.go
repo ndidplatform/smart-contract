@@ -66,8 +66,7 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 			panic(r)
 		}
 	}()
-	// var state State
-	// state.db = db
+
 	appState := NewAppState(db)
 
 	ABCIVersion := version.Version
@@ -252,7 +251,7 @@ func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.Response
 		return res
 	}
 
-	// Check duplicate nonce in checkTx stateDB
+	// Check duplicate nonce in checkTx state
 	nonceStr := string(nonce)
 	_, exist := app.checkTxNonceState[nonceStr]
 	if !exist {

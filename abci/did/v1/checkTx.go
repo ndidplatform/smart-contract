@@ -479,12 +479,6 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		}
 	}
 
-	// // ---- Check duplicate nonce ----
-	// nonceDupResult := app.checkDuplicateNonce(nonce)
-	// if nonceDupResult.Code != code.OK {
-	// 	return nonceDupResult
-	// }
-
 	// Check pub key
 	if method == "InitNDID" || method == "RegisterNode" || method == "UpdateNode" {
 		checkCode, log := checkNodePubKeys(param)
