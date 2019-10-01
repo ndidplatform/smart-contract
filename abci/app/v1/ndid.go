@@ -997,13 +997,13 @@ func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.Resp
 	}
 	lastBlockValue := funcParam.BlockHeight
 	if funcParam.BlockHeight == 0 {
-		lastBlockValue = app.state.CurrentBlock
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
 	if funcParam.BlockHeight < -1 {
-		lastBlockValue = app.state.CurrentBlock
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
-	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.state.CurrentBlock {
-		lastBlockValue = app.state.CurrentBlock
+	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.state.CurrentBlockHeight {
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
 	app.state.Set(lastBlockKeyBytes, []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")

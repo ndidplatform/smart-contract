@@ -46,7 +46,7 @@ type AppStateMetadata struct {
 type AppState struct {
 	AppStateMetadata
 	db                       dbm.DB
-	CurrentBlock             int64
+	CurrentBlockHeight       int64
 	HashData                 []byte
 	uncommittedState         map[string][]byte
 	uncommittedVersionsState map[string][]int64
@@ -54,10 +54,10 @@ type AppState struct {
 
 func NewAppState(db dbm.DB) (appState AppState) {
 	appStateMetadata := loadAppStateMetadata(db)
-	// "CurrentBlock" init by app.BeginBlock()
 	appState = AppState{
 		AppStateMetadata:         appStateMetadata,
 		db:                       db,
+		CurrentBlockHeight:       appStateMetadata.Height,
 		HashData:                 make([]byte, 0),
 		uncommittedState:         make(map[string][]byte),
 		uncommittedVersionsState: make(map[string][]int64),
@@ -111,7 +111,7 @@ func (appState *AppState) SetVersioned(key, value []byte) {
 		}
 	}
 
-	if len(versions) == 0 || versions[len(versions)-1] != appState.CurrentBlock {
+	if len(versions) == 0 || versions[len(versions)-1] != appState.CurrentBlockHeight {
 		appState.HashData = append(appState.HashData, versionsKey...)
 		versionBytes := make([]byte, 8)
 		for _, version := range versions {
@@ -119,10 +119,10 @@ func (appState *AppState) SetVersioned(key, value []byte) {
 			appState.HashData = append(appState.HashData, versionBytes...)
 		}
 
-		appState.uncommittedVersionsState[versionsKeyStr] = append(versions, appState.CurrentBlock)
+		appState.uncommittedVersionsState[versionsKeyStr] = append(versions, appState.CurrentBlockHeight)
 	}
 
-	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(appState.CurrentBlock, 10)
+	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(appState.CurrentBlockHeight, 10)
 
 	appState.HashData = append(appState.HashData, key...)
 	appState.HashData = append(appState.HashData, value...)

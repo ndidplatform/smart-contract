@@ -443,7 +443,7 @@ func (app *ABCIApplication) checkLastBlock(committedState bool) types.ResponseCh
 	if err != nil {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
-	if app.state.CurrentBlock > lastBlock {
+	if app.state.CurrentBlockHeight > lastBlock {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
 	return ReturnCheckTx(code.OK, "")

@@ -90,7 +90,6 @@ func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseI
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
-	app.state.CurrentBlock = app.state.Height
 	return res
 }
 
@@ -108,7 +107,7 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 // Track the block hash and header information
 func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
-	app.state.CurrentBlock = req.Header.Height
+	app.state.CurrentBlockHeight = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)

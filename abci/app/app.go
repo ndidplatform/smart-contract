@@ -39,7 +39,7 @@ var _ types.Application = (*ABCIApplicationInterface)(nil)
 type ABCIApplicationInterface struct {
 	appV1 *appV1.ABCIApplication
 	// appV2        *appV2.ABCIApplication
-	CurrentBlock int64
+	CurrentBlockHeight int64
 }
 
 func NewABCIApplicationInterface() *ABCIApplicationInterface {
@@ -72,7 +72,7 @@ func (app *ABCIApplicationInterface) SetOption(req types.RequestSetOption) types
 
 func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
 	switch {
-	case app.CurrentBlock >= 0:
+	case app.CurrentBlockHeight >= 0:
 		return app.appV1.CheckTx(req)
 	default:
 		return app.appV1.CheckTx(req)
@@ -81,7 +81,7 @@ func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.Res
 
 func (app *ABCIApplicationInterface) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
 	switch {
-	case app.CurrentBlock >= 0:
+	case app.CurrentBlockHeight >= 0:
 		return app.appV1.DeliverTx(req)
 	default:
 		return app.appV1.DeliverTx(req)
@@ -101,7 +101,7 @@ func (app *ABCIApplicationInterface) InitChain(req types.RequestInitChain) types
 }
 
 func (app *ABCIApplicationInterface) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.CurrentBlock = req.Header.Height
+	app.CurrentBlockHeight = req.Header.Height
 	return app.appV1.BeginBlock(req)
 }
 
