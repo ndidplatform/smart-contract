@@ -31,7 +31,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 var _ types.Application = (*ABCIApplicationInterface)(nil)

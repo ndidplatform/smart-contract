@@ -37,7 +37,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
-	dbm "github.com/tendermint/tendermint/libs/db"
+	dbm "github.com/tendermint/tm-db"
 )
 
 // func prefixNonceKey(nonceKey []byte) []byte {
