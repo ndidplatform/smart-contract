@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func (app *DIDApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam CreateRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -45,7 +45,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set request data
 	request.RequestId = funcParam.RequestID
 
-	key := "Request" + "|" + request.RequestId
+	key := requestKeyPrefix + keySeparator + request.RequestId
 	requestIDExist := app.state.HasVersioned([]byte(key), false)
 	if requestIDExist {
 		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
@@ -74,7 +74,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
 		// Get node detail
-		nodeDetailKey := "NodeID" + "|" + idp
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
 		_, nodeDetaiValue := app.state.Get([]byte(nodeDetailKey), false)
 		if nodeDetaiValue == nil {
 			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -93,7 +93,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		if node.ProxyNodeId != "" {
 			proxyNodeID := node.ProxyNodeId
 			// Get proxy node detail
-			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), false)
 			if proxyNodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -137,7 +137,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			var node data.NodeDetail
 			if nodeDetailMap[as] == nil {
 				// Get node detail
-				nodeDetailKey := "NodeID" + "|" + as
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
 				_, nodeDetaiValue := app.state.Get([]byte(nodeDetailKey), false)
 				if nodeDetaiValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -162,7 +162,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			if node.ProxyNodeId != "" {
 				proxyNodeID := node.ProxyNodeId
 				// Get proxy node detail
-				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 				_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), false)
 				if proxyNodeDetailValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -207,14 +207,14 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
-func (app *DIDApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	_, value := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -259,14 +259,14 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	_, value := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -311,14 +311,14 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *DIDApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	_, value := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")

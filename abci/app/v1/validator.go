@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"bytes"
@@ -41,7 +41,7 @@ func isValidatorTx(tx []byte) bool {
 	return strings.HasPrefix(string(tx), ValidatorSetChangePrefix)
 }
 
-func (app *DIDApplication) Validators() (validators []types.Validator) {
+func (app *ABCIApplication) Validators() (validators []types.Validator) {
 	app.logger.Infof("Validators")
 	itr := app.state.db.Iterator(nil, nil)
 	defer itr.Close()
@@ -58,7 +58,7 @@ func (app *DIDApplication) Validators() (validators []types.Validator) {
 }
 
 // add, update, or remove a validator
-func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
 	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetData())
 	key := []byte("val:" + pubKeyBase64)
 
@@ -77,11 +77,11 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 		app.state.Set(key, value.Bytes())
 	}
 
-	app.ValUpdates[pubKeyBase64] = v
+	app.valUpdates[pubKeyBase64] = v
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) setValidator(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setValidator(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam
 	err := json.Unmarshal([]byte(param), &funcParam)

@@ -2176,43 +2176,6 @@ message Query {
 }
 ```
 
-## GetUsedTokenReport
-
-### Parameter
-
-```sh
-{
-  "node_id": "XckRuCmVliLThncSTnfG"
-}
-```
-
-### Expected Output
-
-```sh
-[
-  {
-    "method": "RegisterServiceDestination",
-    "price": 1,
-    "data": ""
-  },
-  {
-    "method": "UpdateServiceDestination",
-    "price": 1,
-    "data": ""
-  },
-  {
-    "method": "SetMqAddresses",
-    "price": 1,
-    "data": ""
-  },
-  {
-    "method": "SignData",
-    "price": 1,
-    "data": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
-  }
-]
-```
-
 ## GetAccessorsInAccessorGroup
 
 ### Parameter

@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 type NodePublicKey struct {
 	NodeID    string `json:"node_id"`
@@ -336,10 +336,6 @@ type Report struct {
 	Price  float64 `json:"price"`
 	Data   string  `json:"data"`
 }
-
-// type GetUsedTokenReportParam struct {
-// 	NodeID string `json:"node_id"`
-// }
 
 type RequestIDParam struct {
 	RequestID string `json:"request_id"`
@@ -762,8 +758,6 @@ type Proxy struct {
 	ProxyNodeID string `json:"proxy_node_id"`
 	Config      string `json:"config"`
 }
-
-// type GetUsedTokenReportResult []Report
 
 type GetNodeIDListParam struct {
 	Role string `json:"role"`

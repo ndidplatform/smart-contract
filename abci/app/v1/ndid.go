@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -67,7 +67,7 @@ var isNDIDMethod = map[string]bool{
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
 }
 
-func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -84,25 +84,23 @@ func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseD
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	masterNDIDKey := "MasterNDID"
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	initStateKey := "InitState"
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	chainHistoryInfoKey := "ChainHistoryInfo"
-	app.state.Set([]byte(masterNDIDKey), []byte(nodeID))
+	app.state.Set(masterNDIDKeyBytes, []byte(nodeID))
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
-	app.state.Set([]byte(initStateKey), []byte("true"))
+	app.state.Set(initStateKeyBytes, []byte("true"))
 	app.state.Set([]byte(chainHistoryInfoKey), []byte(funcParam.ChainHistoryInfo))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "NodeID" + "|" + funcParam.NodeID
+	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	// check Duplicate Node ID
 	_, chkExists := app.state.Get([]byte(key), false)
 	if chkExists != nil {
@@ -133,9 +131,8 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	}
 	// if node is IdP, add node id to IdPList
 	var idpsList data.IdPList
-	idpsKey := "IdPList"
 	if funcParam.Role == "IdP" {
-		_, idpsValue := app.state.Get([]byte(idpsKey), false)
+		_, idpsValue := app.state.Get(idpListKeyBytes, false)
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
@@ -147,7 +144,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		app.state.Set([]byte(idpsKey), []byte(idpsListByte))
+		app.state.Set(idpListKeyBytes, []byte(idpsListByte))
 	}
 	// if node is rp, add node id to rpList
 	var rpsList data.RPList
@@ -204,21 +201,20 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.createTokenAccount(funcParam.NodeID)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	_, chkExists := app.state.Get([]byte(key), false)
+	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
 	var namespaces data.NamespaceList
 	if chkExists != nil {
 		err = proto.Unmarshal([]byte(chkExists), &namespaces)
@@ -249,19 +245,18 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	_, chkExists := app.state.Get([]byte(key), false)
+	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "List of namespace not found", "")
 	}
@@ -280,18 +275,18 @@ func (app *DIDApplication) disableNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, chkExists := app.state.Get([]byte(serviceKey), false)
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
@@ -337,14 +332,14 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, chkExists := app.state.Get([]byte(serviceKey), false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -385,7 +380,7 @@ func (app *DIDApplication) disableService(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -393,7 +388,7 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
@@ -425,14 +420,14 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateService, Parameter: %s", param)
 	var funcParam UpdateServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceValue := app.state.Get([]byte(serviceKey), false)
 	if serviceValue == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -484,7 +479,7 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -492,7 +487,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -507,7 +502,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 		return app.ReturnDeliverTxLog(code.RoleIsNotAS, "Role of node ID is not AS", "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -517,7 +512,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	var approveService data.ApproveService
 	approveService.Active = true
 	approveServiceJSON, err := utils.ProtoDeterministicMarshal(&approveService)
@@ -528,14 +523,14 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -554,7 +549,7 @@ func (app *DIDApplication) disableNode(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -562,13 +557,13 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -587,7 +582,7 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -606,14 +601,14 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -632,7 +627,7 @@ func (app *DIDApplication) enableNode(param string, nodeID string) types.Respons
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -640,13 +635,13 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -665,7 +660,7 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -684,15 +679,14 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	_, chkExists := app.state.Get([]byte(key), false)
+	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
 	var namespaces data.NamespaceList
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
@@ -711,18 +705,18 @@ func (app *DIDApplication) enableNamespace(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, chkExists := app.state.Get([]byte(serviceKey), false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -760,7 +754,7 @@ func (app *DIDApplication) enableService(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -782,18 +776,18 @@ func (app *DIDApplication) setTimeOutBlockRegisterIdentity(param string, nodeID 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToProxyNode, Parameter: %s", param)
 	var funcParam AddNodeToProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
@@ -846,7 +840,7 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeProxyNode, Parameter: %s", param)
 	var funcParam UpdateNodeProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -858,7 +852,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 	var newProxyNodes data.BehindNodeList
 	newProxyNodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
@@ -880,7 +874,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 			return app.ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
 		}
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + nodeDetail.ProxyNodeId
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), false)
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
@@ -888,7 +882,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
-	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	newBehindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	_, newBehindProxyNodeValue := app.state.Get([]byte(newBehindProxyNodeKey), false)
 	if newBehindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
@@ -932,7 +926,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveNodeFromProxyNode, Parameter: %s", param)
 	var funcParam RemoveNodeFromProxyNode
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -942,7 +936,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
@@ -962,7 +956,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	if nodeDetail.ProxyNodeId == "" {
 		return app.ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + nodeDetail.ProxyNodeId
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), false)
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
@@ -994,14 +988,13 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetLastBlock, Parameter: %s", param)
 	var funcParam SetLastBlockParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	lastBlockKey := "lastBlock"
 	lastBlockValue := funcParam.BlockHeight
 	if funcParam.BlockHeight == 0 {
 		lastBlockValue = app.state.CurrentBlock
@@ -1012,11 +1005,11 @@ func (app *DIDApplication) setLastBlock(param string, nodeID string) types.Respo
 	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.state.CurrentBlock {
 		lastBlockValue = app.state.CurrentBlock
 	}
-	app.state.Set([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
+	app.state.Set(lastBlockKeyBytes, []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetInitData, Parameter: %s", param)
 	var funcParam SetInitDataParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1029,26 +1022,25 @@ func (app *DIDApplication) SetInitData(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EndInit, Parameter: %s", param)
 	var funcParam EndInitParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	initStateKey := "InitState"
-	app.state.Set([]byte(initStateKey), []byte("false"))
+	app.state.Set(initStateKeyBytes, []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedModeList, Parameter: %s", param)
 	var funcParam SetAllowedModeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	allowedModeKey := "AllowedModeList" + "|" + funcParam.Purpose
+	allowedModeKey := allowedModeListKeyPrefix + keySeparator + funcParam.Purpose
 	var allowedModeList data.AllowedModeList
 	allowedModeList.Mode = funcParam.AllowedModeList
 	allowedModeListByte, err := utils.ProtoDeterministicMarshal(&allowedModeList)
@@ -1059,7 +1051,7 @@ func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1077,15 +1069,14 @@ func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param s
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNamespace, Parameter: %s", param)
 	var funcParam UpdateNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	allNamespaceKey := "AllNamespace"
-	_, allNamespaceValue := app.state.Get([]byte(allNamespaceKey), false)
+	_, allNamespaceValue := app.state.Get(allNamespaceKeyBytes, false)
 	if allNamespaceValue == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 	}
@@ -1112,6 +1103,6 @@ func (app *DIDApplication) updateNamespace(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(allNamespaceKey), []byte(allNamespaceValue))
+	app.state.Set(allNamespaceKeyBytes, []byte(allNamespaceValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

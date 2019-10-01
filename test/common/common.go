@@ -16,7 +16,7 @@
  * You should have received a copy of the Affero GNU General Public License
  * along with the NDID source code. If not, see https://www.gnu.org/licenses/agpl.txt.
  *
- * Please contact info@ndid.co.th for any further questions
+ * Please contact info@napp.co.th for any further questions
  *
  */
 
@@ -28,12 +28,12 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/did/v1"
+	"github.com/ndidplatform/smart-contract/v4/abci/app/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
 )
 
-func SetMqAddresses(t *testing.T, nodeID, privK string, param did.SetMqAddressesParam) {
+func SetMqAddresses(t *testing.T, nodeID, privK string, param app.SetMqAddressesParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -52,16 +52,16 @@ func SetMqAddresses(t *testing.T, nodeID, privK string, param did.SetMqAddresses
 }
 
 func TestSetMqAddresses(t *testing.T, nodeID, privK, ip string, port int64) {
-	var mq did.MsqAddress
+	var mq app.MsqAddress
 	mq.IP = ip
 	mq.Port = port
-	var param did.SetMqAddressesParam
-	param.Addresses = make([]did.MsqAddress, 0)
+	var param app.SetMqAddressesParam
+	param.Addresses = make([]app.MsqAddress, 0)
 	param.Addresses = append(param.Addresses, mq)
 	SetMqAddresses(t, nodeID, privK, param)
 }
 
-func CreateRequest(t *testing.T, nodeID, privK string, param did.CreateRequestParam) {
+func CreateRequest(t *testing.T, nodeID, privK string, param app.CreateRequestParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -79,7 +79,7 @@ func CreateRequest(t *testing.T, nodeID, privK string, param did.CreateRequestPa
 	t.Logf("PASS: %s", fnName)
 }
 
-func CloseRequest(t *testing.T, nodeID, privK string, param did.CloseRequestParam) {
+func CloseRequest(t *testing.T, nodeID, privK string, param app.CloseRequestParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -100,8 +100,8 @@ func CloseRequest(t *testing.T, nodeID, privK string, param did.CloseRequestPara
 func TestCreateRequest(t *testing.T, requestID string) {
 	var nodeID string
 	var privK string
-	var param did.CreateRequestParam
-	var datas []did.DataRequest
+	var param app.CreateRequestParam
+	var datas []app.DataRequest
 	param.RequestID = requestID
 	switch requestID {
 	case data.RequestID1.String():
@@ -194,15 +194,15 @@ func TestCreateRequest(t *testing.T, requestID string) {
 func TestCloseRequest(t *testing.T, requestID string) {
 	var nodeID string
 	var privK string
-	var param did.CloseRequestParam
+	var param app.CloseRequestParam
 	param.RequestID = requestID
 	switch requestID {
 	case data.RequestID1.String():
 		nodeID = data.IdP1
 		privK = data.IdpPrivK1
 	case data.RequestID2.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP1
 		tValue := true
 		res1.ValidIal = &tValue
@@ -212,8 +212,8 @@ func TestCloseRequest(t *testing.T, requestID string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	case data.RequestID3.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP1
 		tValue := true
 		res1.ValidIal = &tValue
@@ -223,8 +223,8 @@ func TestCloseRequest(t *testing.T, requestID string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	case data.RequestID4.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP1
 		tValue := true
 		res1.ValidIal = &tValue
@@ -234,8 +234,8 @@ func TestCloseRequest(t *testing.T, requestID string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	case data.RequestID5.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP1
 		tValue := true
 		res1.ValidIal = &tValue
@@ -245,8 +245,8 @@ func TestCloseRequest(t *testing.T, requestID string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	case data.RequestID6.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP1
 		tValue := true
 		res1.ValidIal = &tValue
@@ -256,8 +256,8 @@ func TestCloseRequest(t *testing.T, requestID string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	case data.RequestID7.String():
-		var res []did.ResponseValid
-		var res1 did.ResponseValid
+		var res []app.ResponseValid
+		var res1 app.ResponseValid
 		res1.IdpID = data.IdP2
 		tValue := true
 		res1.ValidIal = &tValue
@@ -270,7 +270,7 @@ func TestCloseRequest(t *testing.T, requestID string) {
 	CloseRequest(t, nodeID, privK, param)
 }
 
-func UpdateNode(t *testing.T, nodeID, privK string, param did.UpdateNodeParam, expected string) {
+func UpdateNode(t *testing.T, nodeID, privK string, param app.UpdateNodeParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -290,7 +290,7 @@ func UpdateNode(t *testing.T, nodeID, privK string, param did.UpdateNodeParam, e
 func TestUpdateNode(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.UpdateNodeParam
+	var param app.UpdateNodeParam
 	switch caseID {
 	case 1:
 		idpKey2 := utils.GetPrivateKeyFromString(data.IdpPrivK2)

@@ -27,12 +27,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/did/v1"
+	"github.com/ndidplatform/smart-contract/v4/abci/app/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
 )
 
-func RegisterServiceDestination(t *testing.T, nodeID, privK string, param did.RegisterServiceDestinationParam, expected string) {
+func RegisterServiceDestination(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -52,7 +52,7 @@ func RegisterServiceDestination(t *testing.T, nodeID, privK string, param did.Re
 func TestRegisterServiceDestination(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.RegisterServiceDestinationParam
+	var param app.RegisterServiceDestinationParam
 	switch caseID {
 	case 1:
 		param.ServiceID = data.ServiceID1
@@ -72,7 +72,7 @@ func TestRegisterServiceDestination(t *testing.T, caseID int64, expected string)
 	RegisterServiceDestination(t, nodeID, privK, param, expected)
 }
 
-func UpdateServiceDestination(t *testing.T, nodeID, privK string, param did.UpdateServiceDestinationParam, expected string) {
+func UpdateServiceDestination(t *testing.T, nodeID, privK string, param app.UpdateServiceDestinationParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -92,7 +92,7 @@ func UpdateServiceDestination(t *testing.T, nodeID, privK string, param did.Upda
 func TestUpdateServiceDestination(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.UpdateServiceDestinationParam
+	var param app.UpdateServiceDestinationParam
 	switch caseID {
 	case 1:
 		param.ServiceID = data.ServiceID1

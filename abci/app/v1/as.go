@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func (app *DIDApplication) signData(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) signData(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SignData, Parameter: %s", param)
 	var signData SignDataParam
 	err := json.Unmarshal([]byte(param), &signData)
@@ -40,7 +40,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	requestKey := "Request" + "|" + signData.RequestID
+	requestKey := requestKeyPrefix + keySeparator + signData.RequestID
 	_, requestJSON := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if requestJSON == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -62,7 +62,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + signData.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + signData.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -79,7 +79,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check service destination is approved by NDID
-	approveServiceKey := "ApproveKey" + "|" + signData.ServiceID + "|" + nodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + signData.ServiceID + keySeparator + nodeID
 	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -94,7 +94,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check service destination is active
-	serviceDestinationKey := "ServiceDestination" + "|" + signData.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + signData.ServiceID
 	_, serviceDestinationValue := app.state.Get([]byte(serviceDestinationKey), false)
 
 	if serviceDestinationValue == nil {
@@ -157,7 +157,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 
-	signDataKey := "SignData" + "|" + nodeID + "|" + signData.ServiceID + "|" + signData.RequestID
+	signDataKey := dataSignatureKeyPrefix + keySeparator + nodeID + keySeparator + signData.ServiceID + keySeparator + signData.RequestID
 	signDataValue := signData.Signature
 
 	// Update answered_as_id_list in request
@@ -177,7 +177,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	return app.ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
 }
 
-func (app *DIDApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -186,7 +186,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -202,7 +202,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
 	}
 
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	_, provideServiceValue := app.state.Get([]byte(provideServiceKey), false)
 	var services data.ServiceList
 	if provideServiceValue != nil {
@@ -219,7 +219,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	}
 
 	// Check approve register service destination from NDID
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + nodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + nodeID
 	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
@@ -248,7 +248,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	}
 
 	// Add ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	_, chkExists := app.state.Get([]byte(serviceDestinationKey), false)
 
 	if chkExists != nil {
@@ -298,7 +298,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -307,7 +307,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -319,7 +319,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceDestinationValue := app.state.Get([]byte(serviceDestinationKey), false)
 
 	if serviceDestinationValue == nil {
@@ -349,7 +349,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	_, provideServiceValue := app.state.Get([]byte(provideServiceKey), false)
 	var services data.ServiceList
 	if provideServiceValue != nil {
@@ -385,7 +385,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -394,7 +394,7 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -406,7 +406,7 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceDestinationValue := app.state.Get([]byte(serviceDestinationKey), false)
 
 	if serviceDestinationValue == nil {
@@ -427,7 +427,7 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	_, provideServiceValue := app.state.Get([]byte(provideServiceKey), false)
 	var services data.ServiceList
 	if provideServiceValue != nil {
@@ -456,7 +456,7 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -465,7 +465,7 @@ func (app *DIDApplication) enableServiceDestination(param string, nodeID string)
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
@@ -477,7 +477,7 @@ func (app *DIDApplication) enableServiceDestination(param string, nodeID string)
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	_, serviceDestinationValue := app.state.Get([]byte(serviceDestinationKey), false)
 
 	if serviceDestinationValue == nil {
@@ -498,7 +498,7 @@ func (app *DIDApplication) enableServiceDestination(param string, nodeID string)
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	_, provideServiceValue := app.state.Get([]byte(provideServiceKey), false)
 	var services data.ServiceList
 	if provideServiceValue != nil {

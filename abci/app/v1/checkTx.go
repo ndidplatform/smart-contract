@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"crypto"
@@ -96,9 +96,8 @@ var IsMethod = map[string]bool{
 	"RevokeAndAddAccessor":                          true,
 }
 
-func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
-	key := "MasterNDID"
-	exist := app.state.Has([]byte(key), true)
+func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
+	exist := app.state.Has(masterNDIDKeyBytes, true)
 	if exist {
 		// NDID node (first node of the network) is already existed
 		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
@@ -106,8 +105,8 @@ func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.Re
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
@@ -123,8 +122,8 @@ func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) ty
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkNDID(param string, nodeID string, committedState bool) bool {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkNDID(param string, nodeID string, committedState bool) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), committedState)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
@@ -137,8 +136,8 @@ func (app *DIDApplication) checkNDID(param string, nodeID string, committedState
 	return true
 }
 
-func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkIdP(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
@@ -151,8 +150,8 @@ func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) checkAS(param string, nodeID string) bool {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkAS(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
@@ -165,8 +164,8 @@ func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkIdPorRP(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
@@ -179,7 +178,7 @@ func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkNDID(param, nodeID, true)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
@@ -187,7 +186,7 @@ func (app *DIDApplication) checkIsNDID(param string, nodeID string) types.Respon
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkIdP(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
@@ -195,7 +194,7 @@ func (app *DIDApplication) checkIsIDP(param string, nodeID string) types.Respons
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkAS(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
@@ -203,7 +202,7 @@ func (app *DIDApplication) checkIsAS(param string, nodeID string) types.Response
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkIsRPorIdP(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsRPorIdP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.checkIdPorRP(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
@@ -211,14 +210,14 @@ func (app *DIDApplication) checkIsRPorIdP(param string, nodeID string) types.Res
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string, committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsOwnerRequest(param string, nodeID string, committedState bool) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 	// Check request is existed
-	requestKey := "Request" + "|" + funcParam.RequestID
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	_, requestValue := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
@@ -266,7 +265,7 @@ func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	}
 }
 
-func (app *DIDApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string, committedState bool) (string, uint32, string) {
+func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string, committedState bool) (string, uint32, string) {
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
@@ -296,8 +295,8 @@ func getPublicKeyInitNDID(param string) string {
 	return funcParam.PublicKey
 }
 
-func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string, committedState bool) string {
-	key := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) getMasterPublicKeyFromNodeID(nodeID string, committedState bool) string {
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return ""
@@ -310,8 +309,8 @@ func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string, committed
 	return nodeDetail.MasterPublicKey
 }
 
-func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string, committedState bool) string {
-	key := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) getPublicKeyFromNodeID(nodeID string, committedState bool) string {
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return ""
@@ -324,8 +323,8 @@ func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string, committedState 
 	return nodeDetail.PublicKey
 }
 
-func (app *DIDApplication) getRoleFromNodeID(nodeID string) string {
-	key := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) getRoleFromNodeID(nodeID string) string {
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(key), false)
 	if value == nil {
 		return ""
@@ -413,9 +412,8 @@ var IsMasterKeyMethod = map[string]bool{
 	"UpdateNode": true,
 }
 
-func (app *DIDApplication) checkCanCreateTx(committedState bool) types.ResponseCheckTx {
-	initStateKey := "InitState"
-	_, value := app.state.Get([]byte(initStateKey), committedState)
+func (app *ABCIApplication) checkCanCreateTx(committedState bool) types.ResponseCheckTx {
+	_, value := app.state.Get(initStateKeyBytes, committedState)
 	if string(value) == "" {
 		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
@@ -425,18 +423,16 @@ func (app *DIDApplication) checkCanCreateTx(committedState bool) types.ResponseC
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkCanSetInitData(committedState bool) types.ResponseCheckTx {
-	initStateKey := "InitState"
-	_, value := app.state.Get([]byte(initStateKey), committedState)
+func (app *ABCIApplication) checkCanSetInitData(committedState bool) types.ResponseCheckTx {
+	_, value := app.state.Get(initStateKeyBytes, committedState)
 	if string(value) != "true" {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *DIDApplication) checkLastBlock(committedState bool) types.ResponseCheckTx {
-	lastBlockKey := "lastBlock"
-	_, value := app.state.Get([]byte(lastBlockKey), committedState)
+func (app *ABCIApplication) checkLastBlock(committedState bool) types.ResponseCheckTx {
+	_, value := app.state.Get(lastBlockKeyBytes, committedState)
 	if string(value) == "" {
 		value = []byte("-1")
 	}
@@ -456,7 +452,7 @@ func (app *DIDApplication) checkLastBlock(committedState bool) types.ResponseChe
 // CheckTxRouter check if Tx is valid
 // TODO: add parameter "committedState" (bool) since both CheckTx and DeliverTx call this function
 // CheckTx must get committed state while DeliverTx must get uncommitted state
-func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
 
 	// ---- Check current block <= last block ----
 	if method != "SetLastBlock" {
@@ -499,7 +495,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		}
 
 		// Get node detail by NodeID
-		nodeDetailKey := "NodeID" + "|" + nodeID
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 		_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), committedState)
 		// If node not found then return code.NodeIDNotFound
 		if nodeDetailValue == nil {
@@ -515,7 +511,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 		if nodeDetail.ProxyNodeId != "" {
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
-			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), committedState)
 			if proxyNodeDetailValue == nil {
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
@@ -560,7 +556,7 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 	return result
 }
 
-func (app *DIDApplication) callCheckTx(name string, param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string) types.ResponseCheckTx {
 	switch name {
 	case "InitNDID":
 		return app.checkTxInitNDID(param, nodeID)
@@ -621,8 +617,8 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 	}
 }
 
-func (app *DIDApplication) getActiveStatusByNodeID(nodeID string, committedState bool) bool {
-	key := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) getActiveStatusByNodeID(nodeID string, committedState bool) bool {
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return false
@@ -635,8 +631,8 @@ func (app *DIDApplication) getActiveStatusByNodeID(nodeID string, committedState
 	return nodeDetail.Active
 }
 
-func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
-	nodeDetailKey := "NodeID" + "|" + nodeID
+func (app *ABCIApplication) checkIsProxyNode(nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	_, value := app.state.Get([]byte(nodeDetailKey), false)
 	if value == nil {
 		return false
@@ -652,6 +648,6 @@ func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) isDuplicateNonce(nonce []byte) bool {
+func (app *ABCIApplication) isDuplicateNonce(nonce []byte) bool {
 	return app.state.Has(nonce, false)
 }
