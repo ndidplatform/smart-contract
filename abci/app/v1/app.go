@@ -40,10 +40,6 @@ import (
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
-// func prefixNonceKey(nonceKey []byte) []byte {
-// 	return append(nonceKeyPrefix, nonceKey...)
-// }
-
 type ABCIApplication struct {
 	types.BaseApplication
 	AppProtocolVersion  uint64

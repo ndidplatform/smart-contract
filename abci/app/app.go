@@ -51,12 +51,10 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	}
 	name := "didDB"
 	db := dbm.NewDB(name, dbm.DBBackendType(dbType), dbDir)
-	// tree := iavl.NewMutableTree(db, 0)
-	// tree.Load()
 
 	return &ABCIApplicationInterface{
 		appV1: appV1.NewABCIApplication(logger, db),
-		// appV2: appV2.NewABCIApplication(logger, tree),
+		// appV2: appV2.NewABCIApplication(logger, db),
 	}
 }
 
@@ -69,6 +67,8 @@ func (app *ABCIApplicationInterface) SetOption(req types.RequestSetOption) types
 }
 
 func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
+	// IMPORTANT: Need to move app state load to this struct level if using multiple ABCI app versions
+	// otherwise app.CurrentBlockHeight will always be 0 on process start
 	switch {
 	case app.CurrentBlockHeight >= 0:
 		return app.appV1.CheckTx(req)
