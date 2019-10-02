@@ -44,8 +44,6 @@ import (
 // 	return append(nonceKeyPrefix, nonceKey...)
 // }
 
-var _ types.Application = (*ABCIApplication)(nil)
-
 type ABCIApplication struct {
 	types.BaseApplication
 	AppProtocolVersion  uint64

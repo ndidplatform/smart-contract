@@ -51,7 +51,7 @@ var (
 	allNamespaceKeyBytes = []byte("AllNamespace")
 )
 
-var (
+const (
 	keySeparator                = "|"
 	nodeIDKeyPrefix             = "NodeID"
 	behindProxyNodeKeyPrefix    = "BehindProxyNode"

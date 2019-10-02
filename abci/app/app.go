@@ -34,8 +34,6 @@ import (
 	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
-var _ types.Application = (*ABCIApplicationInterface)(nil)
-
 type ABCIApplicationInterface struct {
 	appV1 *appV1.ABCIApplication
 	// appV2        *appV2.ABCIApplication
