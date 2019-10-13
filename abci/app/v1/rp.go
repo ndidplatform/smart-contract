@@ -76,7 +76,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	for _, idp := range request.IdpIdList {
 		// Get node detail
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
-		_, nodeDetaiValue := app.state.Get([]byte(nodeDetailKey), false)
+		nodeDetaiValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 		if nodeDetaiValue == nil {
 			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 		}
@@ -95,7 +95,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 			proxyNodeID := node.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), false)
+			proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), false)
 			if proxyNodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
@@ -139,7 +139,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 			if nodeDetailMap[as] == nil {
 				// Get node detail
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
-				_, nodeDetaiValue := app.state.Get([]byte(nodeDetailKey), false)
+				nodeDetaiValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 				if nodeDetaiValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 				}
@@ -164,7 +164,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 				proxyNodeID := node.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-				_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), false)
+				proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), false)
 				if proxyNodeDetailValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 				}
@@ -216,7 +216,7 @@ func (app *ABCIApplication) closeRequest(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, value := app.state.GetVersioned([]byte(key), 0, false)
+	value, _ := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -268,7 +268,7 @@ func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, value := app.state.GetVersioned([]byte(key), 0, false)
+	value, _ := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -320,7 +320,7 @@ func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, value := app.state.GetVersioned([]byte(key), 0, false)
+	value, _ := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}

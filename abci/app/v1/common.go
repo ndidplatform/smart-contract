@@ -78,7 +78,7 @@ func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), false)
+	value, _ := app.state.Get([]byte(nodeDetailKey), false)
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
@@ -109,7 +109,7 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQ
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	var res GetNodeMasterPublicKeyResult
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
@@ -140,7 +140,7 @@ func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	var res GetNodePublicKeyResult
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
@@ -164,7 +164,7 @@ func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
 
 func (app *ABCIApplication) getNodeNameByNodeID(nodeID string) string {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	if value == nil {
 		return ""
 	}
@@ -186,7 +186,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	var returnNodes GetIdpNodesResult
 	returnNodes.Node = make([]interface{}, 0)
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
-		_, idpsValue := app.state.Get(idpListKeyBytes, true)
+		idpsValue, _ := app.state.Get(idpListKeyBytes, true)
 		var idpsList data.IdPList
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
@@ -195,7 +195,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 			for _, idp := range idpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue == nil {
 					continue
 				}
@@ -247,14 +247,14 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			refGroupCode = funcParam.ReferenceGroupCode
 		} else {
 			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-			_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), true)
+			refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), true)
 			if refGroupCodeFromDB == nil {
 				return app.ReturnQuery(nil, "not found", app.state.Height)
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
 		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-		_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+		refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 		if refGroupValue == nil {
 			return app.ReturnQuery(nil, "not found", app.state.Height)
 		}
@@ -265,7 +265,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 		}
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
-			_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+			nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 			if nodeDetailValue == nil {
 				continue
 			}
@@ -351,7 +351,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 
 	if value == nil {
 		var result GetAsNodesByServiceIdResult
@@ -365,7 +365,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 
 	// filter serive is active
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceValue := app.state.Get([]byte(serviceKey), true)
+	serviceValue, _ := app.state.Get([]byte(serviceKey), true)
 	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
@@ -407,7 +407,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 
 		// Filter approve from NDID
 		approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + storedData.Node[index].NodeId
-		_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), true)
+		approveServiceJSON, _ := app.state.Get([]byte(approveServiceKey), true)
 		if approveServiceJSON == nil {
 			continue
 		}
@@ -421,7 +421,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 		}
 
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + storedData.Node[index].NodeId
-		_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+		nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 		if nodeDetailValue == nil {
 			continue
 		}
@@ -462,7 +462,7 @@ func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), true)
+	value, _ := app.state.Get([]byte(nodeDetailKey), true)
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
@@ -497,7 +497,7 @@ func (app *ABCIApplication) getRequest(param string, height int64) types.Respons
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, value := app.state.GetVersioned([]byte(key), height, true)
+	value, _ := app.state.GetVersioned([]byte(key), height, true)
 
 	if value == nil {
 		valueJSON := []byte("{}")
@@ -531,7 +531,7 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 	}
 
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, value := app.state.GetVersioned([]byte(key), height, committedState)
+	value, _ := app.state.GetVersioned([]byte(key), height, committedState)
 	if value == nil {
 		valueJSON := []byte("{}")
 		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
@@ -632,7 +632,7 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 
 func (app *ABCIApplication) getNamespaceList(param string) types.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
-	_, value := app.state.Get(allNamespaceKeyBytes, true)
+	value, _ := app.state.Get(allNamespaceKeyBytes, true)
 	if value == nil {
 		value = []byte("[]")
 		return app.ReturnQuery(value, "not found", app.state.Height)
@@ -665,7 +665,7 @@ func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	if value == nil {
 		value = []byte("{}")
 		return app.ReturnQuery(value, "not found", app.state.Height)
@@ -690,7 +690,7 @@ func (app *ABCIApplication) updateNode(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -739,7 +739,7 @@ func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQu
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), true)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), true)
 		if refGroupCodeFromDB == nil {
 			returnValue, err := json.Marshal(result)
 			if err != nil {
@@ -750,7 +750,7 @@ func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQu
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 	if refGroupValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
@@ -785,12 +785,12 @@ func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	var result GetAccessorKeyResult
 	result.AccessorPublicKey = ""
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), true)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 	if refGroupValue == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
@@ -818,7 +818,7 @@ func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 func (app *ABCIApplication) getServiceList(param string) types.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	if value == nil {
 		result := make([]ServiceDetail, 0)
 		value, err := json.Marshal(result)
@@ -848,7 +848,7 @@ func (app *ABCIApplication) getServiceList(param string) types.ResponseQuery {
 
 func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
 	key := serviceKeyPrefix + keySeparator + serviceID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	if value == nil {
 		return ""
 	}
@@ -870,12 +870,12 @@ func (app *ABCIApplication) checkExistingAccessorID(param string) types.Response
 	var result CheckExistingResult
 	result.Exist = false
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), true)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 	if refGroupValue == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
@@ -908,7 +908,7 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 	if nodeDetailValue == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
@@ -923,7 +923,7 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 		proxyNodeID := nodeDetail.ProxyNodeId
 		// Get proxy node detail
 		proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-		_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), true)
+		proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), true)
 		if proxyNodeDetailValue == nil {
 			return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 		}
@@ -1051,7 +1051,7 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), true)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), true)
 		if refGroupCodeFromDB == nil {
 			returnValue, err := json.Marshal(result)
 			if err != nil {
@@ -1062,7 +1062,7 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 	if refGroupValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
@@ -1104,7 +1104,7 @@ func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	signDataKey := dataSignatureKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID + keySeparator + funcParam.RequestID
-	_, signDataValue := app.state.Get([]byte(signDataKey), true)
+	signDataValue, _ := app.state.Get([]byte(signDataKey), true)
 	if signDataValue == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
@@ -1124,7 +1124,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 	var result GetServicesByAsIDResult
 	result.Services = make([]Service, 0)
 	provideServiceKey := providedServicesKeyPrefix + keySeparator + funcParam.AsID
-	_, provideServiceValue := app.state.Get([]byte(provideServiceKey), true)
+	provideServiceValue, _ := app.state.Get([]byte(provideServiceKey), true)
 	if provideServiceValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
@@ -1138,7 +1138,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.AsID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 	if nodeDetailValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
@@ -1153,7 +1153,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 	}
 	for index, provideService := range services.Services {
 		serviceKey := serviceKeyPrefix + keySeparator + provideService.ServiceId
-		_, serviceValue := app.state.Get([]byte(serviceKey), true)
+		serviceValue, _ := app.state.Get([]byte(serviceKey), true)
 		if serviceValue == nil {
 			continue
 		}
@@ -1165,7 +1165,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
 			approveServiceKey := approvedServiceKeyPrefix + keySeparator + provideService.ServiceId + keySeparator + funcParam.AsID
-			_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), true)
+			approveServiceJSON, _ := app.state.Get([]byte(approveServiceKey), true)
 			if approveServiceJSON == nil {
 				continue
 			}
@@ -1204,7 +1204,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	var returnNodes GetIdpNodesInfoResult
 	returnNodes.Node = make([]interface{}, 0)
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
-		_, idpsValue := app.state.Get(idpListKeyBytes, true)
+		idpsValue, _ := app.state.Get(idpListKeyBytes, true)
 		var idpsList data.IdPList
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
@@ -1213,7 +1213,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 			for _, idp := range idpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue == nil {
 					continue
 				}
@@ -1255,7 +1255,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					proxyNodeID := nodeDetail.ProxyNodeId
 					// Get proxy node detail
 					proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-					_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), true)
+					proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), true)
 					if proxyNodeDetailValue == nil {
 						return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 					}
@@ -1313,14 +1313,14 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			refGroupCode = funcParam.ReferenceGroupCode
 		} else {
 			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-			_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), true)
+			refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), true)
 			if refGroupCodeFromDB == nil {
 				return app.ReturnQuery(nil, "not found", app.state.Height)
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
 		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-		_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+		refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 		if refGroupValue == nil {
 			return app.ReturnQuery(nil, "not found", app.state.Height)
 		}
@@ -1331,7 +1331,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		}
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
-			_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+			nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 			if nodeDetailValue == nil {
 				continue
 			}
@@ -1393,7 +1393,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 				proxyNodeID := nodeDetail.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-				_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), true)
+				proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), true)
 				if proxyNodeDetailValue == nil {
 					return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 				}
@@ -1466,7 +1466,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
-	_, value := app.state.Get([]byte(key), true)
+	value, _ := app.state.Get([]byte(key), true)
 	if value == nil {
 		var result GetAsNodesInfoByServiceIdResult
 		result.Node = make([]interface{}, 0)
@@ -1478,7 +1478,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 	}
 	// filter serive is active
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceValue := app.state.Get([]byte(serviceKey), true)
+	serviceValue, _ := app.state.Get([]byte(serviceKey), true)
 	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
@@ -1527,7 +1527,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 		}
 		// Filter approve from NDID
 		approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + storedData.Node[index].NodeId
-		_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), true)
+		approveServiceJSON, _ := app.state.Get([]byte(approveServiceKey), true)
 		if approveServiceJSON == nil {
 			continue
 		}
@@ -1540,7 +1540,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 			continue
 		}
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + storedData.Node[index].NodeId
-		_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+		nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 		if nodeDetailValue == nil {
 			continue
 		}
@@ -1558,7 +1558,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), true)
+			proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), true)
 			if proxyNodeDetailValue == nil {
 				return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 			}
@@ -1627,7 +1627,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 	var result GetNodesBehindProxyNodeResult
 	result.Nodes = make([]interface{}, 0)
 	behindProxyNodeKey := "BehindProxyNode" + keySeparator + funcParam.ProxyNodeID
-	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), true)
+	behindProxyNodeValue, _ := app.state.Get([]byte(behindProxyNodeKey), true)
 	if behindProxyNodeValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
@@ -1643,7 +1643,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 	}
 	for _, node := range nodes.Nodes {
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + node
-		_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+		nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 		if nodeDetailValue == nil {
 			continue
 		}
@@ -1704,7 +1704,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 	if strings.ToLower(funcParam.Role) == "rp" {
 		var rpsList data.RPList
 		rpsKey := "rpList"
-		_, rpsValue := app.state.Get([]byte(rpsKey), true)
+		rpsValue, _ := app.state.Get([]byte(rpsKey), true)
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
@@ -1712,7 +1712,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 			}
 			for _, nodeID := range rpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
 					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -1727,7 +1727,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 		}
 	} else if strings.ToLower(funcParam.Role) == "idp" {
 		var idpsList data.IdPList
-		_, idpsValue := app.state.Get(idpListKeyBytes, true)
+		idpsValue, _ := app.state.Get(idpListKeyBytes, true)
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
@@ -1735,7 +1735,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 			}
 			for _, nodeID := range idpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
 					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -1751,7 +1751,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 	} else if strings.ToLower(funcParam.Role) == "as" {
 		var asList data.ASList
 		asKey := "asList"
-		_, asValue := app.state.Get([]byte(asKey), true)
+		asValue, _ := app.state.Get([]byte(asKey), true)
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
@@ -1759,7 +1759,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 			}
 			for _, nodeID := range asList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
 					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -1775,7 +1775,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 	} else {
 		var allList data.AllList
 		allKey := "allList"
-		_, allValue := app.state.Get([]byte(allKey), true)
+		allValue, _ := app.state.Get([]byte(allKey), true)
 		if allValue != nil {
 			err := proto.Unmarshal(allValue, &allList)
 			if err != nil {
@@ -1783,7 +1783,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 			}
 			for _, nodeID := range allList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-				_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), true)
+				nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), true)
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
 					err := proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
@@ -1817,12 +1817,12 @@ func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	var result GetAccessorOwnerResult
 	result.NodeID = ""
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), true)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), true)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), true)
 	if refGroupValue == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
@@ -1850,7 +1850,7 @@ func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult
 	result.InitEnded = false
-	_, value := app.state.Get(initStateKeyBytes, true)
+	value, _ := app.state.Get(initStateKeyBytes, true)
 	if string(value) == "false" {
 		result.InitEnded = true
 	}
@@ -1864,7 +1864,7 @@ func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 func (app *ABCIApplication) getChainHistory(param string) types.ResponseQuery {
 	app.logger.Infof("GetChainHistory, Parameter: %s", param)
 	chainHistoryInfoKey := "ChainHistoryInfo"
-	_, value := app.state.Get([]byte(chainHistoryInfoKey), true)
+	value, _ := app.state.Get([]byte(chainHistoryInfoKey), true)
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
@@ -1894,7 +1894,7 @@ func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQu
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-	_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), true)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), true)
 	if refGroupCodeFromDB == nil {
 		refGroupCodeFromDB = []byte("")
 	}
@@ -1918,7 +1918,7 @@ func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) type
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), true)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if refGroupCodeFromDB == nil {
 		refGroupCodeFromDB = []byte("")
 	}
@@ -1950,7 +1950,7 @@ func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery
 func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, committedState bool) (result []int32) {
 	allowedModeKey := "AllowedModeList" + keySeparator + purpose
 	var allowedModeList data.AllowedModeList
-	_, allowedModeValue := app.state.Get([]byte(allowedModeKey), committedState)
+	allowedModeValue, _ := app.state.Get([]byte(allowedModeKey), committedState)
 	if allowedModeValue == nil {
 		// return default value
 		if !modeFunctionMap[purpose] {
@@ -1970,7 +1970,7 @@ func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, committedS
 
 func (app *ABCIApplication) GetNamespaceMap(committedState bool) (result map[string]bool) {
 	result = make(map[string]bool, 0)
-	_, allNamespaceValue := app.state.Get(allNamespaceKeyBytes, committedState)
+	allNamespaceValue, _ := app.state.Get(allNamespaceKeyBytes, committedState)
 	if allNamespaceValue == nil {
 		return result
 	}
@@ -1989,7 +1989,7 @@ func (app *ABCIApplication) GetNamespaceMap(committedState bool) (result map[str
 
 func (app *ABCIApplication) GetNamespaceAllowedIdentifierCountMap(committedState bool) (result map[string]int) {
 	result = make(map[string]int, 0)
-	_, allNamespaceValue := app.state.Get(allNamespaceKeyBytes, committedState)
+	allNamespaceValue, _ := app.state.Get(allNamespaceKeyBytes, committedState)
 	if allNamespaceValue == nil {
 		return result
 	}
@@ -2024,7 +2024,7 @@ func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param 
 func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(committedState bool) float64 {
 	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
 	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
-	_, allowedMinIalValue := app.state.Get([]byte(allowedMinIalKey), committedState)
+	allowedMinIalValue, _ := app.state.Get([]byte(allowedMinIalKey), committedState)
 	if allowedMinIalValue == nil {
 		return 0
 	}

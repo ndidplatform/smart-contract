@@ -104,8 +104,7 @@ func (appState *AppState) SetVersioned(key, value []byte) {
 		keyVersionsProtobuf := appState.db.Get(versionsKey)
 		if keyVersionsProtobuf != nil {
 			var keyVersions data.KeyVersions
-			err := proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
-			if err != nil {
+			if err := proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions); err != nil {
 				panic(err) // Should panic or return err?
 			}
 			versions = keyVersions.Versions
@@ -131,7 +130,7 @@ func (appState *AppState) SetVersioned(key, value []byte) {
 	appState.uncommittedState[keyWithVersionStr] = value
 }
 
-func (appState *AppState) Get(key []byte, committed bool) (err error, value []byte) {
+func (appState *AppState) Get(key []byte, committed bool) (value []byte, err error) {
 	if committed {
 		return appState.getCommitted(key)
 	} else {
@@ -139,22 +138,22 @@ func (appState *AppState) Get(key []byte, committed bool) (err error, value []by
 	}
 }
 
-func (appState *AppState) get(key []byte) (err error, value []byte) {
+func (appState *AppState) get(key []byte) (value []byte, err error) {
 	var existInUncommittedState bool
 	value, existInUncommittedState = appState.uncommittedState[string(key)]
 	if !existInUncommittedState {
 		value = appState.db.Get(key)
 	}
 
-	return nil, value
+	return value, nil
 }
 
-func (appState *AppState) getCommitted(key []byte) (err error, value []byte) {
+func (appState *AppState) getCommitted(key []byte) (value []byte, err error) {
 	value = appState.db.Get(key)
-	return nil, value
+	return value, nil
 }
 
-func (appState *AppState) GetVersioned(key []byte, height int64, committed bool) (err error, value []byte) {
+func (appState *AppState) GetVersioned(key []byte, height int64, committed bool) (value []byte, err error) {
 	if committed {
 		return appState.getCommittedVersioned(key, height)
 	} else {
@@ -162,7 +161,7 @@ func (appState *AppState) GetVersioned(key []byte, height int64, committed bool)
 	}
 }
 
-func (appState *AppState) getVersioned(key []byte, height int64) (err error, value []byte) {
+func (appState *AppState) getVersioned(key []byte, height int64) (value []byte, err error) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
@@ -175,7 +174,7 @@ func (appState *AppState) getVersioned(key []byte, height int64) (err error, val
 			var keyVersions data.KeyVersions
 			err = proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
 			if err != nil {
-				return err, nil
+				return nil, err
 			}
 			versions = keyVersions.Versions
 		}
@@ -206,10 +205,10 @@ func (appState *AppState) getVersioned(key []byte, height int64) (err error, val
 		value = appState.db.Get(keyWithVersion)
 	}
 
-	return nil, value
+	return value, nil
 }
 
-func (appState *AppState) getCommittedVersioned(key []byte, height int64) (err error, value []byte) {
+func (appState *AppState) getCommittedVersioned(key []byte, height int64) (value []byte, err error) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
@@ -218,7 +217,7 @@ func (appState *AppState) getCommittedVersioned(key []byte, height int64) (err e
 	var keyVersions data.KeyVersions
 	err = proto.Unmarshal([]byte(keyVersionsProtobuf), &keyVersions)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	versions = keyVersions.Versions
 
@@ -242,7 +241,7 @@ func (appState *AppState) getCommittedVersioned(key []byte, height int64) (err e
 	keyWithVersion := []byte(keyWithVersionStr)
 
 	value = appState.db.Get(keyWithVersion)
-	return nil, value
+	return value, nil
 }
 
 func (appState *AppState) Has(key []byte, committed bool) bool {
