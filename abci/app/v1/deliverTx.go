@@ -25,9 +25,10 @@ package app
 import (
 	"fmt"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx

@@ -23,8 +23,9 @@
 package app
 
 import (
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
 )
 
 // ReturnQuery return types.ResponseQuery

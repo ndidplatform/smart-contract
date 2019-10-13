@@ -26,12 +26,13 @@ import (
 	"fmt"
 	"os"
 
-	appV1 "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
-	// appV2 "github.com/ndidplatform/smart-contract/v4/abci/app2/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tendermint/libs/db"
+
+	appV1 "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
+	// appV2 "github.com/ndidplatform/smart-contract/v4/abci/app2/v2"
 )
 
 type ABCIApplicationInterface struct {

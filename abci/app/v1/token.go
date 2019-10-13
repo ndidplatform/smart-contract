@@ -27,10 +27,10 @@ import (
 	"errors"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/tendermint/tendermint/abci/types"
 
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 

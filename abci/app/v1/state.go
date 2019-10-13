@@ -28,9 +28,10 @@ import (
 	"strconv"
 
 	"github.com/golang/protobuf/proto"
+	dbm "github.com/tendermint/tendermint/libs/db"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	dbm "github.com/tendermint/tendermint/libs/db"
 )
 
 var (
