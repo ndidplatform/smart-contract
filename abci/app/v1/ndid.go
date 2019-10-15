@@ -103,7 +103,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	// check Duplicate Node ID
-	_, chkExists := app.state.Get([]byte(key), false)
+	chkExists, _ := app.state.Get([]byte(key), false)
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
@@ -288,7 +288,7 @@ func (app *ABCIApplication) addService(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, chkExists := app.state.Get([]byte(serviceKey), false)
+	chkExists, _ := app.state.Get([]byte(serviceKey), false)
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
 	}

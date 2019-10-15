@@ -47,7 +47,7 @@ func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.Respo
 	}
 	// Check duplicate accessor ID
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
 	}
@@ -251,7 +251,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.state.Get([]byte(identityToRefCodeKey), false)
+		identityToRefCodeValue, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -948,7 +948,7 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.state.Get([]byte(identityToRefCodeKey), false)
+		identityToRefCodeValue, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -1110,7 +1110,7 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	}
 	// Check duplicate accessor ID
 	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
 	}
