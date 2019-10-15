@@ -27,11 +27,12 @@ import (
 	"sort"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 )
 
 func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -46,7 +47,7 @@ func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.Respo
 	}
 	// Check duplicate accessor ID
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
 	}
@@ -55,14 +56,14 @@ func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.Respo
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -141,7 +142,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -194,7 +195,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	}
 	sort.Slice(user.ModeList, func(i, j int) bool { return user.ModeList[i] < user.ModeList[j] })
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
 
@@ -214,7 +215,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 		// If have at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
-			_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+			nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 			if nodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
@@ -250,7 +251,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.state.Get([]byte(identityToRefCodeKey), false)
+		identityToRefCodeValue, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -349,7 +350,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 
 func (app *ABCIApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
 	requestKey := requestKeyPrefix + keySeparator + requestID
-	_, requestValue := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
+	requestValue, _ := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if requestValue == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -388,7 +389,7 @@ func (app *ABCIApplication) checkRequest(requestID string, purpose string, minId
 
 func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {
 	requestKey := requestKeyPrefix + keySeparator + requestID
-	_, requestValue := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
+	requestValue, _ := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if requestValue == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -420,7 +421,7 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 	response.Status = funcParam.Status
 	response.Signature = funcParam.Signature
 	response.IdpId = nodeID
-	_, value := app.state.GetVersioned([]byte(key), 0, false)
+	value, _ := app.state.GetVersioned([]byte(key), 0, false)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -447,7 +448,7 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 	}
 	// Check AAL, IAL with MaxIalAal
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -506,7 +507,7 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	}
 	// Check IAL must less than Max IAL
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -526,14 +527,14 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -579,7 +580,7 @@ func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID strin
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -599,14 +600,14 @@ func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID strin
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -676,7 +677,7 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	}
 	// check node is active
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -692,7 +693,7 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	firstRefGroup := ""
 	for index, accsesorID := range funcParam.AccessorIDList {
 		accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + accsesorID
-		_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), false)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
@@ -706,7 +707,7 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	}
 	refGroupCode := firstRefGroup
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -796,7 +797,7 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 	}
 	// Check IAL must less than Max IAL
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -813,7 +814,7 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		_, refGroupCodeFromDB := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeFromDB, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if refGroupCodeFromDB == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
@@ -844,7 +845,7 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 	}
 	sort.Slice(funcParam.ModeList, func(i, j int) bool { return funcParam.ModeList[i] < funcParam.ModeList[j] })
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -896,7 +897,7 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -911,7 +912,7 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	var refGroup data.ReferenceGroup
 	// If referenceGroupCode already existed, add new identity to group
 	minIdp := 0
@@ -923,7 +924,7 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 		// If have at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
-			_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+			nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 			if nodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
@@ -947,7 +948,7 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
 		}
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		_, identityToRefCodeValue := app.state.Get([]byte(identityToRefCodeKey), false)
+		identityToRefCodeValue, _ := app.state.Get([]byte(identityToRefCodeKey), false)
 		if identityToRefCodeValue != nil {
 			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
 		}
@@ -1035,7 +1036,7 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	}
 	// check node is active
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -1049,12 +1050,12 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	}
 	// Get ref group code from revoking accessor ID
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.RevokingAccessorID
-	_, refGroupCode := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCode, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if refGroupCode == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	_, refGroupValue := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, _ := app.state.Get([]byte(refGroupKey), false)
 	if refGroupValue == nil {
 		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
@@ -1109,7 +1110,7 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	}
 	// Check duplicate accessor ID
 	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	_, refGroupCodeFromDB := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCodeFromDB, _ := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if refGroupCodeFromDB != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
 	}

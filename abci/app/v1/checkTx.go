@@ -36,9 +36,10 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 var IsMethod = map[string]bool{
@@ -107,7 +108,7 @@ func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.R
 
 func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), true)
+	value, _ := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -124,7 +125,7 @@ func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) t
 
 func (app *ABCIApplication) checkNDID(param string, nodeID string, committedState bool) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), committedState)
+	value, _ := app.state.Get([]byte(nodeDetailKey), committedState)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -138,7 +139,7 @@ func (app *ABCIApplication) checkNDID(param string, nodeID string, committedStat
 
 func (app *ABCIApplication) checkIdP(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), true)
+	value, _ := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -152,7 +153,7 @@ func (app *ABCIApplication) checkIdP(param string, nodeID string) bool {
 
 func (app *ABCIApplication) checkAS(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), true)
+	value, _ := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -166,7 +167,7 @@ func (app *ABCIApplication) checkAS(param string, nodeID string) bool {
 
 func (app *ABCIApplication) checkIdPorRP(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), true)
+	value, _ := app.state.Get([]byte(nodeDetailKey), true)
 	var node data.NodeDetail
 	err := proto.Unmarshal(value, &node)
 	if err != nil {
@@ -218,7 +219,7 @@ func (app *ABCIApplication) checkIsOwnerRequest(param string, nodeID string, com
 	}
 	// Check request is existed
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
-	_, requestValue := app.state.GetVersioned([]byte(requestKey), 0, committedState)
+	requestValue, _ := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
@@ -297,7 +298,7 @@ func getPublicKeyInitNDID(param string) string {
 
 func (app *ABCIApplication) getMasterPublicKeyFromNodeID(nodeID string, committedState bool) string {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), committedState)
+	value, _ := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return ""
 	}
@@ -311,7 +312,7 @@ func (app *ABCIApplication) getMasterPublicKeyFromNodeID(nodeID string, committe
 
 func (app *ABCIApplication) getPublicKeyFromNodeID(nodeID string, committedState bool) string {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), committedState)
+	value, _ := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return ""
 	}
@@ -325,7 +326,7 @@ func (app *ABCIApplication) getPublicKeyFromNodeID(nodeID string, committedState
 
 func (app *ABCIApplication) getRoleFromNodeID(nodeID string) string {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return ""
 	}
@@ -413,7 +414,7 @@ var IsMasterKeyMethod = map[string]bool{
 }
 
 func (app *ABCIApplication) checkCanCreateTx(committedState bool) types.ResponseCheckTx {
-	_, value := app.state.Get(initStateKeyBytes, committedState)
+	value, _ := app.state.Get(initStateKeyBytes, committedState)
 	if string(value) == "" {
 		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
@@ -424,7 +425,7 @@ func (app *ABCIApplication) checkCanCreateTx(committedState bool) types.Response
 }
 
 func (app *ABCIApplication) checkCanSetInitData(committedState bool) types.ResponseCheckTx {
-	_, value := app.state.Get(initStateKeyBytes, committedState)
+	value, _ := app.state.Get(initStateKeyBytes, committedState)
 	if string(value) != "true" {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
@@ -432,7 +433,7 @@ func (app *ABCIApplication) checkCanSetInitData(committedState bool) types.Respo
 }
 
 func (app *ABCIApplication) checkLastBlock(committedState bool) types.ResponseCheckTx {
-	_, value := app.state.Get(lastBlockKeyBytes, committedState)
+	value, _ := app.state.Get(lastBlockKeyBytes, committedState)
 	if string(value) == "" {
 		value = []byte("-1")
 	}
@@ -496,7 +497,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []b
 
 		// Get node detail by NodeID
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-		_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), committedState)
+		nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), committedState)
 		// If node not found then return code.NodeIDNotFound
 		if nodeDetailValue == nil {
 			return ReturnCheckTx(code.NodeIDNotFound, "Node ID not found")
@@ -512,7 +513,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []b
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.state.Get([]byte(proxyNodeDetailKey), committedState)
+			proxyNodeDetailValue, _ := app.state.Get([]byte(proxyNodeDetailKey), committedState)
 			if proxyNodeDetailValue == nil {
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
 			}
@@ -619,7 +620,7 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 
 func (app *ABCIApplication) getActiveStatusByNodeID(nodeID string, committedState bool) bool {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), committedState)
+	value, _ := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return false
 	}
@@ -633,7 +634,7 @@ func (app *ABCIApplication) getActiveStatusByNodeID(nodeID string, committedStat
 
 func (app *ABCIApplication) checkIsProxyNode(nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(nodeDetailKey), false)
+	value, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if value == nil {
 		return false
 	}
