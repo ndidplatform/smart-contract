@@ -76,7 +76,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	for _, idp := range request.IdpIdList {
 		// Get node detail
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
-		nodeDetaiValue, _ := app.state.Get([]byte(nodeDetailKey), false)
+		nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 		if nodeDetaiValue == nil {
 			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 		}
