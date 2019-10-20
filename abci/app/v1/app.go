@@ -279,12 +279,12 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		return ReturnCheckTx(retCode, retLog)
 	}
 
-	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+	isVerified, err := verifySignature(param, nonce, signature, publicKey, method)
 	if err != nil {
 		go recordCheckTxFailMetrics(method)
 		return ReturnCheckTx(code.VerifySignatureError, err.Error())
 	}
-	if verifyResult == false {
+	if !isVerified {
 		go recordCheckTxFailMetrics(method)
 		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 	}
