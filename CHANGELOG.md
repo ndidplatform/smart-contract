@@ -8,10 +8,6 @@ IMPROVEMENTS:
 - Refactor app state, key name and prefixes.
 - Change internal package name.
 
-BUG FIXES:
-
-- Use mutex lock for maps used in CheckTx and both CheckTx and DeliverTx to prevent concurrent read/write since CheckTx runs concurrently with other CheckTx and block processing (BeginBlock, DeliverTx, and EndBlock).
-
 ## 4.0.0 (August 1, 2019)
 
 BREAKING CHANGES:
