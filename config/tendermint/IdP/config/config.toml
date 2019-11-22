@@ -1,6 +1,11 @@
 # This is a TOML config file.
 # For more information, see https://github.com/toml-lang/toml
 
+# NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
+# relative to the home directory (e.g. "data"). The home directory is
+# "$HOME/.tendermint" by default, but could be changed via $TMHOME env variable
+# or --home cmd flag.
+
 ##### main base config options #####
 
 # TCP or UNIX socket address of the ABCI application,
@@ -15,7 +20,18 @@ moniker = "IdP"
 # and verifying their commits
 fast_sync = true
 
-# Database backend: leveldb | memdb | cleveldb
+# Database backend: goleveldb | cleveldb | boltdb
+# * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
+#   - pure go
+#   - stable
+# * cleveldb (uses levigo wrapper)
+#   - fast
+#   - requires gcc
+#   - use cleveldb build tag (go build -tags cleveldb)
+# * boltdb (uses etcd's fork of bolt - github.com/etcd-io/bbolt)
+#   - EXPERIMENTAL
+#   - may be faster is some use-cases (random reads - indexer)
+#   - use boltdb build tag (go build -tags boltdb)
 db_backend = "goleveldb"
 
 # Database directory
@@ -121,15 +137,19 @@ max_body_bytes = 1000000
 # Maximum size of request header, in bytes
 max_header_bytes = 1048576
 
-# The name of a file containing certificate that is used to create the HTTPS server.
+# The path to a file containing certificate that is used to create the HTTPS server.
+# Migth be either absolute path or path related to tendermint's config directory.
 # If the certificate is signed by a certificate authority,
 # the certFile should be the concatenation of the server's certificate, any intermediates,
 # and the CA's certificate.
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server. Otherwise, HTTP server is run.
+# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# Otherwise, HTTP server is run.
 tls_cert_file = ""
 
-# The name of a file containing matching private key that is used to create the HTTPS server.
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server. Otherwise, HTTP server is run.
+# The path to a file containing matching private key that is used to create the HTTPS server.
+# Migth be either absolute path or path related to tendermint's config directory.
+# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# Otherwise, HTTP server is run.
 tls_key_file = ""
 
 ##### peer to peer configuration options #####
@@ -241,7 +261,7 @@ timeout_precommit_delta = "500ms"
 timeout_commit = "1s"
 
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
-skip_timeout_commit = false
+skip_timeout_commit = true
 
 # EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = false
