@@ -27,16 +27,16 @@ import (
 	"errors"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/tendermint/tendermint/abci/types"
 
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 
 func (app *ABCIApplication) getTokenPriceByFunc(fnName string, committedState bool) float64 {
 	key := tokenPriceFuncKeyPrefix + keySeparator + fnName
-	_, value := app.state.Get([]byte(key), committedState)
+	value, _ := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
@@ -71,7 +71,7 @@ func (app *ABCIApplication) createTokenAccount(nodeID string) {
 
 func (app *ABCIApplication) setToken(nodeID string, amount float64) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -123,7 +123,7 @@ func (app *ABCIApplication) getPriceFunc(param string, committedState bool) type
 
 func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return errors.New("token account not found")
 	}
@@ -143,7 +143,7 @@ func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
 
 func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return false
 	}
@@ -157,7 +157,7 @@ func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
 
 func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), false)
+	value, _ := app.state.Get([]byte(key), false)
 	if value == nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
@@ -180,7 +180,7 @@ func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCod
 
 func (app *ABCIApplication) getToken(nodeID string, committedState bool) (float64, error) {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	_, value := app.state.Get([]byte(key), committedState)
+	value, _ := app.state.Get([]byte(key), committedState)
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}

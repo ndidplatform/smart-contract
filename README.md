@@ -151,24 +151,15 @@ docker-compose -f docker/docker-compose.yml up
 
 ### Note about docker
 
-- To run docker container without building image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/).
+- To run docker container without building an image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/).
 - To pull latest image from Dockerhub, run `docker pull ndidplatform/abci` and `docker pull ndidplatform/tendermint`
 - Docker container can be run with `-u` or `--user` flag (e.g. `-u 65534:65534`). In case you are using docker-compose, `user` can be specified in docker-compose file (e.g. `user: 65534:65534`) (see [Compose file reference](https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir) for more detail).
 - When running docker container with non-root user, source directories that will be mounted into the container as `ABCI_DB_DIR_PATH` and `TMHOME` must be created beforehand with the non-root user as owner.
 
 ## IMPORTANT NOTE
 
-1.  You must start IDP, RP and AS nodes in order to run the platform.
-2.  After starting BOTH nodes, please wait for
-
-    ```
-    Commit
-    Commit
-    ```
-
-    to show in the first terminal (`go run abci ...`) of both processes before starting `api` processes.
-
-3.  When running IDP node and RP node on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP}/config/config.toml` to match address of another machines.
+1. You must start IdP, RP and AS nodes in order to run the platform.
+2. When running nodes on separate machines, please edit `seeds` in `config/tendermint/{RP or IdP or AS}/config/config.toml` to match address of other machines.
 
 ## Tests
 

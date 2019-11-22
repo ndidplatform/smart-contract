@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 4.1.0 (November 21, 2019)
 
 IMPROVEMENTS:
 

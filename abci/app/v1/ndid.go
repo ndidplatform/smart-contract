@@ -28,10 +28,11 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 var isNDIDMethod = map[string]bool{
@@ -102,7 +103,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	// check Duplicate Node ID
-	_, chkExists := app.state.Get([]byte(key), false)
+	chkExists, _ := app.state.Get([]byte(key), false)
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate Node ID", "")
 	}
@@ -132,7 +133,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	// if node is IdP, add node id to IdPList
 	var idpsList data.IdPList
 	if funcParam.Role == "IdP" {
-		_, idpsValue := app.state.Get(idpListKeyBytes, false)
+		idpsValue, _ := app.state.Get(idpListKeyBytes, false)
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
@@ -150,7 +151,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	var rpsList data.RPList
 	rpsKey := "rpList"
 	if funcParam.Role == "RP" {
-		_, rpsValue := app.state.Get([]byte(rpsKey), false)
+		rpsValue, _ := app.state.Get([]byte(rpsKey), false)
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
@@ -168,7 +169,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	var asList data.ASList
 	asKey := "asList"
 	if funcParam.Role == "AS" {
-		_, asValue := app.state.Get([]byte(asKey), false)
+		asValue, _ := app.state.Get([]byte(asKey), false)
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
@@ -184,7 +185,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	}
 	var allList data.AllList
 	allKey := "allList"
-	_, allValue := app.state.Get([]byte(allKey), false)
+	allValue, _ := app.state.Get([]byte(allKey), false)
 	if allValue != nil {
 		err := proto.Unmarshal(allValue, &allList)
 		if err != nil {
@@ -214,7 +215,7 @@ func (app *ABCIApplication) addNamespace(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
+	chkExists, _ := app.state.Get(allNamespaceKeyBytes, false)
 	var namespaces data.NamespaceList
 	if chkExists != nil {
 		err = proto.Unmarshal([]byte(chkExists), &namespaces)
@@ -256,7 +257,7 @@ func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
+	chkExists, _ := app.state.Get(allNamespaceKeyBytes, false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "List of namespace not found", "")
 	}
@@ -287,7 +288,7 @@ func (app *ABCIApplication) addService(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, chkExists := app.state.Get([]byte(serviceKey), false)
+	chkExists, _ := app.state.Get([]byte(serviceKey), false)
 	if chkExists != nil {
 		return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
 	}
@@ -304,7 +305,7 @@ func (app *ABCIApplication) addService(param string, nodeID string) types.Respon
 	}
 	// Add detail to service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.state.Get([]byte(allServiceKey), false)
+	allServiceValue, _ := app.state.Get([]byte(allServiceKey), false)
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
@@ -340,13 +341,13 @@ func (app *ABCIApplication) disableService(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, chkExists := app.state.Get([]byte(serviceKey), false)
+	chkExists, _ := app.state.Get([]byte(serviceKey), false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.state.Get([]byte(allServiceKey), false)
+	allServiceValue, _ := app.state.Get([]byte(allServiceKey), false)
 	var services data.ServiceDetailList
 	if allServiceValue == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "List of Service not found", "")
@@ -389,7 +390,7 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 	}
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -428,7 +429,7 @@ func (app *ABCIApplication) updateService(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceValue := app.state.Get([]byte(serviceKey), false)
+	serviceValue, _ := app.state.Get([]byte(serviceKey), false)
 	if serviceValue == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -449,7 +450,7 @@ func (app *ABCIApplication) updateService(param string, nodeID string) types.Res
 	}
 	// Update detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.state.Get([]byte(allServiceKey), false)
+	allServiceValue, _ := app.state.Get([]byte(allServiceKey), false)
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
@@ -488,7 +489,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 	}
 	// Check node ID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -503,7 +504,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 	}
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
+	serviceJSON, _ := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -531,7 +532,7 @@ func (app *ABCIApplication) disableNode(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -558,13 +559,13 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 	}
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
+	serviceJSON, _ := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -583,7 +584,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
-	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
+	approveServiceJSON, _ := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -609,7 +610,7 @@ func (app *ABCIApplication) enableNode(param string, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -636,13 +637,13 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID 
 	}
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, serviceJSON := app.state.Get([]byte(serviceKey), false)
+	serviceJSON, _ := app.state.Get([]byte(serviceKey), false)
 	if serviceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -661,7 +662,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
-	_, approveServiceJSON := app.state.Get([]byte(approveServiceKey), false)
+	approveServiceJSON, _ := app.state.Get([]byte(approveServiceKey), false)
 	if approveServiceJSON == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
@@ -686,7 +687,7 @@ func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	_, chkExists := app.state.Get(allNamespaceKeyBytes, false)
+	chkExists, _ := app.state.Get(allNamespaceKeyBytes, false)
 	var namespaces data.NamespaceList
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
@@ -717,13 +718,13 @@ func (app *ABCIApplication) enableService(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	_, chkExists := app.state.Get([]byte(serviceKey), false)
+	chkExists, _ := app.state.Get([]byte(serviceKey), false)
 	if chkExists == nil {
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
-	_, allServiceValue := app.state.Get([]byte(allServiceKey), false)
+	allServiceValue, _ := app.state.Get([]byte(allServiceKey), false)
 	var services data.ServiceDetailList
 	err = proto.Unmarshal([]byte(allServiceValue), &services)
 	if err != nil {
@@ -788,7 +789,7 @@ func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) type
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -811,7 +812,7 @@ func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) type
 	if !app.checkIsProxyNode(funcParam.ProxyNodeID) {
 		return app.ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
 	}
-	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), false)
+	behindProxyNodeValue, _ := app.state.Get([]byte(behindProxyNodeKey), false)
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -853,7 +854,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 	newProxyNodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -875,7 +876,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 		}
 	}
 	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
-	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), false)
+	behindProxyNodeValue, _ := app.state.Get([]byte(behindProxyNodeKey), false)
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -883,7 +884,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 		}
 	}
 	newBehindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
-	_, newBehindProxyNodeValue := app.state.Get([]byte(newBehindProxyNodeKey), false)
+	newBehindProxyNodeValue, _ := app.state.Get([]byte(newBehindProxyNodeKey), false)
 	if newBehindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
 		if err != nil {
@@ -937,7 +938,7 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string)
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	_, nodeDetailValue := app.state.Get([]byte(nodeDetailKey), false)
+	nodeDetailValue, _ := app.state.Get([]byte(nodeDetailKey), false)
 	// If node not found then return code.NodeIDNotFound
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
@@ -957,7 +958,7 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string)
 		return app.ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
 	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
-	_, behindProxyNodeValue := app.state.Get([]byte(behindProxyNodeKey), false)
+	behindProxyNodeValue, _ := app.state.Get([]byte(behindProxyNodeKey), false)
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
@@ -1076,7 +1077,7 @@ func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	_, allNamespaceValue := app.state.Get(allNamespaceKeyBytes, false)
+	allNamespaceValue, _ := app.state.Get(allNamespaceKeyBytes, false)
 	if allNamespaceValue == nil {
 		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 	}

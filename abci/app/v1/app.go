@@ -31,32 +31,27 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
-
-	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/utils"
+	"github.com/ndidplatform/smart-contract/v4/abci/version"
+	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 )
-
-// func prefixNonceKey(nonceKey []byte) []byte {
-// 	return append(nonceKeyPrefix, nonceKey...)
-// }
-
-var _ types.Application = (*ABCIApplication)(nil)
 
 type ABCIApplication struct {
 	types.BaseApplication
 	AppProtocolVersion  uint64
 	CurrentChain        string
 	Version             string
-	checkTxNonceState   map[string][]byte
+	checkTxNonceState   *utils.StringByteArrayMap
 	deliverTxNonceState map[string][]byte
 	logger              *logrus.Entry
 	state               AppState
 	valUpdates          map[string]types.ValidatorUpdate
-	verifiedSignatures  map[string]string
+	verifiedSignatures  *utils.StringMap
 }
 
 func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
@@ -75,12 +70,12 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
 	return &ABCIApplication{
 		AppProtocolVersion:  ABCIProtocolVersion,
 		Version:             ABCIVersion,
-		checkTxNonceState:   make(map[string][]byte),
+		checkTxNonceState:   utils.NewStringByteArrayMap(),
 		deliverTxNonceState: make(map[string][]byte),
 		logger:              logger,
 		state:               appState,
 		valUpdates:          make(map[string]types.ValidatorUpdate),
-		verifiedSignatures:  make(map[string]string),
+		verifiedSignatures:  utils.NewStringMap(),
 	}
 }
 
@@ -175,11 +170,11 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 	}
 
 	verifiedSignatureKey := string(signature) + "|" + nodeID
-	verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures[verifiedSignatureKey]
+	verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures.Load(verifiedSignatureKey)
 
 	if verifiedSigResultExist {
 		app.logger.Debugf("Found cached verified Tx signature result")
-		delete(app.verifiedSignatures, verifiedSignatureKey)
+		app.verifiedSignatures.Delete(verifiedSignatureKey)
 		if verifiedSigNodePubKey != publicKey {
 			app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
 			go recordDeliverTxFailMetrics(method)
@@ -252,9 +247,9 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	// Check duplicate nonce in checkTx state
 	nonceStr := string(nonce)
-	_, exist := app.checkTxNonceState[nonceStr]
+	_, exist := app.checkTxNonceState.Load(nonceStr)
 	if !exist {
-		app.checkTxNonceState[nonceStr] = []byte(nil)
+		app.checkTxNonceState.Store(nonceStr, []byte(nil))
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
@@ -295,11 +290,11 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 	}
 	verifiedSignatureKey := string(signature) + "|" + nodeID
-	app.verifiedSignatures[verifiedSignatureKey] = publicKey
+	app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
 
 	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
 	if result.Code != code.OK {
-		delete(app.verifiedSignatures, verifiedSignatureKey)
+		app.verifiedSignatures.Delete(verifiedSignatureKey)
 		go recordCheckTxFailMetrics(method)
 	}
 	return result
@@ -320,7 +315,7 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 	go recordDBSaveDurationMetrics(dbSaveDuration)
 
 	for key := range app.deliverTxNonceState {
-		delete(app.checkTxNonceState, key)
+		app.checkTxNonceState.Delete(key)
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
 

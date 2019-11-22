@@ -26,15 +26,14 @@ import (
 	"fmt"
 	"os"
 
-	appV1 "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
-	// appV2 "github.com/ndidplatform/smart-contract/v4/abci/app2/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	dbm "github.com/tendermint/tm-db"
-)
 
-var _ types.Application = (*ABCIApplicationInterface)(nil)
+	appV1 "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
+	// appV2 "github.com/ndidplatform/smart-contract/v4/abci/app2/v2"
+)
 
 type ABCIApplicationInterface struct {
 	appV1 *appV1.ABCIApplication
@@ -53,12 +52,10 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	}
 	name := "didDB"
 	db := dbm.NewDB(name, dbm.DBBackendType(dbType), dbDir)
-	// tree := iavl.NewMutableTree(db, 0)
-	// tree.Load()
 
 	return &ABCIApplicationInterface{
 		appV1: appV1.NewABCIApplication(logger, db),
-		// appV2: appV2.NewABCIApplication(logger, tree),
+		// appV2: appV2.NewABCIApplication(logger, db),
 	}
 }
 
@@ -71,6 +68,8 @@ func (app *ABCIApplicationInterface) SetOption(req types.RequestSetOption) types
 }
 
 func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
+	// IMPORTANT: Need to move app state load to this struct level if using multiple ABCI app versions
+	// otherwise app.CurrentBlockHeight will always be 0 on process start
 	switch {
 	case app.CurrentBlockHeight >= 0:
 		return app.appV1.CheckTx(req)
