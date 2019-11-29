@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine3.10 as builder
+FROM golang:1.13-alpine3.10 as builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \

@@ -7,6 +7,7 @@ IMPROVEMENTS:
 - Save Tx signature check results in CheckTx and use them in DeliverTx - Attempt to reduce DeliverTx time and CPU consumption.
 - Refactor app state, key name and prefixes.
 - Change internal package name.
+- [Docker] Change Go version used in images from 1.12 to 1.13.
 
 ## 4.0.0 (August 1, 2019)
 
