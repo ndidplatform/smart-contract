@@ -36,6 +36,7 @@ func TestNDIDUpdateNamespace(t *testing.T) {
 func TestNDIDRegisterNode(t *testing.T) {
 	ndid.TestRegisterNode(t, data.IdP1)
 	ndid.TestRegisterNode(t, data.IdP2)
+	ndid.TestRegisterNode(t, data.IdPAgent1)
 	ndid.TestRegisterNode(t, data.AS1)
 	ndid.TestRegisterNode(t, data.AS2)
 }

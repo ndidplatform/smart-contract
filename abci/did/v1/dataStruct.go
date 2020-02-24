@@ -267,6 +267,7 @@ type RegisterNode struct {
 	Role            string  `json:"role"`
 	MaxIal          float64 `json:"max_ial"`
 	MaxAal          float64 `json:"max_aal"`
+	IsIdPAgent      *bool   `json:"is_idp_agent"`
 }
 
 type NodeDetail struct {
@@ -484,10 +485,11 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID   string  `json:"node_id"`
-	MaxIal   float64 `json:"max_ial"`
-	MaxAal   float64 `json:"max_aal"`
-	NodeName string  `json:"node_name"`
+	NodeID     string  `json:"node_id"`
+	MaxIal     float64 `json:"max_ial"`
+	MaxAal     float64 `json:"max_aal"`
+	NodeName   string  `json:"node_name"`
+	IsIdPAgent *bool   `json:"is_idp_agent"`
 }
 
 type UpdateIdentityParam struct {
