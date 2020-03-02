@@ -187,6 +187,11 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					nodeDetail.MaxAal >= funcParam.MinAal) {
 					continue
 				}
+				// Filter by is_idp_agent flag
+				if funcParam.IsIdpAgent != nil &&
+					nodeDetail.IsIdpAgent != *funcParam.IsIdpAgent {
+					continue
+				}
 				// Filter by node_id_list
 				if len(funcParam.NodeIDList) > 0 {
 					if !contains(idp, funcParam.NodeIDList) {
@@ -263,6 +268,11 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 			// check Ial > min ial
 			if idp.Ial < funcParam.MinIal {
+				continue
+			}
+			// Filter by is_idp_agent flag
+			if funcParam.IsIdpAgent != nil &&
+				nodeDetail.IsIdpAgent != *funcParam.IsIdpAgent {
 				continue
 			}
 			// Filter by node_id_list
@@ -1213,6 +1223,11 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					nodeDetail.MaxAal >= funcParam.MinAal) {
 					continue
 				}
+				// Filter by idp agent flag
+				if funcParam.IsIdpAgent != nil &&
+					nodeDetail.GetIsIdpAgent() != *funcParam.IsIdpAgent {
+					continue
+				}
 				// Filter by node_id_list
 				if len(funcParam.NodeIDList) > 0 {
 					if !contains(idp, funcParam.NodeIDList) {
@@ -1337,6 +1352,11 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 			// check Ial > min ial
 			if idp.Ial < funcParam.MinIal {
+				continue
+			}
+			// Filter by idp agent flag
+			if funcParam.IsIdpAgent != nil &&
+				idp.IsIdpAgent != *funcParam.IsIdpAgent {
 				continue
 			}
 			// Filter by node_id_list

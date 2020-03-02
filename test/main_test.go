@@ -89,6 +89,11 @@ func TestIdP2RegisterIdentity(t *testing.T) {
 
 }
 
+func TestIdPAgent1GetNodesInfo(t *testing.T) {
+	query.TestGetIdpNodes(t, 6, `{"node":[{"node_id":"`+data.IdPAgent1+`","node_name":"IdP Agent 1","max_ial":2.3,"max_aal":3,"supported_request_message_data_url_type_list":[]}]}`)
+	query.TestGetIdpNodesInfo(t, 5, `{"node":[{"node_id":"`+data.IdPAgent1+`","name":"IdP Agent 1","max_ial":2.3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz7N55vytQuBV17KHPzd1\nILPonOpltFqcMCV+x81NJNcvf2QcDDemYK2oObcs8rDuavx3+aSAeBrGXmFIjvVT\n7YTpEfoCGVf50AJKeyOeuaGefVy12GlGUsxKxCWDJaWe6Vc7S+cOyiLHNp/U/La3\nrSRbJeS6+GLbbVtJZpXsJwIejrK52JwSnCTH9aeVUDovJZNfQvPHaKArqermyI7/\n44o8qfGkImAs4UhLLpcQVyyADaqHMFKpRTE/cLISCB6Ut9Vb1lyBgk0xlGWLfrXa\n0erk96NK3tw0thd464qz2qFojNISmM1ddG+VSHoZUu7UJzeCUXyw0RkB1PZEXiwz\n7wIDAQAB\n-----END PUBLIC KEY-----\n","mq":null,"supported_request_message_data_url_type_list":[]}]}`)
+}
+
 func TestIdP2AddAccessor(t *testing.T) {
 	common.TestCreateRequest(t, data.RequestID3.String())
 	idp.TestCreateIdpResponse(t, data.RequestID3.String())
