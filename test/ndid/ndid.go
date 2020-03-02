@@ -277,7 +277,7 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 		param.MaxIal = 2.3
 		param.MaxAal = 3.0
 	case data.IdPAgent1:
-		privKey := utils.GetPrivateKeyFromString(data.IdpPrivK2)
+		privKey := utils.GetPrivateKeyFromString(data.IdpPrivK3)
 		publicKeyBytes, err := utils.GeneratePublicKey(&privKey.PublicKey)
 		isIdPAgent := true
 		if err != nil {
