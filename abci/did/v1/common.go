@@ -899,6 +899,21 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	result := GetNodeInfoResult{
+		PublicKey:       nodeDetail.PublicKey,
+		MasterPublicKey: nodeDetail.MasterPublicKey,
+		NodeName:        nodeDetail.NodeName,
+		Role:            nodeDetail.Role,
+		Mq:              make([]MsqAddress, 0, len(nodeDetail.Mq)),
+		Active:          nodeDetail.Active,
+	}
+	for _, mq := range nodeDetail.Mq {
+		result.Mq = append(result.Mq, MsqAddress{
+			IP:   mq.Ip,
+			Port: mq.Port,
+		})
+	}
+
 	// If node behind proxy
 	if nodeDetail.ProxyNodeId != "" {
 		proxyNodeID := nodeDetail.ProxyNodeId
@@ -913,98 +928,32 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		if nodeDetail.Role == "IdP" {
-			var result GetNodeInfoResultIdPandASBehindProxy
-			result.PublicKey = nodeDetail.PublicKey
-			result.MasterPublicKey = nodeDetail.MasterPublicKey
-			result.NodeName = nodeDetail.NodeName
-			result.Role = nodeDetail.Role
-			result.MaxIal = nodeDetail.MaxIal
-			result.MaxAal = nodeDetail.MaxAal
-			result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-			result.Proxy.NodeID = string(proxyNodeID)
-			result.Proxy.NodeName = proxyNode.NodeName
-			result.Proxy.PublicKey = proxyNode.PublicKey
-			result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-			if proxyNode.Mq != nil {
-				for _, mq := range proxyNode.Mq {
-					var msq MsqAddress
-					msq.IP = mq.Ip
-					msq.Port = mq.Port
-					result.Proxy.Mq = append(result.Proxy.Mq, msq)
-				}
-			}
-			result.Proxy.Config = nodeDetail.ProxyConfig
-			result.Active = nodeDetail.Active
-			value, err := json.Marshal(result)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-			}
-			return app.ReturnQuery(value, "success", app.state.Height)
+
+		proxy := ProxyNodeInfo{
+			NodeID:          string(proxyNodeID),
+			NodeName:        proxyNode.NodeName,
+			PublicKey:       proxyNode.PublicKey,
+			MasterPublicKey: proxyNode.MasterPublicKey,
+			Mq:              make([]MsqAddress, 0, len(proxyNode.Mq)),
+			Config:          proxyNode.ProxyConfig,
 		}
-		var result GetNodeInfoResultRPandASBehindProxy
-		result.PublicKey = nodeDetail.PublicKey
-		result.MasterPublicKey = nodeDetail.MasterPublicKey
-		result.NodeName = nodeDetail.NodeName
-		result.Role = nodeDetail.Role
-		result.Proxy.NodeID = string(proxyNodeID)
-		result.Proxy.NodeName = proxyNode.NodeName
-		result.Proxy.PublicKey = proxyNode.PublicKey
-		result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-		if proxyNode.Mq != nil {
-			for _, mq := range proxyNode.Mq {
-				var msq MsqAddress
-				msq.IP = mq.Ip
-				msq.Port = mq.Port
-				result.Proxy.Mq = append(result.Proxy.Mq, msq)
-			}
+		for _, mq := range proxyNode.Mq {
+			proxy.Mq = append(proxy.Mq, MsqAddress{
+				IP:   mq.Ip,
+				Port: mq.Port,
+			})
 		}
-		result.Proxy.Config = nodeDetail.ProxyConfig
-		result.Active = nodeDetail.Active
-		value, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(value, "success", app.state.Height)
+
+		result.Proxy = &proxy
 	}
+
 	if nodeDetail.Role == "IdP" {
-		var result GetNodeInfoIdPResult
-		result.PublicKey = nodeDetail.PublicKey
-		result.MasterPublicKey = nodeDetail.MasterPublicKey
-		result.NodeName = nodeDetail.NodeName
-		result.Role = nodeDetail.Role
-		result.MaxIal = nodeDetail.MaxIal
-		result.MaxAal = nodeDetail.MaxAal
-		result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-		if nodeDetail.Mq != nil {
-			for _, mq := range nodeDetail.Mq {
-				var msq MsqAddress
-				msq.IP = mq.Ip
-				msq.Port = mq.Port
-				result.Mq = append(result.Mq, msq)
-			}
-		}
-		result.Active = nodeDetail.Active
-		value, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(value, "success", app.state.Height)
+		result.MaxIal = &nodeDetail.MaxIal
+		result.MaxAal = &nodeDetail.MaxAal
+		supportedRequestMessageDataUrlTypeList := append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
+		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
 	}
-	var result GetNodeInfoResult
-	result.PublicKey = nodeDetail.PublicKey
-	result.MasterPublicKey = nodeDetail.MasterPublicKey
-	result.NodeName = nodeDetail.NodeName
-	result.Role = nodeDetail.Role
-	if nodeDetail.Mq != nil {
-		for _, mq := range nodeDetail.Mq {
-			var msq MsqAddress
-			msq.IP = mq.Ip
-			msq.Port = mq.Port
-			result.Mq = append(result.Mq, msq)
-		}
-	}
-	result.Active = nodeDetail.Active
+
 	value, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
