@@ -1354,11 +1354,6 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			if idp.Ial < funcParam.MinIal {
 				continue
 			}
-			// Filter by idp agent flag
-			if funcParam.IsIdpAgent != nil &&
-				idp.IsIdpAgent != *funcParam.IsIdpAgent {
-				continue
-			}
 			// Filter by node_id_list
 			if len(funcParam.NodeIDList) > 0 {
 				if !contains(idp.NodeId, funcParam.NodeIDList) {
