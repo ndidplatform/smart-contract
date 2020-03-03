@@ -470,6 +470,7 @@ type GetNodeInfoResult struct {
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	IsIdpAgent                             *bool     `json:"is_idp_agent,omitempty"`
 	// for node behind proxy
 	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
 	// for all

@@ -962,6 +962,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		result.MaxAal = &nodeDetail.MaxAal
 		supportedRequestMessageDataUrlTypeList := append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
+		result.IsIdpAgent = &nodeDetail.IsIdpAgent
 	}
 
 	value, err := json.Marshal(result)
