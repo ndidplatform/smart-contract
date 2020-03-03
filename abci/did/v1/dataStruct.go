@@ -452,25 +452,29 @@ type GetNodeInfoParam struct {
 	NodeID string `json:"node_id"`
 }
 
-type GetNodeInfoResult struct {
+type ProxyNodeInfo struct {
+	NodeID          string       `json:"node_id"`
+	NodeName        string       `json:"node_name"`
 	PublicKey       string       `json:"public_key"`
 	MasterPublicKey string       `json:"master_public_key"`
-	NodeName        string       `json:"node_name"`
-	Role            string       `json:"role"`
 	Mq              []MsqAddress `json:"mq"`
-	Active          bool         `json:"active"`
+	Config          string       `json:"config"`
 }
 
-type GetNodeInfoIdPResult struct {
-	PublicKey                              string       `json:"public_key"`
-	MasterPublicKey                        string       `json:"master_public_key"`
-	NodeName                               string       `json:"node_name"`
-	Role                                   string       `json:"role"`
-	MaxIal                                 float64      `json:"max_ial"`
-	MaxAal                                 float64      `json:"max_aal"`
-	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
-	Mq                                     []MsqAddress `json:"mq"`
-	Active                                 bool         `json:"active"`
+type GetNodeInfoResult struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	// for IdP
+	MaxIal                                 *float64  `json:"max_ial,omitempty"`
+	MaxAal                                 *float64  `json:"max_aal,omitempty"`
+	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	// for node behind proxy
+	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
+	// for all
+	Mq     []MsqAddress `json:"mq"`
+	Active bool         `json:"active"`
 }
 
 type GetIdentityInfoParam struct {
@@ -639,41 +643,6 @@ type AddNodeToProxyNodeParam struct {
 	NodeID      string `json:"node_id"`
 	ProxyNodeID string `json:"proxy_node_id"`
 	Config      string `json:"config"`
-}
-
-type GetNodeInfoResultRPandASBehindProxy struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
-	Proxy           struct {
-		NodeID          string       `json:"node_id"`
-		NodeName        string       `json:"node_name"`
-		PublicKey       string       `json:"public_key"`
-		MasterPublicKey string       `json:"master_public_key"`
-		Mq              []MsqAddress `json:"mq"`
-		Config          string       `json:"config"`
-	} `json:"proxy"`
-	Active bool `json:"active"`
-}
-
-type GetNodeInfoResultIdPandASBehindProxy struct {
-	PublicKey                              string   `json:"public_key"`
-	MasterPublicKey                        string   `json:"master_public_key"`
-	NodeName                               string   `json:"node_name"`
-	Role                                   string   `json:"role"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
-	Proxy                                  struct {
-		NodeID          string       `json:"node_id"`
-		NodeName        string       `json:"node_name"`
-		PublicKey       string       `json:"public_key"`
-		MasterPublicKey string       `json:"master_public_key"`
-		Mq              []MsqAddress `json:"mq"`
-		Config          string       `json:"config"`
-	} `json:"proxy"`
-	Active bool `json:"active"`
 }
 
 type UpdateNodeProxyNodeParam struct {
