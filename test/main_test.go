@@ -194,3 +194,9 @@ func TestAddErrorCodeByNDID(t *testing.T) {
 	query.TestGetErrorCodeList(t, "idp", `[{"error_code":"`+data.IdpErrorCode1+`","fatal":false}]`)
 	query.TestGetErrorCodeList(t, "as", "[]")
 }
+
+func TestRemoveErrorCodeByNDID(t *testing.T) {
+	ndid.TestRemoveErrorCode(t, "idp", data.IdpErrorCode1, "success")
+	ndid.TestRemoveErrorCode(t, "idp", data.IdpErrorCode1, "ErrorCode not exists")
+	query.TestGetErrorCodeList(t, "idp", `[]`)
+}

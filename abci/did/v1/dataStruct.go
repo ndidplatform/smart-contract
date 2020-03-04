@@ -888,6 +888,11 @@ type AddErrorCodeParam struct {
 	Type      string `json:"type"`
 }
 
+type RemoveErrorCodeParam struct {
+	ErrorCode string `json:"error_code"`
+	Type      string `json:"type"`
+}
+
 type GetErrorCodeListParam struct {
 	Type string `json:"type"`
 }

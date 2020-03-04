@@ -60,6 +60,7 @@ var isNDIDMethod = map[string]bool{
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
 	"AddErrorCode":                     true,
+	"RemoveErrorCode":                  true,
 	"SetInitData":                      true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
@@ -1165,6 +1166,47 @@ func (app *DIDApplication) addErrorCode(param string, nodeID string) types.Respo
 	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&errorCodeList)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(errorsKey), []byte(errorCodeListBytes))
+
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *DIDApplication) removeErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RemoveErrorCode, Parameter: %s", param)
+	var funcParam RemoveErrorCodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// remove ErrorCode from ErrorCodeList
+	var errorCodeList data.ErrorCodeList
+	errorsKey := "ErrorCodeList" + "|" + funcParam.Type
+	_, errorCodeListBytes := app.GetStateDB([]byte(errorsKey))
+	if errorCodeListBytes != nil {
+		err := proto.Unmarshal(errorCodeListBytes, &errorCodeList)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+
+	newErrorCodeList := data.ErrorCodeList{
+		ErrorCode: make([]*data.ErrorCode, 0, len(errorCodeList.ErrorCode)),
+	}
+	for _, errorCode := range errorCodeList.ErrorCode {
+		if errorCode.ErrorCode != funcParam.ErrorCode {
+			newErrorCodeList.ErrorCode = append(newErrorCodeList.ErrorCode, errorCode)
+		}
+	}
+
+	if len(newErrorCodeList.ErrorCode) != len(errorCodeList.ErrorCode)-1 {
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode not exists", "")
+	}
+
+	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&newErrorCodeList)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(errorsKey), []byte(errorCodeListBytes))
 
