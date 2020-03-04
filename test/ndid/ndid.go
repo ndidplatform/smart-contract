@@ -385,3 +385,29 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
 
+func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodeParam, expected string) {
+	privKey := utils.GetPrivateKeyFromString(privK)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fnName := "AddErrorCode"
+	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
+	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
+	resultObj, _ := result.(utils.ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`param: %s`, paramJSON)
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode string, fatal bool, expected string) {
+	param := did.AddErrorCodeParam{
+		ErrorCode: errorCode,
+		Fatal:     fatal,
+		Type:      errorCodeType,
+	}
+	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
+}

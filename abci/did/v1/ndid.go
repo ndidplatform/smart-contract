@@ -59,6 +59,7 @@ var isNDIDMethod = map[string]bool{
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
+	"AddErrorCode":                     true,
 	"SetInitData":                      true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
@@ -1113,5 +1114,59 @@ func (app *DIDApplication) updateNamespace(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.SetStateDB([]byte(allNamespaceKey), []byte(allNamespaceValue))
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (*DIDApplication) checkErrorCodeType(errorCodeType string) bool {
+	return contains(errorCodeType, []string{"idp", "as"})
+}
+
+func (app *DIDApplication) addErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("AddErrorCode, Parameter: %s", param)
+	var funcParam AddErrorCodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	// convert error type to lower case
+	funcParam.Type = strings.ToLower(funcParam.Type)
+	if !app.checkErrorCodeType(funcParam.Type) {
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "Invalid error code type", "")
+	}
+
+	errorCode := data.ErrorCode{
+		ErrorCode: funcParam.ErrorCode,
+		Fatal:     funcParam.Fatal,
+	}
+
+	// add error code
+	errorCodeBytes, err := utils.ProtoDeterministicMarshal(&errorCode)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + errorCode.ErrorCode
+	if app.HasStateDB([]byte(errorKey)) {
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode is already in the database", "")
+	}
+	app.SetStateDB([]byte(errorKey), []byte(errorCodeBytes))
+
+	// add error code to ErrorCodeList
+	var errorCodeList data.ErrorCodeList
+	errorsKey := "ErrorCodeList" + "|" + funcParam.Type
+	_, errorCodeListBytes := app.GetStateDB([]byte(errorsKey))
+	if errorCodeListBytes != nil {
+		err := proto.Unmarshal(errorCodeListBytes, &errorCodeList)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+	}
+	errorCodeList.ErrorCode = append(errorCodeList.ErrorCode, &errorCode)
+	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&errorCodeList)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.SetStateDB([]byte(errorsKey), []byte(errorCodeListBytes))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

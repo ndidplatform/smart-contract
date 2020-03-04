@@ -2041,3 +2041,40 @@ func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStat
 	}
 	return allowedMinIal.MinIal
 }
+
+func (app *DIDApplication) getErrorCodeList(param string) types.ResponseQuery {
+	var funcParam GetErrorCodeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	// convert funcParam to lowercase and fetch the code list
+	funcParam.Type = strings.ToLower(funcParam.Type)
+	errorCodeListKey := "ErrorCodeList" + "|" + funcParam.Type
+	err, errorCodeListBytes := app.GetStateDB([]byte(errorCodeListKey))
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	var errorCodeList data.ErrorCodeList
+	err = proto.Unmarshal(errorCodeListBytes, &errorCodeList)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	// parse result into response format
+	result := make([]*GetErrorCodeListResult, 0, len(errorCodeList.ErrorCode))
+	for _, errorCode := range errorCodeList.ErrorCode {
+		result = append(result, &GetErrorCodeListResult{
+			ErrorCode: errorCode.ErrorCode,
+			Fatal:     errorCode.Fatal,
+		})
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
