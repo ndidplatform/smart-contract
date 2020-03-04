@@ -213,3 +213,12 @@ message AllowedModeList {
 message AllowedMinIalForRegisterIdentityAtFirstIdp {
   double min_ial = 1;
 }
+
+message ErrorCode {
+  string error_code = 1;
+  bool fatal = 2;
+}
+
+message ErrorCodeList {
+  repeated ErrorCode error_code = 2;
+}
