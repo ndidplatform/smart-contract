@@ -403,9 +403,10 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodePara
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode string, fatal bool, expected string) {
+func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode string, message string, fatal bool, expected string) {
 	param := did.AddErrorCodeParam{
 		ErrorCode: errorCode,
+		Message:   message,
 		Fatal:     fatal,
 		Type:      errorCodeType,
 	}

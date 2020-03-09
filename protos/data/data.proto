@@ -216,7 +216,8 @@ message AllowedMinIalForRegisterIdentityAtFirstIdp {
 
 message ErrorCode {
   string error_code = 1;
-  bool fatal = 2;
+  string message = 2;
+  bool fatal = 3;
 }
 
 message ErrorCodeList {

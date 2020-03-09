@@ -2068,6 +2068,7 @@ func (app *DIDApplication) getErrorCodeList(param string) types.ResponseQuery {
 	for _, errorCode := range errorCodeList.ErrorCode {
 		result = append(result, &GetErrorCodeListResult{
 			ErrorCode: errorCode.ErrorCode,
+			Message:   errorCode.Message,
 			Fatal:     errorCode.Fatal,
 		})
 	}

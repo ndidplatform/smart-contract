@@ -189,9 +189,9 @@ func TestIdP1RevokeAndAddAccessor(t *testing.T) {
 }
 
 func TestAddErrorCodeByNDID(t *testing.T) {
-	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, false, "success")
-	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, false, "ErrorCode is already in the database")
-	query.TestGetErrorCodeList(t, "idp", `[{"error_code":"`+data.IdpErrorCode1+`","fatal":false}]`)
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeMessage1, false, "success")
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeMessage1, false, "ErrorCode is already in the database")
+	query.TestGetErrorCodeList(t, "idp", `[{"error_code":"`+data.IdpErrorCode1+`","message":"`+data.IdpErrorCodeMessage1+`","fatal":false}]`)
 	query.TestGetErrorCodeList(t, "as", "[]")
 }
 

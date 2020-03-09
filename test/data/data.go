@@ -67,6 +67,7 @@ var ServiceID1 = utils.RandStringRunes(20)
 var ServiceID2 = utils.RandStringRunes(20)
 
 var IdpErrorCode1 = utils.RandStringRunes(5)
+var IdpErrorCodeMessage1 = "This is error 1"
 
 var NdidPrivK = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zx

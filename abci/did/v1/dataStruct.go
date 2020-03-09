@@ -884,6 +884,7 @@ type RevokeAndAddAccessorParam struct {
 
 type AddErrorCodeParam struct {
 	ErrorCode string `json:"error_code"`
+	Message   string `json:"message"`
 	Fatal     bool   `json:"fatal"`
 	Type      string `json:"type"`
 }
@@ -899,5 +900,6 @@ type GetErrorCodeListParam struct {
 
 type GetErrorCodeListResult struct {
 	ErrorCode string `json:"error_code"`
+	Message   string `json:"message"`
 	Fatal     bool   `json:"fatal"`
 }
