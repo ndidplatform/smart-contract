@@ -105,6 +105,7 @@ message Response {
   string idp_id = 5;
   string valid_ial = 6;
   string valid_signature = 7;
+  string error_code = 8;
 }
 
 message ReportList {

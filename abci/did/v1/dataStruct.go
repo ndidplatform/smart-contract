@@ -150,6 +150,7 @@ type Response struct {
 	IdpID          string  `json:"idp_id"`
 	ValidIal       *bool   `json:"valid_ial"`
 	ValidSignature *bool   `json:"valid_signature"`
+	ErrorCode      *string `json:"error_code"`
 }
 
 type CreateIdpResponseParam struct {
@@ -158,6 +159,7 @@ type CreateIdpResponseParam struct {
 	RequestID string  `json:"request_id"`
 	Signature string  `json:"signature"`
 	Status    string  `json:"status"`
+	ErrorCode string  `json:"error_code"`
 }
 
 type GetRequestParam struct {

@@ -576,6 +576,9 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 				newRow.ValidSignature = &fValue
 			}
 		}
+		if response.ErrorCode != "" {
+			newRow.ErrorCode = &response.ErrorCode
+		}
 		result.Responses = append(result.Responses, newRow)
 	}
 	result.IsClosed = request.Closed
