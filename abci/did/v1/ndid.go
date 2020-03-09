@@ -1181,6 +1181,13 @@ func (app *DIDApplication) removeErrorCode(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	// remove error code from ErrorCode index
+	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + funcParam.ErrorCode
+	if !app.HasStateDB([]byte(errorKey)) {
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode not exists", "")
+	}
+	app.DeleteStateDB([]byte(errorKey))
+
 	// remove ErrorCode from ErrorCodeList
 	var errorCodeList data.ErrorCodeList
 	errorsKey := "ErrorCodeList" + "|" + funcParam.Type
