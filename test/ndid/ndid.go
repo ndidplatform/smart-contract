@@ -384,4 +384,3 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 	}
 	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
-

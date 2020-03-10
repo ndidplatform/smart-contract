@@ -260,13 +260,15 @@ type TransferNDIDParam struct {
 }
 
 type RegisterNode struct {
-	NodeID          string  `json:"node_id"`
-	PublicKey       string  `json:"public_key"`
-	MasterPublicKey string  `json:"master_public_key"`
-	NodeName        string  `json:"node_name"`
-	Role            string  `json:"role"`
-	MaxIal          float64 `json:"max_ial"`
-	MaxAal          float64 `json:"max_aal"`
+	NodeID          string    `json:"node_id"`
+	PublicKey       string    `json:"public_key"`
+	MasterPublicKey string    `json:"master_public_key"`
+	NodeName        string    `json:"node_name"`
+	Role            string    `json:"role"`
+	MaxIal          float64   `json:"max_ial"`
+	MaxAal          float64   `json:"max_aal"`
+	UseWhitelist    *bool     `json:"use_whitelist"`
+	Whitelist       *[]string `json:"whitelist"`
 }
 
 type NodeDetail struct {
@@ -468,6 +470,9 @@ type GetNodeInfoResult struct {
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	// for IdP and RP
+	UseWhitelist *bool     `json:"use_whitelist"`
+	Whitelist    *[]string `json:"whitelist"`
 	// for node behind proxy
 	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
 	// for all
@@ -488,10 +493,12 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID   string  `json:"node_id"`
-	MaxIal   float64 `json:"max_ial"`
-	MaxAal   float64 `json:"max_aal"`
-	NodeName string  `json:"node_name"`
+	NodeID       string    `json:"node_id"`
+	MaxIal       float64   `json:"max_ial"`
+	MaxAal       float64   `json:"max_aal"`
+	NodeName     string    `json:"node_name"`
+	UseWhitelist *bool     `json:"use_whitelist"`
+	Whitelist    *[]string `json:"whitelist"`
 }
 
 type UpdateIdentityParam struct {

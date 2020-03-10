@@ -127,5 +127,6 @@ const (
 	CannotRevokeAllAccessorsInThisIdP                  uint32 = 103
 	DuplicateIdentifier                                uint32 = 104
 	NewModeListMustBeHigherThanCurrentModeList         uint32 = 105
+	NodeNotInWhitelist                                 uint32 = 106
 	UnknownError                                       uint32 = 999
 )

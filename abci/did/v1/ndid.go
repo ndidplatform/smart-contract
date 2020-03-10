@@ -131,6 +131,19 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 		nodeDetail.MaxIal = funcParam.MaxIal
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = make([]string, 0)
 	}
+	// if node is Idp or rp, set use_whitelist and whitelist
+	if funcParam.Role == "IdP" || funcParam.Role == "RP" {
+		if funcParam.UseWhitelist != nil && *funcParam.UseWhitelist {
+			nodeDetail.UseWhitelist = true
+		} else {
+			nodeDetail.UseWhitelist = false
+		}
+		if funcParam.Whitelist != nil {
+			nodeDetail.Whitelist = *funcParam.Whitelist
+		} else {
+			nodeDetail.Whitelist = []string{}
+		}
+	}
 	// if node is IdP, add node id to IdPList
 	var idpsList data.IdPList
 	idpsKey := "IdPList"
@@ -415,6 +428,15 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 		}
 		if funcParam.MaxAal > 0 {
 			node.MaxAal = funcParam.MaxAal
+		}
+	}
+	// If node is Idp or rp, update use_whitelist and whitelist
+	if node.Role == "IdP" || node.Role == "RP" {
+		if funcParam.UseWhitelist != nil {
+			node.UseWhitelist = *funcParam.UseWhitelist
+		}
+		if funcParam.Whitelist != nil {
+			node.Whitelist = *funcParam.Whitelist
 		}
 	}
 	nodeDetailJSON, err := utils.ProtoDeterministicMarshal(&node)

@@ -954,6 +954,11 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
 	}
 
+	if nodeDetail.Role == "IdP" || nodeDetail.Role == "RP" {
+		result.UseWhitelist = &nodeDetail.UseWhitelist
+		result.Whitelist = &nodeDetail.Whitelist
+	}
+
 	value, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
