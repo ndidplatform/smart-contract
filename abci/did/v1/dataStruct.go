@@ -83,20 +83,9 @@ type GetIdpNodesParam struct {
 	IdentityIdentifierHash                 string   `json:"identity_identifier_hash"`
 	MinAal                                 float64  `json:"min_aal"`
 	MinIal                                 float64  `json:"min_ial"`
-	IsIdpAgent                             *bool    `json:"idp_agent"`
 	NodeIDList                             []string `json:"node_id_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 	ModeList                               []int32  `json:"mode_list"`
-}
-
-type MsqDestinationNodeWithModeList struct {
-	ID                                     string   `json:"node_id"`
-	Name                                   string   `json:"node_name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	Ial                                    float64  `json:"ial"`
-	ModeList                               []int32  `json:"mode_list"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 type MsqDestinationNode struct {
@@ -104,11 +93,14 @@ type MsqDestinationNode struct {
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	IsIdpAgent                             bool     `json:"is_idp_agent"`
+	Ial                                    *float64 `json:"ial,omitempty"`
+	ModeList                               *[]int32 `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 type GetIdpNodesResult struct {
-	Node []interface{} `json:"node"`
+	Node []MsqDestinationNode `json:"node"`
 }
 
 type GetAccessorMethodParam struct {

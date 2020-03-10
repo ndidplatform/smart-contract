@@ -66,11 +66,11 @@ func TestIdP1RegisterIdentity(t *testing.T) {
 	query.TestGetIdentityInfo(t, 1, `{"ial":3,"mode_list":[2]}`)
 	query.TestGetIdentityInfo(t, 2, `{"ial":3,"mode_list":[2]}`)
 	query.TestQueryCheckExistingIdentity(t, data.UserNamespace1, data.UserID1, `{"exist":true}`)
-	query.TestGetIdpNodes(t, 1, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"supported_request_message_data_url_type_list":[]}]}`)
+	query.TestGetIdpNodes(t, 1, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"is_idp_agent":false,"supported_request_message_data_url_type_list":[]}]}`)
 	query.TestGetIdpNodesInfo(t, 1, `{"node":[{"node_id":"`+data.IdP1+`","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"supported_request_message_data_url_type_list":[]}]}`)
 	query.TestGetIdpNodes(t, 2, `{"node":[]}`)
-	query.TestGetIdpNodes(t, 3, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
-	query.TestGetIdpNodes(t, 4, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
+	query.TestGetIdpNodes(t, 3, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"is_idp_agent":false,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
+	query.TestGetIdpNodes(t, 4, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"is_idp_agent":false,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
 	query.TestGetIdpNodesInfo(t, 2, `{"node":[{"node_id":"`+data.IdP1+`","name":"IdP Number 1","max_ial":3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwx9oT44DmDRiQJ1K0b9Q\nolEsrQ51hBUDq3oCKTffBikYenSUQNimVCsVBfNpKhZqpW56hH0mtgLbI7QgZGj9\ncNBMzSLMolltw0EerF0Ckz0Svvie1/oFJ1a0Cf4bdKKW6wRzL+aFVvelmNlLoSZX\noCpxUPQq7SMLoYEK1c+e3l3H0bfh6TAVt7APOQEFhXy9MRt83oVSAGW36gdNEksm\nz1WIT/C1XcHHVwCIJGSdZw5F6Y2gBjtiLsiFtpKfxQAPwBvDi7uS0PUdN7YQ/G69\nb0FgoE6qivDTqYfr80Y345Qe/qPGDvfne7oA8DIbRV+Kd5s4tFn/cC0Wd+jvrZJ7\njwIDAQAB\n-----END PUBLIC KEY-----\n","mq":[{"ip":"192.168.3.99","port":8000}],"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
 
 }
@@ -83,7 +83,7 @@ func TestIdP2RegisterIdentity(t *testing.T) {
 	idp.TestRegisterIdentity(t, 6, "Identifier count is greater than allowed identifier count")
 	idp.TestRegisterIdentity(t, 7, "There are duplicate identifier")
 	idp.TestRegisterIdentity(t, 8, "success")
-	query.TestGetIdpNodes(t, 5, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]},{"node_id":"`+data.IdP2+`","node_name":"IdP Number 2","max_ial":2.3,"max_aal":3,"ial":2.3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
+	query.TestGetIdpNodes(t, 5, `{"node":[{"node_id":"`+data.IdP1+`","node_name":"IdP Number 1","max_ial":3,"max_aal":3,"is_idp_agent":false,"ial":3,"mode_list":[2],"supported_request_message_data_url_type_list":[]},{"node_id":"`+data.IdP2+`","node_name":"IdP Number 2","max_ial":2.3,"max_aal":3,"is_idp_agent":false,"ial":2.3,"mode_list":[2],"supported_request_message_data_url_type_list":[]}]}`)
 	query.TestGetReferenceGroupCodeByAccessorID(t, data.AccessorID3.String(), `{"reference_group_code":""}`)
 	query.TestGetReferenceGroupCodeByAccessorID(t, data.AccessorID1.String(), `{"reference_group_code":"`+data.ReferenceGroupCode1.String()+`"}`)
 
@@ -91,8 +91,6 @@ func TestIdP2RegisterIdentity(t *testing.T) {
 
 func TestIdPAgent1GetNodesInfo(t *testing.T) {
 	query.TestGetNodeInfo(t, data.IdPAgent1, `{"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz7N55vytQuBV17KHPzd1\nILPonOpltFqcMCV+x81NJNcvf2QcDDemYK2oObcs8rDuavx3+aSAeBrGXmFIjvVT\n7YTpEfoCGVf50AJKeyOeuaGefVy12GlGUsxKxCWDJaWe6Vc7S+cOyiLHNp/U/La3\nrSRbJeS6+GLbbVtJZpXsJwIejrK52JwSnCTH9aeVUDovJZNfQvPHaKArqermyI7/\n44o8qfGkImAs4UhLLpcQVyyADaqHMFKpRTE/cLISCB6Ut9Vb1lyBgk0xlGWLfrXa\n0erk96NK3tw0thd464qz2qFojNISmM1ddG+VSHoZUu7UJzeCUXyw0RkB1PZEXiwz\n7wIDAQAB\n-----END PUBLIC KEY-----\n","master_public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAukTxVg8qpwXebALGCrly\niv8PNNxLo0CEX3N33cR1TNfImItd5nFwmozLJLM9LpNF711PrkH3EBLJM+qwASlC\nBayeMiMT8tDmOtv1RqIxyLjEU8M0RBBedk/TsKQwNmmeU3n5Ap+GRTYoEOwTKNra\nI8YDfbjb9fNtSICiDzn3UcQj13iLz5x4MjaewtC6PR1r8uVfLyS4uI+3/qau0zWV\n+s6b3JdqU2zdHeuaj9XjX7aNV7mvnjYgzk/O7M/p/86RBEOm7pt6JmTGnFu44jBO\nez6GqF2hZzqR9nM1K4aOedBMHintVnhh1oOPG9uRiDnJWvN16PNTfr7XBOUzL03X\nDQIDAQAB\n-----END PUBLIC KEY-----\n","node_name":"IdP Agent 1","role":"IdP","max_ial":2.3,"max_aal":3,"supported_request_message_data_url_type_list":[],"is_idp_agent":true,"mq":[],"active":true}`)
-	query.TestGetIdpNodes(t, 6, `{"node":[{"node_id":"`+data.IdPAgent1+`","node_name":"IdP Agent 1","max_ial":2.3,"max_aal":3,"supported_request_message_data_url_type_list":[]}]}`)
-	query.TestGetIdpNodesInfo(t, 5, `{"node":[{"node_id":"`+data.IdPAgent1+`","name":"IdP Agent 1","max_ial":2.3,"max_aal":3,"public_key":"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAz7N55vytQuBV17KHPzd1\nILPonOpltFqcMCV+x81NJNcvf2QcDDemYK2oObcs8rDuavx3+aSAeBrGXmFIjvVT\n7YTpEfoCGVf50AJKeyOeuaGefVy12GlGUsxKxCWDJaWe6Vc7S+cOyiLHNp/U/La3\nrSRbJeS6+GLbbVtJZpXsJwIejrK52JwSnCTH9aeVUDovJZNfQvPHaKArqermyI7/\n44o8qfGkImAs4UhLLpcQVyyADaqHMFKpRTE/cLISCB6Ut9Vb1lyBgk0xlGWLfrXa\n0erk96NK3tw0thd464qz2qFojNISmM1ddG+VSHoZUu7UJzeCUXyw0RkB1PZEXiwz\n7wIDAQAB\n-----END PUBLIC KEY-----\n","mq":null,"supported_request_message_data_url_type_list":[]}]}`)
 }
 
 func TestIdP2AddAccessor(t *testing.T) {

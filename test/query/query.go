@@ -184,11 +184,6 @@ func TestGetIdpNodes(t *testing.T, caseID int64, expected string) {
 		param.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.MinIal = 2.3
 		param.MinAal = 3
-	case 6:
-		param.MinIal = 2.3
-		param.MinAal = 3
-		isIdpAgent := true
-		param.IsIdpAgent = &isIdpAgent
 	}
 	GetIdpNodes(t, param, expected)
 }
@@ -228,11 +223,6 @@ func TestGetIdpNodesInfo(t *testing.T, caseID int64, expected string) {
 		param.MinAal = 3
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "text/plain")
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "application/pdf")
-	case 5:
-		param.MinIal = 2.3
-		param.MinAal = 3
-		isIdpAgent := true
-		param.IsIdpAgent = &isIdpAgent
 	}
 	GetIdpNodesInfo(t, param, expected)
 }
