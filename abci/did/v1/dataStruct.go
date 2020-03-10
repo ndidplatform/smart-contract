@@ -159,7 +159,7 @@ type CreateIdpResponseParam struct {
 	RequestID string  `json:"request_id"`
 	Signature string  `json:"signature"`
 	Status    string  `json:"status"`
-	ErrorCode string  `json:"error_code"`
+	ErrorCode *string `json:"error_code"`
 }
 
 type GetRequestParam struct {
@@ -193,9 +193,10 @@ type GetRequestDetailResult struct {
 }
 
 type SignDataParam struct {
-	ServiceID string `json:"service_id"`
-	RequestID string `json:"request_id"`
-	Signature string `json:"signature"`
+	ServiceID string  `json:"service_id"`
+	RequestID string  `json:"request_id"`
+	Signature string  `json:"signature"`
+	ErrorCode *string `json:"error_code"`
 }
 
 type AddServiceParam struct {
