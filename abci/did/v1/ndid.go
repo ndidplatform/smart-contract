@@ -1137,9 +1137,9 @@ func (app *DIDApplication) addErrorCode(param string, nodeID string) types.Respo
 	}
 
 	errorCode := data.ErrorCode{
-		ErrorCode: funcParam.ErrorCode,
-		Message:   funcParam.Message,
-		Fatal:     funcParam.Fatal,
+		ErrorCode:   funcParam.ErrorCode,
+		Description: funcParam.Description,
+		Fatal:       funcParam.Fatal,
 	}
 
 	// add error code
