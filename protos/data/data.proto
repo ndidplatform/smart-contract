@@ -13,11 +13,12 @@ message NodeDetail {
   double max_aal = 6;
   repeated MQ mq = 7;
   bool active = 8;
-  string proxy_node_id = 9;
-  string proxy_config = 10;
-  bool use_whitelist = 11;
-  repeated string whitelist = 12;
-  repeated string supported_request_message_data_url_type_list = 13;
+  bool is_idp_agent = 9;
+  string proxy_node_id = 10;
+  string proxy_config = 11;
+  bool use_whitelist = 12;
+  repeated string whitelist = 13;
+  repeated string supported_request_message_data_url_type_list = 14;
 }
   
 message MQ {
@@ -107,6 +108,7 @@ message Response {
   string idp_id = 5;
   string valid_ial = 6;
   string valid_signature = 7;
+  string error_code = 8;
 }
 
 message ReportList {
@@ -214,4 +216,14 @@ message AllowedModeList {
 
 message AllowedMinIalForRegisterIdentityAtFirstIdp {
   double min_ial = 1;
+}
+
+message ErrorCode {
+  string error_code = 1;
+  string description = 2;
+  bool fatal = 3;
+}
+
+message ErrorCodeList {
+  repeated ErrorCode error_code = 2;
 }

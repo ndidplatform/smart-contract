@@ -276,6 +276,21 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 		param.Role = "IdP"
 		param.MaxIal = 2.3
 		param.MaxAal = 3.0
+	case data.IdPAgent1:
+		privKey := utils.GetPrivateKeyFromString(data.IdpPrivK3)
+		publicKeyBytes, err := utils.GeneratePublicKey(&privKey.PublicKey)
+		isIdPAgent := true
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		param.NodeID = nodeID
+		param.PublicKey = string(publicKeyBytes)
+		param.MasterPublicKey = string(masterPublicKeyBytes)
+		param.NodeName = "IdP Agent 1"
+		param.Role = "IdP"
+		param.MaxIal = 2.3
+		param.MaxAal = 3.0
+		param.IsIdPAgent = &isIdPAgent
 	case data.AS1:
 		asKey := utils.GetPrivateKeyFromString(data.AsPrivK1)
 		asPublicKeyBytes, err := utils.GeneratePublicKey(&asKey.PublicKey)
@@ -383,4 +398,58 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 		param.NodeID = data.AS2
 	}
 	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
+}
+
+func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodeParam, expected string) {
+	privKey := utils.GetPrivateKeyFromString(privK)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fnName := "AddErrorCode"
+	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
+	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
+	resultObj, _ := result.(utils.ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`param: %s`, paramJSON)
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode string, description string, fatal bool, expected string) {
+	param := did.AddErrorCodeParam{
+		ErrorCode:   errorCode,
+		Description: description,
+		Fatal:       fatal,
+		Type:        errorCodeType,
+	}
+	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
+}
+
+func RemoveErrorCode(t *testing.T, nodeID, privK string, param did.RemoveErrorCodeParam, expected string) {
+	privKey := utils.GetPrivateKeyFromString(privK)
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	fnName := "RemoveErrorCode"
+	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
+	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
+	resultObj, _ := result.(utils.ResponseTx)
+	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+		t.Errorf("\n"+`param: %s`, paramJSON)
+		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
+		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode string, expected string) {
+	param := did.RemoveErrorCodeParam{
+		ErrorCode: errorCode,
+		Type:      errorCodeType,
+	}
+	RemoveErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
 }

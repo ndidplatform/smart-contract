@@ -420,6 +420,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	response.Status = funcParam.Status
 	response.Signature = funcParam.Signature
 	response.IdpId = nodeID
+
 	_, value := app.GetVersionedStateDB([]byte(key), 0)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -451,6 +452,15 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	if nodeDetailValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
+	// Check error code exists
+	if funcParam.ErrorCode != nil {
+		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + *funcParam.ErrorCode
+		if !app.HasStateDB([]byte(errorCodeKey)) {
+			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
+		}
+		response.ErrorCode = *funcParam.ErrorCode
+	}
+
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {

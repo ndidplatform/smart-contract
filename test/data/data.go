@@ -33,6 +33,7 @@ var IdP2 = utils.RandStringRunes(20)
 var IdP4 = utils.RandStringRunes(20)
 var IdP5 = utils.RandStringRunes(20)
 var IdP6 = utils.RandStringRunes(20)
+var IdPAgent1 = utils.RandStringRunes(20)
 var AS1 = utils.RandStringRunes(20)
 var AS2 = utils.RandStringRunes(20)
 var Proxy1 = utils.RandStringRunes(20)
@@ -65,6 +66,9 @@ var ReferenceGroupCode1 = uuid.NewV4()
 
 var ServiceID1 = utils.RandStringRunes(20)
 var ServiceID2 = utils.RandStringRunes(20)
+
+var IdpErrorCode1 = utils.RandStringRunes(5)
+var IdpErrorCodeDescription1 = "This is error 1"
 
 var NdidPrivK = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEA30i6deo6vqxPdoxA9pUpuBag/cVwEVWO8dds5QDfu/z957zx
@@ -206,7 +210,7 @@ nplQvZKsbhmtxbu/MGbJfp1cH0LgO5OamHj5TBEdXWxtZKgE2nmxJz0Fm9L8vZ8b
 H5plzde3fZP4YVOa+bK5XuHS5CrwjHoDItfvdPNF8D2rutrl77D9
 -----END RSA PRIVATE KEY-----`
 
-var idpPrivK3 = `-----BEGIN RSA PRIVATE KEY-----
+var IdpPrivK3 = `-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAz7N55vytQuBV17KHPzd1ILPonOpltFqcMCV+x81NJNcvf2Qc
 DDemYK2oObcs8rDuavx3+aSAeBrGXmFIjvVT7YTpEfoCGVf50AJKeyOeuaGefVy1
 2GlGUsxKxCWDJaWe6Vc7S+cOyiLHNp/U/La3rSRbJeS6+GLbbVtJZpXsJwIejrK5

@@ -51,6 +51,14 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	// Check error code exists
+	if signData.ErrorCode != nil {
+		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + *signData.ErrorCode
+		if !app.HasStateDB([]byte(errorCodeKey)) {
+			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
+		}
+	}
+
 	// Check IsClosed
 	if request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
