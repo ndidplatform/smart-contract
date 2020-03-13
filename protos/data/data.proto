@@ -13,9 +13,10 @@ message NodeDetail {
   double max_aal = 6;
   repeated MQ mq = 7;
   bool active = 8;
-  string proxy_node_id = 9;
-  string proxy_config = 10;
-  repeated string supported_request_message_data_url_type_list = 11;
+  bool is_idp_agent = 9;
+  string proxy_node_id = 10;
+  string proxy_config = 11;
+  repeated string supported_request_message_data_url_type_list = 12;
 }
   
 message MQ {
