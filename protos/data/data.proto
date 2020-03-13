@@ -16,7 +16,9 @@ message NodeDetail {
   bool is_idp_agent = 9;
   string proxy_node_id = 10;
   string proxy_config = 11;
-  repeated string supported_request_message_data_url_type_list = 12;
+  bool use_whitelist = 12;
+  repeated string whitelist = 13;
+  repeated string supported_request_message_data_url_type_list = 14;
 }
   
 message MQ {

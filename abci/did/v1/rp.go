@@ -39,6 +39,15 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+	// get RP node detail
+	nodeDetailKey := "NodeID" + "|" + nodeID
+	_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+	if nodeDetaiValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var rpNodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetaiValue), &rpNodeDetail)
+
 	// log chain ID
 	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
 	var request data.Request
@@ -73,6 +82,11 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.IdpIdList = funcParam.IdPIDList
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
+		// Check idp is in the rp whitelist
+		if rpNodeDetail.UseWhitelist && !contains(idp, rpNodeDetail.Whitelist) {
+			return app.ReturnDeliverTxLog(code.NodeNotInWhitelist, "IdP is not in RP whitelist", "")
+		}
+
 		// Get node detail
 		nodeDetailKey := "NodeID" + "|" + idp
 		_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
@@ -87,6 +101,11 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		// Check node is active
 		if !node.Active {
 			return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
+		}
+
+		// Check rp is in the idp whitelist
+		if node.UseWhitelist && !contains(nodeID, node.Whitelist) {
+			return app.ReturnDeliverTxLog(code.NodeNotInWhitelist, "RP is not in IdP whitelist", "")
 		}
 
 		// If node is behind proxy

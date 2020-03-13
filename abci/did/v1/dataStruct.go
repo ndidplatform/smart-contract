@@ -89,14 +89,16 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID                                     string   `json:"node_id"`
-	Name                                   string   `json:"node_name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	IsIdpAgent                             bool     `json:"is_idp_agent"`
-	Ial                                    *float64 `json:"ial,omitempty"`
-	ModeList                               *[]int32 `json:"mode_list,omitempty"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	ID                                     string    `json:"node_id"`
+	Name                                   string    `json:"node_name"`
+	MaxIal                                 float64   `json:"max_ial"`
+	MaxAal                                 float64   `json:"max_aal"`
+	IsIdpAgent                             bool      `json:"is_idp_agent"`
+	UseWhitelist                           *bool     `json:"use_whitelist,omitempty"`
+	Whitelist                              *[]string `json:"whitelist,omitempty"`
+	Ial                                    *float64  `json:"ial,omitempty"`
+	ModeList                               *[]int32  `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string  `json:"supported_request_message_data_url_type_list"`
 }
 
 type GetIdpNodesResult struct {
@@ -256,14 +258,16 @@ type TransferNDIDParam struct {
 }
 
 type RegisterNode struct {
-	NodeID          string  `json:"node_id"`
-	PublicKey       string  `json:"public_key"`
-	MasterPublicKey string  `json:"master_public_key"`
-	NodeName        string  `json:"node_name"`
-	Role            string  `json:"role"`
-	MaxIal          float64 `json:"max_ial"`
-	MaxAal          float64 `json:"max_aal"`
-	IsIdPAgent      *bool   `json:"is_idp_agent"`
+	NodeID          string    `json:"node_id"`
+	PublicKey       string    `json:"public_key"`
+	MasterPublicKey string    `json:"master_public_key"`
+	NodeName        string    `json:"node_name"`
+	Role            string    `json:"role"`
+	MaxIal          float64   `json:"max_ial"`
+	MaxAal          float64   `json:"max_aal"`
+	IsIdPAgent      *bool     `json:"is_idp_agent"`
+	UseWhitelist    *bool     `json:"use_whitelist"`
+	Whitelist       *[]string `json:"whitelist"`
 }
 
 type NodeDetail struct {
@@ -466,6 +470,9 @@ type GetNodeInfoResult struct {
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
 	IsIdpAgent                             *bool     `json:"is_idp_agent,omitempty"`
+	// for IdP and RP
+	UseWhitelist *bool     `json:"use_whitelist,omitempty"`
+	Whitelist    *[]string `json:"whitelist,omitempty"`
 	// for node behind proxy
 	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
 	// for all
@@ -486,11 +493,13 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID     string  `json:"node_id"`
-	MaxIal     float64 `json:"max_ial"`
-	MaxAal     float64 `json:"max_aal"`
-	NodeName   string  `json:"node_name"`
-	IsIdPAgent *bool   `json:"is_idp_agent"`
+	NodeID       string    `json:"node_id"`
+	MaxIal       float64   `json:"max_ial"`
+	MaxAal       float64   `json:"max_aal"`
+	NodeName     string    `json:"node_name"`
+	IsIdPAgent   *bool     `json:"is_idp_agent"`
+	UseWhitelist *bool     `json:"use_whitelist"`
+	Whitelist    *[]string `json:"whitelist"`
 }
 
 type UpdateIdentityParam struct {
@@ -614,6 +623,8 @@ type IdpNode struct {
 	PublicKey                              string        `json:"public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
 	IsIdpAgent                             bool          `json:"is_idp_agent"`
+	UseWhitelist                           *bool         `json:"use_whitelist,omitempty"`
+	Whitelist                              *[]string     `json:"whitelist,omitempty"`
 	Ial                                    *float64      `json:"ial,omitempty"`
 	ModeList                               *[]int32      `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string      `json:"supported_request_message_data_url_type_list"`

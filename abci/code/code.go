@@ -128,5 +128,6 @@ const (
 	DuplicateIdentifier                                uint32 = 104
 	NewModeListMustBeHigherThanCurrentModeList         uint32 = 105
 	InvalidErrorCode                                   uint32 = 106
+	NodeNotInWhitelist                                 uint32 = 107
 	UnknownError                                       uint32 = 999
 )
