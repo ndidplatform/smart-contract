@@ -196,12 +196,20 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				return nil
 			}
 		}
+
+		var whitelist *[]string
+		if nodeDetail.UseWhitelist {
+			whitelist = &nodeDetail.Whitelist
+		}
+
 		return &MsqDestinationNode{
 			ID:                                     nodeID,
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
+			UseWhitelist:                           &nodeDetail.UseWhitelist,
+			Whitelist:                              whitelist,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
 		}
 	}
@@ -1192,6 +1200,11 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 		}
 
+		var whitelist *[]string
+		if nodeDetail.UseWhitelist {
+			whitelist = &nodeDetail.Whitelist
+		}
+
 		idpNode := &IdpNode{
 			NodeID:                                 nodeID,
 			Name:                                   nodeDetail.NodeName,
@@ -1200,6 +1213,8 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			PublicKey:                              nodeDetail.PublicKey,
 			Mq:                                     make([]MsqAddress, 0, len(nodeDetail.Mq)),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
+			UseWhitelist:                           &nodeDetail.UseWhitelist,
+			Whitelist:                              whitelist,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
 			Proxy:                                  proxy,
 		}

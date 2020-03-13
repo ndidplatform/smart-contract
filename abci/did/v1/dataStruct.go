@@ -89,14 +89,16 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID                                     string   `json:"node_id"`
-	Name                                   string   `json:"node_name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	IsIdpAgent                             bool     `json:"is_idp_agent"`
-	Ial                                    *float64 `json:"ial,omitempty"`
-	ModeList                               *[]int32 `json:"mode_list,omitempty"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	ID                                     string    `json:"node_id"`
+	Name                                   string    `json:"node_name"`
+	MaxIal                                 float64   `json:"max_ial"`
+	MaxAal                                 float64   `json:"max_aal"`
+	IsIdpAgent                             bool      `json:"is_idp_agent"`
+	UseWhitelist                           *bool     `json:"use_whitelist,omitempty"`
+	Whitelist                              *[]string `json:"whitelist,omitempty"`
+	Ial                                    *float64  `json:"ial,omitempty"`
+	ModeList                               *[]int32  `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string  `json:"supported_request_message_data_url_type_list"`
 }
 
 type GetIdpNodesResult struct {
@@ -621,6 +623,8 @@ type IdpNode struct {
 	PublicKey                              string        `json:"public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
 	IsIdpAgent                             bool          `json:"is_idp_agent"`
+	UseWhitelist                           *bool         `json:"use_whitelist,omitempty"`
+	Whitelist                              *[]string     `json:"whitelist,omitempty"`
 	Ial                                    *float64      `json:"ial,omitempty"`
 	ModeList                               *[]int32      `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string      `json:"supported_request_message_data_url_type_list"`
