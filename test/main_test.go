@@ -192,3 +192,16 @@ func TestIdP1RevokeAndAddAccessor(t *testing.T) {
 	query.TestGetAccessorKey(t, data.AccessorID5.String(), `{"accessor_public_key":"`+strings.Replace(data.AccessorPubKey2, "\n", "\\n", -1)+`","active":true}`)
 
 }
+
+func TestAddErrorCodeByNDID(t *testing.T) {
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, false, "success")
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, false, "ErrorCode is already in the database")
+	query.TestGetErrorCodeList(t, "idp", `[{"error_code":"`+data.IdpErrorCode1+`","description":"`+data.IdpErrorCodeDescription1+`","fatal":false}]`)
+	query.TestGetErrorCodeList(t, "as", "[]")
+}
+
+func TestRemoveErrorCodeByNDID(t *testing.T) {
+	ndid.TestRemoveErrorCode(t, "idp", data.IdpErrorCode1, "success")
+	ndid.TestRemoveErrorCode(t, "idp", data.IdpErrorCode1, "ErrorCode not exists")
+	query.TestGetErrorCodeList(t, "idp", `[]`)
+}

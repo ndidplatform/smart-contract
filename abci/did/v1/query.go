@@ -93,6 +93,8 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return app.getNodeIDList(param)
 	case "GetAccessorOwner":
 		return app.getAccessorOwner(param)
+	case "GetErrorCodeList":
+		return app.getErrorCodeList(param)
 	case "IsInitEnded":
 		return app.isInitEnded(param)
 	case "GetChainHistory":
@@ -109,4 +111,3 @@ func (app *DIDApplication) callQuery(name string, param string, height int64) ty
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
-

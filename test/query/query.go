@@ -452,3 +452,28 @@ func TestGetNodeInfo(t *testing.T, nodeID, expected string) {
 	param.NodeID = nodeID
 	GetNodeInfo(t, param, expected)
 }
+
+func getErrorCodeList(t *testing.T, param did.GetErrorCodeListParam, expected string) {
+	fnName := "GetErrorCodeList"
+	paramJSON, err := json.Marshal(param)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	result, _ := utils.Query([]byte(fnName), paramJSON)
+	resultObj, _ := result.(utils.ResponseQuery)
+	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
+	if resultObj.Result.Response.Log == expected {
+		t.Logf("PASS: %s", fnName)
+		return
+	}
+	if actual := string(resultString); actual != expected {
+		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+	}
+	t.Logf("PASS: %s", fnName)
+}
+
+func TestGetErrorCodeList(t *testing.T, errorCodeType string, expected string) {
+	var param did.GetErrorCodeListParam
+	param.Type = errorCodeType
+	getErrorCodeList(t, param, expected)
+}

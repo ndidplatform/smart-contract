@@ -143,6 +143,7 @@ type Response struct {
 	IdpID          string  `json:"idp_id"`
 	ValidIal       *bool   `json:"valid_ial"`
 	ValidSignature *bool   `json:"valid_signature"`
+	ErrorCode      *string `json:"error_code"`
 }
 
 type CreateIdpResponseParam struct {
@@ -151,6 +152,7 @@ type CreateIdpResponseParam struct {
 	RequestID string  `json:"request_id"`
 	Signature string  `json:"signature"`
 	Status    string  `json:"status"`
+	ErrorCode *string `json:"error_code"`
 }
 
 type GetRequestParam struct {
@@ -184,9 +186,10 @@ type GetRequestDetailResult struct {
 }
 
 type SignDataParam struct {
-	ServiceID string `json:"service_id"`
-	RequestID string `json:"request_id"`
-	Signature string `json:"signature"`
+	ServiceID string  `json:"service_id"`
+	RequestID string  `json:"request_id"`
+	Signature string  `json:"signature"`
+	ErrorCode *string `json:"error_code"`
 }
 
 type AddServiceParam struct {
@@ -813,4 +816,26 @@ type RevokeAndAddAccessorParam struct {
 	AccessorPublicKey  string `json:"accessor_public_key"`
 	AccessorType       string `json:"accessor_type"`
 	RequestID          string `json:"request_id"`
+}
+
+type AddErrorCodeParam struct {
+	ErrorCode   string `json:"error_code"`
+	Description string `json:"description"`
+	Fatal       bool   `json:"fatal"`
+	Type        string `json:"type"`
+}
+
+type RemoveErrorCodeParam struct {
+	ErrorCode string `json:"error_code"`
+	Type      string `json:"type"`
+}
+
+type GetErrorCodeListParam struct {
+	Type string `json:"type"`
+}
+
+type GetErrorCodeListResult struct {
+	ErrorCode   string `json:"error_code"`
+	Description string `json:"description"`
+	Fatal       bool   `json:"fatal"`
 }

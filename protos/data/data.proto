@@ -106,6 +106,7 @@ message Response {
   string idp_id = 5;
   string valid_ial = 6;
   string valid_signature = 7;
+  string error_code = 8;
 }
 
 message ReportList {
@@ -213,4 +214,14 @@ message AllowedModeList {
 
 message AllowedMinIalForRegisterIdentityAtFirstIdp {
   double min_ial = 1;
+}
+
+message ErrorCode {
+  string error_code = 1;
+  string description = 2;
+  bool fatal = 3;
+}
+
+message ErrorCodeList {
+  repeated ErrorCode error_code = 2;
 }
