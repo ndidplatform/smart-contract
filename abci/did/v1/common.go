@@ -156,66 +156,77 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
+
+	// getMsqDestionationNode returns MsqDestinationNode if nodeID is valid
+	// otherwise return nil
+	getMsqDestinationNode := func(nodeID string) *MsqDestinationNode {
+		nodeDetailKey := "NodeID" + "|" + nodeID
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return nil
+		}
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+		if err != nil {
+			return nil
+		}
+		// check node is active
+		if !nodeDetail.Active {
+			return nil
+		}
+		// check Max IAL && AAL
+		if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+			nodeDetail.MaxAal >= funcParam.MinAal) {
+			return nil
+		}
+		// Filter by node_id_list
+		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
+			return nil
+		}
+		// Filter by supported_request_message_data_url_type_list
+		if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
+			// foundSupported := false
+			supportedCount := 0
+			for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+				if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
+					supportedCount++
+				}
+			}
+			if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
+				return nil
+			}
+		}
+		return &MsqDestinationNode{
+			ID:                                     nodeID,
+			Name:                                   nodeDetail.NodeName,
+			MaxIal:                                 nodeDetail.MaxIal,
+			MaxAal:                                 nodeDetail.MaxAal,
+			IsIdpAgent:                             nodeDetail.IsIdpAgent,
+			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
+		}
+	}
+
 	var returnNodes GetIdpNodesResult
-	returnNodes.Node = make([]interface{}, 0)
+
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
+		// fetch every idp nodes from IdPList
 		idpsKey := "IdPList"
 		_, idpsValue := app.GetCommittedStateDB([]byte(idpsKey))
-		var idpsList data.IdPList
 		if idpsValue != nil {
+			var idpsList data.IdPList
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
+			returnNodes.Node = make([]MsqDestinationNode, 0, len(idpsList.NodeId))
 			for _, idp := range idpsList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + idp
-				_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-				if nodeDetailValue == nil {
-					continue
+				if msqDesNode := getMsqDestinationNode(idp); msqDesNode != nil {
+					returnNodes.Node = append(returnNodes.Node, *msqDesNode)
 				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-				if err != nil {
-					continue
-				}
-				// check node is active
-				if !nodeDetail.Active {
-					continue
-				}
-				// check Max IAL && AAL
-				if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-					nodeDetail.MaxAal >= funcParam.MinAal) {
-					continue
-				}
-				// Filter by node_id_list
-				if len(funcParam.NodeIDList) > 0 {
-					if !contains(idp, funcParam.NodeIDList) {
-						continue
-					}
-				}
-				// Filter by supported_request_message_data_url_type_list
-				if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
-					// foundSupported := false
-					supportedCount := 0
-					for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
-						if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
-							supportedCount++
-						}
-					}
-					if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
-						continue
-					}
-				}
-				var msqDesNode MsqDestinationNode
-				msqDesNode.ID = idp
-				msqDesNode.Name = nodeDetail.NodeName
-				msqDesNode.MaxIal = nodeDetail.MaxIal
-				msqDesNode.MaxAal = nodeDetail.MaxAal
-				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-				returnNodes.Node = append(returnNodes.Node, msqDesNode)
 			}
 		}
 	} else {
+		// fetch idp nodes from reference group
 		refGroupCode := ""
 		if funcParam.ReferenceGroupCode != "" {
 			refGroupCode = funcParam.ReferenceGroupCode
@@ -237,26 +248,8 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
+		returnNodes.Node = make([]MsqDestinationNode, 0, len(refGroup.Idps))
 		for _, idp := range refGroup.Idps {
-			nodeDetailKey := "NodeID" + "|" + idp.NodeId
-			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-			if nodeDetailValue == nil {
-				continue
-			}
-			var nodeDetail data.NodeDetail
-			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-			if err != nil {
-				continue
-			}
-			// check node is active
-			if !nodeDetail.Active {
-				continue
-			}
-			// check Max IAL && AAL
-			if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-				nodeDetail.MaxAal >= funcParam.MinAal) {
-				continue
-			}
 			// check IdP has Association with Identity
 			if !idp.Active {
 				continue
@@ -268,19 +261,6 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			// Filter by node_id_list
 			if len(funcParam.NodeIDList) > 0 {
 				if !contains(idp.NodeId, funcParam.NodeIDList) {
-					continue
-				}
-			}
-			// Filter by supported_request_message_data_url_type_list
-			if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
-				// foundSupported := false
-				supportedCount := 0
-				for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
-					if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
-						supportedCount++
-					}
-				}
-				if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 					continue
 				}
 			}
@@ -296,17 +276,14 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 					continue
 				}
 			}
-			var msqDesNode MsqDestinationNodeWithModeList
-			msqDesNode.ID = idp.NodeId
-			msqDesNode.Name = nodeDetail.NodeName
-			msqDesNode.MaxIal = nodeDetail.MaxIal
-			msqDesNode.MaxAal = nodeDetail.MaxAal
-			msqDesNode.Ial = idp.Ial
-			msqDesNode.ModeList = idp.Mode
-			msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-			returnNodes.Node = append(returnNodes.Node, msqDesNode)
+			if msqDesNode := getMsqDestinationNode(idp.NodeId); msqDesNode != nil {
+				msqDesNode.Ial = &idp.Ial
+				msqDesNode.ModeList = &idp.Mode
+				returnNodes.Node = append(returnNodes.Node, *msqDesNode)
+			}
 		}
 	}
+
 	value, err := json.Marshal(returnNodes)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -902,6 +879,21 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	result := GetNodeInfoResult{
+		PublicKey:       nodeDetail.PublicKey,
+		MasterPublicKey: nodeDetail.MasterPublicKey,
+		NodeName:        nodeDetail.NodeName,
+		Role:            nodeDetail.Role,
+		Mq:              make([]MsqAddress, 0, len(nodeDetail.Mq)),
+		Active:          nodeDetail.Active,
+	}
+	for _, mq := range nodeDetail.Mq {
+		result.Mq = append(result.Mq, MsqAddress{
+			IP:   mq.Ip,
+			Port: mq.Port,
+		})
+	}
+
 	// If node behind proxy
 	if nodeDetail.ProxyNodeId != "" {
 		proxyNodeID := nodeDetail.ProxyNodeId
@@ -916,98 +908,33 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
-		if nodeDetail.Role == "IdP" {
-			var result GetNodeInfoResultIdPandASBehindProxy
-			result.PublicKey = nodeDetail.PublicKey
-			result.MasterPublicKey = nodeDetail.MasterPublicKey
-			result.NodeName = nodeDetail.NodeName
-			result.Role = nodeDetail.Role
-			result.MaxIal = nodeDetail.MaxIal
-			result.MaxAal = nodeDetail.MaxAal
-			result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-			result.Proxy.NodeID = string(proxyNodeID)
-			result.Proxy.NodeName = proxyNode.NodeName
-			result.Proxy.PublicKey = proxyNode.PublicKey
-			result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-			if proxyNode.Mq != nil {
-				for _, mq := range proxyNode.Mq {
-					var msq MsqAddress
-					msq.IP = mq.Ip
-					msq.Port = mq.Port
-					result.Proxy.Mq = append(result.Proxy.Mq, msq)
-				}
-			}
-			result.Proxy.Config = nodeDetail.ProxyConfig
-			result.Active = nodeDetail.Active
-			value, err := json.Marshal(result)
-			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
-			}
-			return app.ReturnQuery(value, "success", app.state.Height)
+
+		proxy := ProxyNodeInfo{
+			NodeID:          string(proxyNodeID),
+			NodeName:        proxyNode.NodeName,
+			PublicKey:       proxyNode.PublicKey,
+			MasterPublicKey: proxyNode.MasterPublicKey,
+			Mq:              make([]MsqAddress, 0, len(proxyNode.Mq)),
+			Config:          proxyNode.ProxyConfig,
 		}
-		var result GetNodeInfoResultRPandASBehindProxy
-		result.PublicKey = nodeDetail.PublicKey
-		result.MasterPublicKey = nodeDetail.MasterPublicKey
-		result.NodeName = nodeDetail.NodeName
-		result.Role = nodeDetail.Role
-		result.Proxy.NodeID = string(proxyNodeID)
-		result.Proxy.NodeName = proxyNode.NodeName
-		result.Proxy.PublicKey = proxyNode.PublicKey
-		result.Proxy.MasterPublicKey = proxyNode.MasterPublicKey
-		if proxyNode.Mq != nil {
-			for _, mq := range proxyNode.Mq {
-				var msq MsqAddress
-				msq.IP = mq.Ip
-				msq.Port = mq.Port
-				result.Proxy.Mq = append(result.Proxy.Mq, msq)
-			}
+		for _, mq := range proxyNode.Mq {
+			proxy.Mq = append(proxy.Mq, MsqAddress{
+				IP:   mq.Ip,
+				Port: mq.Port,
+			})
 		}
-		result.Proxy.Config = nodeDetail.ProxyConfig
-		result.Active = nodeDetail.Active
-		value, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(value, "success", app.state.Height)
+
+		result.Proxy = &proxy
 	}
+
 	if nodeDetail.Role == "IdP" {
-		var result GetNodeInfoIdPResult
-		result.PublicKey = nodeDetail.PublicKey
-		result.MasterPublicKey = nodeDetail.MasterPublicKey
-		result.NodeName = nodeDetail.NodeName
-		result.Role = nodeDetail.Role
-		result.MaxIal = nodeDetail.MaxIal
-		result.MaxAal = nodeDetail.MaxAal
-		result.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-		if nodeDetail.Mq != nil {
-			for _, mq := range nodeDetail.Mq {
-				var msq MsqAddress
-				msq.IP = mq.Ip
-				msq.Port = mq.Port
-				result.Mq = append(result.Mq, msq)
-			}
-		}
-		result.Active = nodeDetail.Active
-		value, err := json.Marshal(result)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-		return app.ReturnQuery(value, "success", app.state.Height)
+		result.MaxIal = &nodeDetail.MaxIal
+		result.MaxAal = &nodeDetail.MaxAal
+		supportedRequestMessageDataUrlTypeList := append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
+		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
+		result.IsIdpAgent = &nodeDetail.IsIdpAgent
 	}
-	var result GetNodeInfoResult
-	result.PublicKey = nodeDetail.PublicKey
-	result.MasterPublicKey = nodeDetail.MasterPublicKey
-	result.NodeName = nodeDetail.NodeName
-	result.Role = nodeDetail.Role
-	if nodeDetail.Mq != nil {
-		for _, mq := range nodeDetail.Mq {
-			var msq MsqAddress
-			msq.IP = mq.Ip
-			msq.Port = mq.Port
-			result.Mq = append(result.Mq, msq)
-		}
-	}
-	result.Active = nodeDetail.Active
+
 	value, err := json.Marshal(result)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1185,110 +1112,114 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
+
+	// return IdpNode if nodeID valid and within funcParam
+	// return nil otherwise
+	getIdpNode := func(nodeID string) *IdpNode {
+		nodeDetailKey := "NodeID" + "|" + nodeID
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return nil
+		}
+		var nodeDetail data.NodeDetail
+		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+		if err != nil {
+			return nil
+		}
+		// check node is active
+		if !nodeDetail.Active {
+			return nil
+		}
+		// check Max IAL && AAL
+		if !(nodeDetail.MaxIal >= funcParam.MinIal &&
+			nodeDetail.MaxAal >= funcParam.MinAal) {
+			return nil
+		}
+		// Filter by node_id_list
+		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
+			return nil
+		}
+		// Filter by supported_request_message_data_url_type_list
+		if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
+			// foundSupported := false
+			supportedCount := 0
+			for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
+				if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
+					supportedCount++
+				}
+			}
+			if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
+				return nil
+			}
+		}
+
+		var proxy *IdpNodeProxy
+		if nodeDetail.ProxyNodeId != "" {
+			proxyNodeID := nodeDetail.ProxyNodeId
+			// Get proxy node detail
+			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
+			if proxyNodeDetailValue == nil {
+				return nil
+			}
+			var proxyNode data.NodeDetail
+			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+			if err != nil {
+				return nil
+			}
+			// Check proxy node is active
+			if !proxyNode.Active {
+				return nil
+			}
+			proxy := &IdpNodeProxy{
+				NodeID:    string(proxyNodeID),
+				PublicKey: proxyNode.PublicKey,
+				Mq:        make([]MsqAddress, 0, len(proxyNode.Mq)),
+				Config:    nodeDetail.ProxyConfig,
+			}
+			for _, mq := range proxyNode.Mq {
+				proxy.Mq = append(proxy.Mq, MsqAddress{
+					IP:   mq.Ip,
+					Port: mq.Port,
+				})
+			}
+		}
+
+		idpNode := &IdpNode{
+			NodeID:                                 nodeID,
+			Name:                                   nodeDetail.NodeName,
+			MaxIal:                                 nodeDetail.MaxIal,
+			MaxAal:                                 nodeDetail.MaxAal,
+			PublicKey:                              nodeDetail.PublicKey,
+			Mq:                                     make([]MsqAddress, 0, len(nodeDetail.Mq)),
+			IsIdpAgent:                             nodeDetail.IsIdpAgent,
+			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
+			Proxy:                                  proxy,
+		}
+
+		for _, mq := range nodeDetail.Mq {
+			idpNode.Mq = append(idpNode.Mq, MsqAddress{
+				IP:   mq.Ip,
+				Port: mq.Port,
+			})
+		}
+
+		return idpNode
+	}
+
 	var returnNodes GetIdpNodesInfoResult
-	returnNodes.Node = make([]interface{}, 0)
+
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
 		idpsKey := "IdPList"
-		_, idpsValue := app.GetCommittedStateDB([]byte(idpsKey))
 		var idpsList data.IdPList
-		if idpsValue != nil {
-			err := proto.Unmarshal(idpsValue, &idpsList)
-			if err != nil {
+		if _, idpsValue := app.GetCommittedStateDB([]byte(idpsKey)); idpsValue != nil {
+			if err := proto.Unmarshal(idpsValue, &idpsList); err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
+			returnNodes.Node = make([]IdpNode, 0, len(idpsList.NodeId))
 			for _, idp := range idpsList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + idp
-				_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-				if nodeDetailValue == nil {
-					continue
-				}
-				var nodeDetail data.NodeDetail
-				err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-				if err != nil {
-					continue
-				}
-				// check node is active
-				if !nodeDetail.Active {
-					continue
-				}
-				// check Max IAL && AAL
-				if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-					nodeDetail.MaxAal >= funcParam.MinAal) {
-					continue
-				}
-				// Filter by node_id_list
-				if len(funcParam.NodeIDList) > 0 {
-					if !contains(idp, funcParam.NodeIDList) {
-						continue
-					}
-				}
-				// Filter by supported_request_message_data_url_type_list
-				if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
-					// foundSupported := false
-					supportedCount := 0
-					for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
-						if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
-							supportedCount++
-						}
-					}
-					if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
-						continue
-					}
-				}
-				// If node is behind proxy
-				if nodeDetail.ProxyNodeId != "" {
-					proxyNodeID := nodeDetail.ProxyNodeId
-					// Get proxy node detail
-					proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-					_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
-					if proxyNodeDetailValue == nil {
-						return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-					}
-					var proxyNode data.NodeDetail
-					err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-					if err != nil {
-						return app.ReturnQuery(nil, err.Error(), app.state.Height)
-					}
-					// Check proxy node is active
-					if !proxyNode.Active {
-						continue
-					}
-					var msqDesNode IdpNodeBehindProxy
-					msqDesNode.NodeID = idp
-					msqDesNode.Name = nodeDetail.NodeName
-					msqDesNode.MaxIal = nodeDetail.MaxIal
-					msqDesNode.MaxAal = nodeDetail.MaxAal
-					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-					msqDesNode.Proxy.NodeID = string(proxyNodeID)
-					msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-					if proxyNode.Mq != nil {
-						for _, mq := range proxyNode.Mq {
-							var msq MsqAddress
-							msq.IP = mq.Ip
-							msq.Port = mq.Port
-							msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-						}
-					}
-					msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
-					returnNodes.Node = append(returnNodes.Node, msqDesNode)
-				} else {
-					var msq []MsqAddress
-					for _, mq := range nodeDetail.Mq {
-						var msqAddress MsqAddress
-						msqAddress.IP = mq.Ip
-						msqAddress.Port = mq.Port
-						msq = append(msq, msqAddress)
-					}
-					var msqDesNode IdpNode
-					msqDesNode.NodeID = idp
-					msqDesNode.Name = nodeDetail.NodeName
-					msqDesNode.MaxIal = nodeDetail.MaxIal
-					msqDesNode.MaxAal = nodeDetail.MaxAal
-					msqDesNode.PublicKey = nodeDetail.PublicKey
-					msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-					msqDesNode.Mq = msq
-					returnNodes.Node = append(returnNodes.Node, msqDesNode)
+				if idpNode := getIdpNode(idp); idpNode != nil {
+					returnNodes.Node = append(returnNodes.Node, *idpNode)
 				}
 			}
 		}
@@ -1315,25 +1246,6 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		for _, idp := range refGroup.Idps {
-			nodeDetailKey := "NodeID" + "|" + idp.NodeId
-			_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
-			if nodeDetailValue == nil {
-				continue
-			}
-			var nodeDetail data.NodeDetail
-			err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
-			if err != nil {
-				continue
-			}
-			// check node is active
-			if !nodeDetail.Active {
-				continue
-			}
-			// check Max IAL && AAL
-			if !(nodeDetail.MaxIal >= funcParam.MinIal &&
-				nodeDetail.MaxAal >= funcParam.MinAal) {
-				continue
-			}
 			// check IdP has Association with Identity
 			if !idp.Active {
 				continue
@@ -1345,19 +1257,6 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			// Filter by node_id_list
 			if len(funcParam.NodeIDList) > 0 {
 				if !contains(idp.NodeId, funcParam.NodeIDList) {
-					continue
-				}
-			}
-			// Filter by supported_request_message_data_url_type_list
-			if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
-				// foundSupported := false
-				supportedCount := 0
-				for _, supportedType := range nodeDetail.SupportedRequestMessageDataUrlTypeList {
-					if contains(supportedType, funcParam.SupportedRequestMessageDataUrlTypeList) {
-						supportedCount++
-					}
-				}
-				if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 					continue
 				}
 			}
@@ -1373,63 +1272,10 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 					continue
 				}
 			}
-			// If node is behind proxy
-			if nodeDetail.ProxyNodeId != "" {
-				proxyNodeID := nodeDetail.ProxyNodeId
-				// Get proxy node detail
-				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-				_, proxyNodeDetailValue := app.GetCommittedStateDB([]byte(proxyNodeDetailKey))
-				if proxyNodeDetailValue == nil {
-					return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
-				}
-				var proxyNode data.NodeDetail
-				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
-				}
-				// Check proxy node is active
-				if !proxyNode.Active {
-					continue
-				}
-				var msqDesNode IdpNodeBehindProxyWithModeList
-				msqDesNode.NodeID = idp.NodeId
-				msqDesNode.Name = nodeDetail.NodeName
-				msqDesNode.MaxIal = nodeDetail.MaxIal
-				msqDesNode.MaxAal = nodeDetail.MaxAal
-				msqDesNode.PublicKey = nodeDetail.PublicKey
-				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-				msqDesNode.Proxy.NodeID = string(proxyNodeID)
-				msqDesNode.Proxy.PublicKey = proxyNode.PublicKey
-				if proxyNode.Mq != nil {
-					for _, mq := range proxyNode.Mq {
-						var msq MsqAddress
-						msq.IP = mq.Ip
-						msq.Port = mq.Port
-						msqDesNode.Proxy.Mq = append(msqDesNode.Proxy.Mq, msq)
-					}
-				}
-				msqDesNode.Proxy.Config = nodeDetail.ProxyConfig
-				msqDesNode.ModeList = idp.Mode
-				returnNodes.Node = append(returnNodes.Node, msqDesNode)
-			} else {
-				var msq []MsqAddress
-				for _, mq := range nodeDetail.Mq {
-					var msqAddress MsqAddress
-					msqAddress.IP = mq.Ip
-					msqAddress.Port = mq.Port
-					msq = append(msq, msqAddress)
-				}
-				var msqDesNode IdpNodeWithModeList
-				msqDesNode.NodeID = idp.NodeId
-				msqDesNode.Name = nodeDetail.NodeName
-				msqDesNode.MaxIal = nodeDetail.MaxIal
-				msqDesNode.MaxAal = nodeDetail.MaxAal
-				msqDesNode.PublicKey = nodeDetail.PublicKey
-				msqDesNode.SupportedRequestMessageDataUrlTypeList = append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
-				msqDesNode.Mq = msq
-				msqDesNode.Ial = idp.Ial
-				msqDesNode.ModeList = idp.Mode
-				returnNodes.Node = append(returnNodes.Node, msqDesNode)
+			if idpNode := getIdpNode(idp.NodeId); idpNode != nil {
+				idpNode.Ial = &idp.Ial
+				idpNode.ModeList = &idp.Mode
+				returnNodes.Node = append(returnNodes.Node, *idpNode)
 			}
 		}
 	}

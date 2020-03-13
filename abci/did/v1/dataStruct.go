@@ -88,26 +88,19 @@ type GetIdpNodesParam struct {
 	ModeList                               []int32  `json:"mode_list"`
 }
 
-type MsqDestinationNodeWithModeList struct {
-	ID                                     string   `json:"node_id"`
-	Name                                   string   `json:"node_name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	Ial                                    float64  `json:"ial"`
-	ModeList                               []int32  `json:"mode_list"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
-}
-
 type MsqDestinationNode struct {
 	ID                                     string   `json:"node_id"`
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	IsIdpAgent                             bool     `json:"is_idp_agent"`
+	Ial                                    *float64 `json:"ial,omitempty"`
+	ModeList                               *[]int32 `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 type GetIdpNodesResult struct {
-	Node []interface{} `json:"node"`
+	Node []MsqDestinationNode `json:"node"`
 }
 
 type GetAccessorMethodParam struct {
@@ -270,6 +263,7 @@ type RegisterNode struct {
 	Role            string  `json:"role"`
 	MaxIal          float64 `json:"max_ial"`
 	MaxAal          float64 `json:"max_aal"`
+	IsIdPAgent      *bool   `json:"is_idp_agent"`
 }
 
 type NodeDetail struct {
@@ -453,25 +447,30 @@ type GetNodeInfoParam struct {
 	NodeID string `json:"node_id"`
 }
 
-type GetNodeInfoResult struct {
+type ProxyNodeInfo struct {
+	NodeID          string       `json:"node_id"`
+	NodeName        string       `json:"node_name"`
 	PublicKey       string       `json:"public_key"`
 	MasterPublicKey string       `json:"master_public_key"`
-	NodeName        string       `json:"node_name"`
-	Role            string       `json:"role"`
 	Mq              []MsqAddress `json:"mq"`
-	Active          bool         `json:"active"`
+	Config          string       `json:"config"`
 }
 
-type GetNodeInfoIdPResult struct {
-	PublicKey                              string       `json:"public_key"`
-	MasterPublicKey                        string       `json:"master_public_key"`
-	NodeName                               string       `json:"node_name"`
-	Role                                   string       `json:"role"`
-	MaxIal                                 float64      `json:"max_ial"`
-	MaxAal                                 float64      `json:"max_aal"`
-	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
-	Mq                                     []MsqAddress `json:"mq"`
-	Active                                 bool         `json:"active"`
+type GetNodeInfoResult struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	// for IdP
+	MaxIal                                 *float64  `json:"max_ial,omitempty"`
+	MaxAal                                 *float64  `json:"max_aal,omitempty"`
+	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	IsIdpAgent                             *bool     `json:"is_idp_agent,omitempty"`
+	// for node behind proxy
+	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
+	// for all
+	Mq     []MsqAddress `json:"mq"`
+	Active bool         `json:"active"`
 }
 
 type GetIdentityInfoParam struct {
@@ -487,10 +486,11 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID   string  `json:"node_id"`
-	MaxIal   float64 `json:"max_ial"`
-	MaxAal   float64 `json:"max_aal"`
-	NodeName string  `json:"node_name"`
+	NodeID     string  `json:"node_id"`
+	MaxIal     float64 `json:"max_ial"`
+	MaxAal     float64 `json:"max_aal"`
+	NodeName   string  `json:"node_name"`
+	IsIdPAgent *bool   `json:"is_idp_agent"`
 }
 
 type UpdateIdentityParam struct {
@@ -596,29 +596,28 @@ type TimeOutBlockRegisterIdentity struct {
 }
 
 type GetIdpNodesInfoResult struct {
-	Node []interface{} `json:"node"`
+	Node []IdpNode `json:"node"`
+}
+
+type IdpNodeProxy struct {
+	NodeID    string       `json:"node_id"`
+	PublicKey string       `json:"public_key"`
+	Mq        []MsqAddress `json:"mq"`
+	Config    string       `json:"config"`
 }
 
 type IdpNode struct {
-	NodeID                                 string       `json:"node_id"`
-	Name                                   string       `json:"name"`
-	MaxIal                                 float64      `json:"max_ial"`
-	MaxAal                                 float64      `json:"max_aal"`
-	PublicKey                              string       `json:"public_key"`
-	Mq                                     []MsqAddress `json:"mq"`
-	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
-}
-
-type IdpNodeWithModeList struct {
-	NodeID                                 string       `json:"node_id"`
-	Name                                   string       `json:"name"`
-	MaxIal                                 float64      `json:"max_ial"`
-	MaxAal                                 float64      `json:"max_aal"`
-	PublicKey                              string       `json:"public_key"`
-	Mq                                     []MsqAddress `json:"mq"`
-	Ial                                    float64      `json:"ial"`
-	ModeList                               []int32      `json:"mode_list"`
-	SupportedRequestMessageDataUrlTypeList []string     `json:"supported_request_message_data_url_type_list"`
+	NodeID                                 string        `json:"node_id"`
+	Name                                   string        `json:"name"`
+	MaxIal                                 float64       `json:"max_ial"`
+	MaxAal                                 float64       `json:"max_aal"`
+	PublicKey                              string        `json:"public_key"`
+	Mq                                     []MsqAddress  `json:"mq"`
+	IsIdpAgent                             bool          `json:"is_idp_agent"`
+	Ial                                    *float64      `json:"ial,omitempty"`
+	ModeList                               *[]int32      `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string      `json:"supported_request_message_data_url_type_list"`
+	Proxy                                  *IdpNodeProxy `json:"proxy,omitempty"`
 }
 
 type ASWithMqNode struct {
@@ -641,41 +640,6 @@ type AddNodeToProxyNodeParam struct {
 	Config      string `json:"config"`
 }
 
-type GetNodeInfoResultRPandASBehindProxy struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
-	Proxy           struct {
-		NodeID          string       `json:"node_id"`
-		NodeName        string       `json:"node_name"`
-		PublicKey       string       `json:"public_key"`
-		MasterPublicKey string       `json:"master_public_key"`
-		Mq              []MsqAddress `json:"mq"`
-		Config          string       `json:"config"`
-	} `json:"proxy"`
-	Active bool `json:"active"`
-}
-
-type GetNodeInfoResultIdPandASBehindProxy struct {
-	PublicKey                              string   `json:"public_key"`
-	MasterPublicKey                        string   `json:"master_public_key"`
-	NodeName                               string   `json:"node_name"`
-	Role                                   string   `json:"role"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
-	Proxy                                  struct {
-		NodeID          string       `json:"node_id"`
-		NodeName        string       `json:"node_name"`
-		PublicKey       string       `json:"public_key"`
-		MasterPublicKey string       `json:"master_public_key"`
-		Mq              []MsqAddress `json:"mq"`
-		Config          string       `json:"config"`
-	} `json:"proxy"`
-	Active bool `json:"active"`
-}
-
 type UpdateNodeProxyNodeParam struct {
 	NodeID      string `json:"node_id"`
 	ProxyNodeID string `json:"proxy_node_id"`
@@ -684,37 +648,6 @@ type UpdateNodeProxyNodeParam struct {
 
 type RemoveNodeFromProxyNode struct {
 	NodeID string `json:"node_id"`
-}
-
-type IdpNodeBehindProxy struct {
-	NodeID                                 string   `json:"node_id"`
-	Name                                   string   `json:"name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	PublicKey                              string   `json:"public_key"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
-	Proxy                                  struct {
-		NodeID    string       `json:"node_id"`
-		PublicKey string       `json:"public_key"`
-		Mq        []MsqAddress `json:"mq"`
-		Config    string       `json:"config"`
-	} `json:"proxy"`
-}
-
-type IdpNodeBehindProxyWithModeList struct {
-	NodeID                                 string   `json:"node_id"`
-	Name                                   string   `json:"name"`
-	MaxIal                                 float64  `json:"max_ial"`
-	MaxAal                                 float64  `json:"max_aal"`
-	PublicKey                              string   `json:"public_key"`
-	ModeList                               []int32  `json:"mode_list"`
-	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
-	Proxy                                  struct {
-		NodeID    string       `json:"node_id"`
-		PublicKey string       `json:"public_key"`
-		Mq        []MsqAddress `json:"mq"`
-		Config    string       `json:"config"`
-	} `json:"proxy"`
 }
 
 type ASWithMqNodeBehindProxy struct {

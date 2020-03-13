@@ -127,10 +127,11 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	nodeDetail.NodeName = funcParam.NodeName
 	nodeDetail.Role = funcParam.Role
 	nodeDetail.Active = true
-	// if node is IdP, set max_aal, min_ial and supported_request_message_type_list
+	// if node is IdP, set max_aal, min_ial, is_idp_agent and supported_request_message_type_list
 	if funcParam.Role == "IdP" {
 		nodeDetail.MaxAal = funcParam.MaxAal
 		nodeDetail.MaxIal = funcParam.MaxIal
+		nodeDetail.IsIdpAgent = funcParam.IsIdPAgent != nil && *funcParam.IsIdPAgent
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = make([]string, 0)
 	}
 	// if node is IdP, add node id to IdPList
@@ -410,13 +411,16 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 	if funcParam.NodeName != "" {
 		node.NodeName = funcParam.NodeName
 	}
-	// If node is IdP then update max_ial, max_aal
+	// If node is IdP then update max_ial, max_aal and is_idp_agent
 	if node.Role == "IdP" {
 		if funcParam.MaxIal > 0 {
 			node.MaxIal = funcParam.MaxIal
 		}
 		if funcParam.MaxAal > 0 {
 			node.MaxAal = funcParam.MaxAal
+		}
+		if funcParam.IsIdPAgent != nil {
+			node.IsIdpAgent = *funcParam.IsIdPAgent
 		}
 	}
 	nodeDetailJSON, err := utils.ProtoDeterministicMarshal(&node)
