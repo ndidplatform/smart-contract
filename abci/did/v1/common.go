@@ -157,9 +157,29 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	// fetch Filter RP node detail
+	var rpNodeDetail *data.NodeDetail
+	if funcParam.FilterForRP != nil {
+		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+		}
+		rpNodeDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+	}
+
 	// getMsqDestionationNode returns MsqDestinationNode if nodeID is valid
 	// otherwise return nil
 	getMsqDestinationNode := func(nodeID string) *MsqDestinationNode {
+		// check if Idp in Filter RP whitelist
+		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
+			!contains(nodeID, rpNodeDetail.Whitelist) {
+			return nil
+		}
+
 		nodeDetailKey := "NodeID" + "|" + nodeID
 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 		if nodeDetailValue == nil {
@@ -195,6 +215,11 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 				return nil
 			}
+		}
+		// Check if Filter RP is in Idp whitelist
+		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+			return nil
 		}
 
 		var whitelist *[]string
@@ -1128,9 +1153,29 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	// fetch Filter RP node detail
+	var rpNodeDetail *data.NodeDetail
+	if funcParam.FilterForRP != nil {
+		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+		}
+		rpNodeDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+	}
+
 	// return IdpNode if nodeID valid and within funcParam
 	// return nil otherwise
 	getIdpNode := func(nodeID string) *IdpNode {
+		// check if Idp in Filter RP whitelist
+		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
+			!contains(nodeID, rpNodeDetail.Whitelist) {
+			return nil
+		}
+
 		nodeDetailKey := "NodeID" + "|" + nodeID
 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 		if nodeDetailValue == nil {
@@ -1166,6 +1211,11 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 				return nil
 			}
+		}
+		// Check if Filter RP is in Idp whitelist
+		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+			return nil
 		}
 
 		var proxy *IdpNodeProxy
