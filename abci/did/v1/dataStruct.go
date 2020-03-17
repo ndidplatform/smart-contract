@@ -93,7 +93,7 @@ type MsqDestinationNode struct {
 	Name                                   string    `json:"node_name"`
 	MaxIal                                 float64   `json:"max_ial"`
 	MaxAal                                 float64   `json:"max_aal"`
-	IsIdpAgent                             bool      `json:"is_idp_agent"`
+	IsIdpAgent                             bool      `json:"agent"`
 	UseWhitelist                           *bool     `json:"use_whitelist,omitempty"`
 	Whitelist                              *[]string `json:"whitelist,omitempty"`
 	Ial                                    *float64  `json:"ial,omitempty"`
@@ -265,7 +265,7 @@ type RegisterNode struct {
 	Role            string    `json:"role"`
 	MaxIal          float64   `json:"max_ial"`
 	MaxAal          float64   `json:"max_aal"`
-	IsIdPAgent      *bool     `json:"is_idp_agent"`
+	IsIdPAgent      *bool     `json:"agent"`
 	UseWhitelist    *bool     `json:"use_whitelist"`
 	Whitelist       *[]string `json:"whitelist"`
 }
@@ -469,7 +469,7 @@ type GetNodeInfoResult struct {
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
-	IsIdpAgent                             *bool     `json:"is_idp_agent,omitempty"`
+	IsIdpAgent                             *bool     `json:"agent,omitempty"`
 	// for IdP and RP
 	UseWhitelist *bool     `json:"use_whitelist,omitempty"`
 	Whitelist    *[]string `json:"whitelist,omitempty"`
@@ -497,7 +497,7 @@ type UpdateNodeByNDIDParam struct {
 	MaxIal       float64   `json:"max_ial"`
 	MaxAal       float64   `json:"max_aal"`
 	NodeName     string    `json:"node_name"`
-	IsIdPAgent   *bool     `json:"is_idp_agent"`
+	IsIdPAgent   *bool     `json:"agent"`
 	UseWhitelist *bool     `json:"use_whitelist"`
 	Whitelist    *[]string `json:"whitelist"`
 }
@@ -622,7 +622,7 @@ type IdpNode struct {
 	MaxAal                                 float64       `json:"max_aal"`
 	PublicKey                              string        `json:"public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
-	IsIdpAgent                             bool          `json:"is_idp_agent"`
+	IsIdpAgent                             bool          `json:"agent"`
 	UseWhitelist                           *bool         `json:"use_whitelist,omitempty"`
 	Whitelist                              *[]string     `json:"whitelist,omitempty"`
 	Ial                                    *float64      `json:"ial,omitempty"`
