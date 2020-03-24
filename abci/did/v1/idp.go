@@ -413,14 +413,9 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
-	var response data.Response
-	response.Ial = funcParam.Ial
-	response.Aal = funcParam.Aal
-	response.Status = funcParam.Status
-	response.Signature = funcParam.Signature
-	response.IdpId = nodeID
 
+	// get request
+	key := "Request" + "|" + funcParam.RequestID
 	_, value := app.GetVersionedStateDB([]byte(key), 0)
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
@@ -430,30 +425,76 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Check duplicate before add
-	chkDup := false
-	for _, oldResponse := range request.ResponseList {
-		if &response == oldResponse {
-			chkDup = true
-			break
+
+	var response data.Response
+	if funcParam.ErrorCode == nil {
+		response.Ial = funcParam.Ial
+		response.Aal = funcParam.Aal
+		response.Status = funcParam.Status
+		response.Signature = funcParam.Signature
+		response.IdpId = nodeID
+
+		// Check duplicate before add
+		chkDup := false
+		for _, oldResponse := range request.ResponseList {
+			if &response == oldResponse {
+				chkDup = true
+				break
+			}
 		}
-	}
-	// Check AAL
-	if request.MinAal > response.Aal {
-		return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
-	}
-	// Check IAL
-	if request.MinIal > response.Ial {
-		return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
-	}
-	// Check AAL, IAL with MaxIalAal
-	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	// Check error code exists
-	if funcParam.ErrorCode != nil {
+		// Check AAL
+		if request.MinAal > response.Aal {
+			return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
+		}
+		// Check IAL
+		if request.MinIal > response.Ial {
+			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
+		}
+		// Check AAL, IAL with MaxIalAal
+		nodeDetailKey := "NodeID" + "|" + nodeID
+		_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		}
+		var nodeDetail data.NodeDetail
+		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if response.Aal > nodeDetail.MaxAal {
+			return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		}
+		if response.Ial > nodeDetail.MaxIal {
+			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		}
+		// Check min_idp
+		if int64(len(request.ResponseList)) >= request.MinIdp {
+			return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
+		}
+		// Check IsClosed
+		if request.Closed {
+			return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
+		}
+		// Check IsTimedOut
+		if request.TimedOut {
+			return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
+		}
+		// Check nodeID is exist in idp_id_list
+		exist := false
+		for _, idpID := range request.IdpIdList {
+			if idpID == nodeID {
+				exist = true
+				break
+			}
+		}
+		if exist == false {
+			return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
+		}
+		if chkDup == true {
+			return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
+		}
+	} else {
+		// Check error code exists
 		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + *funcParam.ErrorCode
 		if !app.HasStateDB([]byte(errorCodeKey)) {
 			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
@@ -461,43 +502,6 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		response.ErrorCode = *funcParam.ErrorCode
 	}
 
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if response.Aal > nodeDetail.MaxAal {
-		return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
-	}
-	if response.Ial > nodeDetail.MaxIal {
-		return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
-	}
-	// Check min_idp
-	if int64(len(request.ResponseList)) >= request.MinIdp {
-		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
-	}
-	// Check IsClosed
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
-	}
-	// Check IsTimedOut
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
-	}
-	// Check nodeID is exist in idp_id_list
-	exist := false
-	for _, idpID := range request.IdpIdList {
-		if idpID == nodeID {
-			exist = true
-			break
-		}
-	}
-	if exist == false {
-		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
-	}
-	if chkDup == true {
-		return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
-	}
 	request.ResponseList = append(request.ResponseList, &response)
 	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {

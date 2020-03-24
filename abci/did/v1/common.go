@@ -563,30 +563,31 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.MessageHash = request.RequestMessageHash
 	for _, response := range request.ResponseList {
 		var newRow Response
-		newRow.Ial = float64(response.Ial)
-		newRow.Aal = float64(response.Aal)
-		newRow.Status = response.Status
-		newRow.Signature = response.Signature
 		newRow.IdpID = response.IdpId
-		if response.ValidIal != "" {
-			if response.ValidIal == "true" {
-				tValue := true
-				newRow.ValidIal = &tValue
-			} else {
-				fValue := false
-				newRow.ValidIal = &fValue
+		if response.ErrorCode == "" {
+			newRow.Ial = float64(response.Ial)
+			newRow.Aal = float64(response.Aal)
+			newRow.Status = response.Status
+			newRow.Signature = response.Signature
+			if response.ValidIal != "" {
+				if response.ValidIal == "true" {
+					tValue := true
+					newRow.ValidIal = &tValue
+				} else {
+					fValue := false
+					newRow.ValidIal = &fValue
+				}
 			}
-		}
-		if response.ValidSignature != "" {
-			if response.ValidSignature == "true" {
-				tValue := true
-				newRow.ValidSignature = &tValue
-			} else {
-				fValue := false
-				newRow.ValidSignature = &fValue
+			if response.ValidSignature != "" {
+				if response.ValidSignature == "true" {
+					tValue := true
+					newRow.ValidSignature = &tValue
+				} else {
+					fValue := false
+					newRow.ValidSignature = &fValue
+				}
 			}
-		}
-		if response.ErrorCode != "" {
+		} else {
 			newRow.ErrorCode = &response.ErrorCode
 		}
 		result.Responses = append(result.Responses, newRow)
