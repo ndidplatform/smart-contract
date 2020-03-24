@@ -446,6 +446,9 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 	// If node is Idp or rp, update use_whitelist and whitelist
 	if node.Role == "IdP" || node.Role == "RP" {
 		if funcParam.UseWhitelist != nil {
+			node.UseWhitelist = *funcParam.UseWhitelist
+		}
+		if funcParam.Whitelist != nil {
 			// check if all node in whitelist exists
 			for _, whitelistNode := range *funcParam.Whitelist {
 				whitelistKey := "NodeID" + "|" + whitelistNode
@@ -453,9 +456,6 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Whitelist node not exists", "")
 				}
 			}
-			node.UseWhitelist = *funcParam.UseWhitelist
-		}
-		if funcParam.Whitelist != nil {
 			node.Whitelist = *funcParam.Whitelist
 		}
 	}
