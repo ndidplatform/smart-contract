@@ -426,22 +426,16 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	var response data.Response
+	response := data.Response{
+		IdpId: nodeID,
+	}
+
 	if funcParam.ErrorCode == nil {
 		response.Ial = funcParam.Ial
 		response.Aal = funcParam.Aal
 		response.Status = funcParam.Status
 		response.Signature = funcParam.Signature
-		response.IdpId = nodeID
 
-		// Check duplicate before add
-		chkDup := false
-		for _, oldResponse := range request.ResponseList {
-			if &response == oldResponse {
-				chkDup = true
-				break
-			}
-		}
 		// Check AAL
 		if request.MinAal > response.Aal {
 			return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
@@ -479,20 +473,6 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		if request.TimedOut {
 			return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 		}
-		// Check nodeID is exist in idp_id_list
-		exist := false
-		for _, idpID := range request.IdpIdList {
-			if idpID == nodeID {
-				exist = true
-				break
-			}
-		}
-		if exist == false {
-			return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
-		}
-		if chkDup == true {
-			return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
-		}
 	} else {
 		// Check error code exists
 		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + *funcParam.ErrorCode
@@ -500,6 +480,30 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
 		}
 		response.ErrorCode = *funcParam.ErrorCode
+	}
+
+	// Check nodeID is exist in idp_id_list
+	exist := false
+	for _, idpID := range request.IdpIdList {
+		if idpID == nodeID {
+			exist = true
+			break
+		}
+	}
+	if exist == false {
+		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
+	}
+
+	// Check duplicate before add
+	chkDup := false
+	for _, oldResponse := range request.ResponseList {
+		if &response == oldResponse {
+			chkDup = true
+			break
+		}
+	}
+	if chkDup == true {
+		return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 	}
 
 	request.ResponseList = append(request.ResponseList, &response)
