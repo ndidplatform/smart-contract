@@ -91,13 +91,19 @@ message Request {
   string chain_id = 17;
 }
 
+message ASResponse {
+  string as_id = 1;
+  bool signed = 2;
+  bool received_data = 3;
+  string error_code = 4;
+}
+
 message DataRequest {
   string service_id = 1;
   repeated string as_id_list = 2;
   int64 min_as = 3;
   string request_params_hash = 4;
-  repeated string answered_as_id_list = 5;
-  repeated string received_data_from_list = 6;
+  repeated ASResponse response_list = 6;
 }
 
 message Response {

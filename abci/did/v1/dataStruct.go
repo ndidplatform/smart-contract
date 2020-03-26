@@ -116,13 +116,19 @@ type GetAccessorMethodResult struct {
 	Commitment   string `json:"commitment"`
 }
 
+type ASResponse struct {
+	AsID         string `json:"as_id"`
+	Signed       bool   `json:"signed"`
+	ReceivedData bool   `json:"received_data"`
+	ErrorCode    string `json:"errro_code"`
+}
+
 type DataRequest struct {
-	ServiceID            string   `json:"service_id"`
-	As                   []string `json:"as_id_list"`
-	Count                int      `json:"min_as"`
-	RequestParamsHash    string   `json:"request_params_hash"`
-	AnsweredAsIdList     []string `json:"answered_as_id_list"`
-	ReceivedDataFromList []string `json:"received_data_from_list"`
+	ServiceID         string       `json:"service_id"`
+	As                []string     `json:"as_id_list"`
+	Count             int          `json:"min_as"`
+	RequestParamsHash string       `json:"request_params_hash"`
+	ResponseList      []ASResponse `json:"response_list"`
 }
 
 type CreateRequestParam struct {

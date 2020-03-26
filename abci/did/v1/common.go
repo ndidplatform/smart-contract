@@ -542,21 +542,20 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.Timeout = int(request.RequestTimeout)
 	result.IdPIDList = request.IdpIdList
 	for _, dataRequest := range request.DataRequestList {
-		var newRow DataRequest
-		newRow.ServiceID = dataRequest.ServiceId
-		newRow.As = dataRequest.AsIdList
-		newRow.Count = int(dataRequest.MinAs)
-		newRow.AnsweredAsIdList = dataRequest.AnsweredAsIdList
-		newRow.ReceivedDataFromList = dataRequest.ReceivedDataFromList
-		newRow.RequestParamsHash = dataRequest.RequestParamsHash
-		if newRow.As == nil {
-			newRow.As = make([]string, 0)
+		newRow := DataRequest{
+			ServiceID:         dataRequest.ServiceId,
+			As:                dataRequest.AsIdList,
+			Count:             int(dataRequest.MinAs),
+			ResponseList:      make([]ASResponse, 0, len(dataRequest.ResponseList)),
+			RequestParamsHash: dataRequest.RequestParamsHash,
 		}
-		if newRow.AnsweredAsIdList == nil {
-			newRow.AnsweredAsIdList = make([]string, 0)
-		}
-		if newRow.ReceivedDataFromList == nil {
-			newRow.ReceivedDataFromList = make([]string, 0)
+		for _, asResponse := range dataRequest.ResponseList {
+			newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+				AsID:         asResponse.AsId,
+				Signed:       asResponse.Signed,
+				ReceivedData: asResponse.ReceivedData,
+				ErrorCode:    asResponse.ErrorCode,
+			})
 		}
 		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
