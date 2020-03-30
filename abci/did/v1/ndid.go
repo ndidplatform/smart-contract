@@ -143,13 +143,13 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 		}
 		if funcParam.Whitelist != nil {
 			// check if all node in whitelist exists
-			for _, whitelistNode := range *funcParam.Whitelist {
+			for _, whitelistNode := range funcParam.Whitelist {
 				whitelistKey := "NodeID" + "|" + whitelistNode
 				if !app.HasStateDB([]byte(whitelistKey)) {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Whitelist node not exists", "")
 				}
 			}
-			nodeDetail.Whitelist = *funcParam.Whitelist
+			nodeDetail.Whitelist = funcParam.Whitelist
 		} else {
 			nodeDetail.Whitelist = []string{}
 		}
@@ -450,13 +450,13 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 		}
 		if funcParam.Whitelist != nil {
 			// check if all node in whitelist exists
-			for _, whitelistNode := range *funcParam.Whitelist {
+			for _, whitelistNode := range funcParam.Whitelist {
 				whitelistKey := "NodeID" + "|" + whitelistNode
 				if !app.HasStateDB([]byte(whitelistKey)) {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Whitelist node not exists", "")
 				}
 			}
-			node.Whitelist = *funcParam.Whitelist
+			node.Whitelist = funcParam.Whitelist
 		}
 	}
 	nodeDetailJSON, err := utils.ProtoDeterministicMarshal(&node)

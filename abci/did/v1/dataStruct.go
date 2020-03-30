@@ -266,16 +266,16 @@ type TransferNDIDParam struct {
 }
 
 type RegisterNode struct {
-	NodeID          string    `json:"node_id"`
-	PublicKey       string    `json:"public_key"`
-	MasterPublicKey string    `json:"master_public_key"`
-	NodeName        string    `json:"node_name"`
-	Role            string    `json:"role"`
-	MaxIal          float64   `json:"max_ial"`
-	MaxAal          float64   `json:"max_aal"`
-	IsIdPAgent      *bool     `json:"agent"`
-	UseWhitelist    *bool     `json:"node_id_whitelist_active"`
-	Whitelist       *[]string `json:"node_id_whitelist"`
+	NodeID          string   `json:"node_id"`
+	PublicKey       string   `json:"public_key"`
+	MasterPublicKey string   `json:"master_public_key"`
+	NodeName        string   `json:"node_name"`
+	Role            string   `json:"role"`
+	MaxIal          float64  `json:"max_ial"`
+	MaxAal          float64  `json:"max_aal"`
+	IsIdPAgent      *bool    `json:"agent"`
+	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
+	Whitelist       []string `json:"node_id_whitelist"`
 }
 
 type NodeDetail struct {
@@ -501,13 +501,13 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID       string    `json:"node_id"`
-	MaxIal       float64   `json:"max_ial"`
-	MaxAal       float64   `json:"max_aal"`
-	NodeName     string    `json:"node_name"`
-	IsIdPAgent   *bool     `json:"agent"`
-	UseWhitelist *bool     `json:"node_id_whitelist_active"`
-	Whitelist    *[]string `json:"node_id_whitelist"`
+	NodeID       string   `json:"node_id"`
+	MaxIal       float64  `json:"max_ial"`
+	MaxAal       float64  `json:"max_aal"`
+	NodeName     string   `json:"node_name"`
+	IsIdPAgent   *bool    `json:"agent"`
+	UseWhitelist *bool    `json:"node_id_whitelist_active"`
+	Whitelist    []string `json:"node_id_whitelist"`
 }
 
 type UpdateIdentityParam struct {
