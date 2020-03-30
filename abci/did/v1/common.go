@@ -566,32 +566,32 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.MessageHash = request.RequestMessageHash
 	for _, response := range request.ResponseList {
 		var newRow Response
-		newRow.IdpID = response.IdpId
 		if response.ErrorCode == "" {
-			newRow.Ial = float64(response.Ial)
-			newRow.Aal = float64(response.Aal)
-			newRow.Status = response.Status
-			newRow.Signature = response.Signature
+			var validIal *bool
 			if response.ValidIal != "" {
-				if response.ValidIal == "true" {
-					tValue := true
-					newRow.ValidIal = &tValue
-				} else {
-					fValue := false
-					newRow.ValidIal = &fValue
-				}
+				tValue := response.ValidIal == "true"
+				validIal = &tValue
 			}
+			var validSignature *bool
 			if response.ValidSignature != "" {
-				if response.ValidSignature == "true" {
-					tValue := true
-					newRow.ValidSignature = &tValue
-				} else {
-					fValue := false
-					newRow.ValidSignature = &fValue
-				}
+				tValue := response.ValidSignature == "true"
+				validSignature = &tValue
+			}
+			newRow = Response{
+				IdpID:          response.IdpId,
+				Ial:            float64(response.Ial),
+				Aal:            float64(response.Aal),
+				Status:         response.Status,
+				Signature:      response.Signature,
+				ValidIal:       validIal,
+				ValidSignature: validSignature,
 			}
 		} else {
-			newRow.ErrorCode = &response.ErrorCode
+			newRow = Response{
+				IdpID:     response.IdpId,
+				Status:    "reject",
+				ErrorCode: &response.ErrorCode,
+			}
 		}
 		result.Responses = append(result.Responses, newRow)
 	}
