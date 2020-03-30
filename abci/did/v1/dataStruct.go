@@ -121,7 +121,7 @@ type ASResponse struct {
 	AsID         string `json:"as_id"`
 	Signed       bool   `json:"signed"`
 	ReceivedData bool   `json:"received_data"`
-	ErrorCode    string `json:"errro_code"`
+	ErrorCode    string `json:"error_code"`
 }
 
 type DataRequest struct {
