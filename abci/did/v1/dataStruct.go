@@ -82,6 +82,7 @@ type GetIdpNodesParam struct {
 	IdentityNamespace                      string   `json:"identity_namespace"`
 	IdentityIdentifierHash                 string   `json:"identity_identifier_hash"`
 	FilterForRP                            *string  `json:"filter_for_rp"`
+	IsIdpAgent                             *bool    `json:"agent"`
 	MinAal                                 float64  `json:"min_aal"`
 	MinIal                                 float64  `json:"min_ial"`
 	NodeIDList                             []string `json:"node_id_list"`
