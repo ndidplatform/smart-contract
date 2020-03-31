@@ -226,20 +226,13 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			return nil
 		}
 
-		var whitelist *[]string
-		if nodeDetail.UseWhitelist {
-			whitelist = &nodeDetail.Whitelist
-		}
-
 		return &MsqDestinationNode{
 			ID:                                     nodeID,
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
-			IsIdpAgent:                             nodeDetail.IsIdpAgent,
-			UseWhitelist:                           &nodeDetail.UseWhitelist,
-			Whitelist:                              whitelist,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
+			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 		}
 	}
 

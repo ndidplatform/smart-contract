@@ -91,16 +91,14 @@ type GetIdpNodesParam struct {
 }
 
 type MsqDestinationNode struct {
-	ID                                     string    `json:"node_id"`
-	Name                                   string    `json:"node_name"`
-	MaxIal                                 float64   `json:"max_ial"`
-	MaxAal                                 float64   `json:"max_aal"`
-	IsIdpAgent                             bool      `json:"agent"`
-	UseWhitelist                           *bool     `json:"node_id_whitelist_active,omitempty"`
-	Whitelist                              *[]string `json:"node_id_whitelist,omitempty"`
-	Ial                                    *float64  `json:"ial,omitempty"`
-	ModeList                               *[]int32  `json:"mode_list,omitempty"`
-	SupportedRequestMessageDataUrlTypeList []string  `json:"supported_request_message_data_url_type_list"`
+	ID                                     string   `json:"node_id"`
+	Name                                   string   `json:"node_name"`
+	MaxIal                                 float64  `json:"max_ial"`
+	MaxAal                                 float64  `json:"max_aal"`
+	Ial                                    *float64 `json:"ial,omitempty"`
+	ModeList                               *[]int32 `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	IsIdpAgent                             bool     `json:"agent"`
 }
 
 type GetIdpNodesResult struct {
