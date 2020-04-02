@@ -62,7 +62,7 @@ const (
 	InvalidMode                                        uint32 = 35
 	HashIDNotFound                                     uint32 = 36
 	DuplicateASInDataRequest                           uint32 = 39
-	DuplicateAnsweredAsIDList                          uint32 = 40
+	DuplicateASInResponseList                          uint32 = 40
 	DuplicateServiceIDInDataRequest                    uint32 = 41
 	ServiceDestinationNotFound                         uint32 = 42
 	DataRequestIsCompleted                             uint32 = 43

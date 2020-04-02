@@ -149,8 +149,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 		if funcParam.DataRequestList[index].As == nil {
 			newRow.AsIdList = make([]string, 0)
 		}
-		newRow.AnsweredAsIdList = make([]string, 0)
-		newRow.ReceivedDataFromList = make([]string, 0)
+		newRow.ResponseList = make([]*data.ASResponse, 0)
 		// Check all as in as_list is active
 		for _, as := range newRow.AsIdList {
 			var node data.NodeDetail
@@ -358,42 +357,28 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
-	// Check as_id is exist in as_id_list
-	exist := false
+	var targetAsResponse *data.ASResponse
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == funcParam.ServiceID {
-			for _, as := range dataRequest.AnsweredAsIdList {
-				if as == funcParam.AsID {
-					exist = true
+			for _, asResponse := range dataRequest.ResponseList {
+				if asResponse.AsId == funcParam.AsID {
+					targetAsResponse = asResponse
 					break
 				}
 			}
 		}
 	}
-	if exist == false {
+	// Check as_id is exist in as_id_list
+	if targetAsResponse == nil {
 		return app.ReturnDeliverTxLog(code.AsIDDoesNotExistInASList, "AS ID does not exist in answered AS list", "")
 	}
-	// Check Duplicate AS ID
-	duplicate := false
-	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == funcParam.ServiceID {
-			for _, as := range dataRequest.ReceivedDataFromList {
-				if as == funcParam.AsID {
-					duplicate = true
-					break
-				}
-			}
-		}
-	}
-	if duplicate == true {
+	// Check Duplicate
+	if targetAsResponse.ReceivedData {
 		return app.ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
 	}
-	// Update received_data_from_list in request
-	for index, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == funcParam.ServiceID {
-			request.DataRequestList[index].ReceivedDataFromList = append(dataRequest.ReceivedDataFromList, funcParam.AsID)
-		}
-	}
+	// Update targetAsResponse status
+	targetAsResponse.ReceivedData = true
+
 	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

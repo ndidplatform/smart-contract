@@ -144,8 +144,8 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == signData.ServiceID {
-			for _, as := range dataRequest.AnsweredAsIdList {
-				if as == nodeID {
+			for _, asResponse := range dataRequest.ResponseList {
+				if asResponse.AsId == nodeID {
 					duplicate = true
 					break
 				}
@@ -153,13 +153,19 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		}
 	}
 	if duplicate == true {
-		return app.ReturnDeliverTxLog(code.DuplicateAnsweredAsIDList, "Duplicate AS ID in answered AS list", "")
+		return app.ReturnDeliverTxLog(code.DuplicateASInResponseList, "Duplicate AS ID in response list", "")
 	}
 
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == signData.ServiceID {
-			if int64(len(dataRequest.AnsweredAsIdList)) >= dataRequest.MinAs {
+			var countSignedAS int64 = 0
+			for _, asResponse := range dataRequest.ResponseList {
+				if asResponse.ErrorCode == "" {
+					countSignedAS += 1
+				}
+			}
+			if countSignedAS >= dataRequest.MinAs {
 				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
 			}
 		}
@@ -171,7 +177,22 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	// Update answered_as_id_list in request
 	for index, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == signData.ServiceID {
-			request.DataRequestList[index].AnsweredAsIdList = append(dataRequest.AnsweredAsIdList, nodeID)
+			var asResponse data.ASResponse
+			if signData.ErrorCode == nil {
+				asResponse = data.ASResponse{
+					AsId:         nodeID,
+					Signed:       true,
+					ReceivedData: false,
+				}
+			} else {
+				asResponse = data.ASResponse{
+					AsId:         nodeID,
+					Signed:       false,
+					ReceivedData: false,
+					ErrorCode:    *signData.ErrorCode,
+				}
+			}
+			request.DataRequestList[index].ResponseList = append(dataRequest.ResponseList, &asResponse)
 		}
 	}
 

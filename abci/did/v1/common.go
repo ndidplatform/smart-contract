@@ -157,9 +157,29 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	// fetch Filter RP node detail
+	var rpNodeDetail *data.NodeDetail
+	if funcParam.FilterForRP != nil {
+		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+		}
+		rpNodeDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+	}
+
 	// getMsqDestionationNode returns MsqDestinationNode if nodeID is valid
 	// otherwise return nil
 	getMsqDestinationNode := func(nodeID string) *MsqDestinationNode {
+		// check if Idp in Filter RP whitelist
+		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
+			!contains(nodeID, rpNodeDetail.Whitelist) {
+			return nil
+		}
+
 		nodeDetailKey := "NodeID" + "|" + nodeID
 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 		if nodeDetailValue == nil {
@@ -183,6 +203,10 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
 			return nil
 		}
+		// Filter by IsIdpAgent
+		if funcParam.IsIdpAgent != nil && *funcParam.IsIdpAgent != nodeDetail.IsIdpAgent {
+			return nil
+		}
 		// Filter by supported_request_message_data_url_type_list
 		if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 			// foundSupported := false
@@ -196,10 +220,10 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 				return nil
 			}
 		}
-
-		var whitelist *[]string
-		if nodeDetail.UseWhitelist {
-			whitelist = &nodeDetail.Whitelist
+		// Check if Filter RP is in Idp whitelist
+		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+			return nil
 		}
 
 		return &MsqDestinationNode{
@@ -207,10 +231,8 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
-			IsIdpAgent:                             nodeDetail.IsIdpAgent,
-			UseWhitelist:                           &nodeDetail.UseWhitelist,
-			Whitelist:                              whitelist,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
+			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 		}
 	}
 
@@ -517,52 +539,52 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.Timeout = int(request.RequestTimeout)
 	result.IdPIDList = request.IdpIdList
 	for _, dataRequest := range request.DataRequestList {
-		var newRow DataRequest
-		newRow.ServiceID = dataRequest.ServiceId
-		newRow.As = dataRequest.AsIdList
-		newRow.Count = int(dataRequest.MinAs)
-		newRow.AnsweredAsIdList = dataRequest.AnsweredAsIdList
-		newRow.ReceivedDataFromList = dataRequest.ReceivedDataFromList
-		newRow.RequestParamsHash = dataRequest.RequestParamsHash
-		if newRow.As == nil {
-			newRow.As = make([]string, 0)
+		newRow := DataRequest{
+			ServiceID:         dataRequest.ServiceId,
+			As:                dataRequest.AsIdList,
+			Count:             int(dataRequest.MinAs),
+			ResponseList:      make([]ASResponse, 0, len(dataRequest.ResponseList)),
+			RequestParamsHash: dataRequest.RequestParamsHash,
 		}
-		if newRow.AnsweredAsIdList == nil {
-			newRow.AnsweredAsIdList = make([]string, 0)
-		}
-		if newRow.ReceivedDataFromList == nil {
-			newRow.ReceivedDataFromList = make([]string, 0)
+		for _, asResponse := range dataRequest.ResponseList {
+			newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+				AsID:         asResponse.AsId,
+				Signed:       asResponse.Signed,
+				ReceivedData: asResponse.ReceivedData,
+				ErrorCode:    asResponse.ErrorCode,
+			})
 		}
 		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
 	result.MessageHash = request.RequestMessageHash
 	for _, response := range request.ResponseList {
 		var newRow Response
-		newRow.Ial = float64(response.Ial)
-		newRow.Aal = float64(response.Aal)
-		newRow.Status = response.Status
-		newRow.Signature = response.Signature
-		newRow.IdpID = response.IdpId
-		if response.ValidIal != "" {
-			if response.ValidIal == "true" {
-				tValue := true
-				newRow.ValidIal = &tValue
-			} else {
-				fValue := false
-				newRow.ValidIal = &fValue
+		if response.ErrorCode == "" {
+			var validIal *bool
+			if response.ValidIal != "" {
+				tValue := response.ValidIal == "true"
+				validIal = &tValue
 			}
-		}
-		if response.ValidSignature != "" {
-			if response.ValidSignature == "true" {
-				tValue := true
-				newRow.ValidSignature = &tValue
-			} else {
-				fValue := false
-				newRow.ValidSignature = &fValue
+			var validSignature *bool
+			if response.ValidSignature != "" {
+				tValue := response.ValidSignature == "true"
+				validSignature = &tValue
 			}
-		}
-		if response.ErrorCode != "" {
-			newRow.ErrorCode = &response.ErrorCode
+			newRow = Response{
+				IdpID:          response.IdpId,
+				Ial:            float64(response.Ial),
+				Aal:            float64(response.Aal),
+				Status:         response.Status,
+				Signature:      response.Signature,
+				ValidIal:       validIal,
+				ValidSignature: validSignature,
+			}
+		} else {
+			newRow = Response{
+				IdpID:     response.IdpId,
+				Status:    "reject",
+				ErrorCode: &response.ErrorCode,
+			}
 		}
 		result.Responses = append(result.Responses, newRow)
 	}
@@ -1128,9 +1150,29 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	// fetch Filter RP node detail
+	var rpNodeDetail *data.NodeDetail
+	if funcParam.FilterForRP != nil {
+		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
+		if nodeDetailValue == nil {
+			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+		}
+		rpNodeDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+	}
+
 	// return IdpNode if nodeID valid and within funcParam
 	// return nil otherwise
 	getIdpNode := func(nodeID string) *IdpNode {
+		// check if Idp in Filter RP whitelist
+		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
+			!contains(nodeID, rpNodeDetail.Whitelist) {
+			return nil
+		}
+
 		nodeDetailKey := "NodeID" + "|" + nodeID
 		_, nodeDetailValue := app.GetCommittedStateDB([]byte(nodeDetailKey))
 		if nodeDetailValue == nil {
@@ -1166,6 +1208,11 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			if supportedCount < len(funcParam.SupportedRequestMessageDataUrlTypeList) {
 				return nil
 			}
+		}
+		// Check if Filter RP is in Idp whitelist
+		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+			return nil
 		}
 
 		var proxy *IdpNodeProxy
