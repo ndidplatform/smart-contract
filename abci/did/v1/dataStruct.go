@@ -119,7 +119,7 @@ type ASResponse struct {
 	AsID         string `json:"as_id"`
 	Signed       bool   `json:"signed"`
 	ReceivedData bool   `json:"received_data"`
-	ErrorCode    string `json:"error_code"`
+	ErrorCode    int32  `json:"error_code"`
 }
 
 type DataRequest struct {
@@ -151,7 +151,7 @@ type Response struct {
 	IdpID          string  `json:"idp_id"`
 	ValidIal       *bool   `json:"valid_ial"`
 	ValidSignature *bool   `json:"valid_signature"`
-	ErrorCode      *string `json:"error_code,omitempty"`
+	ErrorCode      *int32  `json:"error_code,omitempty"`
 }
 
 type CreateIdpResponseParam struct {
@@ -160,7 +160,7 @@ type CreateIdpResponseParam struct {
 	RequestID string  `json:"request_id"`
 	Signature string  `json:"signature"`
 	Status    string  `json:"status"`
-	ErrorCode *string `json:"error_code"`
+	ErrorCode *int32  `json:"error_code"`
 }
 
 type GetRequestParam struct {
@@ -194,10 +194,10 @@ type GetRequestDetailResult struct {
 }
 
 type SignDataParam struct {
-	ServiceID string  `json:"service_id"`
-	RequestID string  `json:"request_id"`
-	Signature string  `json:"signature"`
-	ErrorCode *string `json:"error_code"`
+	ServiceID string `json:"service_id"`
+	RequestID string `json:"request_id"`
+	Signature string `json:"signature"`
+	ErrorCode *int32 `json:"error_code"`
 }
 
 type AddServiceParam struct {
@@ -836,14 +836,13 @@ type RevokeAndAddAccessorParam struct {
 }
 
 type AddErrorCodeParam struct {
-	ErrorCode   string `json:"error_code"`
+	ErrorCode   int32  `json:"error_code"`
 	Description string `json:"description"`
-	Fatal       bool   `json:"fatal"`
 	Type        string `json:"type"`
 }
 
 type RemoveErrorCodeParam struct {
-	ErrorCode string `json:"error_code"`
+	ErrorCode int32  `json:"error_code"`
 	Type      string `json:"type"`
 }
 
@@ -852,7 +851,6 @@ type GetErrorCodeListParam struct {
 }
 
 type GetErrorCodeListResult struct {
-	ErrorCode   string `json:"error_code"`
+	ErrorCode   int32  `json:"error_code"`
 	Description string `json:"description"`
-	Fatal       bool   `json:"fatal"`
 }

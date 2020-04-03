@@ -559,7 +559,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.MessageHash = request.RequestMessageHash
 	for _, response := range request.ResponseList {
 		var newRow Response
-		if response.ErrorCode == "" {
+		if response.ErrorCode == 0 {
 			var validIal *bool
 			if response.ValidIal != "" {
 				tValue := response.ValidIal == "true"
@@ -1987,7 +1987,6 @@ func (app *DIDApplication) getErrorCodeList(param string) types.ResponseQuery {
 		result = append(result, &GetErrorCodeListResult{
 			ErrorCode:   errorCode.ErrorCode,
 			Description: errorCode.Description,
-			Fatal:       errorCode.Fatal,
 		})
 	}
 

@@ -95,7 +95,7 @@ message ASResponse {
   string as_id = 1;
   bool signed = 2;
   bool received_data = 3;
-  string error_code = 4;
+  int32 error_code = 4;
 }
 
 message DataRequest {
@@ -114,7 +114,7 @@ message Response {
   string idp_id = 5;
   string valid_ial = 6;
   string valid_signature = 7;
-  string error_code = 8;
+  int32 error_code = 8;
 }
 
 message ReportList {
@@ -225,9 +225,8 @@ message AllowedMinIalForRegisterIdentityAtFirstIdp {
 }
 
 message ErrorCode {
-  string error_code = 1;
+  int32 error_code = 1;
   string description = 2;
-  bool fatal = 3;
 }
 
 message ErrorCodeList {

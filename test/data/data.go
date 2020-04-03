@@ -67,7 +67,7 @@ var ReferenceGroupCode1 = uuid.NewV4()
 var ServiceID1 = utils.RandStringRunes(20)
 var ServiceID2 = utils.RandStringRunes(20)
 
-var IdpErrorCode1 = utils.RandStringRunes(5)
+var IdpErrorCode1 int32 = 10001
 var IdpErrorCodeDescription1 = "This is error 1"
 
 var NdidPrivK = `-----BEGIN RSA PRIVATE KEY-----
