@@ -418,11 +418,10 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodePara
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode string, description string, fatal bool, expected string) {
+func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode int32, description string, expected string) {
 	param := did.AddErrorCodeParam{
 		ErrorCode:   errorCode,
 		Description: description,
-		Fatal:       fatal,
 		Type:        errorCodeType,
 	}
 	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
@@ -446,7 +445,7 @@ func RemoveErrorCode(t *testing.T, nodeID, privK string, param did.RemoveErrorCo
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode string, expected string) {
+func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode int32, expected string) {
 	param := did.RemoveErrorCodeParam{
 		ErrorCode: errorCode,
 		Type:      errorCodeType,

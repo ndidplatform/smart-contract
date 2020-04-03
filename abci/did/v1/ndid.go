@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -1288,11 +1289,13 @@ func (app *DIDApplication) addErrorCode(param string, nodeID string) types.Respo
 	if !app.checkErrorCodeType(funcParam.Type) {
 		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "Invalid error code type", "")
 	}
+	if funcParam.ErrorCode == 0 {
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode cannot be 0", "")
+	}
 
 	errorCode := data.ErrorCode{
 		ErrorCode:   funcParam.ErrorCode,
 		Description: funcParam.Description,
-		Fatal:       funcParam.Fatal,
 	}
 
 	// add error code
@@ -1300,7 +1303,7 @@ func (app *DIDApplication) addErrorCode(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + errorCode.ErrorCode
+	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + fmt.Sprintf("%d", errorCode.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1342,7 +1345,7 @@ func (app *DIDApplication) removeErrorCode(param string, nodeID string) types.Re
 	}
 
 	// remove error code from ErrorCode index
-	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + funcParam.ErrorCode
+	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

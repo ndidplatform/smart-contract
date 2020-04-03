@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
@@ -56,7 +57,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 
 	// Check error code exists
 	if signData.ErrorCode != nil {
-		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + *signData.ErrorCode
+		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + fmt.Sprintf("%d", *signData.ErrorCode)
 		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -177,7 +178,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 		if dataRequest.ServiceId == signData.ServiceID {
 			var countSignedAS int64 = 0
 			for _, asResponse := range dataRequest.ResponseList {
-				if asResponse.ErrorCode == "" {
+				if asResponse.ErrorCode == 0 {
 					countSignedAS += 1
 				}
 			}

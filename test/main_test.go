@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -194,9 +195,10 @@ func TestIdP1RevokeAndAddAccessor(t *testing.T) {
 }
 
 func TestAddErrorCodeByNDID(t *testing.T) {
-	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, false, "success")
-	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, false, "ErrorCode is already in the database")
-	query.TestGetErrorCodeList(t, "idp", `[{"error_code":"`+data.IdpErrorCode1+`","description":"`+data.IdpErrorCodeDescription1+`","fatal":false}]`)
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, "success")
+	ndid.TestAddErrorCode(t, "idp", data.IdpErrorCode1, data.IdpErrorCodeDescription1, "ErrorCode is already in the database")
+	errorCode := fmt.Sprintf("%d", data.IdpErrorCode1)
+	query.TestGetErrorCodeList(t, "idp", `[{"error_code":`+errorCode+`,"description":"`+data.IdpErrorCodeDescription1+`"}]`)
 	query.TestGetErrorCodeList(t, "as", "[]")
 }
 

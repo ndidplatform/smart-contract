@@ -24,6 +24,7 @@ package did
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/golang/protobuf/proto"
@@ -511,7 +512,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 		}
 	} else {
 		// Check error code exists
-		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + *funcParam.ErrorCode
+		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + fmt.Sprintf("%d", *funcParam.ErrorCode)
 		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
