@@ -231,7 +231,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	// set default value
 	request.ResponseList = make([]*data.Response, 0)
 	// set creation_block_height
-	request.CreationBlockHeight = app.CurrentBlock
+	request.CreationBlockHeight = app.state.CurrentBlockHeight
 	// set chain_id
 	request.ChainId = app.CurrentChain
 

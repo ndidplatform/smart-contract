@@ -43,16 +43,14 @@ import (
 
 type DIDApplication struct {
 	types.BaseApplication
+	logger                   *logrus.Entry
 	state                    AppState
 	checkTxNonceState        map[string][]byte
 	deliverTxNonceState      map[string][]byte
-	ValUpdates               map[string]types.ValidatorUpdate
-	logger                   *logrus.Entry
-	Version                  string
 	AppProtocolVersion       uint64
-	CurrentBlock             int64
 	CurrentChain             string
-	HashData                 []byte
+	ValUpdates               map[string]types.ValidatorUpdate
+	Version                  string
 	UncommittedState         map[string][]byte
 	UncommittedVersionsState map[string][]int64
 }
@@ -92,7 +90,7 @@ func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseIn
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
-	app.CurrentBlock = app.state.Height
+	app.state.CurrentBlockHeight = app.state.Height
 	return res
 }
 
@@ -110,7 +108,7 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 // Track the block hash and header information
 func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
-	app.CurrentBlock = req.Header.Height
+	app.state.CurrentBlockHeight = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.ValUpdates = make(map[string]types.ValidatorUpdate, 0)
@@ -277,14 +275,14 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
-	if len(app.HashData) > 0 {
-		app.HashData = append(app.state.AppHash, app.HashData...)
-		app.state.AppHash = hash(app.HashData)
+	if len(app.state.HashData) > 0 {
+		app.state.HashData = append(app.state.AppHash, app.state.HashData...)
+		app.state.AppHash = hash(app.state.HashData)
 	}
 	appHash := app.state.AppHash
 	go recordAppHashDurationMetrics(appHashStartTime)
 
-	app.HashData = make([]byte, 0)
+	app.state.HashData = make([]byte, 0)
 
 	// Save state
 	app.state.SaveMetadata()

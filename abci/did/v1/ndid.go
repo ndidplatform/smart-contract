@@ -1157,13 +1157,13 @@ func (app *DIDApplication) setLastBlock(param string, nodeID string) types.Respo
 	lastBlockKey := "lastBlock"
 	lastBlockValue := funcParam.BlockHeight
 	if funcParam.BlockHeight == 0 {
-		lastBlockValue = app.CurrentBlock
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
 	if funcParam.BlockHeight < -1 {
-		lastBlockValue = app.CurrentBlock
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
-	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.CurrentBlock {
-		lastBlockValue = app.CurrentBlock
+	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.state.CurrentBlockHeight {
+		lastBlockValue = app.state.CurrentBlockHeight
 	}
 	app.state.Set([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
