@@ -43,16 +43,14 @@ import (
 
 type DIDApplication struct {
 	types.BaseApplication
-	logger                   *logrus.Entry
-	state                    AppState
-	checkTxNonceState        map[string][]byte
-	deliverTxNonceState      map[string][]byte
-	AppProtocolVersion       uint64
-	CurrentChain             string
-	ValUpdates               map[string]types.ValidatorUpdate
-	Version                  string
-	UncommittedState         map[string][]byte
-	UncommittedVersionsState map[string][]int64
+	logger              *logrus.Entry
+	state               AppState
+	checkTxNonceState   map[string][]byte
+	deliverTxNonceState map[string][]byte
+	AppProtocolVersion  uint64
+	CurrentChain        string
+	ValUpdates          map[string]types.ValidatorUpdate
+	Version             string
 }
 
 func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
@@ -72,15 +70,13 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:                    *appState,
-		checkTxNonceState:        make(map[string][]byte),
-		deliverTxNonceState:      make(map[string][]byte),
-		logger:                   logger,
-		Version:                  ABCIVersion,
-		AppProtocolVersion:       ABCIProtocolVersion,
-		UncommittedState:         make(map[string][]byte),
-		UncommittedVersionsState: make(map[string][]int64),
-		ValUpdates:               make(map[string]types.ValidatorUpdate),
+		state:               *appState,
+		checkTxNonceState:   make(map[string][]byte),
+		deliverTxNonceState: make(map[string][]byte),
+		logger:              logger,
+		Version:             ABCIVersion,
+		AppProtocolVersion:  ABCIProtocolVersion,
+		ValUpdates:          make(map[string]types.ValidatorUpdate),
 	}
 }
 
