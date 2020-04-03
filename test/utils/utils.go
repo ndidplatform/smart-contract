@@ -20,7 +20,8 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
-	"github.com/tendermint/tendermint/libs/common"
+	kv "github.com/tendermint/tendermint/libs/kv"
+	tmRand "github.com/tendermint/tendermint/libs/rand"
 )
 
 var tendermintAddr = GetEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
@@ -50,7 +51,7 @@ func GeneratePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 }
 
 func CreateSignatureAndNonce(fnName string, paramJSON []byte, privKey *rsa.PrivateKey) (nonce string, signature []byte) {
-	nonce = base64.StdEncoding.EncodeToString([]byte(common.RandStr(12)))
+	nonce = base64.StdEncoding.EncodeToString([]byte(tmRand.Str(12)))
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
@@ -178,7 +179,7 @@ type ResponseTx struct {
 		DeliverTx struct {
 			Log  string   `json:"log"`
 			Fee  struct{} `json:"fee"`
-			Tags []common.KVPair
+			Tags []kv.Pair
 		} `json:"deliver_tx"`
 		Hash string `json:"hash"`
 	} `json:"result"`

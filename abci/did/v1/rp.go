@@ -41,7 +41,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	}
 	// get RP node detail
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	if nodeDetaiValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
@@ -55,7 +58,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	request.RequestId = funcParam.RequestID
 
 	key := "Request" + "|" + request.RequestId
-	requestIDExist := app.HasVersionedStateDB([]byte(key))
+	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	if requestIDExist {
 		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
@@ -89,7 +95,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 
 		// Get node detail
 		nodeDetailKey := "NodeID" + "|" + idp
-		_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+		nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		}
 		if nodeDetaiValue == nil {
 			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 		}
@@ -113,7 +122,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			proxyNodeID := node.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))
+			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
+			if err != nil {
+				return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			}
 			if proxyNodeDetailValue == nil {
 				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 			}
@@ -156,7 +168,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 			if nodeDetailMap[as] == nil {
 				// Get node detail
 				nodeDetailKey := "NodeID" + "|" + as
-				_, nodeDetaiValue := app.GetStateDB([]byte(nodeDetailKey))
+				nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+				}
 				if nodeDetaiValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 				}
@@ -181,7 +196,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 				proxyNodeID := node.ProxyNodeId
 				// Get proxy node detail
 				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-				_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))
+				proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
+				if err != nil {
+					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+				}
 				if proxyNodeDetailValue == nil {
 					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 				}
@@ -221,7 +239,10 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetVersionedStateDB([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(key), []byte(value))
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
@@ -233,7 +254,10 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.GetVersionedStateDB([]byte(key), 0)
+	value, err := app.state.GetVersioned([]byte(key), 0, false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -273,7 +297,10 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetVersionedStateDB([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(key), []byte(value))
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
@@ -285,7 +312,10 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.GetVersionedStateDB([]byte(key), 0)
+	value, err := app.state.GetVersioned([]byte(key), 0, false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -325,7 +355,10 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetVersionedStateDB([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(key), []byte(value))
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
@@ -337,7 +370,10 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	key := "Request" + "|" + funcParam.RequestID
-	_, value := app.GetVersionedStateDB([]byte(key), 0)
+	value, err := app.state.GetVersioned([]byte(key), 0, false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	if value == nil {
 		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
 	}
@@ -383,6 +419,9 @@ func (app *DIDApplication) setDataReceived(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.SetVersionedStateDB([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(key), []byte(value))
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }

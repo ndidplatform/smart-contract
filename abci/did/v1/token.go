@@ -36,13 +36,16 @@ import (
 
 func (app *DIDApplication) getTokenPriceByFunc(fnName string) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
-	_, value := app.GetCommittedStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		// if not set price of Function --> return price=1
 		return 1.0
 	}
 	var tokenPrice data.TokenPrice
-	err := proto.Unmarshal(value, &tokenPrice)
+	err = proto.Unmarshal(value, &tokenPrice)
 	if err != nil {
 		return 1.0
 	}
@@ -57,7 +60,7 @@ func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) err
 	if err != nil {
 		return err
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
@@ -66,17 +69,20 @@ func (app *DIDApplication) createTokenAccount(nodeID string) {
 	var token data.Token
 	token.Amount = 0
 	value, _ := utils.ProtoDeterministicMarshal(&token)
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 }
 
 func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		return err
+	}
 	if value == nil {
 		return errors.New("token account not found")
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return errors.New("token account not found")
 	}
@@ -85,7 +91,7 @@ func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	if err != nil {
 		return errors.New("token account not found")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
@@ -123,12 +129,15 @@ func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
 
 func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		return err
+	}
 	if value == nil {
 		return errors.New("token account not found")
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return errors.New("token account not found")
 	}
@@ -137,18 +146,21 @@ func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	if err != nil {
 		return errors.New("token account not found")
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return nil
 }
 
 func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return false
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return false
 	}
@@ -157,12 +169,15 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 
 func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		return code.AppStateError, ""
+	}
 	if value == nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
@@ -174,18 +189,21 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode
 	if err != nil {
 		return code.TokenAccountNotFound, "token account not found"
 	}
-	app.SetStateDB([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	return code.OK, ""
 }
 
 func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		return 0, err
+	}
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return 0, errors.New("token account not found")
 	}
@@ -194,12 +212,15 @@ func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 
 func (app *DIDApplication) getTokenCommitted(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
-	_, value := app.GetCommittedStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		return 0, err
+	}
 	if value == nil {
 		return 0, errors.New("token account not found")
 	}
 	var token data.Token
-	err := proto.Unmarshal(value, &token)
+	err = proto.Unmarshal(value, &token)
 	if err != nil {
 		return 0, errors.New("token account not found")
 	}
