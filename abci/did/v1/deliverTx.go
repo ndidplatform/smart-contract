@@ -28,19 +28,19 @@ import (
 
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	kv "github.com/tendermint/tendermint/libs/kv"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx
 func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
-	var attributes []cmn.KVPair
+	var attributes []kv.Pair
 	if code == 0 {
-		var attribute cmn.KVPair
+		var attribute kv.Pair
 		attribute.Key = []byte("success")
 		attribute.Value = []byte("true")
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute cmn.KVPair
+		var attribute kv.Pair
 		attribute.Key = []byte("success")
 		attribute.Value = []byte("false")
 		attributes = append(attributes, attribute)
@@ -59,15 +59,15 @@ func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData
 	}
 }
 
-func (app *DIDApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []cmn.KVPair) types.ResponseDeliverTx {
-	var attributes []cmn.KVPair
+func (app *DIDApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []kv.Pair) types.ResponseDeliverTx {
+	var attributes []kv.Pair
 	if code == 0 {
-		var attribute cmn.KVPair
+		var attribute kv.Pair
 		attribute.Key = []byte("success")
 		attribute.Value = []byte("true")
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute cmn.KVPair
+		var attribute kv.Pair
 		attribute.Key = []byte("success")
 		attribute.Value = []byte("false")
 		attributes = append(attributes, attribute)
@@ -111,7 +111,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 
 	// Set used nonce to stateDB
 	emptyValue := make([]byte, 0)
-	app.SetStateDB([]byte(nonce), emptyValue)
+	app.state.Set([]byte(nonce), emptyValue)
 	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	app.deliverTxNonceState[nonceBase64] = []byte(nil)
 	return result

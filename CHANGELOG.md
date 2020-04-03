@@ -5,7 +5,7 @@
 IMPROVEMENTS:
 
 - Use Go modules instead of dep.
-- Update Tendermint version to v0.32.1.
+- Update Tendermint version to v0.33.2.
 
 ## 3.0.0 (May 29, 2019)
 

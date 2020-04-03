@@ -100,7 +100,10 @@ var IsMethod = map[string]bool{
 
 func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
 	key := "MasterNDID"
-	exist := app.HasStateDB([]byte(key))
+	exist, err := app.state.Has([]byte(key), false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	if exist {
 		// NDID node (first node of the network) is already existed
 		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
@@ -110,9 +113,12 @@ func (app *DIDApplication) checkTxInitNDID(param string, nodeID string) types.Re
 
 func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	var node data.NodeDetail
-	err := proto.Unmarshal(value, &node)
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
@@ -127,9 +133,12 @@ func (app *DIDApplication) checkTxSetMqAddresses(param string, nodeID string) ty
 
 func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		panic(err)
+	}
 	var node data.NodeDetail
-	err := proto.Unmarshal(value, &node)
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -141,9 +150,12 @@ func (app *DIDApplication) checkNDID(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		panic(err)
+	}
 	var node data.NodeDetail
-	err := proto.Unmarshal(value, &node)
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -155,9 +167,12 @@ func (app *DIDApplication) checkIdP(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		panic(err)
+	}
 	var node data.NodeDetail
-	err := proto.Unmarshal(value, &node)
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -169,9 +184,12 @@ func (app *DIDApplication) checkAS(param string, nodeID string) bool {
 
 func (app *DIDApplication) checkIdPorRP(param string, nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		panic(err)
+	}
 	var node data.NodeDetail
-	err := proto.Unmarshal(value, &node)
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
 		return false
 	}
@@ -221,7 +239,10 @@ func (app *DIDApplication) checkIsOwnerRequest(param string, nodeID string) type
 	}
 	// Check request is existed
 	requestKey := "Request" + "|" + funcParam.RequestID
-	_, requestValue := app.GetVersionedStateDB([]byte(requestKey), 0)
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	if requestValue == nil {
 		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
 	}
@@ -279,12 +300,15 @@ func getPublicKeyInitNDID(param string) string {
 
 func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return ""
 	}
 	var nodeDetail data.NodeDetail
-	err := proto.Unmarshal(value, &nodeDetail)
+	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
 		return ""
 	}
@@ -293,12 +317,15 @@ func (app *DIDApplication) getMasterPublicKeyFromNodeID(nodeID string) string {
 
 func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return ""
 	}
 	var nodeDetail data.NodeDetail
-	err := proto.Unmarshal(value, &nodeDetail)
+	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
 		return ""
 	}
@@ -307,12 +334,15 @@ func (app *DIDApplication) getPublicKeyFromNodeID(nodeID string) string {
 
 func (app *DIDApplication) getRoleFromNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return ""
 	}
 	var nodeDetail data.NodeDetail
-	err := proto.Unmarshal(value, &nodeDetail)
+	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
 		return ""
 	}
@@ -396,7 +426,10 @@ var IsMasterKeyMethod = map[string]bool{
 
 func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB([]byte(initStateKey))
+	value, err := app.state.Get([]byte(initStateKey), false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	if string(value) == "" {
 		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
 	}
@@ -408,7 +441,10 @@ func (app *DIDApplication) checkCanCreateTx() types.ResponseCheckTx {
 
 func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
 	initStateKey := "InitState"
-	_, value := app.GetStateDB([]byte(initStateKey))
+	value, err := app.state.Get([]byte(initStateKey), false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	if string(value) != "true" {
 		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
 	}
@@ -417,7 +453,10 @@ func (app *DIDApplication) checkCanSetInitData() types.ResponseCheckTx {
 
 func (app *DIDApplication) checkLastBlock() types.ResponseCheckTx {
 	lastBlockKey := "lastBlock"
-	_, value := app.GetStateDB([]byte(lastBlockKey))
+	value, err := app.state.Get([]byte(lastBlockKey), false)
+	if err != nil {
+		return ReturnCheckTx(code.AppStateError, "")
+	}
 	if string(value) == "" {
 		value = []byte("-1")
 	}
@@ -503,14 +542,17 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 
 		// Get node detail by NodeID
 		nodeDetailKey := "NodeID" + "|" + nodeID
-		_, nodeDetailValue := app.GetStateDB([]byte(nodeDetailKey))
+		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		if err != nil {
+			return ReturnCheckTx(code.AppStateError, "")
+		}
 		// If node not found then return code.NodeIDNotFound
 		if nodeDetailValue == nil {
 			return ReturnCheckTx(code.NodeIDNotFound, "Node ID not found")
 		}
 		// Unmarshal node detail
 		var nodeDetail data.NodeDetail
-		err := proto.Unmarshal(nodeDetailValue, &nodeDetail)
+		err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 		if err != nil {
 			return ReturnCheckTx(code.UnmarshalError, err.Error())
 		}
@@ -519,7 +561,10 @@ func (app *DIDApplication) CheckTxRouter(method string, param string, nonce []by
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
-			_, proxyNodeDetailValue := app.GetStateDB([]byte(proxyNodeDetailKey))
+			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
+			if err != nil {
+				return ReturnCheckTx(code.AppStateError, "")
+			}
 			if proxyNodeDetailValue == nil {
 				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
 			}
@@ -633,12 +678,15 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 
 func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
 	key := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(key))
+	value, err := app.state.Get([]byte(key), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return false
 	}
 	var nodeDetail data.NodeDetail
-	err := proto.Unmarshal(value, &nodeDetail)
+	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
 		return false
 	}
@@ -647,12 +695,15 @@ func (app *DIDApplication) getActiveStatusByNodeID(nodeID string) bool {
 
 func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 	nodeDetailKey := "NodeID" + "|" + nodeID
-	_, value := app.GetStateDB([]byte(nodeDetailKey))
+	value, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		panic(err)
+	}
 	if value == nil {
 		return false
 	}
 	var node data.NodeDetail
-	err := proto.Unmarshal([]byte(value), &node)
+	err = proto.Unmarshal([]byte(value), &node)
 	if err != nil {
 		return false
 	}
@@ -663,5 +714,10 @@ func (app *DIDApplication) checkIsProxyNode(nodeID string) bool {
 }
 
 func (app *DIDApplication) isDuplicateNonce(nonce []byte) bool {
-	return app.HasStateDB(nonce)
+	hasNonce, err := app.state.Has(nonce, false)
+	if err != nil {
+		panic(err)
+	}
+
+	return hasNonce
 }

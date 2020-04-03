@@ -146,7 +146,7 @@ func GetIdpNodes(t *testing.T, param did.GetIdpNodesParam, expected string) {
 		return
 	}
 	if actual := string(resultString); actual != expected {
-		t.Fatalf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
+		t.Errorf("FAIL: %s\nExpected: %s\nActual: %s", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }

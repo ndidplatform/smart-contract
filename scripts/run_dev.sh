@@ -33,6 +33,10 @@ reset_all_and_run_node_in_background() {
 rm -rf $TMP_DIR
 
 reset_all_and_run_node_in_background $NODE1_TENDERMINT_HOME_DIR $NODE1_ABCI_DB_DIR
+
+# Wait a bit for the first node (seed node) to start
+sleep 2
+
 reset_all_and_run_node_in_background $NODE2_TENDERMINT_HOME_DIR $NODE2_ABCI_DB_DIR
 reset_all_and_run_node_in_background $NODE3_TENDERMINT_HOME_DIR $NODE3_ABCI_DB_DIR
 reset_all_and_run_node_in_background $NODE4_TENDERMINT_HOME_DIR $NODE4_ABCI_DB_DIR

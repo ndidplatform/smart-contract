@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2019-04-09T08:37:36.170775Z",
+  "genesis_time": "2020-04-03T13:48:01.083989407Z",
   "chain_id": "test-chain-NDID",
   "consensus_params": {
     "block": {
@@ -8,7 +8,8 @@
       "time_iota_ms": "1000"
     },
     "evidence": {
-      "max_age": "100000"
+      "max_age_num_blocks": "100000",
+      "max_age_duration": "172800000000000"
     },
     "validator": {
       "pub_key_types": [

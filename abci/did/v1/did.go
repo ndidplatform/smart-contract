@@ -25,7 +25,6 @@ package did
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -39,29 +38,12 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
-	dbm "github.com/tendermint/tendermint/libs/db"
+	dbm "github.com/tendermint/tm-db"
 )
-
-var (
-	stateKey = []byte("stateKey")
-	// nonceKeyPrefix  = []byte("nonce:")
-)
-
-type State struct {
-	db      dbm.DB
-	Height  int64  `json:"height"`
-	AppHash []byte `json:"app_hash"`
-}
-
-// func prefixNonceKey(nonceKey []byte) []byte {
-// 	return append(nonceKeyPrefix, nonceKey...)
-// }
-
-var _ types.Application = (*DIDApplication)(nil)
 
 type DIDApplication struct {
 	types.BaseApplication
-	state                    State
+	state                    AppState
 	checkTxNonceState        map[string][]byte
 	deliverTxNonceState      map[string][]byte
 	ValUpdates               map[string]types.ValidatorUpdate
@@ -75,27 +57,6 @@ type DIDApplication struct {
 	UncommittedVersionsState map[string][]int64
 }
 
-func loadState(db dbm.DB) State {
-	stateBytes := db.Get(stateKey)
-	var state State
-	if len(stateBytes) != 0 {
-		err := json.Unmarshal(stateBytes, &state)
-		if err != nil {
-			panic(err)
-		}
-	}
-	state.db = db
-	return state
-}
-
-func saveState(state State) {
-	stateBytes, err := json.Marshal(state)
-	if err != nil {
-		panic(err)
-	}
-	state.db.Set(stateKey, stateBytes)
-}
-
 func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	defer func() {
 		if r := recover(); r != nil {
@@ -103,15 +64,17 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 			panic(r)
 		}
 	}()
-	// var state State
-	// state.db = db
-	state := loadState(db)
+
+	appState, err := NewAppState(db)
+	if err != nil {
+		panic(err)
+	}
 
 	ABCIVersion := version.Version
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:                    state,
+		state:                    *appState,
 		checkTxNonceState:        make(map[string][]byte),
 		deliverTxNonceState:      make(map[string][]byte),
 		logger:                   logger,
@@ -303,7 +266,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 
-	app.SaveDBState()
+	app.state.Save()
 	app.state.Height = app.state.Height + 1
 	go recordDBSaveDurationMetrics(startTime)
 
@@ -324,7 +287,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	app.HashData = make([]byte, 0)
 
 	// Save state
-	saveState(app.state)
+	app.state.SaveMetadata()
 
 	go recordCommitDurationMetrics(startTime)
 	return types.ResponseCommit{Data: appHash}

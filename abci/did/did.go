@@ -30,8 +30,8 @@ import (
 	// didV2 "github.com/ndidplatform/smart-contract/v4/abci/did2/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
-	dbm "github.com/tendermint/tendermint/libs/db"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	dbm "github.com/tendermint/tm-db"
 )
 
 var _ types.Application = (*DIDApplicationInterface)(nil)
@@ -48,11 +48,11 @@ func NewDIDApplicationInterface() *DIDApplicationInterface {
 	var dbType = getEnv("ABCI_DB_TYPE", "goleveldb")
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 
-	if err := cmn.EnsureDir(dbDir, 0700); err != nil {
+	if err := tmos.EnsureDir(dbDir, 0700); err != nil {
 		panic(fmt.Errorf("Could not create DB directory: %v", err.Error()))
 	}
 	name := "didDB"
-	db := dbm.NewDB(name, dbm.DBBackendType(dbType), dbDir)
+	db := dbm.NewDB(name, dbm.BackendType(dbType), dbDir)
 	// tree := iavl.NewMutableTree(db, 0)
 	// tree.Load()
 

@@ -129,5 +129,6 @@ const (
 	NewModeListMustBeHigherThanCurrentModeList         uint32 = 105
 	InvalidErrorCode                                   uint32 = 106
 	NodeNotInWhitelist                                 uint32 = 107
+	AppStateError                                      uint32 = 108
 	UnknownError                                       uint32 = 999
 )

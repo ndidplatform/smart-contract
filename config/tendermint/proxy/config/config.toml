@@ -1,6 +1,11 @@
 # This is a TOML config file.
 # For more information, see https://github.com/toml-lang/toml
 
+# NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
+# relative to the home directory (e.g. "data"). The home directory is
+# "$HOME/.tendermint" by default, but could be changed via $TMHOME env variable
+# or --home cmd flag.
+
 ##### main base config options #####
 
 # TCP or UNIX socket address of the ABCI application,
@@ -8,14 +13,29 @@
 proxy_app = "tcp://127.0.0.1:46003"
 
 # A custom human readable name for this node
-moniker = "AS2"
+moniker = "proxy"
 
 # If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
 # and verifying their commits
 fast_sync = true
 
-# Database backend: leveldb | memdb | cleveldb
+# Database backend: goleveldb | cleveldb | boltdb | rocksdb
+# * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
+#   - pure go
+#   - stable
+# * cleveldb (uses levigo wrapper)
+#   - fast
+#   - requires gcc
+#   - use cleveldb build tag (go build -tags cleveldb)
+# * boltdb (uses etcd's fork of bolt - github.com/etcd-io/bbolt)
+#   - EXPERIMENTAL
+#   - may be faster is some use-cases (random reads - indexer)
+#   - use boltdb build tag (go build -tags boltdb)
+# * rocksdb (uses github.com/tecbot/gorocksdb)
+#   - EXPERIMENTAL
+#   - requires gcc
+#   - use rocksdb build tag (go build -tags rocksdb)
 db_backend = "goleveldb"
 
 # Database directory
@@ -115,15 +135,25 @@ max_subscriptions_per_client = 5
 # See https://github.com/tendermint/tendermint/issues/3435
 timeout_broadcast_tx_commit = "10s"
 
-# The name of a file containing certificate that is used to create the HTTPS server.
+# Maximum size of request body, in bytes
+max_body_bytes = 1000000
+
+# Maximum size of request header, in bytes
+max_header_bytes = 1048576
+
+# The path to a file containing certificate that is used to create the HTTPS server.
+# Migth be either absolute path or path related to tendermint's config directory.
 # If the certificate is signed by a certificate authority,
 # the certFile should be the concatenation of the server's certificate, any intermediates,
 # and the CA's certificate.
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server. Otherwise, HTTP server is run.
+# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# Otherwise, HTTP server is run.
 tls_cert_file = ""
 
-# The name of a file containing matching private key that is used to create the HTTPS server.
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server. Otherwise, HTTP server is run.
+# The path to a file containing matching private key that is used to create the HTTPS server.
+# Migth be either absolute path or path related to tendermint's config directory.
+# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# Otherwise, HTTP server is run.
 tls_key_file = ""
 
 ##### peer to peer configuration options #####
@@ -159,6 +189,12 @@ max_num_inbound_peers = 40
 
 # Maximum number of outbound peers to connect to, excluding persistent peers
 max_num_outbound_peers = 10
+
+# List of node IDs, to which a connection will be (re)established ignoring any existing limits
+unconditional_peer_ids = ""
+
+# Maximum pause when redialing a persistent peer (if zero, exponential backoff is used)
+persistent_peers_max_dial_period = "0s"
 
 # Time to wait before flushing messages out on the connection
 flush_throttle_timeout = "10ms"
@@ -209,6 +245,18 @@ max_txs_bytes = 1073741824
 # Size of the cache (used to filter transactions we saw earlier) in transactions
 cache_size = 0
 
+# Maximum size of a single transaction.
+# NOTE: the max size of a tx transmitted over the network is {max_tx_bytes} + {amino overhead}.
+max_tx_bytes = 1048576
+
+##### fast sync configuration options #####
+[fastsync]
+
+# Fast Sync version to use:
+#   1) "v0" (default) - the legacy fast sync implementation
+#   2) "v1" - refactor of v0 version for better testability
+version = "v0"
+
 ##### consensus configuration options #####
 [consensus]
 
@@ -223,7 +271,7 @@ timeout_precommit_delta = "500ms"
 timeout_commit = "1s"
 
 # Make progress as soon as we have all the precommits (as if TimeoutCommit = 0)
-skip_timeout_commit = false
+skip_timeout_commit = true
 
 # EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = false
@@ -243,22 +291,27 @@ peer_query_maj23_sleep_duration = "2s"
 #   2) "kv" (default) - the simplest possible indexer, backed by key-value storage (defaults to levelDB; see DBBackend).
 indexer = "kv"
 
-# Comma-separated list of tags to index (by default the only tag is "tx.hash")
+# Comma-separated list of compositeKeys to index (by default the only key is "tx.hash")
+# Remember that Event has the following structure: type.key
+# type: [
+#  key: value,
+#  ...
+# ]
 #
-# You can also index transactions by height by adding "tx.height" tag here.
+# You can also index transactions by height by adding "tx.height" key here.
 #
-# It's recommended to index only a subset of tags due to possible memory
+# It's recommended to index only a subset of keys due to possible memory
 # bloat. This is, of course, depends on the indexer's DB and the volume of
 # transactions.
-index_tags = ""
+index_keys = ""
 
-# When set to true, tells indexer to index all tags (predefined tags:
-# "tx.hash", "tx.height" and all tags from DeliverTx responses).
+# When set to true, tells indexer to index all compositeKeys (predefined keys:
+# "tx.hash", "tx.height" and all keys from DeliverTx responses).
 #
-# Note this may be not desirable (see the comment above). IndexTags has a
-# precedence over IndexAllTags (i.e. when given both, IndexTags will be
+# Note this may be not desirable (see the comment above). IndexKeys has a
+# precedence over IndexAllKeys (i.e. when given both, IndexKeys will be
 # indexed).
-index_all_tags = false
+index_all_keys = false
 
 ##### instrumentation configuration options #####
 [instrumentation]

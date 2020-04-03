@@ -43,7 +43,10 @@ func isValidatorTx(tx []byte) bool {
 
 func (app *DIDApplication) Validators() (validators []types.Validator) {
 	app.logger.Infof("Validators")
-	itr := app.state.db.Iterator(nil, nil)
+	itr, err := app.state.db.Iterator(nil, nil)
+	if err != nil {
+		panic(err)
+	}
 	defer itr.Close()
 	for ; itr.Valid(); itr.Next() {
 		key := itr.Key()
@@ -64,17 +67,21 @@ func (app *DIDApplication) updateValidator(v types.ValidatorUpdate) types.Respon
 
 	if v.Power == 0 {
 		// remove validator
-		if !app.HasStateDB(key) {
+		hasKey, err := app.state.Has(key, false)
+		if err != nil {
+			panic(err)
+		}
+		if !hasKey {
 			return app.ReturnDeliverTxLog(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
 		}
-		app.DeleteStateDB(key)
+		app.state.Delete(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
 		if err := types.WriteMessage(&v, value); err != nil {
 			return app.ReturnDeliverTxLog(code.EncodingError, fmt.Sprintf("Error encoding validator: %v", err), "")
 		}
-		app.SetStateDB(key, value.Bytes())
+		app.state.Set(key, value.Bytes())
 	}
 
 	app.ValUpdates[pubKeyBase64] = v
