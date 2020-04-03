@@ -1346,7 +1346,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			if !proxyNode.Active {
 				return nil
 			}
-			proxy := &IdpNodeProxy{
+			proxy = &IdpNodeProxy{
 				NodeID:    string(proxyNodeID),
 				PublicKey: proxyNode.PublicKey,
 				Mq:        make([]MsqAddress, 0, len(proxyNode.Mq)),
