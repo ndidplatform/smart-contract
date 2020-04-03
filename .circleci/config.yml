@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     working_directory: ~/ndidplatform/smart-contract
     steps:
       - checkout
@@ -58,7 +58,7 @@ jobs:
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - setup_remote_docker
@@ -85,7 +85,7 @@ jobs:
             docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.13
     steps:
       - checkout
       - setup_remote_docker
