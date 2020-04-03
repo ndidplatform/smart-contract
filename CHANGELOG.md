@@ -6,6 +6,8 @@ IMPROVEMENTS:
 
 - Use Go modules instead of dep.
 - Update Tendermint version to v0.33.2.
+- [Docker] Use golang:1.14 when building tendermint image
+- [Docker] Use alpine:3.11 when building tendermint image
 
 ## 3.0.0 (May 29, 2019)
 
