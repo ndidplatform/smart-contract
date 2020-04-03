@@ -68,8 +68,7 @@ var (
 		[]string{"function"})
 )
 
-func recordCheckTxDurationMetrics(startTime time.Time, fName string) {
-	duration := time.Since(startTime)
+func recordCheckTxDurationMetrics(duration time.Duration, fName string) {
 	checkTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
 }
 
@@ -112,8 +111,7 @@ var (
 	)
 )
 
-func recordDeliverTxDurationMetrics(startTime time.Time, fName string) {
-	duration := time.Since(startTime)
+func recordDeliverTxDurationMetrics(duration time.Duration, fName string) {
 	deliverTxDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
 }
 
@@ -142,8 +140,7 @@ var (
 	)
 )
 
-func recordQueryDurationMetrics(startTime time.Time, fName string) {
-	duration := time.Since(startTime)
+func recordQueryDurationMetrics(duration time.Duration, fName string) {
 	queryDurationHistogram.WithLabelValues(fName).Observe(duration.Seconds())
 }
 
@@ -158,8 +155,7 @@ var (
 	)
 )
 
-func recordCommitDurationMetrics(startTime time.Time) {
-	duration := time.Since(startTime)
+func recordCommitDurationMetrics(duration time.Duration) {
 	commitDurationHistogram.Observe(duration.Seconds())
 }
 
@@ -173,8 +169,7 @@ var (
 	)
 )
 
-func recordDBSaveDurationMetrics(startTime time.Time) {
-	duration := time.Since(startTime)
+func recordDBSaveDurationMetrics(duration time.Duration) {
 	dbSaveDurationHistogram.Observe(duration.Seconds())
 }
 
@@ -188,8 +183,7 @@ var (
 	)
 )
 
-func recordAppHashDurationMetrics(startTime time.Time) {
-	duration := time.Since(startTime)
+func recordAppHashDurationMetrics(duration time.Duration) {
 	appHashDurationHistogram.Observe(duration.Seconds())
 }
 
