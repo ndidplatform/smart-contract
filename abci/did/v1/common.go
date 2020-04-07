@@ -591,12 +591,18 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 			RequestParamsHash: dataRequest.RequestParamsHash,
 		}
 		for _, asResponse := range dataRequest.ResponseList {
-			newRow.ResponseList = append(newRow.ResponseList, ASResponse{
-				AsID:         asResponse.AsId,
-				Signed:       asResponse.Signed,
-				ReceivedData: asResponse.ReceivedData,
-				ErrorCode:    asResponse.ErrorCode,
-			})
+			if asResponse.ErrorCode == 0 {
+				newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+					AsID:         asResponse.AsId,
+					Signed:       &asResponse.Signed,
+					ReceivedData: &asResponse.ReceivedData,
+				})
+			} else {
+				newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+					AsID:      asResponse.AsId,
+					ErrorCode: &asResponse.ErrorCode,
+				})
+			}
 		}
 		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
@@ -618,15 +624,14 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 				IdpID:          response.IdpId,
 				Ial:            float64(response.Ial),
 				Aal:            float64(response.Aal),
-				Status:         response.Status,
-				Signature:      response.Signature,
+				Status:         &response.Status,
+				Signature:      &response.Signature,
 				ValidIal:       validIal,
 				ValidSignature: validSignature,
 			}
 		} else {
 			newRow = Response{
 				IdpID:     response.IdpId,
-				Status:    "reject",
 				ErrorCode: &response.ErrorCode,
 			}
 		}

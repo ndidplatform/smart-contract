@@ -33,15 +33,15 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func (app *DIDApplication) signData(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SignData, Parameter: %s", param)
-	var signData SignDataParam
-	err := json.Unmarshal([]byte(param), &signData)
+func (app *DIDApplication) createAsResponse(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
+	var createAsResponseParam CreateAsResponseParam
+	err := json.Unmarshal([]byte(param), &createAsResponseParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	requestKey := "Request" + "|" + signData.RequestID
+	requestKey := "Request" + "|" + createAsResponseParam.RequestID
 	requestJSON, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -56,8 +56,8 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check error code exists
-	if signData.ErrorCode != nil {
-		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + fmt.Sprintf("%d", *signData.ErrorCode)
+	if createAsResponseParam.ErrorCode != nil {
+		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + fmt.Sprintf("%d", *createAsResponseParam.ErrorCode)
 		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -78,7 +78,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + signData.ServiceID
+	serviceKey := "Service" + "|" + createAsResponseParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -98,7 +98,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check service destination is approved by NDID
-	approveServiceKey := "ApproveKey" + "|" + signData.ServiceID + "|" + nodeID
+	approveServiceKey := "ApproveKey" + "|" + createAsResponseParam.ServiceID + "|" + nodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -116,7 +116,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	}
 
 	// Check service destination is active
-	serviceDestinationKey := "ServiceDestination" + "|" + signData.ServiceID
+	serviceDestinationKey := "ServiceDestination" + "|" + createAsResponseParam.ServiceID
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -144,7 +144,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	// Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == signData.ServiceID {
+		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
 			for _, as := range dataRequest.AsIdList {
 				if as == nodeID {
 					exist = true
@@ -160,7 +160,7 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	// Check Duplicate AS ID
 	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == signData.ServiceID {
+		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
 			for _, asResponse := range dataRequest.ResponseList {
 				if asResponse.AsId == nodeID {
 					duplicate = true
@@ -175,27 +175,31 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == signData.ServiceID {
+		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
 			var countSignedAS int64 = 0
 			for _, asResponse := range dataRequest.ResponseList {
 				if asResponse.ErrorCode == 0 {
-					countSignedAS += 1
+					countSignedAS++
 				}
 			}
 			if countSignedAS >= dataRequest.MinAs {
-				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't sign data to data request that's enough data", "")
+				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to request with enough AS responses", "")
 			}
 		}
 	}
 
-	signDataKey := "SignData" + "|" + nodeID + "|" + signData.ServiceID + "|" + signData.RequestID
-	signDataValue := signData.Signature
+	var signDataKey string
+	var signDataValue string
+	if createAsResponseParam.ErrorCode == nil {
+		signDataKey = "SignData" + "|" + nodeID + "|" + createAsResponseParam.ServiceID + "|" + createAsResponseParam.RequestID
+		signDataValue = createAsResponseParam.Signature
+	}
 
 	// Update answered_as_id_list in request
 	for index, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == signData.ServiceID {
+		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
 			var asResponse data.ASResponse
-			if signData.ErrorCode == nil {
+			if createAsResponseParam.ErrorCode == nil {
 				asResponse = data.ASResponse{
 					AsId:         nodeID,
 					Signed:       true,
@@ -203,10 +207,8 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 				}
 			} else {
 				asResponse = data.ASResponse{
-					AsId:         nodeID,
-					Signed:       false,
-					ReceivedData: false,
-					ErrorCode:    *signData.ErrorCode,
+					AsId:      nodeID,
+					ErrorCode: *createAsResponseParam.ErrorCode,
 				}
 			}
 			request.DataRequestList[index].ResponseList = append(dataRequest.ResponseList, &asResponse)
@@ -222,8 +224,10 @@ func (app *DIDApplication) signData(param string, nodeID string) types.ResponseD
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	app.state.Set([]byte(signDataKey), []byte(signDataValue))
-	return app.ReturnDeliverTxLog(code.OK, "success", signData.RequestID)
+	if createAsResponseParam.ErrorCode == nil {
+		app.state.Set([]byte(signDataKey), []byte(signDataValue))
+	}
+	return app.ReturnDeliverTxLog(code.OK, "success", createAsResponseParam.RequestID)
 }
 
 func (app *DIDApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {

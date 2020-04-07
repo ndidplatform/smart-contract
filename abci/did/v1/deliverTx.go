@@ -131,8 +131,8 @@ func (app *DIDApplication) callDeliverTx(name string, param string, nodeID strin
 		return app.createRequest(param, nodeID)
 	case "CreateIdpResponse":
 		return app.createIdpResponse(param, nodeID)
-	case "SignData":
-		return app.signData(param, nodeID)
+	case "CreateAsResponse":
+		return app.createAsResponse(param, nodeID)
 	case "RegisterServiceDestination":
 		return app.registerServiceDestination(param, nodeID)
 	case "SetMqAddresses":

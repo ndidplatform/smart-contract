@@ -117,9 +117,9 @@ type GetAccessorMethodResult struct {
 
 type ASResponse struct {
 	AsID         string `json:"as_id"`
-	Signed       bool   `json:"signed"`
-	ReceivedData bool   `json:"received_data"`
-	ErrorCode    int32  `json:"error_code"`
+	Signed       *bool  `json:"signed,omitempty"`
+	ReceivedData *bool  `json:"received_data,omitempty"`
+	ErrorCode    *int32 `json:"error_code,omitempty"`
 }
 
 type DataRequest struct {
@@ -146,8 +146,8 @@ type CreateRequestParam struct {
 type Response struct {
 	Ial            float64 `json:"ial"`
 	Aal            float64 `json:"aal"`
-	Status         string  `json:"status"`
-	Signature      string  `json:"signature"`
+	Status         *string `json:"status,omitempty"`
+	Signature      *string `json:"signature,omitempty"`
 	IdpID          string  `json:"idp_id"`
 	ValidIal       *bool   `json:"valid_ial"`
 	ValidSignature *bool   `json:"valid_signature"`
@@ -193,7 +193,7 @@ type GetRequestDetailResult struct {
 	CreationChainID     string        `json:"creation_chain_id"`
 }
 
-type SignDataParam struct {
+type CreateAsResponseParam struct {
 	ServiceID string `json:"service_id"`
 	RequestID string `json:"request_id"`
 	Signature string `json:"signature"`

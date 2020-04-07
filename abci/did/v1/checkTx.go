@@ -69,7 +69,7 @@ var IsMethod = map[string]bool{
 	"CreateIdpResponse":                true,
 	"RegisterAccessor":                 true,
 	"UpdateIdentity":                   true,
-	"SignData":                         true,
+	"CreateAsResponse":                 true,
 	"RegisterServiceDestination":       true,
 	"UpdateServiceDestination":         true,
 	"CreateRequest":                    true,
@@ -661,7 +661,7 @@ func (app *DIDApplication) callCheckTx(name string, param string, nodeID string)
 		"AddIdentity",
 		"RevokeAndAddAccessor":
 		return app.checkIsIDP(param, nodeID)
-	case "SignData",
+	case "CreateAsResponse",
 		"RegisterServiceDestination",
 		"UpdateServiceDestination",
 		"DisableServiceDestination",

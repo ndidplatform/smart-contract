@@ -1038,7 +1038,7 @@ message Query {
 }
 ```
 
-## SignData
+## CreateAsResponse
 
 ### Parameter
 
@@ -1046,7 +1046,8 @@ message Query {
 {
   "request_id": "16dc0550-a6e4-4e1f-8338-37c2ac85af74",
   "service_id": "LlUXaAYeAoVDiQziKPMc",
-  "signature": "sign(data,asKey)"
+  "signature": "sign(data,asKey)",
+  "error_code": 0
 }
 ```
 
@@ -2204,7 +2205,7 @@ message Query {
     "data": ""
   },
   {
-    "method": "SignData",
+    "method": "CreateAsResponse",
     "price": 1,
     "data": "16dc0550-a6e4-4e1f-8338-37c2ac85af74"
   }
