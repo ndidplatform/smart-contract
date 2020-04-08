@@ -620,10 +620,12 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 				tValue := response.ValidSignature == "true"
 				validSignature = &tValue
 			}
+			ial := float64(response.Ial)
+			aal := float64(response.Aal)
 			newRow = Response{
 				IdpID:          response.IdpId,
-				Ial:            float64(response.Ial),
-				Aal:            float64(response.Aal),
+				Ial:            &ial,
+				Aal:            &aal,
 				Status:         &response.Status,
 				Signature:      &response.Signature,
 				ValidIal:       validIal,

@@ -144,14 +144,14 @@ type CreateRequestParam struct {
 }
 
 type Response struct {
-	Ial            float64 `json:"ial"`
-	Aal            float64 `json:"aal"`
-	Status         *string `json:"status,omitempty"`
-	Signature      *string `json:"signature,omitempty"`
-	IdpID          string  `json:"idp_id"`
-	ValidIal       *bool   `json:"valid_ial"`
-	ValidSignature *bool   `json:"valid_signature"`
-	ErrorCode      *int32  `json:"error_code,omitempty"`
+	Ial            *float64 `json:"ial,omitempty"`
+	Aal            *float64 `json:"aal,omitempty"`
+	Status         *string  `json:"status,omitempty"`
+	Signature      *string  `json:"signature,omitempty"`
+	IdpID          string   `json:"idp_id"`
+	ValidIal       *bool    `json:"valid_ial"`
+	ValidSignature *bool    `json:"valid_signature"`
+	ErrorCode      *int32   `json:"error_code,omitempty"`
 }
 
 type CreateIdpResponseParam struct {
