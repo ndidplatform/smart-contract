@@ -1033,7 +1033,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 			PublicKey:       proxyNode.PublicKey,
 			MasterPublicKey: proxyNode.MasterPublicKey,
 			Mq:              make([]MsqAddress, 0, len(proxyNode.Mq)),
-			Config:          proxyNode.ProxyConfig,
+			Config:          nodeDetail.ProxyConfig,
 		}
 		for _, mq := range proxyNode.Mq {
 			proxy.Mq = append(proxy.Mq, MsqAddress{
