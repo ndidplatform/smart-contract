@@ -399,9 +399,8 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 	}
 	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
-<<<<<<< HEAD
 
-func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodeParam, expected string) {
+func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodeParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -420,7 +419,7 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodePara
 }
 
 func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode int32, description string, expected string) {
-	param := did.AddErrorCodeParam{
+	param := app.AddErrorCodeParam{
 		ErrorCode:   errorCode,
 		Description: description,
 		Type:        errorCodeType,
@@ -428,7 +427,7 @@ func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode int32, descr
 	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
 
-func RemoveErrorCode(t *testing.T, nodeID, privK string, param did.RemoveErrorCodeParam, expected string) {
+func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCodeParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -447,11 +446,9 @@ func RemoveErrorCode(t *testing.T, nodeID, privK string, param did.RemoveErrorCo
 }
 
 func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode int32, expected string) {
-	param := did.RemoveErrorCodeParam{
+	param := app.RemoveErrorCodeParam{
 		ErrorCode: errorCode,
 		Type:      errorCodeType,
 	}
 	RemoveErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
-=======
->>>>>>> master

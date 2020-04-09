@@ -453,7 +453,7 @@ func TestGetNodeInfo(t *testing.T, nodeID, expected string) {
 	GetNodeInfo(t, param, expected)
 }
 
-func getErrorCodeList(t *testing.T, param did.GetErrorCodeListParam, expected string) {
+func getErrorCodeList(t *testing.T, param app.GetErrorCodeListParam, expected string) {
 	fnName := "GetErrorCodeList"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -473,7 +473,7 @@ func getErrorCodeList(t *testing.T, param did.GetErrorCodeListParam, expected st
 }
 
 func TestGetErrorCodeList(t *testing.T, errorCodeType string, expected string) {
-	var param did.GetErrorCodeListParam
+	var param app.GetErrorCodeListParam
 	param.Type = errorCodeType
 	getErrorCodeList(t, param, expected)
 }
