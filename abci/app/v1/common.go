@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -43,7 +43,7 @@ var modeFunctionMap = map[string]bool{
 	"RevokeAndAddAccessor":      true,
 }
 
-func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -77,7 +77,7 @@ func (app *DIDApplication) setMqAddresses(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) getNodeMasterPublicKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
 	var funcParam GetNodeMasterPublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -111,7 +111,7 @@ func (app *DIDApplication) getNodeMasterPublicKey(param string) types.ResponseQu
 
 }
 
-func (app *DIDApplication) getNodePublicKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
 	var funcParam GetNodePublicKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -144,7 +144,7 @@ func (app *DIDApplication) getNodePublicKey(param string) types.ResponseQuery {
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getNodeNameByNodeID(nodeID string) string {
+func (app *ABCIApplication) getNodeNameByNodeID(nodeID string) string {
 	key := "NodeID" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
@@ -161,7 +161,7 @@ func (app *DIDApplication) getNodeNameByNodeID(nodeID string) string {
 	return nodeDetail.NodeName
 }
 
-func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	app.logger.Infof("GetIdpNodes, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -351,7 +351,7 @@ func (app *DIDApplication) getIdpNodes(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -474,7 +474,7 @@ func (app *DIDApplication) getAsNodesByServiceId(param string) types.ResponseQue
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getMqAddresses(param string) types.ResponseQuery {
+func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
 	app.logger.Infof("GetMqAddresses, Parameter: %s", param)
 	var funcParam GetMqAddressesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -512,7 +512,7 @@ func (app *DIDApplication) getMqAddresses(param string) types.ResponseQuery {
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getRequest(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getRequest(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -548,7 +548,7 @@ func (app *DIDApplication) getRequest(param string, height int64) types.Response
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getRequestDetail(param string, height int64, getFromCommitedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getRequestDetail(param string, height int64, getFromCommitedState bool) types.ResponseQuery {
 	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -670,7 +670,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getNamespaceList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNamespaceList(param string) types.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	key := "AllNamespace"
 	value, err := app.state.Get([]byte(key), true)
@@ -701,7 +701,7 @@ func (app *DIDApplication) getNamespaceList(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getServiceDetail(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
 	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -729,7 +729,7 @@ func (app *DIDApplication) getServiceDetail(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -769,7 +769,7 @@ func (app *DIDApplication) updateNode(param string, nodeID string) types.Respons
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQuery {
 	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -831,7 +831,7 @@ func (app *DIDApplication) checkExistingIdentity(param string) types.ResponseQue
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -877,7 +877,7 @@ func (app *DIDApplication) getAccessorKey(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getServiceList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServiceList(param string) types.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
 	value, err := app.state.Get([]byte(key), true)
@@ -911,7 +911,7 @@ func (app *DIDApplication) getServiceList(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getServiceNameByServiceID(serviceID string) string {
+func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
 	key := "Service" + "|" + serviceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
@@ -928,7 +928,7 @@ func (app *DIDApplication) getServiceNameByServiceID(serviceID string) string {
 	return result.ServiceName
 }
 
-func (app *DIDApplication) checkExistingAccessorID(param string) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingAccessorID(param string) types.ResponseQuery {
 	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -973,7 +973,7 @@ func (app *DIDApplication) checkExistingAccessorID(param string) types.ResponseQ
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
 	var funcParam GetNodeInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1068,7 +1068,7 @@ func (app *DIDApplication) getNodeInfo(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
 	var funcParam GetIdentityInfoParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1139,7 +1139,7 @@ func (app *DIDApplication) getIdentityInfo(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
+func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 	app.logger.Infof("GetDataSignature, Parameter: %s", param)
 	var funcParam GetDataSignatureParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1160,7 +1160,7 @@ func (app *DIDApplication) getDataSignature(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery {
 	app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
 	var funcParam GetServicesByAsIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1252,7 +1252,7 @@ func (app *DIDApplication) getServicesByAsID(param string) types.ResponseQuery {
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	app.logger.Infof("GetIdpNodesInfo, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1487,7 +1487,7 @@ func (app *DIDApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesInfoByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1661,7 +1661,7 @@ func (app *DIDApplication) getAsNodesInfoByServiceId(param string) types.Respons
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodesBehindProxyNode, Parameter: %s", param)
 	var funcParam GetNodesBehindProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1742,7 +1742,7 @@ func (app *DIDApplication) getNodesBehindProxyNode(param string) types.ResponseQ
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodeIDList, Parameter: %s", param)
 	var funcParam GetNodeIDListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1882,7 +1882,7 @@ func (app *DIDApplication) getNodeIDList(param string) types.ResponseQuery {
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
 	var funcParam GetAccessorOwnerParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1927,7 +1927,7 @@ func (app *DIDApplication) getAccessorOwner(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) isInitEnded(param string) types.ResponseQuery {
+func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult
 	result.InitEnded = false
@@ -1946,7 +1946,7 @@ func (app *DIDApplication) isInitEnded(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) getChainHistory(param string) types.ResponseQuery {
+func (app *ABCIApplication) getChainHistory(param string) types.ResponseQuery {
 	app.logger.Infof("GetChainHistory, Parameter: %s", param)
 	chainHistoryInfoKey := "ChainHistoryInfo"
 	value, err := app.state.Get([]byte(chainHistoryInfoKey), true)
@@ -1974,7 +1974,7 @@ func containsInt32(a int32, list []int32) bool {
 	return false
 }
 
-func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -2001,7 +2001,7 @@ func (app *DIDApplication) GetReferenceGroupCode(param string) types.ResponseQue
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCodeByAccessorID, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeByAccessorIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -2025,7 +2025,7 @@ func (app *DIDApplication) GetReferenceGroupCodeByAccessorID(param string) types
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery {
 	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
 	var funcParam GetAllowedModeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -2041,7 +2041,7 @@ func (app *DIDApplication) GetAllowedModeList(param string) types.ResponseQuery 
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string, getFromCommitedState bool) (result []int32) {
+func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, getFromCommitedState bool) (result []int32) {
 	allowedModeKey := "AllowedModeList" + "|" + purpose
 	var allowedModeList data.AllowedModeList
 	var allowedModeValue []byte
@@ -2067,7 +2067,7 @@ func (app *DIDApplication) GetAllowedModeFromStateDB(purpose string, getFromComm
 	return result
 }
 
-func (app *DIDApplication) GetNamespaceMap(getFromCommitedState bool) (result map[string]bool) {
+func (app *ABCIApplication) GetNamespaceMap(getFromCommitedState bool) (result map[string]bool) {
 	result = make(map[string]bool, 0)
 	allNamespaceKey := "AllNamespace"
 	var allNamespaceValue []byte
@@ -2091,7 +2091,7 @@ func (app *DIDApplication) GetNamespaceMap(getFromCommitedState bool) (result ma
 	return result
 }
 
-func (app *DIDApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommitedState bool) (result map[string]int) {
+func (app *ABCIApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommitedState bool) (result map[string]int) {
 	result = make(map[string]int, 0)
 	allNamespaceKey := "AllNamespace"
 	var allNamespaceValue []byte
@@ -2119,7 +2119,7 @@ func (app *DIDApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommited
 	return result
 }
 
-func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {
 	app.logger.Infof("GetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var result GetAllowedMinIalForRegisterIdentityAtFirstIdpResult
 	result.MinIal = app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(true)
@@ -2130,7 +2130,7 @@ func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param s
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(getFromCommitedState bool) float64 {
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(getFromCommitedState bool) float64 {
 	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
 	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
 	var allowedMinIalValue []byte
@@ -2148,7 +2148,7 @@ func (app *DIDApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStat
 	return allowedMinIal.MinIal
 }
 
-func (app *DIDApplication) getErrorCodeList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getErrorCodeList(param string) types.ResponseQuery {
 	var funcParam GetErrorCodeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {

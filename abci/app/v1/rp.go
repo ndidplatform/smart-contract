@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func (app *DIDApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam CreateRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -246,7 +246,7 @@ func (app *DIDApplication) createRequest(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
-func (app *DIDApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -304,7 +304,7 @@ func (app *DIDApplication) closeRequest(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -362,7 +362,7 @@ func (app *DIDApplication) timeOutRequest(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *DIDApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal([]byte(param), &funcParam)

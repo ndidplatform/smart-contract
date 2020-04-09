@@ -29,12 +29,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/did/v1"
+	app "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
 )
 
-func RegisterIdentity(t *testing.T, nodeID, privK string, param did.RegisterIdentityParam, expected string) {
+func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIdentityParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -56,13 +56,13 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 	h2 := sha256.New()
 	var nodeID string
 	var privK string
-	var param did.RegisterIdentityParam
+	var param app.RegisterIdentityParam
 	switch caseID {
 	case 1:
 		h1.Write([]byte(data.UserNamespace1 + data.UserID1))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = ""
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -80,11 +80,11 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h2.Write([]byte(data.UserNamespace1 + data.UserID2))
 		userHash2 := h2.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
-		var identity2 did.Identity
+		var identity2 app.Identity
 		identity2.IdentityNamespace = data.UserNamespace1
 		identity2.IdentityIdentifierHash = hex.EncodeToString(userHash2)
 		param.NewIdentityList = append(param.NewIdentityList, identity2)
@@ -100,7 +100,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte("Inlavid Namespace" + data.UserID1))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = "Inlavid Namespace"
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -116,7 +116,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte(data.UserNamespace1 + data.UserID1))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -132,7 +132,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte(data.UserNamespace1 + data.UserID1))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -148,7 +148,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte(data.UserNamespace1 + data.UserID2))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -164,7 +164,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte(data.UserNamespace1 + data.UserID2))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace1
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -181,7 +181,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		h1.Write([]byte(data.UserNamespace2 + data.UserID1))
 		userHash := h1.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace2
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -208,7 +208,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 	RegisterIdentity(t, nodeID, privK, param, expected)
 }
 
-func CreateIdpResponse(t *testing.T, nodeID, privK string, param did.CreateIdpResponseParam) {
+func CreateIdpResponse(t *testing.T, nodeID, privK string, param app.CreateIdpResponseParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -229,7 +229,7 @@ func CreateIdpResponse(t *testing.T, nodeID, privK string, param did.CreateIdpRe
 func TestCreateIdpResponse(t *testing.T, requestID string) {
 	var nodeID string
 	var privK string
-	var param did.CreateIdpResponseParam
+	var param app.CreateIdpResponseParam
 	param.RequestID = requestID
 	switch requestID {
 	case data.RequestID2.String():
@@ -278,7 +278,7 @@ func TestCreateIdpResponse(t *testing.T, requestID string) {
 	CreateIdpResponse(t, nodeID, privK, param)
 }
 
-func AddAccessor(t *testing.T, nodeID, privK string, param did.AddAccessorParam, expected string) {
+func AddAccessor(t *testing.T, nodeID, privK string, param app.AddAccessorParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -298,7 +298,7 @@ func AddAccessor(t *testing.T, nodeID, privK string, param did.AddAccessorParam,
 func TestAddAccessor(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.AddAccessorParam
+	var param app.AddAccessorParam
 	switch caseID {
 	case 1:
 		h := sha256.New()
@@ -332,7 +332,7 @@ func TestAddAccessor(t *testing.T, caseID int64, expected string) {
 	AddAccessor(t, nodeID, privK, param, expected)
 }
 
-func UpdateIdentity(t *testing.T, nodeID, privK string, param did.UpdateIdentityParam, expected string) {
+func UpdateIdentity(t *testing.T, nodeID, privK string, param app.UpdateIdentityParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -352,7 +352,7 @@ func UpdateIdentity(t *testing.T, nodeID, privK string, param did.UpdateIdentity
 func TestUpdateIdentity(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.UpdateIdentityParam
+	var param app.UpdateIdentityParam
 	switch caseID {
 	case 1:
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
@@ -363,7 +363,7 @@ func TestUpdateIdentity(t *testing.T, caseID int64, expected string) {
 	UpdateIdentity(t, nodeID, privK, param, expected)
 }
 
-func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param did.RevokeIdentityAssociationParam, expected string) {
+func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param app.RevokeIdentityAssociationParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -383,7 +383,7 @@ func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param did.Rev
 func TestRevokeIdentityAssociation(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.RevokeIdentityAssociationParam
+	var param app.RevokeIdentityAssociationParam
 	switch caseID {
 	case 1:
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
@@ -394,7 +394,7 @@ func TestRevokeIdentityAssociation(t *testing.T, caseID int64, expected string) 
 	RevokeIdentityAssociation(t, nodeID, privK, param, expected)
 }
 
-func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param did.UpdateIdentityModeListParam, expected string) {
+func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param app.UpdateIdentityModeListParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -414,7 +414,7 @@ func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param did.Update
 func TestUpdateIdentityModeList(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.UpdateIdentityModeListParam
+	var param app.UpdateIdentityModeListParam
 	switch caseID {
 	case 1:
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
@@ -426,7 +426,7 @@ func TestUpdateIdentityModeList(t *testing.T, caseID int64, expected string) {
 	UpdateIdentityModeList(t, nodeID, privK, param, expected)
 }
 
-func AddIdentity(t *testing.T, nodeID, privK string, param did.AddIdentityParam, expected string) {
+func AddIdentity(t *testing.T, nodeID, privK string, param app.AddIdentityParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -446,14 +446,14 @@ func AddIdentity(t *testing.T, nodeID, privK string, param did.AddIdentityParam,
 func TestAddIdentity(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.AddIdentityParam
+	var param app.AddIdentityParam
 	switch caseID {
 	case 1:
 		h := sha256.New()
 		h.Write([]byte(data.UserNamespace3 + data.UserID1))
 		userHash := h.Sum(nil)
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		var identity did.Identity
+		var identity app.Identity
 		identity.IdentityNamespace = data.UserNamespace3
 		identity.IdentityIdentifierHash = hex.EncodeToString(userHash)
 		param.NewIdentityList = append(param.NewIdentityList, identity)
@@ -464,7 +464,7 @@ func TestAddIdentity(t *testing.T, caseID int64, expected string) {
 	AddIdentity(t, nodeID, privK, param, expected)
 }
 
-func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param did.RevokeAndAddAccessorParam, expected string) {
+func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param app.RevokeAndAddAccessorParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -484,7 +484,7 @@ func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param did.RevokeAn
 func TestRevokeAndAddAccessor(t *testing.T, caseID int64, expected string) {
 	var nodeID string
 	var privK string
-	var param did.RevokeAndAddAccessorParam
+	var param app.RevokeAndAddAccessorParam
 	switch caseID {
 	case 1:
 		param.RevokingAccessorID = data.AccessorID1.String()

@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"crypto/sha256"
@@ -32,25 +32,25 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/version"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
-
-	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 	dbm "github.com/tendermint/tm-db"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/version"
+	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 )
 
 type DIDApplication struct {
 	types.BaseApplication
-	logger              *logrus.Entry
-	state               AppState
-	checkTxNonceState   map[string][]byte
-	deliverTxNonceState map[string][]byte
 	AppProtocolVersion  uint64
 	CurrentChain        string
-	ValUpdates          map[string]types.ValidatorUpdate
 	Version             string
+	checkTxNonceState   map[string][]byte
+	deliverTxNonceState map[string][]byte
+	logger              *logrus.Entry
+	state               AppState
+	valUpdates          map[string]types.ValidatorUpdate
 }
 
 func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
@@ -70,28 +70,27 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
 	return &DIDApplication{
-		state:               *appState,
+		AppProtocolVersion:  ABCIProtocolVersion,
+		Version:             ABCIVersion,
 		checkTxNonceState:   make(map[string][]byte),
 		deliverTxNonceState: make(map[string][]byte),
 		logger:              logger,
-		Version:             ABCIVersion,
-		AppProtocolVersion:  ABCIProtocolVersion,
-		ValUpdates:          make(map[string]types.ValidatorUpdate),
+		state:               *appState,
+		valUpdates:          make(map[string]types.ValidatorUpdate),
 	}
 }
 
-func (app *DIDApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
+func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
 	res.AppVersion = app.AppProtocolVersion
-	app.state.CurrentBlockHeight = app.state.Height
 	return res
 }
 
 // Save the validators in the merkle tree
-func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
@@ -102,17 +101,17 @@ func (app *DIDApplication) InitChain(req types.RequestInitChain) types.ResponseI
 }
 
 // Track the block hash and header information
-func (app *DIDApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	app.state.CurrentBlockHeight = req.Header.Height
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
-	app.ValUpdates = make(map[string]types.ValidatorUpdate, 0)
+	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
 	return types.ResponseBeginBlock{}
 }
 
 // Update the validator set
-func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+func (app *ABCIApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	app.logger.Infof("EndBlock: %d", req.Height)
 	valUpdates := make([]types.ValidatorUpdate, 0)
 	for _, newValidator := range app.ValUpdates {
@@ -121,7 +120,7 @@ func (app *DIDApplication) EndBlock(req types.RequestEndBlock) types.ResponseEnd
 	return types.ResponseEndBlock{ValidatorUpdates: valUpdates}
 }
 
-func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.ResponseDeliverTx) {
+func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.ResponseDeliverTx) {
 
 	// Recover when panic
 	defer func() {
@@ -172,7 +171,7 @@ func (app *DIDApplication) DeliverTx(req types.RequestDeliverTx) (res types.Resp
 	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 }
 
-func (app *DIDApplication) CheckTx(req types.RequestCheckTx) (res types.ResponseCheckTx) {
+func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.ResponseCheckTx) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -257,7 +256,7 @@ func hash(data []byte) []byte {
 	return sum[:]
 }
 
-func (app *DIDApplication) Commit() types.ResponseCommit {
+func (app *ABCIApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 
@@ -291,7 +290,7 @@ func (app *DIDApplication) Commit() types.ResponseCommit {
 	return types.ResponseCommit{Data: appHash}
 }
 
-func (app *DIDApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
+func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
 
 	// Recover when panic
 	defer func() {

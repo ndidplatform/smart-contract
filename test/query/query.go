@@ -32,7 +32,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/did/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
 )

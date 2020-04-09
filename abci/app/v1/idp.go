@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -35,7 +35,7 @@ import (
 	kv "github.com/tendermint/tendermint/libs/kv"
 )
 
-func (app *DIDApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessor, Parameter: %s", param)
 	var funcParam AddAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -143,7 +143,7 @@ func (app *DIDApplication) AddAccessor(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -369,7 +369,7 @@ func (app *DIDApplication) registerIdentity(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
+func (app *ABCIApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
 	requestKey := "Request" + "|" + requestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if err != nil {
@@ -411,7 +411,7 @@ func (app *DIDApplication) checkRequest(requestID string, purpose string, minIdp
 	return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
 }
 
-func (app *DIDApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {
 	requestKey := "Request" + "|" + requestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if err != nil {
@@ -437,7 +437,7 @@ func (app *DIDApplication) increaseRequestUseCount(requestID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var funcParam CreateIdpResponseParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -559,7 +559,7 @@ func (app *DIDApplication) createIdpResponse(param string, nodeID string) types.
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *DIDApplication) updateIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -642,7 +642,7 @@ func (app *DIDApplication) updateIdentity(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
 	var funcParam RevokeIdentityAssociationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -747,7 +747,7 @@ func (app *DIDApplication) revokeIdentityAssociation(param string, nodeID string
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeAccessor, Parameter: %s", param)
 	var funcParam RevokeAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -876,7 +876,7 @@ func (app *DIDApplication) revokeAccessor(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentityModeList, Parameter: %s", param)
 	var funcParam UpdateIdentityModeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -986,7 +986,7 @@ func (app *DIDApplication) updateIdentityModeList(param string, nodeID string) t
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddIdentity, Parameter: %s", param)
 	var funcParam AddIdentityParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1136,7 +1136,7 @@ func (app *DIDApplication) addIdentity(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
-func (app *DIDApplication) revokeAndAddAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeAndAddAccessor, Parameter: %s", param)
 	var funcParam RevokeAndAddAccessorParam
 	err := json.Unmarshal([]byte(param), &funcParam)

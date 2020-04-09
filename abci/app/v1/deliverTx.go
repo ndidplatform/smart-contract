@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/base64"
@@ -32,7 +32,7 @@ import (
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx
-func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
+func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
 	var attributes []kv.Pair
 	if code == 0 {
 		var attribute kv.Pair
@@ -59,7 +59,7 @@ func (app *DIDApplication) ReturnDeliverTxLog(code uint32, log string, extraData
 	}
 }
 
-func (app *DIDApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []kv.Pair) types.ResponseDeliverTx {
+func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []kv.Pair) types.ResponseDeliverTx {
 	var attributes []kv.Pair
 	if code == 0 {
 		var attribute kv.Pair
@@ -88,7 +88,7 @@ func (app *DIDApplication) ReturnDeliverTxLogWithAttributes(code uint32, log str
 }
 
 // DeliverTxRouter is Pointer to function
-func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
 	// ---- check authorization ----
 	checkTxResult := app.CheckTxRouter(method, param, nonce, signature, nodeID)
 	if checkTxResult.Code != code.OK {
@@ -117,7 +117,7 @@ func (app *DIDApplication) DeliverTxRouter(method string, param string, nonce []
 	return result
 }
 
-func (app *DIDApplication) callDeliverTx(name string, param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID string) types.ResponseDeliverTx {
 	switch name {
 	case "InitNDID":
 		return app.initNDID(param, nodeID)

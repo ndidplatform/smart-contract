@@ -31,6 +31,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/tendermint/tendermint/abci/types"
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -40,9 +41,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 
-	"github.com/tendermint/tendermint/abci/types"
-
-	"github.com/ndidplatform/smart-contract/v4/abci/did"
+	abciApp "github.com/ndidplatform/smart-contract/v4/abci/app"
 )
 
 type loggerWriter struct{}
@@ -138,7 +137,7 @@ func main() {
 // Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
 func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app types.Application
-	app = did.NewDIDApplicationInterface()
+	app = abciApp.NewABCIApplicationInterface()
 
 	// Generate node PrivKey
 	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())

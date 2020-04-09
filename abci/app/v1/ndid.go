@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -70,7 +70,7 @@ var isNDIDMethod = map[string]bool{
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
 }
 
-func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -98,7 +98,7 @@ func (app *DIDApplication) initNDID(param string, nodeID string) types.ResponseD
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNode
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -253,7 +253,7 @@ func (app *DIDApplication) registerNode(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam Namespace
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -299,7 +299,7 @@ func (app *DIDApplication) addNamespace(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -333,7 +333,7 @@ func (app *DIDApplication) disableNamespace(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -392,7 +392,7 @@ func (app *DIDApplication) addService(param string, nodeID string) types.Respons
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -446,7 +446,7 @@ func (app *DIDApplication) disableService(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -512,7 +512,7 @@ func (app *DIDApplication) updateNodeByNDID(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateService, Parameter: %s", param)
 	var funcParam UpdateServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -577,7 +577,7 @@ func (app *DIDApplication) updateService(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -627,7 +627,7 @@ func (app *DIDApplication) registerServiceDestinationByNDID(param string, nodeID
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -656,7 +656,7 @@ func (app *DIDApplication) disableNode(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -717,7 +717,7 @@ func (app *DIDApplication) disableServiceDestinationByNDID(param string, nodeID 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -746,7 +746,7 @@ func (app *DIDApplication) enableNode(param string, nodeID string) types.Respons
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -807,7 +807,7 @@ func (app *DIDApplication) enableServiceDestinationByNDID(param string, nodeID s
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -841,7 +841,7 @@ func (app *DIDApplication) enableNamespace(param string, nodeID string) types.Re
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -892,7 +892,7 @@ func (app *DIDApplication) enableService(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -914,7 +914,7 @@ func (app *DIDApplication) setTimeOutBlockRegisterIdentity(param string, nodeID 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToProxyNode, Parameter: %s", param)
 	var funcParam AddNodeToProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -984,7 +984,7 @@ func (app *DIDApplication) addNodeToProxyNode(param string, nodeID string) types
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeProxyNode, Parameter: %s", param)
 	var funcParam UpdateNodeProxyNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1079,7 +1079,7 @@ func (app *DIDApplication) updateNodeProxyNode(param string, nodeID string) type
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveNodeFromProxyNode, Parameter: %s", param)
 	var funcParam RemoveNodeFromProxyNode
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1147,7 +1147,7 @@ func (app *DIDApplication) removeNodeFromProxyNode(param string, nodeID string) 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetLastBlock, Parameter: %s", param)
 	var funcParam SetLastBlockParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1169,7 +1169,7 @@ func (app *DIDApplication) setLastBlock(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetInitData, Parameter: %s", param)
 	var funcParam SetInitDataParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1182,7 +1182,7 @@ func (app *DIDApplication) SetInitData(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EndInit, Parameter: %s", param)
 	var funcParam EndInitParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1194,7 +1194,7 @@ func (app *DIDApplication) EndInit(param string, nodeID string) types.ResponseDe
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedModeList, Parameter: %s", param)
 	var funcParam SetAllowedModeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1212,7 +1212,7 @@ func (app *DIDApplication) SetAllowedModeList(param string, nodeID string) types
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1230,7 +1230,7 @@ func (app *DIDApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param s
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNamespace, Parameter: %s", param)
 	var funcParam UpdateNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1276,7 +1276,7 @@ func (*DIDApplication) checkErrorCodeType(errorCodeType string) bool {
 	return contains(errorCodeType, []string{"idp", "as"})
 }
 
-func (app *DIDApplication) addErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddErrorCode, Parameter: %s", param)
 	var funcParam AddErrorCodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -1336,7 +1336,7 @@ func (app *DIDApplication) addErrorCode(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) removeErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveErrorCode, Parameter: %s", param)
 	var funcParam RemoveErrorCodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)

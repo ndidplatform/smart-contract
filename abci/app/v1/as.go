@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -33,7 +33,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
-func (app *DIDApplication) createAsResponse(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
 	var createAsResponseParam CreateAsResponseParam
 	err := json.Unmarshal([]byte(param), &createAsResponseParam)
@@ -230,7 +230,7 @@ func (app *DIDApplication) createAsResponse(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", createAsResponseParam.RequestID)
 }
 
-func (app *DIDApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -363,7 +363,7 @@ func (app *DIDApplication) registerServiceDestination(param string, nodeID strin
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -459,7 +459,7 @@ func (app *DIDApplication) updateServiceDestination(param string, nodeID string)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -539,7 +539,7 @@ func (app *DIDApplication) disableServiceDestination(param string, nodeID string
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)

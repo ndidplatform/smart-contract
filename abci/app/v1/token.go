@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 import (
 	"encoding/json"
@@ -34,7 +34,7 @@ import (
 	data "github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 
-func (app *DIDApplication) getTokenPriceByFunc(fnName string) float64 {
+func (app *ABCIApplication) getTokenPriceByFunc(fnName string) float64 {
 	key := "TokenPriceFunc" + "|" + fnName
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
@@ -52,7 +52,7 @@ func (app *DIDApplication) getTokenPriceByFunc(fnName string) float64 {
 	return tokenPrice.Price
 }
 
-func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) error {
+func (app *ABCIApplication) setTokenPriceByFunc(fnName string, price float64) error {
 	key := "TokenPriceFunc" + "|" + fnName
 	var tokenPrice data.TokenPrice
 	tokenPrice.Price = price
@@ -64,7 +64,7 @@ func (app *DIDApplication) setTokenPriceByFunc(fnName string, price float64) err
 	return nil
 }
 
-func (app *DIDApplication) createTokenAccount(nodeID string) {
+func (app *ABCIApplication) createTokenAccount(nodeID string) {
 	key := "Token" + "|" + nodeID
 	var token data.Token
 	token.Amount = 0
@@ -72,7 +72,7 @@ func (app *DIDApplication) createTokenAccount(nodeID string) {
 	app.state.Set([]byte(key), []byte(value))
 }
 
-func (app *DIDApplication) setToken(nodeID string, amount float64) error {
+func (app *ABCIApplication) setToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -95,7 +95,7 @@ func (app *DIDApplication) setToken(nodeID string, amount float64) error {
 	return nil
 }
 
-func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -109,7 +109,7 @@ func (app *DIDApplication) setPriceFunc(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
+func (app *ABCIApplication) getPriceFunc(param string) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -127,7 +127,7 @@ func (app *DIDApplication) getPriceFunc(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
-func (app *DIDApplication) addToken(nodeID string, amount float64) error {
+func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -150,7 +150,7 @@ func (app *DIDApplication) addToken(nodeID string, amount float64) error {
 	return nil
 }
 
-func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
+func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -167,7 +167,7 @@ func (app *DIDApplication) checkTokenAccount(nodeID string) bool {
 	return true
 }
 
-func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
+func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -193,7 +193,7 @@ func (app *DIDApplication) reduceToken(nodeID string, amount float64) (errorCode
 	return code.OK, ""
 }
 
-func (app *DIDApplication) getToken(nodeID string) (float64, error) {
+func (app *ABCIApplication) getToken(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -210,7 +210,7 @@ func (app *DIDApplication) getToken(nodeID string) (float64, error) {
 	return token.Amount, nil
 }
 
-func (app *DIDApplication) getTokenCommitted(nodeID string) (float64, error) {
+func (app *ABCIApplication) getTokenCommitted(nodeID string) (float64, error) {
 	key := "Token" + "|" + nodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
@@ -227,7 +227,7 @@ func (app *DIDApplication) getTokenCommitted(nodeID string) (float64, error) {
 	return token.Amount, nil
 }
 
-func (app *DIDApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -249,7 +249,7 @@ func (app *DIDApplication) setNodeToken(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) addNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -271,7 +271,7 @@ func (app *DIDApplication) addNodeToken(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) reduceNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -293,7 +293,7 @@ func (app *DIDApplication) reduceNodeToken(param string, nodeID string) types.Re
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *DIDApplication) getNodeToken(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeToken(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)

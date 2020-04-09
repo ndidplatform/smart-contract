@@ -20,7 +20,7 @@
  *
  */
 
-package did
+package app
 
 type NodePublicKey struct {
 	NodeID    string `json:"node_id"`
