@@ -27,10 +27,11 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.ResponseDeliverTx {
@@ -41,7 +42,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	requestKey := "Request" + "|" + createAsResponseParam.RequestID
+	requestKey := requestKeyPrefix + keySeparator + createAsResponseParam.RequestID
 	requestJSON, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -78,7 +79,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + createAsResponseParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + createAsResponseParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -98,7 +99,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	}
 
 	// Check service destination is approved by NDID
-	approveServiceKey := "ApproveKey" + "|" + createAsResponseParam.ServiceID + "|" + nodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + createAsResponseParam.ServiceID + keySeparator + nodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -116,7 +117,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	}
 
 	// Check service destination is active
-	serviceDestinationKey := "ServiceDestination" + "|" + createAsResponseParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + createAsResponseParam.ServiceID
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -191,7 +192,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	var signDataKey string
 	var signDataValue string
 	if createAsResponseParam.ErrorCode == nil {
-		signDataKey = "SignData" + "|" + nodeID + "|" + createAsResponseParam.ServiceID + "|" + createAsResponseParam.RequestID
+		signDataKey = dataSignatureKeyPrefix + keySeparator + nodeID + keySeparator + createAsResponseParam.ServiceID + keySeparator + createAsResponseParam.RequestID
 		signDataValue = createAsResponseParam.Signature
 	}
 
@@ -239,7 +240,7 @@ func (app *ABCIApplication) registerServiceDestination(param string, nodeID stri
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -258,7 +259,7 @@ func (app *ABCIApplication) registerServiceDestination(param string, nodeID stri
 		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
 	}
 
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -278,7 +279,7 @@ func (app *ABCIApplication) registerServiceDestination(param string, nodeID stri
 	}
 
 	// Check approve register service destination from NDID
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + nodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + nodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -310,7 +311,7 @@ func (app *ABCIApplication) registerServiceDestination(param string, nodeID stri
 	}
 
 	// Add ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	chkExists, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -372,7 +373,7 @@ func (app *ABCIApplication) updateServiceDestination(param string, nodeID string
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -387,7 +388,7 @@ func (app *ABCIApplication) updateServiceDestination(param string, nodeID string
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -420,7 +421,7 @@ func (app *ABCIApplication) updateServiceDestination(param string, nodeID string
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -468,7 +469,7 @@ func (app *ABCIApplication) disableServiceDestination(param string, nodeID strin
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -483,7 +484,7 @@ func (app *ABCIApplication) disableServiceDestination(param string, nodeID strin
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -507,7 +508,7 @@ func (app *ABCIApplication) disableServiceDestination(param string, nodeID strin
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -548,7 +549,7 @@ func (app *ABCIApplication) enableServiceDestination(param string, nodeID string
 	}
 
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -563,7 +564,7 @@ func (app *ABCIApplication) enableServiceDestination(param string, nodeID string
 	}
 
 	// Update ServiceDestination
-	serviceDestinationKey := "ServiceDestination" + "|" + funcParam.ServiceID
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -586,7 +587,7 @@ func (app *ABCIApplication) enableServiceDestination(param string, nodeID string
 	}
 
 	// Update ProvideService
-	provideServiceKey := "ProvideService" + "|" + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

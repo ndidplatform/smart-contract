@@ -2,12 +2,51 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- Tendermint v0.33.2.
+
 IMPROVEMENTS:
 
-- Use Go modules instead of dep.
 - Update Tendermint version to v0.33.2.
 - [Docker] Use golang:1.14 when building tendermint image
 - [Docker] Use alpine:3.11 when building tendermint image
+
+## 4.1.0 (November 21, 2019)
+
+IMPROVEMENTS:
+
+- Save Tx signature check results in CheckTx and use them in DeliverTx - Attempt to reduce DeliverTx time and CPU consumption.
+- Refactor app state, key name and prefixes.
+- Change internal package name.
+- [Docker] Change Go version used in images from 1.12 to 1.13.
+
+## 4.0.0 (August 1, 2019)
+
+BREAKING CHANGES:
+
+- Tendermint v0.32.1.
+
+IMPROVEMENTS:
+
+- Use Go modules instead of dep.
+- Update Tendermint version to v0.32.1.
+- [Query] Add `active` property to result of `GetNodeInfo`.
+- [Query] Add `ial` property to result of `GetIdpNodes` and `GetIdpNodesInfo`.
+- [Docker] Update leveldb version to 1.22.
+- [Docker] Remove default user.
+- [Docker] Remove default owner and permission settings.
+- [Docker] Remove `TERM` env.
+- [Docker] Add docker-entrypoint.sh as image entrypoint which will check existence and owner of `ABCI_DB_DIR_PATH` and `TMHOME`.
+
+OTHERS:
+
+- [Docker] Remove `jq` and `curl` from docker image.
+
+NOTES:
+
+- [Docker] Docker container may be run with `-u` or `--user` flag (e.g. `-u 65534:65534`). In case you are using docker-compose, `user` may be specified in docker-compose file (e.g. `user: 65534:65534`) (see [Compose file reference](https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir) for more detail).
+- [Docker] When running docker container with non-root user, source directories that will be mounted into the container as `ABCI_DB_DIR_PATH` and `TMHOME` must be created beforehand with the non-root user as owner.
 
 ## 3.0.0 (May 29, 2019)
 

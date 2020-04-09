@@ -29,6 +29,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/ndidplatform/smart-contract/v4/abci/app/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/query"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
@@ -42,18 +43,18 @@ func TestInitNDID(t *testing.T) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var param did.InitNDIDParam
+	var param app.InitNDIDParam
 	param.NodeID = ndidNodeID
 	param.PublicKey = string(ndidpublicKeyBytes)
 	param.MasterPublicKey = string(ndidpublicKeyBytes)
 	InitNDID(t, ndidNodeID, data.NdidPrivK, param)
 	IsInitEnded(t, false)
-	EndInit(t, ndidNodeID, data.NdidPrivK, did.EndInitParam{})
+	EndInit(t, ndidNodeID, data.NdidPrivK, app.EndInitParam{})
 	IsInitEnded(t, true)
 }
 
 func TestNDIDSetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T) {
-	var param did.SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
+	var param app.SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	param.MinIal = 2.3
 	SetAllowedMinIalForRegisterIdentityAtFirstIdp(t, ndidNodeID, data.NdidPrivK, param)
 }
@@ -63,7 +64,7 @@ func TestQueryGetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T) {
 	query.GetAllowedMinIalForRegisterIdentityAtFirstIdp(t, expected)
 }
 
-func InitNDID(t *testing.T, nodeID, privK string, param did.InitNDIDParam) {
+func InitNDID(t *testing.T, nodeID, privK string, param app.InitNDIDParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -84,7 +85,7 @@ func InitNDID(t *testing.T, nodeID, privK string, param did.InitNDIDParam) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func EndInit(t *testing.T, nodeID, privK string, param did.EndInitParam) {
+func EndInit(t *testing.T, nodeID, privK string, param app.EndInitParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -104,7 +105,7 @@ func EndInit(t *testing.T, nodeID, privK string, param did.EndInitParam) {
 
 func IsInitEnded(t *testing.T, expected bool) {
 	fnName := "IsInitEnded"
-	var param did.IsInitEndedParam
+	var param app.IsInitEndedParam
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -112,7 +113,7 @@ func IsInitEnded(t *testing.T, expected bool) {
 	result, _ := utils.Query([]byte(fnName), paramJSON)
 	resultObj, _ := result.(utils.ResponseQuery)
 	resultString, _ := base64.StdEncoding.DecodeString(resultObj.Result.Response.Value)
-	var res did.IsInitEndedResult
+	var res app.IsInitEndedResult
 	err = json.Unmarshal(resultString, &res)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -123,7 +124,7 @@ func IsInitEnded(t *testing.T, expected bool) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func SetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, nodeID, privK string, param did.SetAllowedMinIalForRegisterIdentityAtFirstIdpParam) {
+func SetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, nodeID, privK string, param app.SetAllowedMinIalForRegisterIdentityAtFirstIdpParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -141,7 +142,7 @@ func SetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, nodeID, privK s
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddNamespace(t *testing.T, nodeID, privK string, param did.Namespace) {
+func AddNamespace(t *testing.T, nodeID, privK string, param app.Namespace) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -160,7 +161,7 @@ func AddNamespace(t *testing.T, nodeID, privK string, param did.Namespace) {
 }
 
 func TestAddNamespace(t *testing.T, namespace string) {
-	var param did.Namespace
+	var param app.Namespace
 	param.Namespace = namespace
 	switch namespace {
 	case data.UserNamespace1:
@@ -179,7 +180,7 @@ func TestQueryGetNamespaceList(t *testing.T, expected string) {
 	query.GetNamespaceList(t, expected)
 }
 
-func UpdateNamespace(t *testing.T, nodeID, privK string, param did.UpdateNamespaceParam) {
+func UpdateNamespace(t *testing.T, nodeID, privK string, param app.UpdateNamespaceParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -198,14 +199,14 @@ func UpdateNamespace(t *testing.T, nodeID, privK string, param did.UpdateNamespa
 }
 
 func TestNDIDUpdateNamespace(t *testing.T) {
-	var param did.UpdateNamespaceParam
+	var param app.UpdateNamespaceParam
 	param.Namespace = data.UserNamespace3
 	param.AllowedIdentifierCountInReferenceGroup = 2
 	param.AllowedActiveIdentifierCountInReferenceGroup = 2
 	UpdateNamespace(t, ndidNodeID, data.NdidPrivK, param)
 }
 
-func RegisterNode(t *testing.T, nodeID, privK string, param did.RegisterNode) {
+func RegisterNode(t *testing.T, nodeID, privK string, param app.RegisterNode) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -223,7 +224,7 @@ func RegisterNode(t *testing.T, nodeID, privK string, param did.RegisterNode) {
 	t.Logf("PASS: %s", fnName)
 }
 
-func SetNodeToken(t *testing.T, nodeID, privK string, param did.SetNodeTokenParam) {
+func SetNodeToken(t *testing.T, nodeID, privK string, param app.SetNodeTokenParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -247,7 +248,7 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var param did.RegisterNode
+	var param app.RegisterNode
 	switch nodeID {
 	case data.IdP1:
 		privKey := utils.GetPrivateKeyFromString(data.IdpPrivK1)
@@ -327,13 +328,13 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 }
 
 func TestSetNodeToken(t *testing.T, nodeID string, amount float64) {
-	var param did.SetNodeTokenParam
+	var param app.SetNodeTokenParam
 	param.NodeID = nodeID
 	param.Amount = amount
 	SetNodeToken(t, ndidNodeID, data.NdidPrivK, param)
 }
 
-func AddService(t *testing.T, nodeID, privK string, param did.AddServiceParam) {
+func AddService(t *testing.T, nodeID, privK string, param app.AddServiceParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -352,7 +353,7 @@ func AddService(t *testing.T, nodeID, privK string, param did.AddServiceParam) {
 }
 
 func TestAddService(t *testing.T, serviceID string) {
-	var param did.AddServiceParam
+	var param app.AddServiceParam
 	param.ServiceID = serviceID
 	switch serviceID {
 	case data.ServiceID1:
@@ -363,7 +364,7 @@ func TestAddService(t *testing.T, serviceID string) {
 	AddService(t, ndidNodeID, data.NdidPrivK, param)
 }
 
-func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param did.RegisterServiceDestinationByNDIDParam, expected string) {
+func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationByNDIDParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -381,7 +382,7 @@ func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param 
 }
 
 func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected string) {
-	var param did.RegisterServiceDestinationByNDIDParam
+	var param app.RegisterServiceDestinationByNDIDParam
 	switch caseID {
 	case 1:
 		param.ServiceID = data.ServiceID1
@@ -398,6 +399,7 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 	}
 	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
+<<<<<<< HEAD
 
 func AddErrorCode(t *testing.T, nodeID, privK string, param did.AddErrorCodeParam, expected string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
@@ -451,3 +453,5 @@ func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode int32, ex
 	}
 	RemoveErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
 }
+=======
+>>>>>>> master

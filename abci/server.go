@@ -123,7 +123,7 @@ func main() {
 	//	* Provide their own DB implementation
 	// can copy this file and use something other than the
 	// DefaultNewNode function
-	nodeFunc := newDIDNode
+	nodeFunc := newNode
 
 	// Create & start node
 	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
@@ -135,7 +135,7 @@ func main() {
 }
 
 // Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
-func newDIDNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
+func newNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app types.Application
 	app = abciApp.NewABCIApplicationInterface()
 

@@ -23,8 +23,9 @@
 package app
 
 import (
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
 )
 
 // ReturnQuery return types.ResponseQuery
@@ -58,9 +59,9 @@ func (app *ABCIApplication) callQuery(name string, param string, height int64) t
 	case "GetMqAddresses":
 		return app.getMqAddresses(param)
 	case "GetNodeToken":
-		return app.getNodeToken(param)
+		return app.getNodeToken(param, true)
 	case "GetPriceFunc":
-		return app.getPriceFunc(param)
+		return app.getPriceFunc(param, true)
 	case "GetServiceDetail":
 		return app.getServiceDetail(param)
 	case "GetNamespaceList":

@@ -26,10 +26,11 @@ import (
 	"encoding/json"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
@@ -57,7 +58,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	// set request data
 	request.RequestId = funcParam.RequestID
 
-	key := "Request" + "|" + request.RequestId
+	key := requestKeyPrefix + keySeparator + request.RequestId
 	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -94,7 +95,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 		}
 
 		// Get node detail
-		nodeDetailKey := "NodeID" + "|" + idp
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
 		nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -121,7 +122,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 		if node.ProxyNodeId != "" {
 			proxyNodeID := node.ProxyNodeId
 			// Get proxy node detail
-			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
 			if err != nil {
 				return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -167,7 +168,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 			var node data.NodeDetail
 			if nodeDetailMap[as] == nil {
 				// Get node detail
-				nodeDetailKey := "NodeID" + "|" + as
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
 				nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
 				if err != nil {
 					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -195,7 +196,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 			if node.ProxyNodeId != "" {
 				proxyNodeID := node.ProxyNodeId
 				// Get proxy node detail
-				proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 				proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
 				if err != nil {
 					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -253,7 +254,7 @@ func (app *ABCIApplication) closeRequest(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	value, err := app.state.GetVersioned([]byte(key), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -311,7 +312,7 @@ func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	value, err := app.state.GetVersioned([]byte(key), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -369,7 +370,7 @@ func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	value, err := app.state.GetVersioned([]byte(key), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

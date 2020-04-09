@@ -28,7 +28,7 @@ import (
 	"log"
 	"testing"
 
-	app "github.com/ndidplatform/smart-contract/v4/abci/app/v1"
+	"github.com/ndidplatform/smart-contract/v4/abci/app/v1"
 	"github.com/ndidplatform/smart-contract/v4/test/data"
 	"github.com/ndidplatform/smart-contract/v4/test/utils"
 )

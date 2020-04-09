@@ -27,16 +27,16 @@ import (
 	"errors"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/tendermint/tendermint/abci/types"
 
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v4/protos/data"
 )
 
-func (app *ABCIApplication) getTokenPriceByFunc(fnName string) float64 {
-	key := "TokenPriceFunc" + "|" + fnName
-	value, err := app.state.Get([]byte(key), true)
+func (app *ABCIApplication) getTokenPriceByFunc(fnName string, committedState bool) float64 {
+	key := tokenPriceFuncKeyPrefix + keySeparator + fnName
+	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +53,7 @@ func (app *ABCIApplication) getTokenPriceByFunc(fnName string) float64 {
 }
 
 func (app *ABCIApplication) setTokenPriceByFunc(fnName string, price float64) error {
-	key := "TokenPriceFunc" + "|" + fnName
+	key := tokenPriceFuncKeyPrefix + keySeparator + fnName
 	var tokenPrice data.TokenPrice
 	tokenPrice.Price = price
 	value, err := utils.ProtoDeterministicMarshal(&tokenPrice)
@@ -65,7 +65,7 @@ func (app *ABCIApplication) setTokenPriceByFunc(fnName string, price float64) er
 }
 
 func (app *ABCIApplication) createTokenAccount(nodeID string) {
-	key := "Token" + "|" + nodeID
+	key := tokenKeyPrefix + keySeparator + nodeID
 	var token data.Token
 	token.Amount = 0
 	value, _ := utils.ProtoDeterministicMarshal(&token)
@@ -73,7 +73,7 @@ func (app *ABCIApplication) createTokenAccount(nodeID string) {
 }
 
 func (app *ABCIApplication) setToken(nodeID string, amount float64) error {
-	key := "Token" + "|" + nodeID
+	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return err
@@ -109,14 +109,14 @@ func (app *ABCIApplication) setPriceFunc(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *ABCIApplication) getPriceFunc(param string) types.ResponseQuery {
+func (app *ABCIApplication) getPriceFunc(param string, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	price := app.getTokenPriceByFunc(funcParam.Func)
+	price := app.getTokenPriceByFunc(funcParam.Func, committedState)
 	var res = GetPriceFuncResult{
 		price,
 	}
@@ -128,7 +128,7 @@ func (app *ABCIApplication) getPriceFunc(param string) types.ResponseQuery {
 }
 
 func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
-	key := "Token" + "|" + nodeID
+	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
 }
 
 func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
-	key := "Token" + "|" + nodeID
+	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		panic(err)
@@ -168,7 +168,7 @@ func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
 }
 
 func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
-	key := "Token" + "|" + nodeID
+	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return code.AppStateError, ""
@@ -193,26 +193,9 @@ func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCod
 	return code.OK, ""
 }
 
-func (app *ABCIApplication) getToken(nodeID string) (float64, error) {
-	key := "Token" + "|" + nodeID
-	value, err := app.state.Get([]byte(key), false)
-	if err != nil {
-		return 0, err
-	}
-	if value == nil {
-		return 0, errors.New("token account not found")
-	}
-	var token data.Token
-	err = proto.Unmarshal(value, &token)
-	if err != nil {
-		return 0, errors.New("token account not found")
-	}
-	return token.Amount, nil
-}
-
-func (app *ABCIApplication) getTokenCommitted(nodeID string) (float64, error) {
-	key := "Token" + "|" + nodeID
-	value, err := app.state.Get([]byte(key), true)
+func (app *ABCIApplication) getToken(nodeID string, committedState bool) (float64, error) {
+	key := tokenKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		return 0, err
 	}
@@ -293,14 +276,14 @@ func (app *ABCIApplication) reduceNodeToken(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (app *ABCIApplication) getNodeToken(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeToken(param string, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.Height)
 	}
-	tokenAmount, err := app.getTokenCommitted(funcParam.NodeID)
+	tokenAmount, err := app.getToken(funcParam.NodeID, committedState)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}

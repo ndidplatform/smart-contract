@@ -29,10 +29,11 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 var isNDIDMethod = map[string]bool{
@@ -87,13 +88,11 @@ func (app *ABCIApplication) initNDID(param string, nodeID string) types.Response
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	masterNDIDKey := "MasterNDID"
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
-	initStateKey := "InitState"
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	chainHistoryInfoKey := "ChainHistoryInfo"
-	app.state.Set([]byte(masterNDIDKey), []byte(nodeID))
+	app.state.Set(masterNDIDKeyBytes, []byte(nodeID))
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
-	app.state.Set([]byte(initStateKey), []byte("true"))
+	app.state.Set(initStateKeyBytes, []byte("true"))
 	app.state.Set([]byte(chainHistoryInfoKey), []byte(funcParam.ChainHistoryInfo))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
@@ -105,7 +104,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "NodeID" + "|" + funcParam.NodeID
+	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	// check Duplicate Node ID
 	chkExists, err := app.state.Get([]byte(key), false)
 	if err != nil {
@@ -164,8 +163,8 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	}
 	// if node is IdP, add node id to IdPList
 	var idpsList data.IdPList
-	idpsKey := "IdPList"
 	if funcParam.Role == "IdP" {
+		idpsKey := "IdPList"
 		idpsValue, err := app.state.Get([]byte(idpsKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -181,7 +180,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 		}
-		app.state.Set([]byte(idpsKey), []byte(idpsListByte))
+		app.state.Set(idpListKeyBytes, []byte(idpsListByte))
 	}
 	// if node is rp, add node id to rpList
 	var rpsList data.RPList
@@ -247,7 +246,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.createTokenAccount(funcParam.NodeID)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
@@ -260,8 +259,7 @@ func (app *ABCIApplication) addNamespace(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	chkExists, err := app.state.Get([]byte(key), false)
+	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -295,7 +293,7 @@ func (app *ABCIApplication) addNamespace(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -306,8 +304,7 @@ func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	chkExists, err := app.state.Get([]byte(key), false)
+	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -329,7 +326,7 @@ func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -340,7 +337,7 @@ func (app *ABCIApplication) addService(param string, nodeID string) types.Respon
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	chkExists, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -399,7 +396,7 @@ func (app *ABCIApplication) disableService(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	chkExists, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -454,7 +451,7 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -519,7 +516,7 @@ func (app *ABCIApplication) updateService(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -585,7 +582,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -603,7 +600,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 		return app.ReturnDeliverTxLog(code.RoleIsNotAS, "Role of node ID is not AS", "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -616,7 +613,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	var approveService data.ApproveService
 	approveService.Active = true
 	approveServiceJSON, err := utils.ProtoDeterministicMarshal(&approveService)
@@ -634,7 +631,7 @@ func (app *ABCIApplication) disableNode(param string, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -664,7 +661,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -673,7 +670,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -695,7 +692,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -724,7 +721,7 @@ func (app *ABCIApplication) enableNode(param string, nodeID string) types.Respon
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -754,7 +751,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// Check Service ID
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -763,7 +760,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID 
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 	// Check node ID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -785,7 +782,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID 
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + funcParam.NodeID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -814,8 +811,7 @@ func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "AllNamespace"
-	chkExists, err := app.state.Get([]byte(key), false)
+	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -837,7 +833,7 @@ func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(key), []byte(value))
+	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -848,7 +844,7 @@ func (app *ABCIApplication) enableService(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	chkExists, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -921,11 +917,11 @@ func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) type
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -996,7 +992,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 	var newProxyNodes data.BehindNodeList
 	newProxyNodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1021,7 +1017,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 			return app.ReturnDeliverTxLog(code.ProxyNodeNotFound, "Proxy node ID not found", "")
 		}
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + nodeDetail.ProxyNodeId
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1032,7 +1028,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
-	newBehindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	newBehindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	newBehindProxyNodeValue, err := app.state.Get([]byte(newBehindProxyNodeKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1089,7 +1085,7 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string)
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	// Get node detail by NodeID
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1112,7 +1108,7 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string)
 	if nodeDetail.ProxyNodeId == "" {
 		return app.ReturnDeliverTxLog(code.NodeIDHasNotBeenAssociatedWithProxyNode, "This node has not been associated with a proxy node", "")
 	}
-	behindProxyNodeKey := "BehindProxyNode" + "|" + nodeDetail.ProxyNodeId
+	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1154,7 +1150,6 @@ func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	lastBlockKey := "lastBlock"
 	lastBlockValue := funcParam.BlockHeight
 	if funcParam.BlockHeight == 0 {
 		lastBlockValue = app.state.CurrentBlockHeight
@@ -1165,7 +1160,7 @@ func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.Resp
 	if funcParam.BlockHeight > 0 && funcParam.BlockHeight < app.state.CurrentBlockHeight {
 		lastBlockValue = app.state.CurrentBlockHeight
 	}
-	app.state.Set([]byte(lastBlockKey), []byte(strconv.FormatInt(lastBlockValue, 10)))
+	app.state.Set(lastBlockKeyBytes, []byte(strconv.FormatInt(lastBlockValue, 10)))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -1189,8 +1184,7 @@ func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseD
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	initStateKey := "InitState"
-	app.state.Set([]byte(initStateKey), []byte("false"))
+	app.state.Set(initStateKeyBytes, []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -1201,7 +1195,7 @@ func (app *ABCIApplication) SetAllowedModeList(param string, nodeID string) type
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	allowedModeKey := "AllowedModeList" + "|" + funcParam.Purpose
+	allowedModeKey := allowedModeListKeyPrefix + keySeparator + funcParam.Purpose
 	var allowedModeList data.AllowedModeList
 	allowedModeList.Mode = funcParam.AllowedModeList
 	allowedModeListByte, err := utils.ProtoDeterministicMarshal(&allowedModeList)
@@ -1237,8 +1231,7 @@ func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	allNamespaceKey := "AllNamespace"
-	allNamespaceValue, err := app.state.Get([]byte(allNamespaceKey), false)
+	allNamespaceValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -1268,11 +1261,12 @@ func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.R
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(allNamespaceKey), []byte(allNamespaceValue))
+
+	app.state.Set(allNamespaceKeyBytes, []byte(allNamespaceValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-func (*DIDApplication) checkErrorCodeType(errorCodeType string) bool {
+func (*ABCIApplication) checkErrorCodeType(errorCodeType string) bool {
 	return contains(errorCodeType, []string{"idp", "as"})
 }
 
@@ -1390,6 +1384,5 @@ func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(errorsKey), []byte(errorCodeListBytes))
-
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

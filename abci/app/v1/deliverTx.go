@@ -23,12 +23,12 @@
 package app
 
 import (
-	"encoding/base64"
 	"fmt"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/tendermint/tendermint/abci/types"
 	kv "github.com/tendermint/tendermint/libs/kv"
+
+	"github.com/ndidplatform/smart-contract/v4/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx
@@ -90,7 +90,7 @@ func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log st
 // DeliverTxRouter is Pointer to function
 func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
 	// ---- check authorization ----
-	checkTxResult := app.CheckTxRouter(method, param, nonce, signature, nodeID)
+	checkTxResult := app.CheckTxRouter(method, param, nonce, signature, nodeID, false)
 	if checkTxResult.Code != code.OK {
 		if checkTxResult.Log != "" {
 			return app.ReturnDeliverTxLog(checkTxResult.Code, checkTxResult.Log, "")
@@ -100,8 +100,8 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce [
 
 	result := app.callDeliverTx(method, param, nodeID)
 	// ---- Burn token ----
-	if !app.checkNDID(param, nodeID) && !isNDIDMethod[method] {
-		needToken := app.getTokenPriceByFunc(method)
+	if !app.checkNDID(param, nodeID, false) && !isNDIDMethod[method] {
+		needToken := app.getTokenPriceByFunc(method, false)
 		errCode, errLog := app.reduceToken(nodeID, needToken)
 		if errCode != code.OK {
 			result.Code = errCode
@@ -112,8 +112,8 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce [
 	// Set used nonce to stateDB
 	emptyValue := make([]byte, 0)
 	app.state.Set([]byte(nonce), emptyValue)
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
-	app.deliverTxNonceState[nonceBase64] = []byte(nil)
+	nonceStr := string(nonce)
+	app.deliverTxNonceState[nonceStr] = []byte(nil)
 	return result
 }
 

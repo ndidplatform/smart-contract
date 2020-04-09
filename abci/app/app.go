@@ -36,8 +36,8 @@ import (
 )
 
 type ABCIApplicationInterface struct {
-	appV1 *appV1.DIDApplication
-	// appV2        *appV2.DIDApplication
+	appV1 *appV1.ABCIApplication
+	// appV2        *appV2.ABCIApplication
 	CurrentBlockHeight int64
 }
 
@@ -52,12 +52,10 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	}
 	name := "didDB"
 	db := dbm.NewDB(name, dbm.BackendType(dbType), dbDir)
-	// tree := iavl.NewMutableTree(db, 0)
-	// tree.Load()
 
 	return &ABCIApplicationInterface{
-		appV1: appV1.NewDIDApplication(logger, db),
-		// appV2: appV2.NewDIDApplication(logger, tree),
+		appV1: appV1.NewABCIApplication(logger, db),
+		// appV2: appV2.NewABCIApplication(logger, db),
 	}
 }
 

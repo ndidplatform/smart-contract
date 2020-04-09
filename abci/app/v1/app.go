@@ -24,7 +24,6 @@ package app
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"runtime"
@@ -37,23 +36,25 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/abci/version"
 	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
 )
 
-type DIDApplication struct {
+type ABCIApplication struct {
 	types.BaseApplication
 	AppProtocolVersion  uint64
 	CurrentChain        string
 	Version             string
-	checkTxNonceState   map[string][]byte
+	checkTxNonceState   *utils.StringByteArrayMap
 	deliverTxNonceState map[string][]byte
 	logger              *logrus.Entry
 	state               AppState
 	valUpdates          map[string]types.ValidatorUpdate
+	verifiedSignatures  *utils.StringMap
 }
 
-func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
+func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -69,14 +70,15 @@ func NewDIDApplication(logger *logrus.Entry, db dbm.DB) *DIDApplication {
 	ABCIVersion := version.Version
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
-	return &DIDApplication{
+	return &ABCIApplication{
 		AppProtocolVersion:  ABCIProtocolVersion,
 		Version:             ABCIVersion,
-		checkTxNonceState:   make(map[string][]byte),
+		checkTxNonceState:   utils.NewStringByteArrayMap(),
 		deliverTxNonceState: make(map[string][]byte),
 		logger:              logger,
 		state:               *appState,
 		valUpdates:          make(map[string]types.ValidatorUpdate),
+		verifiedSignatures:  utils.NewStringMap(),
 	}
 }
 
@@ -114,14 +116,13 @@ func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.Respon
 func (app *ABCIApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
 	app.logger.Infof("EndBlock: %d", req.Height)
 	valUpdates := make([]types.ValidatorUpdate, 0)
-	for _, newValidator := range app.ValUpdates {
+	for _, newValidator := range app.valUpdates {
 		valUpdates = append(valUpdates, newValidator)
 	}
 	return types.ResponseEndBlock{ValidatorUpdates: valUpdates}
 }
 
 func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.ResponseDeliverTx) {
-
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -159,16 +160,54 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 
 	app.logger.Infof("DeliverTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" {
-		result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
-		app.logger.Infof(`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`, result.Code, result.Log, string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value))
-		if result.Code != code.OK {
-			go recordDeliverTxFailMetrics(method)
-		}
-		return result
+	if method == "" {
+		go recordDeliverTxFailMetrics(method)
+		return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 	}
-	go recordDeliverTxFailMetrics(method)
-	return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
+
+	// Check signature
+	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+	if retCode != code.OK {
+		go recordDeliverTxFailMetrics(method)
+		return app.ReturnDeliverTxLog(retCode, retLog, "")
+	}
+
+	verifiedSignatureKey := string(signature) + "|" + nodeID
+	verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures.Load(verifiedSignatureKey)
+
+	if verifiedSigResultExist {
+		app.logger.Debugf("Found cached verified Tx signature result")
+		app.verifiedSignatures.Delete(verifiedSignatureKey)
+		if verifiedSigNodePubKey != publicKey {
+			app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+		}
+	} else {
+		app.logger.Debugf("Cached verified Tx signature result could not be found")
+		app.logger.Debugf("Verifying Tx signature")
+		verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+		if err != nil {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+		}
+		if verifyResult == false {
+			go recordDeliverTxFailMetrics(method)
+			return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
+		}
+	}
+
+	result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
+	app.logger.Infof(
+		`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`,
+		result.Code,
+		result.Log,
+		string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value),
+	)
+	if result.Code != code.OK {
+		go recordDeliverTxFailMetrics(method)
+	}
+	return result
 }
 
 func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.ResponseCheckTx) {
@@ -194,20 +233,11 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	go recordCheckTxMetrics(method)
 
-	nonceBase64 := base64.StdEncoding.EncodeToString(nonce)
 	startTime := time.Now()
 	defer func() {
 		duration := time.Since(startTime)
 		go recordCheckTxDurationMetrics(duration, method)
 	}()
-
-	// TODO: Check for not enough token here as well to exclude those Txs from going into DeliverTx
-	// Set checkTx state for each node's available token or token difference
-	// Deduct used token if passed
-	// Error response if not enough
-	// Adjust difference on Commit()
-
-	// TODO: Check for node's key change
 
 	// ---- Check duplicate nonce ----
 	nonceDup := app.isDuplicateNonce(nonce)
@@ -218,10 +248,11 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		return res
 	}
 
-	// Check duplicate nonce in checkTx stateDB
-	_, exist := app.checkTxNonceState[nonceBase64]
+	// Check duplicate nonce in checkTx state
+	nonceStr := string(nonce)
+	_, exist := app.checkTxNonceState.Load(nonceStr)
 	if !exist {
-		app.checkTxNonceState[nonceBase64] = []byte(nil)
+		app.checkTxNonceState.Store(nonceStr, []byte(nil))
 	} else {
 		res.Code = code.DuplicateNonce
 		res.Log = "Duplicate nonce"
@@ -231,24 +262,45 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method != "" && param != "" && nonce != nil && signature != nil && nodeID != "" {
-		// Check has function in system
-		if IsMethod[method] {
-			result := app.CheckTxRouter(method, param, nonce, signature, nodeID)
-			if result.Code != code.OK {
-				go recordCheckTxFailMetrics(method)
-			}
-			return result
-		}
+	if method == "" || param == "" || nonce == nil || signature == nil || nodeID == "" {
+		res.Code = code.InvalidTransactionFormat
+		res.Log = "Invalid transaction format"
+		go recordCheckTxFailMetrics(method)
+		return res
+	}
+
+	// Check has function in system
+	if !IsMethod[method] {
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
 		go recordCheckTxFailMetrics(method)
 		return res
 	}
-	res.Code = code.InvalidTransactionFormat
-	res.Log = "Invalid transaction format"
-	go recordCheckTxFailMetrics(method)
-	return res
+
+	// Check signature
+	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
+	if retCode != code.OK {
+		return ReturnCheckTx(retCode, retLog)
+	}
+
+	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+	if err != nil {
+		go recordCheckTxFailMetrics(method)
+		return ReturnCheckTx(code.VerifySignatureError, err.Error())
+	}
+	if verifyResult == false {
+		go recordCheckTxFailMetrics(method)
+		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
+	}
+	verifiedSignatureKey := string(signature) + "|" + nodeID
+	app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
+
+	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
+	if result.Code != code.OK {
+		app.verifiedSignatures.Delete(verifiedSignatureKey)
+		go recordCheckTxFailMetrics(method)
+	}
+	return result
 }
 
 func hash(data []byte) []byte {
@@ -266,7 +318,7 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 	go recordDBSaveDurationMetrics(dbSaveDuration)
 
 	for key := range app.deliverTxNonceState {
-		delete(app.checkTxNonceState, key)
+		app.checkTxNonceState.Delete(key)
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
 
@@ -291,7 +343,6 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 }
 
 func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
-
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -323,10 +374,10 @@ func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.Respon
 		height = app.state.Height
 	}
 
-	if method != "" {
-		return app.QueryRouter(method, param, height)
+	if method == "" {
+		return app.ReturnQuery(nil, "method can't be empty", app.state.Height)
 	}
-	return app.ReturnQuery(nil, "method can't empty", app.state.Height)
+	return app.QueryRouter(method, param, height)
 }
 
 func getEnv(key, defaultValue string) string {

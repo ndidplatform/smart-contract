@@ -27,10 +27,11 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/tendermint/tendermint/abci/types"
+
 	"github.com/ndidplatform/smart-contract/v4/abci/code"
 	"github.com/ndidplatform/smart-contract/v4/abci/utils"
 	"github.com/ndidplatform/smart-contract/v4/protos/data"
-	"github.com/tendermint/tendermint/abci/types"
 )
 
 var modeFunctionMap = map[string]bool{
@@ -43,6 +44,32 @@ var modeFunctionMap = map[string]bool{
 	"RevokeAndAddAccessor":      true,
 }
 
+var (
+	masterNDIDKeyBytes   = []byte("MasterNDID")
+	initStateKeyBytes    = []byte("InitState")
+	lastBlockKeyBytes    = []byte("lastBlock")
+	idpListKeyBytes      = []byte("IdPList")
+	allNamespaceKeyBytes = []byte("AllNamespace")
+)
+
+const (
+	keySeparator                = "|"
+	nodeIDKeyPrefix             = "NodeID"
+	behindProxyNodeKeyPrefix    = "BehindProxyNode"
+	tokenKeyPrefix              = "Token"
+	tokenPriceFuncKeyPrefix     = "TokenPriceFunc"
+	serviceKeyPrefix            = "Service"
+	serviceDestinationKeyPrefix = "ServiceDestination"
+	approvedServiceKeyPrefix    = "ApproveKey"
+	providedServicesKeyPrefix   = "ProvideService"
+	refGroupCodeKeyPrefix       = "RefGroupCode"
+	identityToRefCodeKeyPrefix  = "identityToRefCodeKey"
+	accessorToRefCodeKeyPrefix  = "accessorToRefCodeKey"
+	allowedModeListKeyPrefix    = "AllowedModeList"
+	requestKeyPrefix            = "Request"
+	dataSignatureKeyPrefix      = "SignData"
+)
+
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
@@ -50,7 +77,7 @@ func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := "NodeID" + "|" + nodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -84,7 +111,7 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQ
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "NodeID" + "|" + funcParam.NodeID
+	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -118,7 +145,7 @@ func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "NodeID" + "|" + funcParam.NodeID
+	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -145,7 +172,7 @@ func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
 }
 
 func (app *ABCIApplication) getNodeNameByNodeID(nodeID string) string {
-	key := "NodeID" + "|" + nodeID
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		panic(err)
@@ -195,7 +222,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			return nil
 		}
 
-		nodeDetailKey := "NodeID" + "|" + nodeID
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return nil
@@ -258,8 +285,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
 		// fetch every idp nodes from IdPList
-		idpsKey := "IdPList"
-		idpsValue, err := app.state.Get([]byte(idpsKey), true)
+		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
@@ -282,7 +308,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 		if funcParam.ReferenceGroupCode != "" {
 			refGroupCode = funcParam.ReferenceGroupCode
 		} else {
-			identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 			refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -292,7 +318,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
-		refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 		refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -358,7 +384,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "ServiceDestination" + "|" + funcParam.ServiceID
+	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -375,7 +401,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 	}
 
 	// filter serive is active
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -420,7 +446,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 		}
 
 		// Filter approve from NDID
-		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].NodeId
+		approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + storedData.Node[index].NodeId
 		approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), true)
 		if err != nil {
 			continue
@@ -437,7 +463,7 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 			continue
 		}
 
-		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].NodeId
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + storedData.Node[index].NodeId
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			continue
@@ -481,7 +507,7 @@ func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -519,7 +545,7 @@ func (app *ABCIApplication) getRequest(param string, height int64) types.Respons
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	value, err := app.state.GetVersioned([]byte(key), height, true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -548,7 +574,7 @@ func (app *ABCIApplication) getRequest(param string, height int64) types.Respons
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) getRequestDetail(param string, height int64, getFromCommitedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getRequestDetail(param string, height int64, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
@@ -556,9 +582,9 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, getFrom
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	key := "Request" + "|" + funcParam.RequestID
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	var value []byte
-	value, err = app.state.GetVersioned([]byte(key), height, getFromCommitedState)
+	value, err = app.state.GetVersioned([]byte(key), height, committedState)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -672,8 +698,7 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, getFrom
 
 func (app *ABCIApplication) getNamespaceList(param string) types.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
-	key := "AllNamespace"
-	value, err := app.state.Get([]byte(key), true)
+	value, err := app.state.Get(allNamespaceKeyBytes, true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -708,7 +733,7 @@ func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "Service" + "|" + funcParam.ServiceID
+	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -736,7 +761,7 @@ func (app *ABCIApplication) updateNode(param string, nodeID string) types.Respon
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := "NodeID" + "|" + nodeID
+	key := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -788,7 +813,7 @@ func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQu
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -802,7 +827,7 @@ func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQu
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
-	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -840,7 +865,7 @@ func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	}
 	var result GetAccessorKeyResult
 	result.AccessorPublicKey = ""
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -848,7 +873,7 @@ func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	refGroupKey := "RefGroupCode" + "|" + string(refGroupCodeFromDB)
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -912,7 +937,7 @@ func (app *ABCIApplication) getServiceList(param string) types.ResponseQuery {
 }
 
 func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
-	key := "Service" + "|" + serviceID
+	key := serviceKeyPrefix + keySeparator + serviceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		panic(err)
@@ -937,7 +962,7 @@ func (app *ABCIApplication) checkExistingAccessorID(param string) types.Response
 	}
 	var result CheckExistingResult
 	result.Exist = false
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -945,7 +970,7 @@ func (app *ABCIApplication) checkExistingAccessorID(param string) types.Response
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	refGroupKey := "RefGroupCode" + "|" + string(refGroupCodeFromDB)
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -981,7 +1006,7 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	nodeDetailKey := "NodeID" + "|" + funcParam.NodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1014,7 +1039,7 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 	if nodeDetail.ProxyNodeId != "" {
 		proxyNodeID := nodeDetail.ProxyNodeId
 		// Get proxy node detail
-		proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+		proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 		proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1087,7 +1112,7 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
-		identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1101,7 +1126,7 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
-	refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1146,7 +1171,7 @@ func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	signDataKey := "SignData" + "|" + funcParam.NodeID + "|" + funcParam.ServiceID + "|" + funcParam.RequestID
+	signDataKey := dataSignatureKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID + keySeparator + funcParam.RequestID
 	signDataValue, err := app.state.Get([]byte(signDataKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1169,7 +1194,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 	}
 	var result GetServicesByAsIDResult
 	result.Services = make([]Service, 0)
-	provideServiceKey := "ProvideService" + "|" + funcParam.AsID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + funcParam.AsID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1186,7 +1211,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	nodeDetailKey := "NodeID" + "|" + funcParam.AsID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.AsID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1204,7 +1229,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for index, provideService := range services.Services {
-		serviceKey := "Service" + "|" + provideService.ServiceId
+		serviceKey := serviceKeyPrefix + keySeparator + provideService.ServiceId
 		serviceValue, err := app.state.Get([]byte(serviceKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1219,7 +1244,7 @@ func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery 
 		}
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
-			approveServiceKey := "ApproveKey" + "|" + provideService.ServiceId + "|" + funcParam.AsID
+			approveServiceKey := approvedServiceKeyPrefix + keySeparator + provideService.ServiceId + keySeparator + funcParam.AsID
 			approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), true)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1286,7 +1311,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			return nil
 		}
 
-		nodeDetailKey := "NodeID" + "|" + nodeID
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return nil
@@ -1398,9 +1423,8 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	var returnNodes GetIdpNodesInfoResult
 
 	if funcParam.ReferenceGroupCode == "" && funcParam.IdentityNamespace == "" && funcParam.IdentityIdentifierHash == "" {
-		idpsKey := "IdPList"
 		var idpsList data.IdPList
-		idpsValue, err := app.state.Get([]byte(idpsKey), true)
+		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
@@ -1420,7 +1444,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if funcParam.ReferenceGroupCode != "" {
 			refGroupCode = funcParam.ReferenceGroupCode
 		} else {
-			identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 			refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1430,7 +1454,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
-		refGroupKey := "RefGroupCode" + "|" + string(refGroupCode)
+		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 		refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1494,7 +1518,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := "ServiceDestination" + "|" + funcParam.ServiceID
+	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1509,7 +1533,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 		return app.ReturnQuery(value, "not found", app.state.Height)
 	}
 	// filter serive is active
-	serviceKey := "Service" + "|" + funcParam.ServiceID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1561,7 +1585,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 			continue
 		}
 		// Filter approve from NDID
-		approveServiceKey := "ApproveKey" + "|" + funcParam.ServiceID + "|" + storedData.Node[index].NodeId
+		approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + storedData.Node[index].NodeId
 		approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), true)
 		if err != nil {
 			continue
@@ -1577,7 +1601,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 		if !approveService.Active {
 			continue
 		}
-		nodeDetailKey := "NodeID" + "|" + storedData.Node[index].NodeId
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + storedData.Node[index].NodeId
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			continue
@@ -1598,7 +1622,7 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 		if nodeDetail.ProxyNodeId != "" {
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
-			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), true)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1670,7 +1694,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 	}
 	var result GetNodesBehindProxyNodeResult
 	result.Nodes = make([]interface{}, 0)
-	behindProxyNodeKey := "BehindProxyNode" + "|" + funcParam.ProxyNodeID
+	behindProxyNodeKey := "BehindProxyNode" + keySeparator + funcParam.ProxyNodeID
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1689,7 +1713,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, node := range nodes.Nodes {
-		nodeDetailKey := "NodeID" + "|" + node
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + node
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			continue
@@ -1764,7 +1788,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range rpsList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + nodeID
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
 					return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1783,8 +1807,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 		}
 	} else if strings.ToLower(funcParam.Role) == "idp" {
 		var idpsList data.IdPList
-		idpsKey := "IdPList"
-		idpsValue, err := app.state.Get([]byte(idpsKey), true)
+		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
@@ -1794,7 +1817,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range idpsList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + nodeID
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
 					return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1824,7 +1847,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range asList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + nodeID
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
 					return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1854,7 +1877,7 @@ func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range allList.NodeId {
-				nodeDetailKey := "NodeID" + "|" + nodeID
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
 					return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1891,7 +1914,7 @@ func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	}
 	var result GetAccessorOwnerResult
 	result.NodeID = ""
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1899,7 +1922,7 @@ func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	if refGroupCodeFromDB == nil {
 		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	refGroupKey := "RefGroupCode" + "|" + string(refGroupCodeFromDB)
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1931,8 +1954,7 @@ func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult
 	result.InitEnded = false
-	initStateKey := "InitState"
-	value, err := app.state.Get([]byte(initStateKey), true)
+	value, err := app.state.Get(initStateKeyBytes, true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1981,7 +2003,7 @@ func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQu
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	identityToRefCodeKey := "identityToRefCodeKey" + "|" + funcParam.IdentityNamespace + "|" + funcParam.IdentityIdentifierHash
+	identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 	refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -2008,7 +2030,7 @@ func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) type
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	accessorToRefCodeKey := "accessorToRefCodeKey" + "|" + funcParam.AccessorID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -2041,15 +2063,13 @@ func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, getFromCommitedState bool) (result []int32) {
-	allowedModeKey := "AllowedModeList" + "|" + purpose
+func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, committedState bool) (result []int32) {
+	allowedModeKey := "AllowedModeList" + keySeparator + purpose
 	var allowedModeList data.AllowedModeList
-	var allowedModeValue []byte
-	allowedModeValue, err := app.state.Get([]byte(allowedModeKey), getFromCommitedState)
+	allowedModeValue, err := app.state.Get([]byte(allowedModeKey), committedState)
 	if err != nil {
 		return nil
 	}
-
 	if allowedModeValue == nil {
 		// return default value
 		if !modeFunctionMap[purpose] {
@@ -2067,11 +2087,9 @@ func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, getFromCom
 	return result
 }
 
-func (app *ABCIApplication) GetNamespaceMap(getFromCommitedState bool) (result map[string]bool) {
+func (app *ABCIApplication) GetNamespaceMap(committedState bool) (result map[string]bool) {
 	result = make(map[string]bool, 0)
-	allNamespaceKey := "AllNamespace"
-	var allNamespaceValue []byte
-	allNamespaceValue, err := app.state.Get([]byte(allNamespaceKey), getFromCommitedState)
+	allNamespaceValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
 		return nil
 	}
@@ -2091,11 +2109,9 @@ func (app *ABCIApplication) GetNamespaceMap(getFromCommitedState bool) (result m
 	return result
 }
 
-func (app *ABCIApplication) GetNamespaceAllowedIdentifierCountMap(getFromCommitedState bool) (result map[string]int) {
+func (app *ABCIApplication) GetNamespaceAllowedIdentifierCountMap(committedState bool) (result map[string]int) {
 	result = make(map[string]int, 0)
-	allNamespaceKey := "AllNamespace"
-	var allNamespaceValue []byte
-	allNamespaceValue, err := app.state.Get([]byte(allNamespaceKey), getFromCommitedState)
+	allNamespaceValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
 		return nil
 	}
@@ -2130,11 +2146,10 @@ func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param 
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(getFromCommitedState bool) float64 {
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(committedState bool) float64 {
 	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
 	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
-	var allowedMinIalValue []byte
-	allowedMinIalValue, err := app.state.Get([]byte(allowedMinIalKey), getFromCommitedState)
+	allowedMinIalValue, err := app.state.Get([]byte(allowedMinIalKey), committedState)
 	if err != nil {
 		return 0
 	}
