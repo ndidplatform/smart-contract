@@ -582,6 +582,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	result.MinIal = float64(request.MinIal)
 	result.Timeout = int(request.RequestTimeout)
 	result.IdPIDList = request.IdpIdList
+	result.DataRequestList = make([]DataRequest, 0)
 	for _, dataRequest := range request.DataRequestList {
 		newRow := DataRequest{
 			ServiceID:         dataRequest.ServiceId,
@@ -607,6 +608,7 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
 	result.MessageHash = request.RequestMessageHash
+	result.Responses = make([]Response, 0)
 	for _, response := range request.ResponseList {
 		var newRow Response
 		if response.ErrorCode == 0 {
@@ -649,9 +651,6 @@ func (app *DIDApplication) getRequestDetail(param string, height int64, getFromC
 	// make nil to array len 0
 	if result.IdPIDList == nil {
 		result.IdPIDList = make([]string, 0)
-	}
-	if result.DataRequestList == nil {
-		result.DataRequestList = make([]DataRequest, 0)
 	}
 
 	// Set requester_node_id
