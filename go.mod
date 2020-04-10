@@ -12,6 +12,6 @@ require (
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/tendermint/tendermint v0.33.2
+	github.com/tendermint/tendermint v0.33.3
 	github.com/tendermint/tm-db v0.4.1
 )
