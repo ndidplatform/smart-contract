@@ -17,6 +17,7 @@ IMPROVEMENTS:
 - [DeliverTx] Add `whitelist` array and `agent` flag (only IdP) to node details.
 - [Query] Add `agent` flag to IdP node details.
 - [Query] Add `whitelist` array to node details.
+- [Query] Add `agent` and `filter_for_node_id` parameters to `GetIdpNodes` and `GetIdpNodesInfo`.
 - [Query] Add `whitelist` array and `agent` flag to `GetIdpNodes` and `GetIdpNodesInfo`.
 - [Query] Add `GetErrorCodeList` method.
 - [Docker] Use golang:1.14 when building image.

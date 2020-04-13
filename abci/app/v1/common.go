@@ -199,9 +199,9 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	}
 
 	// fetch Filter RP node detail
-	var rpNodeDetail *data.NodeDetail
-	if funcParam.FilterForRP != nil {
-		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForRP
+	var nodeToFilterForDetail *data.NodeDetail
+	if funcParam.FilterForNodeID != nil {
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForNodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -209,8 +209,8 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 		if nodeDetailValue == nil {
 			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
 		}
-		rpNodeDetail = &data.NodeDetail{}
-		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+		nodeToFilterForDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, nodeToFilterForDetail); err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 	}
@@ -218,9 +218,9 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	// getMsqDestionationNode returns MsqDestinationNode if nodeID is valid
 	// otherwise return nil
 	getMsqDestinationNode := func(nodeID string) *MsqDestinationNode {
-		// check if Idp in Filter RP whitelist
-		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
-			!contains(nodeID, rpNodeDetail.Whitelist) {
+		// check if Idp in Filter node whitelist
+		if nodeToFilterForDetail != nil && nodeToFilterForDetail.UseWhitelist &&
+			!contains(nodeID, nodeToFilterForDetail.Whitelist) {
 			return nil
 		}
 
@@ -268,8 +268,8 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 		}
 		// Check if Filter RP is in Idp whitelist
-		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
-			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+		if funcParam.FilterForNodeID != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForNodeID, nodeDetail.Whitelist) {
 			return nil
 		}
 
@@ -1286,9 +1286,9 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	}
 
 	// fetch Filter RP node detail
-	var rpNodeDetail *data.NodeDetail
-	if funcParam.FilterForRP != nil {
-		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForRP
+	var nodeToFilterForDetail *data.NodeDetail
+	if funcParam.FilterForNodeID != nil {
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForNodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1296,8 +1296,8 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if nodeDetailValue == nil {
 			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
 		}
-		rpNodeDetail = &data.NodeDetail{}
-		if err := proto.Unmarshal(nodeDetailValue, rpNodeDetail); err != nil {
+		nodeToFilterForDetail = &data.NodeDetail{}
+		if err := proto.Unmarshal(nodeDetailValue, nodeToFilterForDetail); err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 	}
@@ -1306,8 +1306,8 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	// return nil otherwise
 	getIdpNode := func(nodeID string) *IdpNode {
 		// check if Idp in Filter RP whitelist
-		if rpNodeDetail != nil && rpNodeDetail.UseWhitelist &&
-			!contains(nodeID, rpNodeDetail.Whitelist) {
+		if nodeToFilterForDetail != nil && nodeToFilterForDetail.UseWhitelist &&
+			!contains(nodeID, nodeToFilterForDetail.Whitelist) {
 			return nil
 		}
 
@@ -1351,8 +1351,8 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			}
 		}
 		// Check if Filter RP is in Idp whitelist
-		if funcParam.FilterForRP != nil && nodeDetail.UseWhitelist &&
-			!contains(*funcParam.FilterForRP, nodeDetail.Whitelist) {
+		if funcParam.FilterForNodeID != nil && nodeDetail.UseWhitelist &&
+			!contains(*funcParam.FilterForNodeID, nodeDetail.Whitelist) {
 			return nil
 		}
 

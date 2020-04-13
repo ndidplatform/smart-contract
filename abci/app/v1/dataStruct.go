@@ -81,7 +81,7 @@ type GetIdpNodesParam struct {
 	ReferenceGroupCode                     string   `json:"reference_group_code"`
 	IdentityNamespace                      string   `json:"identity_namespace"`
 	IdentityIdentifierHash                 string   `json:"identity_identifier_hash"`
-	FilterForRP                            *string  `json:"filter_for_rp"`
+	FilterForNodeID                        *string  `json:"filter_for_node_id"`
 	IsIdpAgent                             *bool    `json:"agent"`
 	MinAal                                 float64  `json:"min_aal"`
 	MinIal                                 float64  `json:"min_ial"`
