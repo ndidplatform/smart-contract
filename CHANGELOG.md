@@ -4,11 +4,11 @@
 
 BREAKING CHANGES:
 
-- Tendermint v0.33.2.
+- Tendermint v0.33.3.
 
 IMPROVEMENTS:
 
-- Update Tendermint version to v0.33.2.
+- Update Tendermint version to v0.33.3.
 - [Docker] Use golang:1.14 when building tendermint image
 - [Docker] Use alpine:3.11 when building tendermint image
 
