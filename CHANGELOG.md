@@ -5,12 +5,20 @@
 BREAKING CHANGES:
 
 - Tendermint v0.33.3.
+- [CheckTx / DeliverTx] Remove `SignData` method. Add `CreateAsResponse` method.
 
 IMPROVEMENTS:
 
 - Update Tendermint version to v0.33.3.
-- [Docker] Use golang:1.14 when building tendermint image
-- [Docker] Use alpine:3.11 when building tendermint image
+- [DeliverTx] `CreateIdpResponse` accepts `error_code`
+- [DeliverTx] `CreateAsResponse` accepts `error_code`
+- [DeliverTx] Add `AddErrorCode` method
+- [DeliverTx] Add `RemoveErrorCode` method
+- [DeliverTx] Add `whitelist` array and `agent` flag to node details (IdP)
+- [Query] Add `agent` flag to IdP node details
+- [Query] Add `GetErrorCodeList` method
+- [Docker] Use golang:1.14 when building image
+- [Docker] Use alpine:3.11 when building image
 
 ## 4.1.0 (November 21, 2019)
 
