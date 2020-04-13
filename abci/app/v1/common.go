@@ -68,8 +68,8 @@ const (
 	allowedModeListKeyPrefix    = "AllowedModeList"
 	requestKeyPrefix            = "Request"
 	dataSignatureKeyPrefix      = "SignData"
-	errorCodeKeyPrefix             = "ErrorCode"
-	errorCodeListKeyPrefix         = "ErrorCodeList"
+	errorCodeKeyPrefix          = "ErrorCode"
+	errorCodeListKeyPrefix      = "ErrorCodeList"
 )
 
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
@@ -1027,7 +1027,6 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 		MasterPublicKey: nodeDetail.MasterPublicKey,
 		NodeName:        nodeDetail.NodeName,
 		Role:            nodeDetail.Role,
-		Mq:              make([]MsqAddress, 0, len(nodeDetail.Mq)),
 		Active:          nodeDetail.Active,
 	}
 	for _, mq := range nodeDetail.Mq {
@@ -1060,7 +1059,6 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 			NodeName:        proxyNode.NodeName,
 			PublicKey:       proxyNode.PublicKey,
 			MasterPublicKey: proxyNode.MasterPublicKey,
-			Mq:              make([]MsqAddress, 0, len(proxyNode.Mq)),
 			Config:          nodeDetail.ProxyConfig,
 		}
 		for _, mq := range proxyNode.Mq {
@@ -1382,7 +1380,6 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			proxy = &IdpNodeProxy{
 				NodeID:    string(proxyNodeID),
 				PublicKey: proxyNode.PublicKey,
-				Mq:        make([]MsqAddress, 0, len(proxyNode.Mq)),
 				Config:    nodeDetail.ProxyConfig,
 			}
 			for _, mq := range proxyNode.Mq {
@@ -1404,7 +1401,6 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
 			PublicKey:                              nodeDetail.PublicKey,
-			Mq:                                     make([]MsqAddress, 0, len(nodeDetail.Mq)),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 			UseWhitelist:                           &nodeDetail.UseWhitelist,
 			Whitelist:                              whitelist,
