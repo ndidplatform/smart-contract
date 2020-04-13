@@ -68,6 +68,8 @@ const (
 	allowedModeListKeyPrefix    = "AllowedModeList"
 	requestKeyPrefix            = "Request"
 	dataSignatureKeyPrefix      = "SignData"
+	errorCodeKeyPrefix             = "ErrorCode"
+	errorCodeListKeyPrefix         = "ErrorCodeList"
 )
 
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
@@ -199,7 +201,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	// fetch Filter RP node detail
 	var rpNodeDetail *data.NodeDetail
 	if funcParam.FilterForRP != nil {
-		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForRP
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1288,7 +1290,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	// fetch Filter RP node detail
 	var rpNodeDetail *data.NodeDetail
 	if funcParam.FilterForRP != nil {
-		nodeDetailKey := "NodeID" + "|" + *funcParam.FilterForRP
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForRP
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -1360,7 +1362,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if nodeDetail.ProxyNodeId != "" {
 			proxyNodeID := nodeDetail.ProxyNodeId
 			// Get proxy node detail
-			proxyNodeDetailKey := "NodeID" + "|" + string(proxyNodeID)
+			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), true)
 			if err != nil {
 				return nil
@@ -2172,7 +2174,7 @@ func (app *ABCIApplication) getErrorCodeList(param string) types.ResponseQuery {
 
 	// convert funcParam to lowercase and fetch the code list
 	funcParam.Type = strings.ToLower(funcParam.Type)
-	errorCodeListKey := "ErrorCodeList" + "|" + funcParam.Type
+	errorCodeListKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorCodeListKey), false)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)

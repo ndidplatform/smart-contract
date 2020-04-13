@@ -147,7 +147,7 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 		if funcParam.Whitelist != nil {
 			// check if all node in whitelist exists
 			for _, whitelistNode := range funcParam.Whitelist {
-				whitelistKey := "NodeID" + "|" + whitelistNode
+				whitelistKey := nodeIDKeyPrefix + keySeparator + whitelistNode
 				hasWhitelistKey, err := app.state.Has([]byte(whitelistKey), false)
 				if err != nil {
 					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -489,7 +489,7 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 		if funcParam.Whitelist != nil {
 			// check if all node in whitelist exists
 			for _, whitelistNode := range funcParam.Whitelist {
-				whitelistKey := "NodeID" + "|" + whitelistNode
+				whitelistKey := nodeIDKeyPrefix + keySeparator + whitelistNode
 				hasWhitelistKey, err := app.state.Has([]byte(whitelistKey), false)
 				if err != nil {
 					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1297,7 +1297,7 @@ func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + fmt.Sprintf("%d", errorCode.ErrorCode)
+	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", errorCode.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1309,7 +1309,7 @@ func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.Resp
 
 	// add error code to ErrorCodeList
 	var errorCodeList data.ErrorCodeList
-	errorsKey := "ErrorCodeList" + "|" + funcParam.Type
+	errorsKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1339,7 +1339,7 @@ func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.R
 	}
 
 	// remove error code from ErrorCode index
-	errorKey := "ErrorCode" + "|" + funcParam.Type + "|" + fmt.Sprintf("%d", funcParam.ErrorCode)
+	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -1354,7 +1354,7 @@ func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.R
 
 	// remove ErrorCode from ErrorCodeList
 	var errorCodeList data.ErrorCodeList
-	errorsKey := "ErrorCodeList" + "|" + funcParam.Type
+	errorsKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

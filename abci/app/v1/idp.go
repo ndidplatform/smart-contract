@@ -480,7 +480,7 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
 		}
 		// Check AAL, IAL with MaxIalAal
-		nodeDetailKey := "NodeID" + "|" + nodeID
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -513,7 +513,7 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		}
 	} else {
 		// Check error code exists
-		errorCodeKey := "ErrorCode" + "|" + "idp" + "|" + fmt.Sprintf("%d", *funcParam.ErrorCode)
+		errorCodeKey := errorCodeKeyPrefix + keySeparator + "idp" + keySeparator + fmt.Sprintf("%d", *funcParam.ErrorCode)
 		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

@@ -58,7 +58,7 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 
 	// Check error code exists
 	if createAsResponseParam.ErrorCode != nil {
-		errorCodeKey := "ErrorCode" + "|" + "as" + "|" + fmt.Sprintf("%d", *createAsResponseParam.ErrorCode)
+		errorCodeKey := errorCodeKeyPrefix + keySeparator + "as" + keySeparator + fmt.Sprintf("%d", *createAsResponseParam.ErrorCode)
 		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")

@@ -41,7 +41,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// get RP node detail
-	nodeDetailKey := "NodeID" + "|" + nodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
