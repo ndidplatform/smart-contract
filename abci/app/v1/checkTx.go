@@ -131,7 +131,7 @@ func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) t
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkNDID(param string, nodeID string, committedState bool) bool {
+func (app *ABCIApplication) isNDIDNode(param string, nodeID string, committedState bool) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -142,13 +142,64 @@ func (app *ABCIApplication) checkNDID(param string, nodeID string, committedStat
 	if err != nil {
 		return false
 	}
-	if node.Role != "NDID" {
-		return false
+	if node.Role == "NDID" {
+		return true
 	}
-	return true
+	return false
 }
 
-func (app *ABCIApplication) checkIdP(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPNode(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	if err != nil {
+		panic(err)
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
+	if err != nil {
+		panic(err)
+	}
+	if node.Role == "IdP" && !node.IsIdpAgent {
+		return true
+	}
+	return false
+}
+
+func (app *ABCIApplication) isIDPAgentNode(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	if err != nil {
+		panic(err)
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
+	if err != nil {
+		panic(err)
+	}
+	if node.Role == "IdP" && node.IsIdpAgent {
+		return true
+	}
+	return false
+}
+
+func (app *ABCIApplication) isIDPorIDPAgentNode(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	if err != nil {
+		panic(err)
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
+	if err != nil {
+		panic(err)
+	}
+	if node.Role == "IdP" {
+		return true
+	}
+	return false
+}
+
+func (app *ABCIApplication) isASNode(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -159,13 +210,13 @@ func (app *ABCIApplication) checkIdP(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role != "IdP" {
-		return false
+	if node.Role == "AS" {
+		return true
 	}
-	return true
+	return false
 }
 
-func (app *ABCIApplication) checkAS(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPorRPNode(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -176,31 +227,17 @@ func (app *ABCIApplication) checkAS(param string, nodeID string) bool {
 	if err != nil {
 		return false
 	}
-	if node.Role != "AS" {
-		return false
+	if node.Role == "RP" {
+		return true
 	}
-	return true
-}
-
-func (app *ABCIApplication) checkIdPorRP(param string, nodeID string) bool {
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
-	if err != nil {
-		panic(err)
+	if node.Role == "IdP" && !node.IsIdpAgent {
+		return true
 	}
-	var node data.NodeDetail
-	err = proto.Unmarshal(value, &node)
-	if err != nil {
-		return false
-	}
-	if node.Role != "IdP" && node.Role != "RP" {
-		return false
-	}
-	return true
+	return false
 }
 
 func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
-	ok := app.checkNDID(param, nodeID, true)
+	ok := app.isNDIDNode(param, nodeID, true)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
 	}
@@ -208,23 +245,31 @@ func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.Respo
 }
 
 func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
-	ok := app.checkIdP(param, nodeID)
+	ok := app.isIDPNode(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
 
+func (app *ABCIApplication) checkIsIDPOrIDPAgent(param string, nodeID string) types.ResponseCheckTx {
+	ok := app.isIDPorIDPAgentNode(param, nodeID)
+	if ok == false {
+		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP or IdP agent method")
+	}
+	return ReturnCheckTx(code.OK, "")
+}
+
 func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
-	ok := app.checkAS(param, nodeID)
+	ok := app.isASNode(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsRPorIdP(param string, nodeID string) types.ResponseCheckTx {
-	ok := app.checkIdPorRP(param, nodeID)
+func (app *ABCIApplication) checkIsRPorIDP(param string, nodeID string) types.ResponseCheckTx {
+	ok := app.isIDPorRPNode(param, nodeID)
 	if ok == false {
 		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
 	}
@@ -587,7 +632,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []b
 	}
 	// check token for create Tx
 	if result.Code == code.OK {
-		if !app.checkNDID(param, nodeID, committedState) && method != "InitNDID" {
+		if !app.isNDIDNode(param, nodeID, committedState) && method != "InitNDID" {
 			needToken := app.getTokenPriceByFunc(method, committedState)
 			nodeToken, err := app.getToken(nodeID, committedState)
 			if err != nil {
@@ -641,7 +686,6 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessor",
-		"CreateIdpResponse",
 		"RegisterAccessor",
 		"UpdateIdentity",
 		"ClearRegisterIdentityTimeout",
@@ -651,6 +695,8 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		"AddIdentity",
 		"RevokeAndAddAccessor":
 		return app.checkIsIDP(param, nodeID)
+	case "CreateIdpResponse":
+		return app.checkIsIDPOrIDPAgent(param, nodeID)
 	case "CreateAsResponse",
 		"RegisterServiceDestination",
 		"UpdateServiceDestination",
@@ -658,7 +704,7 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		"EnableServiceDestination":
 		return app.checkIsAS(param, nodeID)
 	case "CreateRequest":
-		return app.checkIsRPorIdP(param, nodeID)
+		return app.checkIsRPorIDP(param, nodeID)
 	case "SetMqAddresses":
 		return app.checkTxSetMqAddresses(param, nodeID)
 	default:
