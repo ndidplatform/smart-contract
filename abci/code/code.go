@@ -130,5 +130,7 @@ const (
 	InvalidErrorCode                                   uint32 = 106
 	NodeNotInWhitelist                                 uint32 = 107
 	AppStateError                                      uint32 = 108
+	RequestCannotBeFulfilled                           uint32 = 109
+	DataRequestCannotBeFulfilled                       uint32 = 110
 	UnknownError                                       uint32 = 999
 )

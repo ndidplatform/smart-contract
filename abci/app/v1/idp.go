@@ -468,9 +468,12 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 			nonErrorResponseCount++
 		}
 	}
+	if nonErrorResponseCount >= request.MinIdp {
+		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response to a request that is completed", "")
+	}
 	var remainingPossibleResponseCount int64 = int64(len(request.IdpIdList)) - int64(len(request.ResponseList))
 	if nonErrorResponseCount+remainingPossibleResponseCount < request.MinIdp {
-		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response to a request that is completed or won't be fulfilled", "")
+		return app.ReturnDeliverTxLog(code.RequestCannotBeFulfilled, "Can't response to a request that cannot be fulfilled", "")
 	}
 
 	response := data.Response{

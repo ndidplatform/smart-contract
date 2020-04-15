@@ -183,9 +183,12 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 					nonErrorResponseCount++
 				}
 			}
+			if nonErrorResponseCount >= dataRequest.MinAs {
+				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses", "")
+			}
 			var remainingPossibleResponseCount int64 = int64(len(dataRequest.AsIdList)) - int64(len(dataRequest.ResponseList))
 			if nonErrorResponseCount+remainingPossibleResponseCount < dataRequest.MinAs {
-				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses or won't be fulfilled", "")
+				return app.ReturnDeliverTxLog(code.DataRequestCannotBeFulfilled, "Can't create AS response to a data request that cannot be fulfilled", "")
 			}
 		}
 	}
