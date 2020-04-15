@@ -461,6 +461,18 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	// Check min_idp
+	var nonErrorResponseCount int64 = 0
+	for _, response := range request.ResponseList {
+		if response.Status != "" {
+			nonErrorResponseCount++
+		}
+	}
+	var remainingPossibleResponseCount int64 = int64(len(request.IdpIdList)) - int64(len(request.ResponseList))
+	if nonErrorResponseCount+remainingPossibleResponseCount < request.MinIdp {
+		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response to a request that is completed or won't be fulfilled", "")
+	}
+
 	response := data.Response{
 		IdpId: nodeID,
 	}
@@ -498,10 +510,6 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		}
 		if response.Ial > nodeDetail.MaxIal {
 			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
-		}
-		// Check min_idp
-		if int64(len(request.ResponseList)) >= request.MinIdp {
-			return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response a request that's complete response", "")
 		}
 		// Check IsClosed
 		if request.Closed {

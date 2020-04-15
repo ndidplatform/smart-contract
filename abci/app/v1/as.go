@@ -177,14 +177,15 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
-			var countSignedAS int64 = 0
+			var nonErrorResponseCount int64 = 0
 			for _, asResponse := range dataRequest.ResponseList {
 				if asResponse.ErrorCode == 0 {
-					countSignedAS++
+					nonErrorResponseCount++
 				}
 			}
-			if countSignedAS >= dataRequest.MinAs {
-				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to request with enough AS responses", "")
+			var remainingPossibleResponseCount int64 = int64(len(dataRequest.AsIdList)) - int64(len(dataRequest.ResponseList))
+			if nonErrorResponseCount+remainingPossibleResponseCount < dataRequest.MinAs {
+				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses or won't be fulfilled", "")
 			}
 		}
 	}
