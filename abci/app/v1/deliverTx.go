@@ -28,7 +28,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	kv "github.com/tendermint/tendermint/libs/kv"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v5/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx

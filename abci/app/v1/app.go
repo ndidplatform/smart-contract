@@ -35,10 +35,10 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
-	"github.com/ndidplatform/smart-contract/v4/abci/utils"
-	"github.com/ndidplatform/smart-contract/v4/abci/version"
-	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
+	"github.com/ndidplatform/smart-contract/v5/abci/code"
+	"github.com/ndidplatform/smart-contract/v5/abci/utils"
+	"github.com/ndidplatform/smart-contract/v5/abci/version"
+	protoTm "github.com/ndidplatform/smart-contract/v5/protos/tendermint"
 )
 
 type ABCIApplication struct {

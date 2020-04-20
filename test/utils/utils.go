@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	protoTm "github.com/ndidplatform/smart-contract/v4/protos/tendermint"
+	protoTm "github.com/ndidplatform/smart-contract/v5/protos/tendermint"
 	kv "github.com/tendermint/tendermint/libs/kv"
 	tmRand "github.com/tendermint/tendermint/libs/rand"
 )

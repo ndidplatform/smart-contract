@@ -31,7 +31,7 @@ import (
 
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/code"
+	"github.com/ndidplatform/smart-contract/v5/abci/code"
 )
 
 const (

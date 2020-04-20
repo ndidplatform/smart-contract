@@ -27,7 +27,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/version"
+	"github.com/ndidplatform/smart-contract/v5/abci/version"
 )
 
 var abciVersionCmd = &cobra.Command{

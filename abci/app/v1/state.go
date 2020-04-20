@@ -30,8 +30,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/ndidplatform/smart-contract/v4/abci/utils"
-	"github.com/ndidplatform/smart-contract/v4/protos/data"
+	"github.com/ndidplatform/smart-contract/v5/abci/utils"
+	"github.com/ndidplatform/smart-contract/v5/protos/data"
 )
 
 var (
