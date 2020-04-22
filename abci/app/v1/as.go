@@ -159,19 +159,14 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	}
 
 	// Check Duplicate AS ID
-	duplicate := false
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
 			for _, asResponse := range dataRequest.ResponseList {
 				if asResponse.AsId == nodeID {
-					duplicate = true
-					break
+					return app.ReturnDeliverTxLog(code.DuplicateASResponse, "Duplicate AS response", "")
 				}
 			}
 		}
-	}
-	if duplicate == true {
-		return app.ReturnDeliverTxLog(code.DuplicateASInResponseList, "Duplicate AS ID in response list", "")
 	}
 
 	// Check min_as

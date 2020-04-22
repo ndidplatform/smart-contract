@@ -40,7 +40,7 @@ const (
 	TokenNotEnough                                     uint32 = 13
 	InvalidTransactionFormat                           uint32 = 14
 	MethodCanNotBeEmpty                                uint32 = 15
-	DuplicateResponse                                  uint32 = 16
+	DuplicateIdPResponse                               uint32 = 16
 	AALError                                           uint32 = 17
 	IALError                                           uint32 = 18
 	DuplicateNodeID                                    uint32 = 19
@@ -62,7 +62,7 @@ const (
 	InvalidMode                                        uint32 = 35
 	HashIDNotFound                                     uint32 = 36
 	DuplicateASInDataRequest                           uint32 = 39
-	DuplicateASInResponseList                          uint32 = 40
+	DuplicateASResponse                                uint32 = 40
 	DuplicateServiceIDInDataRequest                    uint32 = 41
 	ServiceDestinationNotFound                         uint32 = 42
 	DataRequestIsCompleted                             uint32 = 43

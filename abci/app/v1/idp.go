@@ -547,16 +547,11 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
 	}
 
-	// Check duplicate before add
-	chkDup := false
+	// Check duplicate response from the same IdP
 	for _, oldResponse := range request.ResponseList {
-		if &response == oldResponse {
-			chkDup = true
-			break
+		if oldResponse.IdpId == nodeID {
+			return app.ReturnDeliverTxLog(code.DuplicateIdPResponse, "Duplicate IdP response", "")
 		}
-	}
-	if chkDup == true {
-		return app.ReturnDeliverTxLog(code.DuplicateResponse, "Duplicate Response", "")
 	}
 
 	request.ResponseList = append(request.ResponseList, &response)
