@@ -1,5 +1,9 @@
 syntax = "proto3";
 
+option go_package = ".;ndid_tendermint_abci_interface_v5";
+
+package ndid_tendermint_abci_interface_v5;
+
 message Tx {
   string method = 1;
   string params = 2;

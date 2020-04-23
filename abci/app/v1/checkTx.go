@@ -39,7 +39,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/v5/abci/code"
-	"github.com/ndidplatform/smart-contract/v5/protos/data"
+	data "github.com/ndidplatform/smart-contract/v5/protos/data"
 )
 
 var IsMethod = map[string]bool{

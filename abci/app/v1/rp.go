@@ -30,7 +30,7 @@ import (
 
 	"github.com/ndidplatform/smart-contract/v5/abci/code"
 	"github.com/ndidplatform/smart-contract/v5/abci/utils"
-	"github.com/ndidplatform/smart-contract/v5/protos/data"
+	data "github.com/ndidplatform/smart-contract/v5/protos/data"
 )
 
 func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {

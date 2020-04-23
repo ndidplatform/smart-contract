@@ -31,7 +31,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/ndidplatform/smart-contract/v5/abci/utils"
-	"github.com/ndidplatform/smart-contract/v5/protos/data"
+	data "github.com/ndidplatform/smart-contract/v5/protos/data"
 )
 
 var (
