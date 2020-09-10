@@ -412,7 +412,7 @@ func (app *ABCIApplication) getRoleFromNodeID(nodeID string) string {
 	if err != nil {
 		return ""
 	}
-	return string(nodeDetail.Role)
+	return nodeDetail.Role
 }
 
 func checkPubKey(key string) (returnCode uint32, log string) {

@@ -1,5 +1,14 @@
 # Changelog
 
+## TBD
+
+SECURITY FIXES:
+
+- Disallow IdP nodes from creating request with data requests.
+- Disallow IdP nodes from creating request with mode 1.
+
+**IMPORTANT**: Security fixes mentioned above are considered breaking changes if deploy to the existing chain with transactions that violate the normal use cases (unexpected requests).
+
 ## 5.0.0 (May 7, 2020)
 
 BREAKING CHANGES:

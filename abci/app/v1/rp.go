@@ -49,14 +49,26 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	if nodeDetaiValue == nil {
 		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
-	var rpNodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetaiValue), &rpNodeDetail)
+	var requesterNodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetaiValue), &requesterNodeDetail)
 
 	// log chain ID
 	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
 	var request data.Request
 	// set request data
 	request.RequestId = funcParam.RequestID
+	request.Mode = funcParam.Mode
+
+	if requesterNodeDetail.Role == "IdP" {
+		// IdP must not be able to create request with mode 1 or 2
+		if request.Mode == 1 {
+			return app.ReturnDeliverTxLog(code.IdPCreateRequestMode1And2NotAllowed, "IdP cannot create request with mode 1 or 2", "")
+		}
+		// IdP must not be able to create request with data request to AS
+		if len(funcParam.DataRequestList) > 0 {
+			return app.ReturnDeliverTxLog(code.IdPCreateRequestWithDataRequestNotAllowed, "IdP cannot create request with data request", "")
+		}
+	}
 
 	key := requestKeyPrefix + keySeparator + request.RequestId
 	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
@@ -73,7 +85,6 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	request.RequestTimeout = int64(funcParam.Timeout)
 	// request.DataRequestList = funcParam.DataRequestList
 	request.RequestMessageHash = funcParam.MessageHash
-	request.Mode = funcParam.Mode
 	// Check valid mode
 	allowedMode := app.GetAllowedModeFromStateDB(funcParam.Purpose, false)
 	validMode := false
@@ -90,7 +101,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	// Check all IdP in list is active
 	for _, idp := range request.IdpIdList {
 		// Check idp is in the rp whitelist
-		if rpNodeDetail.UseWhitelist && !contains(idp, rpNodeDetail.Whitelist) {
+		if requesterNodeDetail.UseWhitelist && !contains(idp, requesterNodeDetail.Whitelist) {
 			return app.ReturnDeliverTxLog(code.NodeNotInWhitelist, "IdP is not in RP whitelist", "")
 		}
 
@@ -225,8 +236,7 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	// set Owner
 	request.Owner = nodeID
 	// set Can add accossor
-	ownerRole := app.getRoleFromNodeID(nodeID)
-	if string(ownerRole) == "IdP" {
+	if requesterNodeDetail.Role == "IdP" {
 		request.Purpose = funcParam.Purpose
 	}
 	// set default value

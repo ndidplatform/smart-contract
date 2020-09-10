@@ -132,5 +132,7 @@ const (
 	AppStateError                                      uint32 = 108
 	RequestCannotBeFulfilled                           uint32 = 109
 	DataRequestCannotBeFulfilled                       uint32 = 110
+	IdPCreateRequestWithDataRequestNotAllowed          uint32 = 111
+	IdPCreateRequestMode1And2NotAllowed                uint32 = 112
 	UnknownError                                       uint32 = 999
 )
