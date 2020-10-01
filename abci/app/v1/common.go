@@ -1036,6 +1036,9 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 		})
 	}
 
+	featureList := append(make([]string, 0), nodeDetail.FeatureList...)
+	result.FeatureList = &featureList
+
 	// If node behind proxy
 	if nodeDetail.ProxyNodeId != "" {
 		proxyNodeID := nodeDetail.ProxyNodeId

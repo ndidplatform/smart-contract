@@ -501,6 +501,9 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 			node.Whitelist = funcParam.Whitelist
 		}
 	}
+	if funcParam.FeatureList != nil {
+		node.FeatureList = funcParam.FeatureList
+	}
 	nodeDetailJSON, err := utils.ProtoDeterministicMarshal(&node)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")

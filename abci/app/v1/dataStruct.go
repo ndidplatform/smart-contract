@@ -471,6 +471,7 @@ type GetNodeInfoResult struct {
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	FeatureList                            *[]string `json:"feature_list,omitempty"`
 	IsIdpAgent                             *bool     `json:"agent,omitempty"`
 	// for IdP and RP
 	UseWhitelist *bool     `json:"node_id_whitelist_active,omitempty"`
@@ -502,6 +503,7 @@ type UpdateNodeByNDIDParam struct {
 	IsIdPAgent   *bool    `json:"agent"`
 	UseWhitelist *bool    `json:"node_id_whitelist_active"`
 	Whitelist    []string `json:"node_id_whitelist"`
+	FeatureList  []string `json:"feature_list"`
 }
 
 type UpdateIdentityParam struct {
