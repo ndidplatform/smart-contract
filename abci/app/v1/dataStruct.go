@@ -163,6 +163,13 @@ type CreateIdpResponseParam struct {
 	ErrorCode *int32  `json:"error_code"`
 }
 
+type CreateMessageParam struct {
+	MessageID   string `json:"message_id"`
+	Message     string `json:"message"`
+	MessageHash string `json:"message_hash"`
+	Purpose     string `json:"purpose"`
+}
+
 type GetRequestParam struct {
 	RequestID string `json:"request_id"`
 }
@@ -191,6 +198,24 @@ type GetRequestDetailResult struct {
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`
 	CreationChainID     string        `json:"creation_chain_id"`
+}
+
+type GetMessageParam struct {
+	MessageID string `json:"message_id"`
+}
+
+type GetMessageResult struct {
+	MessageHash string `json:"message_hash"`
+}
+
+type GetMessageDetailResult struct {
+	MessageID           string `json:"message_id"`
+	Message             string `json:"message"`
+	MessageHash         string `json:"message_hash"`
+	Purpose             string `json:"purpose"`
+	RequesterNodeID     string `json:"requester_node_id"`
+	CreationBlockHeight int64  `json:"creation_block_height"`
+	CreationChainID     string `json:"creation_chain_id"`
 }
 
 type CreateAsResponseParam struct {
