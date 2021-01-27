@@ -436,3 +436,62 @@ func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.R
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
+
+func (app *ABCIApplication) createMessage(param string, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("CreateMessage, Parameter: %s", param)
+	var funcParam CreateMessageParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	// get RP node detail
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	if nodeDetaiValue == nil {
+		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+	}
+	var rpNodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetaiValue), &rpNodeDetail)
+
+	// log chain ID
+	app.logger.Infof("CreateMessage, Chain ID: %s", app.CurrentChain)
+	var request data.Message
+	// set request data
+	request.MessageId = funcParam.MessageID
+
+	key := messageKeyPrefix + keySeparator + request.MessageId
+	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	if requestIDExist {
+		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
+	}
+
+	// set default value
+	request.Purpose = ""
+
+	request.Message = funcParam.Message
+	request.MessageHash = funcParam.MessageHash
+	request.Purpose = funcParam.Purpose
+
+	// set Owner
+	request.Owner = nodeID
+	// set creation_block_height
+	request.CreationBlockHeight = app.state.CurrentBlockHeight
+	// set chain_id
+	request.ChainId = app.CurrentChain
+
+	value, err := utils.ProtoDeterministicMarshal(&request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	err = app.state.SetVersioned([]byte(key), []byte(value))
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	return app.ReturnDeliverTxLog(code.OK, "success", request.MessageId)
+}

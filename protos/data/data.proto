@@ -95,6 +95,16 @@ message Request {
   string chain_id = 17;
 }
 
+message Message {
+  string message_id = 1;
+  string message = 2;
+  string message_hash = 3;
+  string purpose = 4;
+  string owner = 5;
+  int64 creation_block_height = 6;
+  string chain_id = 7;
+}
+
 message ASResponse {
   string as_id = 1;
   bool signed = 2;
