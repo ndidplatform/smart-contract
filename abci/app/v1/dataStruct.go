@@ -164,10 +164,9 @@ type CreateIdpResponseParam struct {
 }
 
 type CreateMessageParam struct {
-	MessageID   string `json:"message_id"`
-	Message     string `json:"message"`
-	MessageHash string `json:"message_hash"`
-	Purpose     string `json:"purpose"`
+	MessageID string `json:"message_id"`
+	Message   string `json:"message"`
+	Purpose   string `json:"purpose"`
 }
 
 type GetRequestParam struct {
@@ -205,13 +204,12 @@ type GetMessageParam struct {
 }
 
 type GetMessageResult struct {
-	MessageHash string `json:"message_hash"`
+	Message string `json:"message"`
 }
 
 type GetMessageDetailResult struct {
 	MessageID           string `json:"message_id"`
 	Message             string `json:"message"`
-	MessageHash         string `json:"message_hash"`
 	Purpose             string `json:"purpose"`
 	RequesterNodeID     string `json:"requester_node_id"`
 	CreationBlockHeight int64  `json:"creation_block_height"`

@@ -461,11 +461,7 @@ func (app *ABCIApplication) createMessage(param string, nodeID string) types.Res
 		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
 	}
 
-	// set default value
-	request.Purpose = ""
-
 	request.Message = funcParam.Message
-	request.MessageHash = funcParam.MessageHash
 	request.Purpose = funcParam.Purpose
 
 	// set Owner
