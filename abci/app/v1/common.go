@@ -2223,7 +2223,7 @@ func (app *ABCIApplication) getMessage(param string, height int64) types.Respons
 	}
 
 	var res GetMessageResult
-	res.MessageHash = message.MessageHash
+	res.Message = message.Message
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
@@ -2262,7 +2262,6 @@ func (app *ABCIApplication) getMessageDetail(param string, height int64, committ
 
 	result.MessageID = message.MessageId
 	result.Message = message.Message
-	result.MessageHash = message.MessageHash
 
 	// Set purpose
 	result.Purpose = message.Purpose
