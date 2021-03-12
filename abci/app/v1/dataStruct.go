@@ -22,6 +22,8 @@
 
 package app
 
+import "time"
+
 type NodePublicKey struct {
 	NodeID    string `json:"node_id"`
 	PublicKey string `json:"public_key"`
@@ -847,4 +849,60 @@ type GetErrorCodeListParam struct {
 type GetErrorCodeListResult struct {
 	ErrorCode   int32  `json:"error_code"`
 	Description string `json:"description"`
+}
+
+type SetServicePriceCeilingParam struct {
+	ServiceID                  string                   `json:"service_id"`
+	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
+}
+
+type PriceCeilingByCurrency struct {
+	Currency string  `json:"currency"`
+	Price    float64 `json:"price"`
+}
+
+type GetServicePriceCeilingParam struct {
+	ServiceID string `json:"serivce_id"`
+}
+
+type GetServicePriceCeilingResult struct {
+	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
+}
+
+type SetServicePriceMinEffectiveDatetimeDelayParam struct {
+	DurationSecond uint32 `json:"duration_second"`
+}
+
+type GetServicePriceMinEffectiveDatetimeDelayResult struct {
+	DurationSecond uint32 `json:"duration_second"`
+}
+
+type SetServicePriceParam struct {
+	ServiceID           string                   `json:"service_id"`
+	PriceByCurrencyList []ServicePriceByCurrency `json:"price_by_currency_list"`
+	EffectiveDatetime   time.Time                `json:"effective_datetime"`
+	MoreInfoURL         string                   `json:"more_info_url"`
+	Detail              string                   `json:"detail"`
+}
+
+type ServicePriceByCurrency struct {
+	Currency string  `json:"currency"`
+	MinPrice float64 `json:"min_price"`
+	MaxPrice float64 `json:"max_price"`
+}
+
+type GetServicePriceListParam struct {
+	NodeID    string `json:"node_id"`
+	ServiceID string `json:"serivce_id"`
+}
+
+type GetServicePriceListResult struct {
+	ServicePriceList []ServicePrice `json:"service_price_list"`
+}
+
+type ServicePrice struct {
+	PriceByCurrencyList []ServicePriceByCurrency `json:"price_by_currency_list"`
+	EffectiveDatetime   time.Time                `json:"effective_datetime"`
+	MoreInfoURL         string                   `json:"more_info_url"`
+	Detail              string                   `json:"detail"`
 }

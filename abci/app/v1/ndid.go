@@ -69,6 +69,8 @@ var isNDIDMethod = map[string]bool{
 	"SetAllowedModeList":               true,
 	"UpdateNamespace":                  true,
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
+	"SetServicePriceCeiling":                        true,
+	"SetServicePriceMinEffectiveDatetimeDelay":      true,
 }
 
 func (app *ABCIApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {

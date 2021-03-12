@@ -108,6 +108,12 @@ func (app *ABCIApplication) callQuery(name string, param string, height int64) t
 		return app.GetAllowedModeList(param)
 	case "GetAllowedMinIalForRegisterIdentityAtFirstIdp":
 		return app.GetAllowedMinIalForRegisterIdentityAtFirstIdp(param)
+	case "GetServicePriceList":
+		return app.getServicePriceList(param)
+	case "GetServicePriceCeiling":
+		return app.getServicePriceCeiling(param)
+	case "GetServicePriceMinEffectiveDatetimeDelay":
+		return app.getServicePriceMinEffectiveDatetimeDelay(param)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

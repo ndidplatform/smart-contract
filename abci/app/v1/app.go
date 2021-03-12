@@ -52,6 +52,7 @@ type ABCIApplication struct {
 	state               AppState
 	valUpdates          map[string]types.ValidatorUpdate
 	verifiedSignatures  *utils.StringMap
+	lastBlockTime       time.Time
 }
 
 func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
@@ -109,6 +110,7 @@ func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.Respon
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
+	app.lastBlockTime = req.Header.Time
 	return types.ResponseBeginBlock{}
 }
 

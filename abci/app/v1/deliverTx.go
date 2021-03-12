@@ -223,6 +223,12 @@ func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID stri
 		return app.SetAllowedMinIalForRegisterIdentityAtFirstIdp(param, nodeID)
 	case "RevokeAndAddAccessor":
 		return app.revokeAndAddAccessor(param, nodeID)
+	case "SetServicePriceCeiling":
+		return app.setServicePriceCeiling(param)
+	case "SetServicePriceMinEffectiveDatetimeDelay":
+		return app.setServicePriceMinEffectiveDatetimeDelay(param)
+	case "SetServicePrice":
+		return app.setServicePrice(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

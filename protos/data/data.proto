@@ -236,3 +236,33 @@ message ErrorCode {
 message ErrorCodeList {
   repeated ErrorCode error_code = 2;
 }
+
+message ServicePriceCeilingList {
+  repeated ServicePriceCeilingByCurency price_ceiling_by_currency_list = 1;
+}
+
+message ServicePriceCeilingByCurency {
+  string currency = 1;
+  double price = 2;
+}
+
+message ServicePriceMinEffectiveDatetimeDelay {
+  uint32 duration_second = 1;
+}
+
+message ServicePriceList {
+  repeated ServicePrice service_price_list = 1;
+}
+
+message ServicePrice {
+  repeated ServicePriceByCurrency price_by_currency_list = 1;
+  int64 effective_datetime = 2;
+  string more_info_url = 3;
+  string detail = 4;
+}
+
+message ServicePriceByCurrency {
+  string currency = 1;
+  double min_price = 2;
+  double max_price = 3;
+}

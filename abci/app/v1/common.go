@@ -45,31 +45,35 @@ var modeFunctionMap = map[string]bool{
 }
 
 var (
-	masterNDIDKeyBytes   = []byte("MasterNDID")
-	initStateKeyBytes    = []byte("InitState")
-	lastBlockKeyBytes    = []byte("lastBlock")
-	idpListKeyBytes      = []byte("IdPList")
-	allNamespaceKeyBytes = []byte("AllNamespace")
+	masterNDIDKeyBytes                            = []byte("MasterNDID")
+	initStateKeyBytes                             = []byte("InitState")
+	lastBlockKeyBytes                             = []byte("lastBlock")
+	idpListKeyBytes                               = []byte("IdPList")
+	allNamespaceKeyBytes                          = []byte("AllNamespace")
+	servicePriceMinEffectiveDatetimeDelayKeyBytes = []byte("ServicePriceMinEffectiveDatetimeDelay")
 )
 
 const (
-	keySeparator                = "|"
-	nodeIDKeyPrefix             = "NodeID"
-	behindProxyNodeKeyPrefix    = "BehindProxyNode"
-	tokenKeyPrefix              = "Token"
-	tokenPriceFuncKeyPrefix     = "TokenPriceFunc"
-	serviceKeyPrefix            = "Service"
-	serviceDestinationKeyPrefix = "ServiceDestination"
-	approvedServiceKeyPrefix    = "ApproveKey"
-	providedServicesKeyPrefix   = "ProvideService"
-	refGroupCodeKeyPrefix       = "RefGroupCode"
-	identityToRefCodeKeyPrefix  = "identityToRefCodeKey"
-	accessorToRefCodeKeyPrefix  = "accessorToRefCodeKey"
-	allowedModeListKeyPrefix    = "AllowedModeList"
-	requestKeyPrefix            = "Request"
-	dataSignatureKeyPrefix      = "SignData"
-	errorCodeKeyPrefix          = "ErrorCode"
-	errorCodeListKeyPrefix      = "ErrorCodeList"
+	keySeparator                                   = "|"
+	nodeIDKeyPrefix                                = "NodeID"
+	behindProxyNodeKeyPrefix                       = "BehindProxyNode"
+	tokenKeyPrefix                                 = "Token"
+	tokenPriceFuncKeyPrefix                        = "TokenPriceFunc"
+	serviceKeyPrefix                               = "Service"
+	serviceDestinationKeyPrefix                    = "ServiceDestination"
+	approvedServiceKeyPrefix                       = "ApproveKey"
+	providedServicesKeyPrefix                      = "ProvideService"
+	refGroupCodeKeyPrefix                          = "RefGroupCode"
+	identityToRefCodeKeyPrefix                     = "identityToRefCodeKey"
+	accessorToRefCodeKeyPrefix                     = "accessorToRefCodeKey"
+	allowedModeListKeyPrefix                       = "AllowedModeList"
+	requestKeyPrefix                               = "Request"
+	dataSignatureKeyPrefix                         = "SignData"
+	errorCodeKeyPrefix                             = "ErrorCode"
+	errorCodeListKeyPrefix                         = "ErrorCodeList"
+	servicePriceCeilingKeyPrefix                   = "ServicePriceCeiling"
+	servicePriceMinEffectiveDatetimeDelayKeyPrefix = "ServicePriceMinEffectiveDatetimeDelay"
+	servicePriceListKeyPrefix                      = "ServicePriceListKey"
 )
 
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {

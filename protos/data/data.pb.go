@@ -2459,6 +2459,336 @@ func (x *ErrorCodeList) GetErrorCode() []*ErrorCode {
 	return nil
 }
 
+type ServicePriceCeilingList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PriceCeilingByCurrencyList []*ServicePriceCeilingByCurency `protobuf:"bytes,1,rep,name=price_ceiling_by_currency_list,json=priceCeilingByCurrencyList,proto3" json:"price_ceiling_by_currency_list,omitempty"`
+}
+
+func (x *ServicePriceCeilingList) Reset() {
+	*x = ServicePriceCeilingList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[38]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePriceCeilingList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePriceCeilingList) ProtoMessage() {}
+
+func (x *ServicePriceCeilingList) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[38]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePriceCeilingList.ProtoReflect.Descriptor instead.
+func (*ServicePriceCeilingList) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ServicePriceCeilingList) GetPriceCeilingByCurrencyList() []*ServicePriceCeilingByCurency {
+	if x != nil {
+		return x.PriceCeilingByCurrencyList
+	}
+	return nil
+}
+
+type ServicePriceCeilingByCurency struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Currency string  `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	Price    float64 `protobuf:"fixed64,2,opt,name=price,proto3" json:"price,omitempty"`
+}
+
+func (x *ServicePriceCeilingByCurency) Reset() {
+	*x = ServicePriceCeilingByCurency{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[39]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePriceCeilingByCurency) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePriceCeilingByCurency) ProtoMessage() {}
+
+func (x *ServicePriceCeilingByCurency) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[39]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePriceCeilingByCurency.ProtoReflect.Descriptor instead.
+func (*ServicePriceCeilingByCurency) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ServicePriceCeilingByCurency) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *ServicePriceCeilingByCurency) GetPrice() float64 {
+	if x != nil {
+		return x.Price
+	}
+	return 0
+}
+
+type ServicePriceMinEffectiveDatetimeDelay struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DurationSecond uint32 `protobuf:"varint,1,opt,name=duration_second,json=durationSecond,proto3" json:"duration_second,omitempty"`
+}
+
+func (x *ServicePriceMinEffectiveDatetimeDelay) Reset() {
+	*x = ServicePriceMinEffectiveDatetimeDelay{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[40]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePriceMinEffectiveDatetimeDelay) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePriceMinEffectiveDatetimeDelay) ProtoMessage() {}
+
+func (x *ServicePriceMinEffectiveDatetimeDelay) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[40]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePriceMinEffectiveDatetimeDelay.ProtoReflect.Descriptor instead.
+func (*ServicePriceMinEffectiveDatetimeDelay) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *ServicePriceMinEffectiveDatetimeDelay) GetDurationSecond() uint32 {
+	if x != nil {
+		return x.DurationSecond
+	}
+	return 0
+}
+
+type ServicePriceList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ServicePriceList []*ServicePrice `protobuf:"bytes,1,rep,name=service_price_list,json=servicePriceList,proto3" json:"service_price_list,omitempty"`
+}
+
+func (x *ServicePriceList) Reset() {
+	*x = ServicePriceList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[41]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePriceList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePriceList) ProtoMessage() {}
+
+func (x *ServicePriceList) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[41]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePriceList.ProtoReflect.Descriptor instead.
+func (*ServicePriceList) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ServicePriceList) GetServicePriceList() []*ServicePrice {
+	if x != nil {
+		return x.ServicePriceList
+	}
+	return nil
+}
+
+type ServicePrice struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PriceByCurrencyList []*ServicePriceByCurrency `protobuf:"bytes,1,rep,name=price_by_currency_list,json=priceByCurrencyList,proto3" json:"price_by_currency_list,omitempty"`
+	EffectiveDatetime   int64                     `protobuf:"varint,2,opt,name=effective_datetime,json=effectiveDatetime,proto3" json:"effective_datetime,omitempty"`
+	MoreInfoUrl         string                    `protobuf:"bytes,3,opt,name=more_info_url,json=moreInfoUrl,proto3" json:"more_info_url,omitempty"`
+	Detail              string                    `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
+}
+
+func (x *ServicePrice) Reset() {
+	*x = ServicePrice{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[42]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePrice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePrice) ProtoMessage() {}
+
+func (x *ServicePrice) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[42]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePrice.ProtoReflect.Descriptor instead.
+func (*ServicePrice) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ServicePrice) GetPriceByCurrencyList() []*ServicePriceByCurrency {
+	if x != nil {
+		return x.PriceByCurrencyList
+	}
+	return nil
+}
+
+func (x *ServicePrice) GetEffectiveDatetime() int64 {
+	if x != nil {
+		return x.EffectiveDatetime
+	}
+	return 0
+}
+
+func (x *ServicePrice) GetMoreInfoUrl() string {
+	if x != nil {
+		return x.MoreInfoUrl
+	}
+	return ""
+}
+
+func (x *ServicePrice) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type ServicePriceByCurrency struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Currency string  `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	MinPrice float64 `protobuf:"fixed64,2,opt,name=min_price,json=minPrice,proto3" json:"min_price,omitempty"`
+	MaxPrice float64 `protobuf:"fixed64,3,opt,name=max_price,json=maxPrice,proto3" json:"max_price,omitempty"`
+}
+
+func (x *ServicePriceByCurrency) Reset() {
+	*x = ServicePriceByCurrency{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[43]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServicePriceByCurrency) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServicePriceByCurrency) ProtoMessage() {}
+
+func (x *ServicePriceByCurrency) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[43]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServicePriceByCurrency.ProtoReflect.Descriptor instead.
+func (*ServicePriceByCurrency) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ServicePriceByCurrency) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *ServicePriceByCurrency) GetMinPrice() float64 {
+	if x != nil {
+		return x.MinPrice
+	}
+	return 0
+}
+
+func (x *ServicePriceByCurrency) GetMaxPrice() float64 {
+	if x != nil {
+		return x.MaxPrice
+	}
+	return 0
+}
+
 var File_data_proto protoreflect.FileDescriptor
 
 var file_data_proto_rawDesc = []byte{
@@ -2756,9 +3086,55 @@ var file_data_proto_rawDesc = []byte{
 	0x6f, 0x72, 0x5f, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e,
 	0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f,
 	0x76, 0x35, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x52, 0x09, 0x65, 0x72,
-	0x72, 0x6f, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x42, 0x16, 0x5a, 0x14, 0x2e, 0x3b, 0x6e, 0x64, 0x69,
-	0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x35, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x6f, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x22, 0x8f, 0x01, 0x0a, 0x17, 0x53, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x43, 0x65, 0x69, 0x6c, 0x69, 0x6e, 0x67, 0x4c,
+	0x69, 0x73, 0x74, 0x12, 0x74, 0x0a, 0x1e, 0x70, 0x72, 0x69, 0x63, 0x65, 0x5f, 0x63, 0x65, 0x69,
+	0x6c, 0x69, 0x6e, 0x67, 0x5f, 0x62, 0x79, 0x5f, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79,
+	0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x30, 0x2e, 0x6e, 0x64,
+	0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x35,
+	0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x43, 0x65, 0x69,
+	0x6c, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x43, 0x75, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x52, 0x1a, 0x70,
+	0x72, 0x69, 0x63, 0x65, 0x43, 0x65, 0x69, 0x6c, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x43, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x63, 0x79, 0x4c, 0x69, 0x73, 0x74, 0x22, 0x50, 0x0a, 0x1c, 0x53, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x43, 0x65, 0x69, 0x6c, 0x69, 0x6e, 0x67,
+	0x42, 0x79, 0x43, 0x75, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x63, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x63, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x63, 0x75, 0x72,
+	0x72, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x70, 0x72, 0x69, 0x63, 0x65, 0x22, 0x50, 0x0a, 0x25, 0x53,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x4d, 0x69, 0x6e, 0x45, 0x66,
+	0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x44, 0x61, 0x74, 0x65, 0x74, 0x69, 0x6d, 0x65, 0x44,
+	0x65, 0x6c, 0x61, 0x79, 0x12, 0x27, 0x0a, 0x0f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0e, 0x64,
+	0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x65, 0x63, 0x6f, 0x6e, 0x64, 0x22, 0x62, 0x0a,
+	0x10, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x73,
+	0x74, 0x12, 0x4e, 0x0a, 0x12, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x70, 0x72, 0x69,
+	0x63, 0x65, 0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x20, 0x2e,
+	0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f,
+	0x76, 0x35, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x52,
+	0x10, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x4c, 0x69, 0x73,
+	0x74, 0x22, 0xda, 0x01, 0x0a, 0x0c, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69,
+	0x63, 0x65, 0x12, 0x5f, 0x0a, 0x16, 0x70, 0x72, 0x69, 0x63, 0x65, 0x5f, 0x62, 0x79, 0x5f, 0x63,
+	0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x5f, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x2a, 0x2e, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73,
+	0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x35, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50,
+	0x72, 0x69, 0x63, 0x65, 0x42, 0x79, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x52, 0x13,
+	0x70, 0x72, 0x69, 0x63, 0x65, 0x42, 0x79, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x4c,
+	0x69, 0x73, 0x74, 0x12, 0x2d, 0x0a, 0x12, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65,
+	0x5f, 0x64, 0x61, 0x74, 0x65, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x11, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x44, 0x61, 0x74, 0x65, 0x74, 0x69,
+	0x6d, 0x65, 0x12, 0x22, 0x0a, 0x0d, 0x6d, 0x6f, 0x72, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x5f,
+	0x75, 0x72, 0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x6d, 0x6f, 0x72, 0x65, 0x49,
+	0x6e, 0x66, 0x6f, 0x55, 0x72, 0x6c, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c,
+	0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x22, 0x6e,
+	0x0a, 0x16, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x50, 0x72, 0x69, 0x63, 0x65, 0x42, 0x79,
+	0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x1a, 0x0a, 0x08, 0x63, 0x75, 0x72, 0x72,
+	0x65, 0x6e, 0x63, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x63, 0x75, 0x72, 0x72,
+	0x65, 0x6e, 0x63, 0x79, 0x12, 0x1b, 0x0a, 0x09, 0x6d, 0x69, 0x6e, 0x5f, 0x70, 0x72, 0x69, 0x63,
+	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x01, 0x52, 0x08, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x69, 0x63,
+	0x65, 0x12, 0x1b, 0x0a, 0x09, 0x6d, 0x61, 0x78, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x01, 0x52, 0x08, 0x6d, 0x61, 0x78, 0x50, 0x72, 0x69, 0x63, 0x65, 0x42, 0x16,
+	0x5a, 0x14, 0x2e, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74,
+	0x61, 0x74, 0x65, 0x5f, 0x76, 0x35, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -2773,7 +3149,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 44)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v5.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v5.NodeDetail
@@ -2811,8 +3187,14 @@ var file_data_proto_goTypes = []interface{}{
 	(*IdentityInRefGroup)(nil),           // 33: ndid_abci_state_v5.IdentityInRefGroup
 	(*AllowedModeList)(nil),              // 34: ndid_abci_state_v5.AllowedModeList
 	(*AllowedMinIalForRegisterIdentityAtFirstIdp)(nil), // 35: ndid_abci_state_v5.AllowedMinIalForRegisterIdentityAtFirstIdp
-	(*ErrorCode)(nil),     // 36: ndid_abci_state_v5.ErrorCode
-	(*ErrorCodeList)(nil), // 37: ndid_abci_state_v5.ErrorCodeList
+	(*ErrorCode)(nil),                             // 36: ndid_abci_state_v5.ErrorCode
+	(*ErrorCodeList)(nil),                         // 37: ndid_abci_state_v5.ErrorCodeList
+	(*ServicePriceCeilingList)(nil),               // 38: ndid_abci_state_v5.ServicePriceCeilingList
+	(*ServicePriceCeilingByCurency)(nil),          // 39: ndid_abci_state_v5.ServicePriceCeilingByCurency
+	(*ServicePriceMinEffectiveDatetimeDelay)(nil), // 40: ndid_abci_state_v5.ServicePriceMinEffectiveDatetimeDelay
+	(*ServicePriceList)(nil),                      // 41: ndid_abci_state_v5.ServicePriceList
+	(*ServicePrice)(nil),                          // 42: ndid_abci_state_v5.ServicePrice
+	(*ServicePriceByCurrency)(nil),                // 43: ndid_abci_state_v5.ServicePriceByCurrency
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v5.NodeDetail.mq:type_name -> ndid_abci_state_v5.MQ
@@ -2829,11 +3211,14 @@ var file_data_proto_depIdxs = []int32{
 	32, // 11: ndid_abci_state_v5.ReferenceGroup.idps:type_name -> ndid_abci_state_v5.IdPInRefGroup
 	18, // 12: ndid_abci_state_v5.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v5.Accessor
 	36, // 13: ndid_abci_state_v5.ErrorCodeList.error_code:type_name -> ndid_abci_state_v5.ErrorCode
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	39, // 14: ndid_abci_state_v5.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v5.ServicePriceCeilingByCurency
+	42, // 15: ndid_abci_state_v5.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v5.ServicePrice
+	43, // 16: ndid_abci_state_v5.ServicePrice.price_by_currency_list:type_name -> ndid_abci_state_v5.ServicePriceByCurrency
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_data_proto_init() }
@@ -3298,6 +3683,78 @@ func file_data_proto_init() {
 				return nil
 			}
 		}
+		file_data_proto_msgTypes[38].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePriceCeilingList); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[39].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePriceCeilingByCurency); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[40].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePriceMinEffectiveDatetimeDelay); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[41].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePriceList); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[42].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePrice); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ServicePriceByCurrency); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -3305,7 +3762,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   44,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

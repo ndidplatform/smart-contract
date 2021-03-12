@@ -134,5 +134,10 @@ const (
 	DataRequestCannotBeFulfilled                       uint32 = 110
 	IdPCreateRequestWithDataRequestNotAllowed          uint32 = 111
 	IdPCreateRequestMode1And2NotAllowed                uint32 = 112
-	UnknownError                                       uint32 = 999
+	ServicePriceCeilingListNotFound                    uint32 = 113
+	ServicePriceCeilingNotFound                        uint32 = 114
+	ServiceMaxPriceGreaterThanPriceCeiling             uint32 = 115
+	ServicePriceEffectiveDatetimeBeforeAllowed         uint32 = 116
+
+	UnknownError uint32 = 999
 )
