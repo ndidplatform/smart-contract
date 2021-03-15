@@ -862,7 +862,7 @@ type PriceCeilingByCurrency struct {
 }
 
 type GetServicePriceCeilingParam struct {
-	ServiceID string `json:"serivce_id"`
+	ServiceID string `json:"service_id"`
 }
 
 type GetServicePriceCeilingResult struct {
@@ -893,7 +893,7 @@ type ServicePriceByCurrency struct {
 
 type GetServicePriceListParam struct {
 	NodeID    string `json:"node_id"`
-	ServiceID string `json:"serivce_id"`
+	ServiceID string `json:"service_id"`
 }
 
 type GetServicePriceListResult struct {
