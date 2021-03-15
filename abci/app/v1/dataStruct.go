@@ -897,7 +897,7 @@ type GetServicePriceListParam struct {
 }
 
 type GetServicePriceListResult struct {
-	ServicePriceList []ServicePrice `json:"service_price_list"`
+	ServicePriceList []ServicePrice `json:"price_list"`
 }
 
 type ServicePrice struct {
