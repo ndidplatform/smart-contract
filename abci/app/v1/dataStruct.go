@@ -905,4 +905,6 @@ type ServicePrice struct {
 	EffectiveDatetime   time.Time                `json:"effective_datetime"`
 	MoreInfoURL         string                   `json:"more_info_url"`
 	Detail              string                   `json:"detail"`
+	CreationBlockHeight int64                    `json:"creation_block_height"`
+	CreationChainID     string                   `json:"creation_chain_id"`
 }

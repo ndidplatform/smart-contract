@@ -120,6 +120,8 @@ priceToSetLoop:
 		EffectiveDatetime:   funcParam.EffectiveDatetime.Unix(),
 		MoreInfoUrl:         funcParam.MoreInfoURL,
 		Detail:              funcParam.Detail,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
 	}
 
 	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + nodeID + keySeparator + funcParam.ServiceID
@@ -198,6 +200,8 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 			EffectiveDatetime:   time.Unix(servicePrice.EffectiveDatetime, 0),
 			MoreInfoURL:         servicePrice.MoreInfoUrl,
 			Detail:              servicePrice.Detail,
+			CreationBlockHeight: servicePrice.CreationBlockHeight,
+			CreationChainID:     servicePrice.CreationChainId,
 		}
 
 		for _, priceByCurrency := range servicePrice.PriceByCurrencyList {

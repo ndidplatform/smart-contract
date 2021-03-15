@@ -259,6 +259,8 @@ message ServicePrice {
   int64 effective_datetime = 2;
   string more_info_url = 3;
   string detail = 4;
+  int64 creation_block_height = 5;
+  string creation_chain_id = 6;
 }
 
 message ServicePriceByCurrency {
