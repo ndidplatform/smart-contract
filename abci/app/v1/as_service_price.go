@@ -103,6 +103,10 @@ priceToSetLoop:
 				}
 				// less then 0 price ceiling means no ceiling/limit
 
+				if priceToSet.MinPrice > priceToSet.MaxPrice {
+					return app.ReturnDeliverTxLog(code.ServicePriceMinCannotBeGreaterThanMax, "Service minimum price cannot be greater than maximum price", "")
+				}
+
 				servicePriceByCurrencyListToSet = append(servicePriceByCurrencyListToSet, &data.ServicePriceByCurrency{
 					Currency: priceToSet.Currency,
 					MinPrice: priceToSet.MinPrice,
@@ -117,7 +121,7 @@ priceToSetLoop:
 
 	var newServicePrice *data.ServicePrice = &data.ServicePrice{
 		PriceByCurrencyList: servicePriceByCurrencyListToSet,
-		EffectiveDatetime:   funcParam.EffectiveDatetime.Unix(),
+		EffectiveDatetime:   funcParam.EffectiveDatetime.UnixNano() / int64(time.Millisecond), // in milliseconds
 		MoreInfoUrl:         funcParam.MoreInfoURL,
 		Detail:              funcParam.Detail,
 		CreationBlockHeight: app.state.CurrentBlockHeight,
@@ -197,7 +201,7 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 	for _, servicePrice := range servicePriceList.ServicePriceList {
 		var retValServicePrice ServicePrice = ServicePrice{
 			PriceByCurrencyList: make([]ServicePriceByCurrency, 0),
-			EffectiveDatetime:   time.Unix(servicePrice.EffectiveDatetime, 0),
+			EffectiveDatetime:   time.Unix(0, servicePrice.EffectiveDatetime*int64(time.Millisecond)), // in milliseconds
 			MoreInfoURL:         servicePrice.MoreInfoUrl,
 			Detail:              servicePrice.Detail,
 			CreationBlockHeight: servicePrice.CreationBlockHeight,

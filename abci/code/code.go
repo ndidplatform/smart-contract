@@ -138,6 +138,7 @@ const (
 	ServicePriceCeilingNotFound                        uint32 = 114
 	ServiceMaxPriceGreaterThanPriceCeiling             uint32 = 115
 	ServicePriceEffectiveDatetimeBeforeAllowed         uint32 = 116
+	ServicePriceMinCannotBeGreaterThanMax              uint32 = 117
 
 	UnknownError uint32 = 999
 )
