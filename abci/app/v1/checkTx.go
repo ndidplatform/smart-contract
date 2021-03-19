@@ -99,6 +99,7 @@ var IsMethod = map[string]bool{
 	"RevokeAndAddAccessor":                          true,
 	"SetServicePriceCeiling":                        true,
 	"SetServicePriceMinEffectiveDatetimeDelay":      true,
+	"SetServicePrice":                               true,
 }
 
 func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
