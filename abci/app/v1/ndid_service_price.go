@@ -85,6 +85,15 @@ func (app *ABCIApplication) getServicePriceCeiling(param string) types.ResponseQ
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceExists, err := app.state.Has([]byte(serviceKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if !serviceExists {
+		return app.ReturnQuery(nil, "not found", app.state.Height)
+	}
+
 	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
 	servicePriceCeilingBytes, err := app.state.Get([]byte(servicePriceCeilingKey), false)
 	if err != nil {
