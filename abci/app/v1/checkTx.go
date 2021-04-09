@@ -68,7 +68,6 @@ var IsMethod = map[string]bool{
 	"RegisterIdentity":                 true,
 	"AddAccessor":                      true,
 	"CreateIdpResponse":                true,
-	"RegisterAccessor":                 true,
 	"UpdateIdentity":                   true,
 	"CreateAsResponse":                 true,
 	"RegisterServiceDestination":       true,
@@ -81,8 +80,6 @@ var IsMethod = map[string]bool{
 	"SetDataReceived":                  true,
 	"DisableServiceDestination":        true,
 	"EnableServiceDestination":         true,
-	"ClearRegisterIdentityTimeout":     true,
-	"SetTimeOutBlockRegisterIdentity":  true,
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
@@ -567,7 +564,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []b
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
 		}
-	} else if method == "RegisterAccessor" || method == "AddAccessor" {
+	} else if method == "AddAccessor" {
 		checkCode, log := checkAccessorPubKey(param)
 		if checkCode != code.OK {
 			return ReturnCheckTx(checkCode, log)
@@ -671,7 +668,6 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		"EnableServiceDestinationByNDID",
 		"EnableNamespace",
 		"EnableService",
-		"SetTimeOutBlockRegisterIdentity",
 		"AddNodeToProxyNode",
 		"UpdateNodeProxyNode",
 		"RemoveNodeFromProxyNode",
@@ -686,9 +682,7 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessor",
-		"RegisterAccessor",
 		"UpdateIdentity",
-		"ClearRegisterIdentityTimeout",
 		"RevokeAccessor",
 		"RevokeIdentityAssociation",
 		"UpdateIdentityModeList",

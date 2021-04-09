@@ -189,8 +189,6 @@ func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID stri
 		return app.disableServiceDestination(param, nodeID)
 	case "EnableServiceDestination":
 		return app.enableServiceDestination(param, nodeID)
-	case "SetTimeOutBlockRegisterIdentity":
-		return app.setTimeOutBlockRegisterIdentity(param, nodeID)
 	case "AddNodeToProxyNode":
 		return app.addNodeToProxyNode(param, nodeID)
 	case "UpdateNodeProxyNode":

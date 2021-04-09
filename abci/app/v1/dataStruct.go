@@ -366,13 +366,6 @@ type UpdateNodeParam struct {
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
-type RegisterAccessorParam struct {
-	AccessorID        string `json:"accessor_id"`
-	AccessorType      string `json:"accessor_type"`
-	AccessorPublicKey string `json:"accessor_public_key"`
-	AccessorGroupID   string `json:"accessor_group_id"`
-}
-
 type Accessor struct {
 	AccessorType      string `json:"accessor_type"`
 	AccessorPublicKey string `json:"accessor_public_key"`
@@ -596,10 +589,6 @@ type ApproveService struct {
 
 type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
-}
-
-type ClearRegisterIdentityTimeoutParam struct {
-	HashID string `json:"hash_id"`
 }
 
 type TimeOutBlockRegisterIdentity struct {

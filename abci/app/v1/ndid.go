@@ -57,7 +57,6 @@ var isNDIDMethod = map[string]bool{
 	"EnableServiceDestinationByNDID":   true,
 	"EnableNamespace":                  true,
 	"EnableService":                    true,
-	"SetTimeOutBlockRegisterIdentity":  true,
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
 	"RemoveNodeFromProxyNode":          true,
@@ -885,28 +884,6 @@ func (app *ABCIApplication) enableService(param string, nodeID string) types.Res
 	}
 	app.state.Set([]byte(serviceKey), []byte(serviceJSON))
 	app.state.Set([]byte(allServiceKey), []byte(allServiceJSON))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
-}
-
-func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
-	var funcParam TimeOutBlockRegisterIdentity
-	err := json.Unmarshal([]byte(param), &funcParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	key := "TimeOutBlockRegisterIdentity"
-	var timeOut data.TimeOutBlockRegisterIdentity
-	timeOut.TimeOutBlock = funcParam.TimeOutBlock
-	// Check time out block > 0
-	if timeOut.TimeOutBlock <= 0 {
-		return app.ReturnDeliverTxLog(code.TimeOutBlockIsMustGreaterThanZero, "Time out block is must greater than 0", "")
-	}
-	value, err := utils.ProtoDeterministicMarshal(&timeOut)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	app.state.Set([]byte(key), []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
