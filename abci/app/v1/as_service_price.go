@@ -173,6 +173,15 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceExists, err := app.state.Has([]byte(serviceKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if !serviceExists {
+		return app.ReturnQuery(nil, "not found", app.state.Height)
+	}
+
 	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID
 	servicePriceListBytes, err := app.state.Get([]byte(servicePriceListKey), false)
 	if err != nil {
