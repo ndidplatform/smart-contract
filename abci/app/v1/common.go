@@ -1347,6 +1347,14 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
 			return nil
 		}
+		// Filter by OnTheFlySupport
+		if funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport != nodeDetail.OnTheFlySupport {
+			return nil
+		}
+		// Filter by IsIdpAgent
+		if funcParam.IsIdpAgent != nil && *funcParam.IsIdpAgent != nodeDetail.IsIdpAgent {
+			return nil
+		}
 		// Filter by supported_request_message_data_url_type_list
 		if len(funcParam.SupportedRequestMessageDataUrlTypeList) > 0 {
 			// foundSupported := false
