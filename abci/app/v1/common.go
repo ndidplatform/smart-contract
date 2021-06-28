@@ -254,6 +254,10 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
 			return nil
 		}
+		// Filter by OnTheFlySupport
+		if funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport != nodeDetail.OnTheFlySupport {
+			return nil
+		}
 		// Filter by IsIdpAgent
 		if funcParam.IsIdpAgent != nil && *funcParam.IsIdpAgent != nodeDetail.IsIdpAgent {
 			return nil
@@ -282,6 +286,7 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
+			OnTheFlySupport:                        nodeDetail.OnTheFlySupport,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 		}
@@ -1078,6 +1083,7 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 	if nodeDetail.Role == "IdP" {
 		result.MaxIal = &nodeDetail.MaxIal
 		result.MaxAal = &nodeDetail.MaxAal
+		result.OnTheFlySupport = &nodeDetail.OnTheFlySupport
 		supportedRequestMessageDataUrlTypeList := append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
 		result.IsIdpAgent = &nodeDetail.IsIdpAgent
@@ -1405,6 +1411,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
 			PublicKey:                              nodeDetail.PublicKey,
+			OnTheFlySupport:                        nodeDetail.OnTheFlySupport,
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 			UseWhitelist:                           &nodeDetail.UseWhitelist,
 			Whitelist:                              whitelist,
@@ -1743,6 +1750,8 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
+			row.OnTheFlySupport = nodeDetail.OnTheFlySupport
+			row.IsIdpAgent = nodeDetail.IsIdpAgent
 			row.Config = nodeDetail.ProxyConfig
 			row.SupportedRequestMessageDataUrlTypeList = nodeDetail.SupportedRequestMessageDataUrlTypeList
 			result.Nodes = append(result.Nodes, row)

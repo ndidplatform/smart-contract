@@ -132,10 +132,11 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	nodeDetail.NodeName = funcParam.NodeName
 	nodeDetail.Role = funcParam.Role
 	nodeDetail.Active = true
-	// if node is IdP, set max_aal, min_ial, is_idp_agent and supported_request_message_type_list
+	// if node is IdP, set max_aal, min_ial, on_the_fly_support, is_idp_agent, and supported_request_message_type_list
 	if funcParam.Role == "IdP" {
 		nodeDetail.MaxAal = funcParam.MaxAal
 		nodeDetail.MaxIal = funcParam.MaxIal
+		nodeDetail.OnTheFlySupport = funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport
 		nodeDetail.IsIdpAgent = funcParam.IsIdPAgent != nil && *funcParam.IsIdPAgent
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = make([]string, 0)
 	}
@@ -478,6 +479,9 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 		}
 		if funcParam.MaxAal > 0 {
 			node.MaxAal = funcParam.MaxAal
+		}
+		if funcParam.OnTheFlySupport != nil {
+			node.OnTheFlySupport = *funcParam.OnTheFlySupport
 		}
 		if funcParam.IsIdPAgent != nil {
 			node.IsIdpAgent = *funcParam.IsIdPAgent

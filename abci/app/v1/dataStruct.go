@@ -87,6 +87,7 @@ type GetIdpNodesParam struct {
 	IsIdpAgent                             *bool    `json:"agent"`
 	MinAal                                 float64  `json:"min_aal"`
 	MinIal                                 float64  `json:"min_ial"`
+	OnTheFlySupport                        *bool    `json:"on_the_fly_support"`
 	NodeIDList                             []string `json:"node_id_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 	ModeList                               []int32  `json:"mode_list"`
@@ -97,6 +98,7 @@ type MsqDestinationNode struct {
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
 	Ial                                    *float64 `json:"ial,omitempty"`
 	ModeList                               *[]int32 `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
@@ -271,9 +273,10 @@ type RegisterNode struct {
 	MasterPublicKey string   `json:"master_public_key"`
 	NodeName        string   `json:"node_name"`
 	Role            string   `json:"role"`
-	MaxIal          float64  `json:"max_ial"`
-	MaxAal          float64  `json:"max_aal"`
-	IsIdPAgent      *bool    `json:"agent"`
+	MaxIal          float64  `json:"max_ial"`            // IdP only attribute
+	MaxAal          float64  `json:"max_aal"`            // IdP only attribute
+	OnTheFlySupport *bool    `json:"on_the_fly_support"` // IdP only attribute
+	IsIdPAgent      *bool    `json:"agent"`              // IdP only attribute
 	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
 	Whitelist       []string `json:"node_id_whitelist"`
 }
@@ -472,6 +475,7 @@ type GetNodeInfoResult struct {
 	// for IdP
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
+	OnTheFlySupport                        *bool     `json:"on_the_fly_support,omitempty"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
 	IsIdpAgent                             *bool     `json:"agent,omitempty"`
 	// for IdP and RP
@@ -497,13 +501,14 @@ type GetIdentityInfoResult struct {
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID       string   `json:"node_id"`
-	MaxIal       float64  `json:"max_ial"`
-	MaxAal       float64  `json:"max_aal"`
-	NodeName     string   `json:"node_name"`
-	IsIdPAgent   *bool    `json:"agent"`
-	UseWhitelist *bool    `json:"node_id_whitelist_active"`
-	Whitelist    []string `json:"node_id_whitelist"`
+	NodeID          string   `json:"node_id"`
+	MaxIal          float64  `json:"max_ial"`
+	MaxAal          float64  `json:"max_aal"`
+	OnTheFlySupport *bool    `json:"on_the_fly_support"`
+	NodeName        string   `json:"node_name"`
+	IsIdPAgent      *bool    `json:"agent"`
+	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
+	Whitelist       []string `json:"node_id_whitelist"`
 }
 
 type UpdateIdentityParam struct {
@@ -624,6 +629,7 @@ type IdpNode struct {
 	Name                                   string        `json:"name"`
 	MaxIal                                 float64       `json:"max_ial"`
 	MaxAal                                 float64       `json:"max_aal"`
+	OnTheFlySupport                        bool          `json:"on_the_fly_support"`
 	PublicKey                              string        `json:"public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
 	IsIdpAgent                             bool          `json:"agent"`
@@ -696,6 +702,8 @@ type IdPBehindProxy struct {
 	MasterPublicKey                        string   `json:"master_public_key"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
+	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
+	IsIdpAgent                             bool     `json:"agent"`
 	Config                                 string   `json:"config"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
