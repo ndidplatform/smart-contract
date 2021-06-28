@@ -2,6 +2,13 @@
 
 ## TBD
 
+IMPROVEMENTS:
+
+- [DeliverTx] `RegisterNode` accepts `on_the_fly_support`.
+- [DeliverTx] `UpdateNodeByNDID` accepts `on_the_fly_support`.
+- [Query] Add `on_the_fly_support` flag to IdP node details.
+- [Query] Add `on_the_fly_support` parameter to `GetIdpNodes` and `GetIdpNodesInfo`.
+
 SECURITY FIXES:
 
 - Disallow IdP nodes from creating request with data requests.
