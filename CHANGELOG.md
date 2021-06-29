@@ -2,6 +2,14 @@
 
 ## TBD
 
+IMPROVEMENTS:
+
+- Add `lial` and `laal` to identity info.
+- [DeliverTx] `RegisterIdentity` accepts `lial` and `laal`.
+- [DeliverTx] `UpdateIdentity` accepts `lial` and `laal`.
+- [DeliverTx] Make `ial` parameter optional for `UpdateIdentity`.
+- [Query] Add `lial` and `laal` to result of `GetIdentityInfo`.
+
 SECURITY FIXES:
 
 - Disallow IdP nodes from creating request with data requests.

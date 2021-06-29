@@ -54,6 +54,8 @@ type RegisterIdentityParam struct {
 	ReferenceGroupCode string     `json:"reference_group_code"`
 	NewIdentityList    []Identity `json:"new_identity_list"`
 	Ial                float64    `json:"ial"`
+	Lial               bool       `json:"lial"`
+	Laal               bool       `json:"laal"`
 	ModeList           []int32    `json:"mode_list"`
 	AccessorID         string     `json:"accessor_id"`
 	AccessorPublicKey  string     `json:"accessor_public_key"`
@@ -493,6 +495,8 @@ type GetIdentityInfoParam struct {
 
 type GetIdentityInfoResult struct {
 	Ial      float64 `json:"ial"`
+	Lial     bool    `json:"lial"`
+	Laal     bool    `json:"laal"`
 	ModeList []int32 `json:"mode_list"`
 }
 
@@ -507,10 +511,12 @@ type UpdateNodeByNDIDParam struct {
 }
 
 type UpdateIdentityParam struct {
-	ReferenceGroupCode     string  `json:"reference_group_code"`
-	IdentityNamespace      string  `json:"identity_namespace"`
-	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
-	Ial                    float64 `json:"ial"`
+	ReferenceGroupCode     string   `json:"reference_group_code"`
+	IdentityNamespace      string   `json:"identity_namespace"`
+	IdentityIdentifierHash string   `json:"identity_identifier_hash"`
+	Ial                    *float64 `json:"ial"`
+	Lial                   *bool    `json:"lial"`
+	Laal                   *bool    `json:"laal"`
 }
 
 type CloseRequestParam struct {

@@ -1154,6 +1154,8 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 	for _, idp := range refGroup.Idps {
 		if funcParam.NodeID == idp.NodeId && idp.Active {
 			result.Ial = idp.Ial
+			result.Lial = idp.Lial
+			result.Laal = idp.Laal
 			result.ModeList = idp.Mode
 			break
 		}
