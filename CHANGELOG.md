@@ -8,6 +8,12 @@ IMPROVEMENTS:
 - [DeliverTx] `UpdateNodeByNDID` accepts `on_the_fly_support`.
 - [Query] Add `on_the_fly_support` flag to IdP node details.
 - [Query] Add `on_the_fly_support` parameter to `GetIdpNodes` and `GetIdpNodesInfo`.
+- Add `lial` and `laal` to identity info.
+- [DeliverTx] `RegisterIdentity` accepts `lial` and `laal`.
+- [DeliverTx] `UpdateIdentity` accepts `lial` and `laal`.
+- [DeliverTx] Make `ial` parameter optional for `UpdateIdentity`.
+- [Query] Add `lial` and `laal` to result of `GetIdentityInfo`.
+- [Query] Add `lial` and `laal` to result of `GetIdpNodes`.
 
 SECURITY FIXES:
 

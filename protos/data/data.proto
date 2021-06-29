@@ -213,6 +213,8 @@ message IdPInRefGroup {
   repeated Accessor accessors = 3;
   double ial = 4;
   bool active = 5;
+  bool lial = 6;
+  bool laal = 7;
 }
 
 message IdentityInRefGroup {

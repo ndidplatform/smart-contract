@@ -139,6 +139,7 @@ const (
 	ServiceMaxPriceGreaterThanPriceCeiling             uint32 = 115
 	ServicePriceEffectiveDatetimeBeforeAllowed         uint32 = 116
 	ServicePriceMinCannotBeGreaterThanMax              uint32 = 117
+	NothingToUpdateIdentity                            uint32 = 118
 
 	UnknownError uint32 = 999
 )

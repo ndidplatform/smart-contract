@@ -310,6 +310,8 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	idp.Mode = append(idp.Mode, user.ModeList...)
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
+	idp.Lial = user.Lial
+	idp.Laal = user.Laal
 	idp.Active = true
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
@@ -573,23 +575,31 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Check IAL must less than Max IAL
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+
+	if funcParam.Ial == nil && funcParam.Lial == nil && funcParam.Laal == nil {
+		return app.ReturnDeliverTxLog(code.NothingToUpdateIdentity, "Nothing to update", "")
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+
+	if funcParam.Ial != nil {
+		// Check IAL must less than Max IAL
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		}
+		if nodeDetailValue == nil {
+			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		}
+		var nodeDetail data.NodeDetail
+		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		}
+		if *funcParam.Ial > nodeDetail.MaxIal {
+			return app.ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
+		}
 	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if funcParam.Ial > nodeDetail.MaxIal {
-		return app.ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
-	}
+
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
 	}
@@ -620,22 +630,29 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	foundThisNodeID := false
-	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			foundThisNodeID = true
-			break
-		}
-	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
+	nodeIDToUpdateIndex := -1
 	for index, idp := range refGroup.Idps {
 		if idp.NodeId == nodeID {
-			refGroup.Idps[index].Ial = funcParam.Ial
+			nodeIDToUpdateIndex = index
 			break
 		}
 	}
+	if nodeIDToUpdateIndex < 0 {
+		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
+	}
+
+	if funcParam.Ial != nil {
+		refGroup.Idps[nodeIDToUpdateIndex].Ial = *funcParam.Ial
+	}
+
+	if funcParam.Lial != nil {
+		refGroup.Idps[nodeIDToUpdateIndex].Lial = *funcParam.Lial
+	}
+
+	if funcParam.Laal != nil {
+		refGroup.Idps[nodeIDToUpdateIndex].Laal = *funcParam.Laal
+	}
+
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
