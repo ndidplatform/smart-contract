@@ -9,6 +9,7 @@ IMPROVEMENTS:
 - [DeliverTx] `UpdateIdentity` accepts `lial` and `laal`.
 - [DeliverTx] Make `ial` parameter optional for `UpdateIdentity`.
 - [Query] Add `lial` and `laal` to result of `GetIdentityInfo`.
+- [Query] Add `lial` and `laal` to result of `GetIdpNodes`.
 
 SECURITY FIXES:
 

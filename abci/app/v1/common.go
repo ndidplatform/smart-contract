@@ -367,6 +367,8 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 			if msqDesNode := getMsqDestinationNode(idp.NodeId); msqDesNode != nil {
 				msqDesNode.Ial = &idp.Ial
+				msqDesNode.Lial = &idp.Lial
+				msqDesNode.Laal = &idp.Laal
 				msqDesNode.ModeList = &idp.Mode
 				returnNodes.Node = append(returnNodes.Node, *msqDesNode)
 			}
