@@ -372,8 +372,12 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 			}
 			if msqDesNode := getMsqDestinationNode(idp.NodeId); msqDesNode != nil {
 				msqDesNode.Ial = &idp.Ial
-				msqDesNode.Lial = &idp.Lial
-				msqDesNode.Laal = &idp.Laal
+				if idp.Lial != nil {
+					msqDesNode.Lial = &idp.Lial.Value
+				}
+				if idp.Laal != nil {
+					msqDesNode.Laal = &idp.Laal.Value
+				}
 				msqDesNode.ModeList = &idp.Mode
 				returnNodes.Node = append(returnNodes.Node, *msqDesNode)
 			}
@@ -1162,8 +1166,12 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 	for _, idp := range refGroup.Idps {
 		if funcParam.NodeID == idp.NodeId && idp.Active {
 			result.Ial = idp.Ial
-			result.Lial = idp.Lial
-			result.Laal = idp.Laal
+			if idp.Lial != nil {
+				result.Lial = &idp.Lial.Value
+			}
+			if idp.Laal != nil {
+				result.Laal = &idp.Laal.Value
+			}
 			result.ModeList = idp.Mode
 			break
 		}

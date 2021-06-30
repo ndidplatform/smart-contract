@@ -30,6 +30,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/tendermint/tendermint/abci/types"
 	kv "github.com/tendermint/tendermint/libs/kv"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/ndidplatform/smart-contract/v5/abci/code"
 	"github.com/ndidplatform/smart-contract/v5/abci/utils"
@@ -310,8 +311,12 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	idp.Mode = append(idp.Mode, user.ModeList...)
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
-	idp.Lial = user.Lial
-	idp.Laal = user.Laal
+	if user.Lial != nil {
+		idp.Lial = &wrapperspb.BoolValue{Value: *user.Lial}
+	}
+	if user.Laal != nil {
+		idp.Laal = &wrapperspb.BoolValue{Value: *user.Laal}
+	}
 	idp.Active = true
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
@@ -646,11 +651,11 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	}
 
 	if funcParam.Lial != nil {
-		refGroup.Idps[nodeIDToUpdateIndex].Lial = *funcParam.Lial
+		refGroup.Idps[nodeIDToUpdateIndex].Lial = &wrapperspb.BoolValue{Value: *funcParam.Lial}
 	}
 
 	if funcParam.Laal != nil {
-		refGroup.Idps[nodeIDToUpdateIndex].Laal = *funcParam.Laal
+		refGroup.Idps[nodeIDToUpdateIndex].Laal = &wrapperspb.BoolValue{Value: *funcParam.Laal}
 	}
 
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
