@@ -100,6 +100,7 @@ var IsMethod = map[string]bool{
 	"SetServicePriceCeiling":                        true,
 	"SetServicePriceMinEffectiveDatetimeDelay":      true,
 	"SetServicePrice":                               true,
+	"CreateMessage":                                 true,
 }
 
 func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -713,6 +714,8 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		return app.checkIsRPorIDP(param, nodeID)
 	case "SetMqAddresses":
 		return app.checkTxSetMqAddresses(param, nodeID)
+	case "CreateMessage":
+		return app.checkIsRPorIDP(param, nodeID)
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

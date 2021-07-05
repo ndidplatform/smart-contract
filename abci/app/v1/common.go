@@ -68,6 +68,7 @@ const (
 	accessorToRefCodeKeyPrefix                     = "accessorToRefCodeKey"
 	allowedModeListKeyPrefix                       = "AllowedModeList"
 	requestKeyPrefix                               = "Request"
+	messageKeyPrefix                               = "Message"
 	dataSignatureKeyPrefix                         = "SignData"
 	errorCodeKeyPrefix                             = "ErrorCode"
 	errorCodeListKeyPrefix                         = "ErrorCodeList"
@@ -2229,4 +2230,88 @@ func (app *ABCIApplication) getErrorCodeList(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getMessage(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetMessage, Parameter: %s", param)
+	var funcParam GetMessageParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	key := requestKeyPrefix + keySeparator + funcParam.MessageID
+	value, err := app.state.GetVersioned([]byte(key), height, true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	if value == nil {
+		valueJSON := []byte("{}")
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+	}
+	var message data.Message
+	err = proto.Unmarshal([]byte(value), &message)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	var res GetMessageResult
+	res.Message = message.Message
+
+	valueJSON, err := json.Marshal(res)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getMessageDetail(param string, height int64, committedState bool) types.ResponseQuery {
+	app.logger.Infof("GetMessageDetail, Parameter: %s", param)
+	var funcParam GetMessageParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	key := messageKeyPrefix + keySeparator + funcParam.MessageID
+	var value []byte
+	value, err = app.state.GetVersioned([]byte(key), height, committedState)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	if value == nil {
+		valueJSON := []byte("{}")
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+	}
+
+	var result GetMessageDetailResult
+	var message data.Message
+	err = proto.Unmarshal([]byte(value), &message)
+	if err != nil {
+		value = []byte("")
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
+	}
+
+	result.MessageID = message.MessageId
+	result.Message = message.Message
+
+	// Set purpose
+	result.Purpose = message.Purpose
+
+	// Set requester_node_id
+	result.RequesterNodeID = message.Owner
+
+	// Set creation_block_height
+	result.CreationBlockHeight = message.CreationBlockHeight
+
+	// Set creation_chain_id
+	result.CreationChainID = message.ChainId
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		value = []byte("")
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
