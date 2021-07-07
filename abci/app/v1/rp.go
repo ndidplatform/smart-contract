@@ -444,50 +444,39 @@ func (app *ABCIApplication) createMessage(param string, nodeID string) types.Res
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// get RP node detail
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if nodeDetaiValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var rpNodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetaiValue), &rpNodeDetail)
 
 	// log chain ID
 	app.logger.Infof("CreateMessage, Chain ID: %s", app.CurrentChain)
-	var request data.Message
+	var message data.Message
 	// set request data
-	request.MessageId = funcParam.MessageID
+	message.MessageId = funcParam.MessageID
 
-	key := messageKeyPrefix + keySeparator + request.MessageId
-	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
+	key := messageKeyPrefix + keySeparator + message.MessageId
+	messageIDExist, err := app.state.Has([]byte(key), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if requestIDExist {
-		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
+	if messageIDExist {
+		return app.ReturnDeliverTxLog(code.DuplicateMessageID, "Duplicate message ID", "")
 	}
 
-	request.Message = funcParam.Message
-	request.Purpose = funcParam.Purpose
+	message.Message = funcParam.Message
+	message.Purpose = funcParam.Purpose
 
 	// set Owner
-	request.Owner = nodeID
+	message.Owner = nodeID
 	// set creation_block_height
-	request.CreationBlockHeight = app.state.CurrentBlockHeight
+	message.CreationBlockHeight = app.state.CurrentBlockHeight
 	// set chain_id
-	request.ChainId = app.CurrentChain
+	message.ChainId = app.CurrentChain
 
-	value, err := utils.ProtoDeterministicMarshal(&request)
+	value, err := utils.ProtoDeterministicMarshal(&message)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	err = app.state.SetVersioned([]byte(key), []byte(value))
+	app.state.Set([]byte(key), []byte(value))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", request.MessageId)
+	return app.ReturnDeliverTxLog(code.OK, "success", message.MessageId)
 }

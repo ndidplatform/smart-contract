@@ -141,6 +141,7 @@ const (
 	ServicePriceMinCannotBeGreaterThanMax              uint32 = 117
 	NothingToUpdateIdentity                            uint32 = 118
 	NoPermissionForCallRPMethod                        uint32 = 119
+	DuplicateMessageID                                 uint32 = 120
 
 	UnknownError uint32 = 999
 )

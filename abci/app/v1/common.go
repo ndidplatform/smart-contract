@@ -2239,8 +2239,8 @@ func (app *ABCIApplication) getMessage(param string, height int64) types.Respons
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	key := requestKeyPrefix + keySeparator + funcParam.MessageID
-	value, err := app.state.GetVersioned([]byte(key), height, true)
+	key := messageKeyPrefix + keySeparator + funcParam.MessageID
+	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -2275,7 +2275,7 @@ func (app *ABCIApplication) getMessageDetail(param string, height int64, committ
 
 	key := messageKeyPrefix + keySeparator + funcParam.MessageID
 	var value []byte
-	value, err = app.state.GetVersioned([]byte(key), height, committedState)
+	value, err = app.state.Get([]byte(key), committedState)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -2289,8 +2289,7 @@ func (app *ABCIApplication) getMessageDetail(param string, height int64, committ
 	var message data.Message
 	err = proto.Unmarshal([]byte(value), &message)
 	if err != nil {
-		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.state.Height)
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result.MessageID = message.MessageId
