@@ -14,6 +14,9 @@ IMPROVEMENTS:
 - [DeliverTx] Make `ial` parameter optional for `UpdateIdentity`.
 - [Query] Add `lial` and `laal` to result of `GetIdentityInfo`.
 - [Query] Add `lial` and `laal` to result of `GetIdpNodes`.
+- [DeliverTx] Add `CreateMessage` method.
+- [Query] Add `GetMessage` method.
+- [Query] Add `GetMessageDetail` method.
 
 SECURITY FIXES:
 
