@@ -140,6 +140,7 @@ const (
 	ServicePriceEffectiveDatetimeBeforeAllowed         uint32 = 116
 	ServicePriceMinCannotBeGreaterThanMax              uint32 = 117
 	NothingToUpdateIdentity                            uint32 = 118
+	NoPermissionForCallRPMethod                        uint32 = 119
 
 	UnknownError uint32 = 999
 )

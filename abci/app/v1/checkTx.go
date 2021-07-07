@@ -152,6 +152,23 @@ func (app *ABCIApplication) isNDIDNode(param string, nodeID string, committedSta
 	return false
 }
 
+func (app *ABCIApplication) isRPNode(param string, nodeID string) bool {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	if err != nil {
+		panic(err)
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
+	if err != nil {
+		panic(err)
+	}
+	if node.Role == "RP" {
+		return true
+	}
+	return false
+}
+
 func (app *ABCIApplication) isIDPNode(param string, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
@@ -242,15 +259,23 @@ func (app *ABCIApplication) isIDPorRPNode(param string, nodeID string) bool {
 
 func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.isNDIDNode(param, nodeID, true)
-	if ok == false {
+	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
+	}
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) checkIsRP(param string, nodeID string) types.ResponseCheckTx {
+	ok := app.isRPNode(param, nodeID)
+	if !ok {
+		return ReturnCheckTx(code.NoPermissionForCallRPMethod, "This node does not have permission to call RP method")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
 
 func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPNode(param, nodeID)
-	if ok == false {
+	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
@@ -258,7 +283,7 @@ func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.Respon
 
 func (app *ABCIApplication) checkIsIDPOrIDPAgent(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPorIDPAgentNode(param, nodeID)
-	if ok == false {
+	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP or IdP agent method")
 	}
 	return ReturnCheckTx(code.OK, "")
@@ -266,7 +291,7 @@ func (app *ABCIApplication) checkIsIDPOrIDPAgent(param string, nodeID string) ty
 
 func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.isASNode(param, nodeID)
-	if ok == false {
+	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
 	}
 	return ReturnCheckTx(code.OK, "")
@@ -274,7 +299,7 @@ func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.Respons
 
 func (app *ABCIApplication) checkIsRPorIDP(param string, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPorRPNode(param, nodeID)
-	if ok == false {
+	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
 	}
 	return ReturnCheckTx(code.OK, "")
@@ -715,7 +740,7 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 	case "SetMqAddresses":
 		return app.checkTxSetMqAddresses(param, nodeID)
 	case "CreateMessage":
-		return app.checkIsRPorIDP(param, nodeID)
+		return app.checkIsRP(param, nodeID)
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
