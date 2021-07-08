@@ -44,5 +44,7 @@ const (
 	ABCIAppSemVer = "5.0.0"
 
 	// ABCIAppProtocolVersion is ABCI App protocol version.
-	ABCIAppProtocolVersion = 3
+	// Increment ONLY when backward compatibility is not possible or chain migration is needed.
+	// Otherwise, new nodes won't be able to replay old blocks (created before ABCI code updates).
+	ABCIAppProtocolVersion = 2
 )
