@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package = ".;ndid_abci_state_v5";
+option go_package = ".;ndid_abci_state_v6";
 
-package ndid_abci_state_v5;
+package ndid_abci_state_v6;
 
 import "google/protobuf/wrappers.proto";
 
