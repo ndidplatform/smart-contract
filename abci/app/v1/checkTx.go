@@ -38,8 +38,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v5/abci/code"
-	data "github.com/ndidplatform/smart-contract/v5/protos/data"
+	"github.com/ndidplatform/smart-contract/v6/abci/code"
+	data "github.com/ndidplatform/smart-contract/v6/protos/data"
 )
 
 var IsMethod = map[string]bool{

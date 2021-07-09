@@ -41,7 +41,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 
-	abciApp "github.com/ndidplatform/smart-contract/v5/abci/app"
+	abciApp "github.com/ndidplatform/smart-contract/v6/abci/app"
 )
 
 type loggerWriter struct{}

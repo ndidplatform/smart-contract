@@ -32,9 +32,9 @@ import (
 	kv "github.com/tendermint/tendermint/libs/kv"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/ndidplatform/smart-contract/v5/abci/code"
-	"github.com/ndidplatform/smart-contract/v5/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v5/protos/data"
+	"github.com/ndidplatform/smart-contract/v6/abci/code"
+	"github.com/ndidplatform/smart-contract/v6/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v6/protos/data"
 )
 
 func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {

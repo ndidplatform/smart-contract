@@ -77,13 +77,13 @@ Tendermint bundled with ABCI app
 ## Build
 
 ```sh
-CGO_ENABLED=1 go build -ldflags "-X github.com/ndidplatform/smart-contract/v5/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "cleveldb" -o ./did-tendermint ./abci
+CGO_ENABLED=1 go build -ldflags "-X github.com/ndidplatform/smart-contract/v6/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "cleveldb" -o ./did-tendermint ./abci
 ```
 
 or with snappy lib used by cleveldb
 
 ```sh
-CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go build -ldflags "-X github.com/ndidplatform/smart-contract/v5/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "cleveldb" -o ./did-tendermint ./abci
+CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go build -ldflags "-X github.com/ndidplatform/smart-contract/v6/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" -tags "cleveldb" -o ./did-tendermint ./abci
 ```
 
 ## Usage
