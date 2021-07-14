@@ -182,52 +182,99 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		return app.ReturnQuery(nil, "not found", app.state.Height)
 	}
 
-	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID
-	servicePriceListBytes, err := app.state.Get([]byte(servicePriceListKey), false)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	getServicePriceListByNode := func(nodeID string) (*ServicePriceListByNode, error) {
+		servicePriceListKey := servicePriceListKeyPrefix + keySeparator + nodeID + keySeparator + funcParam.ServiceID
+		servicePriceListBytes, err := app.state.Get([]byte(servicePriceListKey), false)
+		if err != nil {
+			return nil, err
+		}
+
+		if servicePriceListBytes == nil {
+			var servicePriceByNode *ServicePriceListByNode = &ServicePriceListByNode{
+				NodeID:           nodeID,
+				ServicePriceList: make([]ServicePrice, 0),
+			}
+
+			return servicePriceByNode, nil
+		}
+
+		var servicePriceList data.ServicePriceList
+		err = proto.Unmarshal([]byte(servicePriceListBytes), &servicePriceList)
+		if err != nil {
+			return nil, err
+		}
+
+		var servicePriceListByNode *ServicePriceListByNode = &ServicePriceListByNode{
+			NodeID:           nodeID,
+			ServicePriceList: make([]ServicePrice, 0),
+		}
+		for _, servicePrice := range servicePriceList.ServicePriceList {
+			var retValServicePrice ServicePrice = ServicePrice{
+				PriceByCurrencyList: make([]ServicePriceByCurrency, 0),
+				EffectiveDatetime:   time.Unix(0, servicePrice.EffectiveDatetime*int64(time.Millisecond)), // in milliseconds
+				MoreInfoURL:         servicePrice.MoreInfoUrl,
+				Detail:              servicePrice.Detail,
+				CreationBlockHeight: servicePrice.CreationBlockHeight,
+				CreationChainID:     servicePrice.CreationChainId,
+			}
+
+			for _, priceByCurrency := range servicePrice.PriceByCurrencyList {
+				var retValServicePriceByCurrency ServicePriceByCurrency = ServicePriceByCurrency{
+					Currency: priceByCurrency.Currency,
+					MinPrice: priceByCurrency.MinPrice,
+					MaxPrice: priceByCurrency.MaxPrice,
+				}
+				retValServicePrice.PriceByCurrencyList = append(retValServicePrice.PriceByCurrencyList, retValServicePriceByCurrency)
+			}
+
+			servicePriceListByNode.ServicePriceList = append(servicePriceListByNode.ServicePriceList, retValServicePrice)
+		}
+
+		return servicePriceListByNode, nil
 	}
 
-	if servicePriceListBytes == nil {
-		var retVal GetServicePriceListResult
-		retVal.ServicePriceList = make([]ServicePrice, 0)
-		retValJSON, err := json.Marshal(retVal)
+	var retVal GetServicePriceListResult
+	retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
+	if funcParam.NodeID != "" {
+		servicePriceListByNode, err := getServicePriceListByNode(funcParam.NodeID)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
+	} else {
+		// Get all AS nodes providing service
+		serviceDestinationListKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+		serviceDestinationListValue, err := app.state.Get([]byte(serviceDestinationListKey), true)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		if serviceDestinationListValue == nil {
+			var retVal GetServicePriceListResult
+			retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
+
+			retValJSON, err := json.Marshal(retVal)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+
+			return app.ReturnQuery(retValJSON, "success", app.state.Height)
+		}
+
+		var serviceDestinationList data.ServiceDesList
+		err = proto.Unmarshal([]byte(serviceDestinationListValue), &serviceDestinationList)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 
-		return app.ReturnQuery(retValJSON, "success", app.state.Height)
-	}
-
-	var servicePriceList data.ServicePriceList
-	err = proto.Unmarshal([]byte(servicePriceListBytes), &servicePriceList)
-	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
-	}
-
-	var retVal GetServicePriceListResult
-	retVal.ServicePriceList = make([]ServicePrice, 0)
-	for _, servicePrice := range servicePriceList.ServicePriceList {
-		var retValServicePrice ServicePrice = ServicePrice{
-			PriceByCurrencyList: make([]ServicePriceByCurrency, 0),
-			EffectiveDatetime:   time.Unix(0, servicePrice.EffectiveDatetime*int64(time.Millisecond)), // in milliseconds
-			MoreInfoURL:         servicePrice.MoreInfoUrl,
-			Detail:              servicePrice.Detail,
-			CreationBlockHeight: servicePrice.CreationBlockHeight,
-			CreationChainID:     servicePrice.CreationChainId,
-		}
-
-		for _, priceByCurrency := range servicePrice.PriceByCurrencyList {
-			var retValServicePriceByCurrency ServicePriceByCurrency = ServicePriceByCurrency{
-				Currency: priceByCurrency.Currency,
-				MinPrice: priceByCurrency.MinPrice,
-				MaxPrice: priceByCurrency.MaxPrice,
+		for _, serviceDestination := range serviceDestinationList.Node {
+			servicePriceListByNode, err := getServicePriceListByNode(serviceDestination.NodeId)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
 			}
-			retValServicePrice.PriceByCurrencyList = append(retValServicePrice.PriceByCurrencyList, retValServicePriceByCurrency)
+			retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
 		}
-
-		retVal.ServicePriceList = append(retVal.ServicePriceList, retValServicePrice)
 	}
+
 	retValJSON, err := json.Marshal(retVal)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)

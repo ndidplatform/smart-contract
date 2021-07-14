@@ -936,6 +936,11 @@ type GetServicePriceListParam struct {
 }
 
 type GetServicePriceListResult struct {
+	ServicePriceListByNode []ServicePriceListByNode `json:"price_list_by_node"`
+}
+
+type ServicePriceListByNode struct {
+	NodeID           string         `json:"node_id"`
 	ServicePriceList []ServicePrice `json:"price_list"`
 }
 
