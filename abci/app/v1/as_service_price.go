@@ -174,12 +174,28 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	serviceExists, err := app.state.Has([]byte(serviceKey), true)
+	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	if !serviceExists {
+	if serviceValue == nil {
 		return app.ReturnQuery(nil, "not found", app.state.Height)
+	}
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if !service.Active {
+		var retVal GetServicePriceListResult
+		retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
+
+		retValJSON, err := json.Marshal(retVal)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		return app.ReturnQuery(retValJSON, "service is not active", app.state.Height)
 	}
 
 	getServicePriceListByNode := func(nodeID string) (*ServicePriceListByNode, error) {
@@ -267,6 +283,48 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		}
 
 		for _, serviceDestination := range serviceDestinationList.Node {
+			// filter out inactive service destination
+			if !serviceDestination.Active {
+				continue
+			}
+
+			// filter out not approved by NDID
+			approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + serviceDestination.NodeId
+			approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), true)
+			if err != nil {
+				continue
+			}
+			if approveServiceJSON == nil {
+				continue
+			}
+			var approveService data.ApproveService
+			err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
+			if err != nil {
+				continue
+			}
+			if !approveService.Active {
+				continue
+			}
+
+			nodeDetailKey := nodeIDKeyPrefix + keySeparator + serviceDestination.NodeId
+			nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
+			if err != nil {
+				continue
+			}
+			if nodeDetailValue == nil {
+				continue
+			}
+			var nodeDetail data.NodeDetail
+			err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				continue
+			}
+
+			// filter out inactive node
+			if !nodeDetail.Active {
+				continue
+			}
+
 			servicePriceListByNode, err := getServicePriceListByNode(serviceDestination.NodeId)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
