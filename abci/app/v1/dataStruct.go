@@ -102,8 +102,8 @@ type MsqDestinationNode struct {
 	MaxAal                                 float64  `json:"max_aal"`
 	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
 	Ial                                    *float64 `json:"ial,omitempty"`
-	Lial                                   *bool    `json:"lial,omitempty"`
-	Laal                                   *bool    `json:"laal,omitempty"`
+	Lial                                   *bool    `json:"lial"`
+	Laal                                   *bool    `json:"laal"`
 	ModeList                               *[]int32 `json:"mode_list,omitempty"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 	IsIdpAgent                             bool     `json:"agent"`
