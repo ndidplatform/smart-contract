@@ -186,17 +186,6 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	if !service.Active {
-		var retVal GetServicePriceListResult
-		retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
-
-		retValJSON, err := json.Marshal(retVal)
-		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
-		}
-
-		return app.ReturnQuery(retValJSON, "service is not active", app.state.Height)
-	}
 
 	getServicePriceListByNode := func(nodeID string) (*ServicePriceListByNode, error) {
 		servicePriceListKey := servicePriceListKeyPrefix + keySeparator + nodeID + keySeparator + funcParam.ServiceID
@@ -258,6 +247,18 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		}
 		retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
 	} else {
+		if !service.Active {
+			var retVal GetServicePriceListResult
+			retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
+
+			retValJSON, err := json.Marshal(retVal)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+
+			return app.ReturnQuery(retValJSON, "service is not active", app.state.Height)
+		}
+
 		// Get all AS nodes providing service
 		serviceDestinationListKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 		serviceDestinationListValue, err := app.state.Get([]byte(serviceDestinationListKey), true)
