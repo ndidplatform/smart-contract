@@ -356,7 +356,8 @@ func TestUpdateIdentity(t *testing.T, caseID int64, expected string) {
 	switch caseID {
 	case 1:
 		param.ReferenceGroupCode = data.ReferenceGroupCode1.String()
-		param.Ial = 2.3
+		ial := 2.3
+		param.Ial = &ial
 		nodeID = data.IdP1
 		privK = data.IdpPrivK1
 	}
