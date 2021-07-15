@@ -1205,6 +1205,9 @@ func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 	var result GetDataSignatureResult
 	result.Signature = string(signDataValue)
 	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
