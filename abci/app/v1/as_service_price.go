@@ -248,9 +248,6 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
 	} else {
 		if !service.Active {
-			var retVal GetServicePriceListResult
-			retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
-
 			retValJSON, err := json.Marshal(retVal)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -266,9 +263,6 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
 		}
 		if serviceDestinationListValue == nil {
-			var retVal GetServicePriceListResult
-			retVal.ServicePriceListByNode = make([]ServicePriceListByNode, 0)
-
 			retValJSON, err := json.Marshal(retVal)
 			if err != nil {
 				return app.ReturnQuery(nil, err.Error(), app.state.Height)
