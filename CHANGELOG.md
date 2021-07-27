@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:
 
