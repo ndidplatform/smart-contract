@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- IdPs cannot create an error response for closed or timed out requests.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:

@@ -68,12 +68,12 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 		}
 	}
 
-	// Check IsClosed
+	// Check closed request
 	if request.Closed {
 		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
 	}
 
-	// Check IsTimedOut
+	// Check timed out request
 	if request.TimedOut {
 		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}

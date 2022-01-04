@@ -489,6 +489,15 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		IdpId: nodeID,
 	}
 
+	// Check closed request
+	if request.Closed {
+		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
+	}
+	// Check timed out request
+	if request.TimedOut {
+		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
+	}
+
 	if funcParam.ErrorCode == nil {
 		response.Ial = funcParam.Ial
 		response.Aal = funcParam.Aal
@@ -522,14 +531,6 @@ func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types
 		}
 		if response.Ial > nodeDetail.MaxIal {
 			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
-		}
-		// Check IsClosed
-		if request.Closed {
-			return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
-		}
-		// Check IsTimedOut
-		if request.TimedOut {
-			return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
 		}
 	} else {
 		// Check error code exists
