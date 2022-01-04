@@ -329,6 +329,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 		if idp.NodeId == nodeID {
 			refGroup.Idps[iIdp].Active = true
 			refGroup.Idps[iIdp].Mode = funcParam.ModeList
+			// should accessors be replaced instead?
 			foundAccessorInThisGroup := false
 			for iAcc, accessor := range refGroup.Idps[iIdp].Accessors {
 				if accessor.AccessorId == funcParam.AccessorID {
@@ -341,6 +342,7 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 			if !foundAccessorInThisGroup {
 				refGroup.Idps[iIdp].Accessors = append(refGroup.Idps[iIdp].Accessors, &accessor)
 			}
+			// should update IAL, LIAL, LAAL?
 			foundThisNodeID = true
 			break
 		}
