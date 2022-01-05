@@ -909,7 +909,12 @@ type GetServicePriceCeilingResult struct {
 }
 
 type SetServicePriceMinEffectiveDatetimeDelayParam struct {
+	ServiceID      string `json:"service_id"`
 	DurationSecond uint32 `json:"duration_second"`
+}
+
+type GetServicePriceMinEffectiveDatetimeDelayParam struct {
+	ServiceID string `json:"service_id"`
 }
 
 type GetServicePriceMinEffectiveDatetimeDelayResult struct {

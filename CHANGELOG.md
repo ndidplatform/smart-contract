@@ -1,5 +1,11 @@
 # Changelog
 
+# TBD
+
+IMPROVEMENTS:
+
+- Separate service price minimum effective datetime delay by service ID.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:
