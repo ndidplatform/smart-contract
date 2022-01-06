@@ -165,7 +165,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param strin
 		key := servicePriceMinEffectiveDatetimeDelayKeyPrefix + keySeparator + funcParam.ServiceID
 		app.state.Set([]byte(key), servicePriceMinEffectiveDatetimeDelayBytes)
 	} else {
-		// global / default
+		// global / fallback from specific service ID
 		app.state.Set(servicePriceMinEffectiveDatetimeDelayKeyBytes, servicePriceMinEffectiveDatetimeDelayBytes)
 	}
 
@@ -195,6 +195,14 @@ func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param strin
 		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get([]byte(key), false)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		// get global / fallback from specific service ID
+		if servicePriceMinEffectiveDatetimeDelayBytes == nil {
+			servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
 		}
 	} else {
 		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
