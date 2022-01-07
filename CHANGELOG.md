@@ -1,5 +1,11 @@
 # Changelog
 
+# TBD
+
+BREAKING CHANGES:
+
+- Remove effective datetime delay check when setting service price.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:

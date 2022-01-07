@@ -52,29 +52,6 @@ func (app *ABCIApplication) setServicePrice(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
 	}
 
-	// check effective date/time if it's before latest block time + configured duration by NDID
-	servicePriceMinEffectiveDatetimeDelayBytes, err := app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	var effectiveDatetimeMinDelayDuration time.Duration
-	if servicePriceMinEffectiveDatetimeDelayBytes == nil {
-		effectiveDatetimeMinDelayDuration = time.Duration(12 * time.Hour) // default 12 hrs
-	} else {
-		var servicePriceMinEffectiveDatetimeDelay data.ServicePriceMinEffectiveDatetimeDelay
-		err = proto.Unmarshal([]byte(servicePriceMinEffectiveDatetimeDelayBytes), &servicePriceMinEffectiveDatetimeDelay)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-
-		effectiveDatetimeMinDelayDuration = time.Duration(servicePriceMinEffectiveDatetimeDelay.DurationSecond) * time.Second
-	}
-
-	startingAllowedTime := app.lastBlockTime.Add(effectiveDatetimeMinDelayDuration)
-	if funcParam.EffectiveDatetime.Before(startingAllowedTime) {
-		return app.ReturnDeliverTxLog(code.ServicePriceEffectiveDatetimeBeforeAllowed, "Service price effective datetime is before allowed datetime", "")
-	}
-
 	// Get service's price ceiling
 	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
 	servicePriceCeilingListBytes, err := app.state.Get([]byte(servicePriceCeilingKey), false)
