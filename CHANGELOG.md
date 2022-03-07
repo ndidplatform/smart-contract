@@ -6,6 +6,7 @@ BREAKING CHANGES:
 
 - IdPs cannot create an error response for closed or timed out requests.
 - Remove effective datetime delay check when setting service price.
+- Update `ial`, `lial`, and `laal` on `RegisterIdentity` when re-register identity for existing identity which has previously been revoked association.
 
 ## 6.0.0 (July 27, 2021)
 
