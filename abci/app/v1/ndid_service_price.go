@@ -143,8 +143,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param strin
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	var servicePriceMinEffectiveDatetimeDelay data.ServicePriceMinEffectiveDatetimeDelay
-	servicePriceMinEffectiveDatetimeDelay = data.ServicePriceMinEffectiveDatetimeDelay{
+	servicePriceMinEffectiveDatetimeDelay := data.ServicePriceMinEffectiveDatetimeDelay{
 		DurationSecond: funcParam.DurationSecond,
 	}
 	servicePriceMinEffectiveDatetimeDelayBytes, err := utils.ProtoDeterministicMarshal(&servicePriceMinEffectiveDatetimeDelay)
@@ -152,17 +151,64 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param strin
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	app.state.Set(servicePriceMinEffectiveDatetimeDelayKeyBytes, servicePriceMinEffectiveDatetimeDelayBytes)
+	if funcParam.ServiceID != "" {
+		// check if service ID exists
+		serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+		exists, err := app.state.Has([]byte(serviceKey), false)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		}
+		if !exists {
+			return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		}
+
+		key := servicePriceMinEffectiveDatetimeDelayKeyPrefix + keySeparator + funcParam.ServiceID
+		app.state.Set([]byte(key), servicePriceMinEffectiveDatetimeDelayBytes)
+	} else {
+		// global / fallback from specific service ID
+		app.state.Set(servicePriceMinEffectiveDatetimeDelayKeyBytes, servicePriceMinEffectiveDatetimeDelayBytes)
+	}
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
 func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param string) types.ResponseQuery {
 	app.logger.Infof("GetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
-
-	servicePriceMinEffectiveDatetimeDelayBytes, err := app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
+	var funcParam GetServicePriceMinEffectiveDatetimeDelayParam
+	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	var servicePriceMinEffectiveDatetimeDelayBytes []byte
+	if funcParam.ServiceID != "" {
+		serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+		serviceExists, err := app.state.Has([]byte(serviceKey), true)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		if !serviceExists {
+			return app.ReturnQuery(nil, "not found", app.state.Height)
+		}
+
+		key := servicePriceMinEffectiveDatetimeDelayKeyPrefix + keySeparator + funcParam.ServiceID
+		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get([]byte(key), false)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		// get global / fallback from specific service ID
+		if servicePriceMinEffectiveDatetimeDelayBytes == nil {
+			servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+		}
+	} else {
+		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
 	}
 
 	if servicePriceMinEffectiveDatetimeDelayBytes == nil {

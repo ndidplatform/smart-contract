@@ -8,6 +8,10 @@ BREAKING CHANGES:
 - Remove effective datetime delay check when setting service price.
 - Update `ial`, `lial`, and `laal` on `RegisterIdentity` when re-register identity for existing identity which has previously been revoked association.
 
+IMPROVEMENTS:
+
+- Separate service price minimum effective datetime delay by service ID.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:
