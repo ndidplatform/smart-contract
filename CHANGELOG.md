@@ -1,5 +1,11 @@
 # Changelog
 
+# TBD
+
+BREAKING CHANGES:
+
+- Update `ial`, `lial`, and `laal` on `RegisterIdentity` when re-register identity for existing identity which has previously been revoked association.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:
