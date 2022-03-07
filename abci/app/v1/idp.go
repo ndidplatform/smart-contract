@@ -342,7 +342,15 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 			if !foundAccessorInThisGroup {
 				refGroup.Idps[iIdp].Accessors = append(refGroup.Idps[iIdp].Accessors, &accessor)
 			}
-			// should update IAL, LIAL, LAAL?
+			// update IAL, LIAL, LAAL
+			refGroup.Idps[iIdp].Ial = user.Ial
+			if user.Lial != nil {
+				refGroup.Idps[iIdp].Lial = &wrapperspb.BoolValue{Value: *user.Lial}
+			}
+			if user.Laal != nil {
+				refGroup.Idps[iIdp].Laal = &wrapperspb.BoolValue{Value: *user.Laal}
+			}
+
 			foundThisNodeID = true
 			break
 		}
