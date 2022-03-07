@@ -5,6 +5,7 @@
 BREAKING CHANGES:
 
 - IdPs cannot create an error response for closed or timed out requests.
+- Remove effective datetime delay check when setting service price.
 
 ## 6.0.0 (July 27, 2021)
 
