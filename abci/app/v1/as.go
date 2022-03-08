@@ -172,18 +172,20 @@ func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
 		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
-			var nonErrorResponseCount int64 = 0
-			for _, asResponse := range dataRequest.ResponseList {
-				if asResponse.ErrorCode == 0 {
-					nonErrorResponseCount++
+			if dataRequest.MinAs > 0 {
+				var nonErrorResponseCount int64 = 0
+				for _, asResponse := range dataRequest.ResponseList {
+					if asResponse.ErrorCode == 0 {
+						nonErrorResponseCount++
+					}
 				}
-			}
-			if nonErrorResponseCount >= dataRequest.MinAs {
-				return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses", "")
-			}
-			var remainingPossibleResponseCount int64 = int64(len(dataRequest.AsIdList)) - int64(len(dataRequest.ResponseList))
-			if nonErrorResponseCount+remainingPossibleResponseCount < dataRequest.MinAs {
-				return app.ReturnDeliverTxLog(code.DataRequestCannotBeFulfilled, "Can't create AS response to a data request that cannot be fulfilled", "")
+				if nonErrorResponseCount >= dataRequest.MinAs {
+					return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses", "")
+				}
+				var remainingPossibleResponseCount int64 = int64(len(dataRequest.AsIdList)) - int64(len(dataRequest.ResponseList))
+				if nonErrorResponseCount+remainingPossibleResponseCount < dataRequest.MinAs {
+					return app.ReturnDeliverTxLog(code.DataRequestCannotBeFulfilled, "Can't create AS response to a data request that cannot be fulfilled", "")
+				}
 			}
 		}
 	}
