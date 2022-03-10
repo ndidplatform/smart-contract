@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- `CreateAsResponse` supports `0` min AS. All requested ASes are able to respond.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:
