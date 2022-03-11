@@ -149,6 +149,7 @@ type CreateRequestParam struct {
 	MessageHash     string        `json:"request_message_hash"`
 	Purpose         string        `json:"purpose"`
 	Mode            int32         `json:"mode"`
+	RequestType     *string       `json:"request_type"`
 }
 
 type Response struct {
@@ -202,6 +203,7 @@ type GetRequestDetailResult struct {
 	IsTimedOut          bool          `json:"timed_out"`
 	Purpose             string        `json:"purpose"`
 	Mode                int32         `json:"mode"`
+	RequestType         *string       `json:"request_type"`
 	RequesterNodeID     string        `json:"requester_node_id"`
 	CreationBlockHeight int64         `json:"creation_block_height"`
 	CreationChainID     string        `json:"creation_chain_id"`
@@ -951,4 +953,16 @@ type ServicePrice struct {
 	Detail              string                   `json:"detail"`
 	CreationBlockHeight int64                    `json:"creation_block_height"`
 	CreationChainID     string                   `json:"creation_chain_id"`
+}
+
+type AddRequestTypeParam struct {
+	Name string `json:"name"`
+}
+
+type RemoveRequestTypeParam struct {
+	Name string `json:"name"`
+}
+
+type GetRequestTypeListParam struct {
+	Prefix string `json:"prefix"`
 }

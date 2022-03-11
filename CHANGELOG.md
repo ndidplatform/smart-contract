@@ -1,5 +1,18 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Add `request_type` to request data.
+
+FEATURES:
+
+- Request type
+  - Add `AddRequestType` method.
+  - Add `RemoveRequestType` method.
+  - [Query] Add `GetRequestTypeList` method.
+
 ## 6.0.0 (July 27, 2021)
 
 IMPROVEMENTS:

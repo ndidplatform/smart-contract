@@ -142,6 +142,8 @@ const (
 	NothingToUpdateIdentity                            uint32 = 118
 	NoPermissionForCallRPMethod                        uint32 = 119
 	DuplicateMessageID                                 uint32 = 120
+	RequestTypeAlreadyExists                           uint32 = 121
+	RequestTypeDoesNotExist                            uint32 = 122
 
 	UnknownError uint32 = 999
 )
