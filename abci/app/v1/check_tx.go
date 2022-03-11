@@ -101,6 +101,8 @@ var IsMethod = map[string]bool{
 	"SetServicePriceMinEffectiveDatetimeDelay":      true,
 	"SetServicePrice":                               true,
 	"CreateMessage":                                 true,
+	"AddRequestType":                                true,
+	"RemoveRequestType":                             true,
 }
 
 func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -713,7 +715,9 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		"UpdateNamespace",
 		"SetAllowedMinIalForRegisterIdentityAtFirstIdp",
 		"SetServicePriceCeiling",
-		"SetServicePriceMinEffectiveDatetimeDelay":
+		"SetServicePriceMinEffectiveDatetimeDelay",
+		"AddRequestType",
+		"RemoveRequestType":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessor",

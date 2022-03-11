@@ -75,6 +75,7 @@ const (
 	servicePriceCeilingKeyPrefix                   = "ServicePriceCeiling"
 	servicePriceMinEffectiveDatetimeDelayKeyPrefix = "ServicePriceMinEffectiveDatetimeDelay"
 	servicePriceListKeyPrefix                      = "ServicePriceListKey"
+	requestTypeKeyPrefix                           = "RequestType"
 )
 
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
@@ -695,6 +696,10 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 	// make nil to array len 0
 	if result.IdPIDList == nil {
 		result.IdPIDList = make([]string, 0)
+	}
+
+	if request.RequestType != "" {
+		result.RequestType = &request.RequestType
 	}
 
 	// Set requester_node_id

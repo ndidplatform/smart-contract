@@ -8,10 +8,18 @@ BREAKING CHANGES:
 - Remove effective datetime delay check when setting service price.
 - Update `ial`, `lial`, and `laal` on `RegisterIdentity` when re-register identity for existing identity which has previously been revoked association.
 - `CreateAsResponse` supports `0` min AS. All requested ASes are able to respond.
+- Add `request_type` to request data.
 
 IMPROVEMENTS:
 
 - Separate service price minimum effective datetime delay by service ID.
+
+FEATURES:
+
+- Request type
+  - Add `AddRequestType` method.
+  - Add `RemoveRequestType` method.
+  - [Query] Add `GetRequestTypeList` method.
 
 ## 6.0.0 (July 27, 2021)
 

@@ -233,6 +233,20 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	request.TimedOut = false
 	request.Purpose = ""
 	request.UseCount = 0
+
+	if funcParam.RequestType != nil {
+		key := requestTypeKeyPrefix + keySeparator + *funcParam.RequestType
+		requestTypeExists, err := app.state.Has([]byte(key), false)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		}
+		if !requestTypeExists {
+			return app.ReturnDeliverTxLog(code.RequestTypeDoesNotExist, err.Error(), "")
+		}
+
+		request.RequestType = *funcParam.RequestType
+	}
+
 	// set Owner
 	request.Owner = nodeID
 	// set Can add accossor
