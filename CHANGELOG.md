@@ -20,6 +20,11 @@ FEATURES:
   - Add `AddRequestType` method.
   - Add `RemoveRequestType` method.
   - [Query] Add `GetRequestTypeList` method.
+- Suppressed identity modification notification node list
+  - Add `AddSuppressedIdentityModificationNotificationNode` method.
+  - Add `RemoveSuppressedIdentityModificationNotificationNode` method.
+  - [Query] Add `GetSuppressedIdentityModificationNotificationNodeList` method.
+  - [Query] Add `IsSuppressedIdentityModificationNotificationNode` method.
 
 ## 6.0.0 (July 27, 2021)
 

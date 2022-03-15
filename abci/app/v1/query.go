@@ -120,6 +120,10 @@ func (app *ABCIApplication) callQuery(name string, param string, height int64) t
 		return app.getMessageDetail(param, height, true)
 	case "GetRequestTypeList":
 		return app.getRequestTypeList(param, height)
+	case "GetSuppressedIdentityModificationNotificationNodeList":
+		return app.getSuppressedIdentityModificationNotificationNodeList(param, height)
+	case "IsSuppressedIdentityModificationNotificationNode":
+		return app.isSuppressedIdentityModificationNotificationNode(param, height)
 	default:
 		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

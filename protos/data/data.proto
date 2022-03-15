@@ -287,3 +287,7 @@ message ServicePriceByCurrency {
 message RequestType {
   // string name = 1;
 }
+
+message SuppressedIdentityModificationNotificationNode {
+  // string node_id = 1;
+}

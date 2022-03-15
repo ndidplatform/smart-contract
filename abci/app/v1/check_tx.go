@@ -95,14 +95,16 @@ var IsMethod = map[string]bool{
 	"AddIdentity":                      true,
 	"SetAllowedModeList":               true,
 	"UpdateNamespace":                  true,
-	"SetAllowedMinIalForRegisterIdentityAtFirstIdp": true,
-	"RevokeAndAddAccessor":                          true,
-	"SetServicePriceCeiling":                        true,
-	"SetServicePriceMinEffectiveDatetimeDelay":      true,
-	"SetServicePrice":                               true,
-	"CreateMessage":                                 true,
-	"AddRequestType":                                true,
-	"RemoveRequestType":                             true,
+	"SetAllowedMinIalForRegisterIdentityAtFirstIdp":        true,
+	"RevokeAndAddAccessor":                                 true,
+	"SetServicePriceCeiling":                               true,
+	"SetServicePriceMinEffectiveDatetimeDelay":             true,
+	"SetServicePrice":                                      true,
+	"CreateMessage":                                        true,
+	"AddRequestType":                                       true,
+	"RemoveRequestType":                                    true,
+	"AddSuppressedIdentityModificationNotificationNode":    true,
+	"RemoveSuppressedIdentityModificationNotificationNode": true,
 }
 
 func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
@@ -717,7 +719,9 @@ func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string
 		"SetServicePriceCeiling",
 		"SetServicePriceMinEffectiveDatetimeDelay",
 		"AddRequestType",
-		"RemoveRequestType":
+		"RemoveRequestType",
+		"AddSuppressedIdentityModificationNotificationNode",
+		"RemoveSuppressedIdentityModificationNotificationNode":
 		return app.checkIsNDID(param, nodeID)
 	case "RegisterIdentity",
 		"AddAccessor",
