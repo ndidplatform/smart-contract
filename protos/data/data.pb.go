@@ -2917,6 +2917,44 @@ func (x *ServicePriceByCurrency) GetMaxPrice() float64 {
 	return 0
 }
 
+type SuppressedIdentityModificationNotificationNode struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SuppressedIdentityModificationNotificationNode) Reset() {
+	*x = SuppressedIdentityModificationNotificationNode{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[45]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SuppressedIdentityModificationNotificationNode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuppressedIdentityModificationNotificationNode) ProtoMessage() {}
+
+func (x *SuppressedIdentityModificationNotificationNode) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[45]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuppressedIdentityModificationNotificationNode.ProtoReflect.Descriptor instead.
+func (*SuppressedIdentityModificationNotificationNode) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{45}
+}
+
 var File_data_proto protoreflect.FileDescriptor
 
 var file_data_proto_rawDesc = []byte{
@@ -3289,9 +3327,13 @@ var file_data_proto_rawDesc = []byte{
 	0x72, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x1b, 0x0a, 0x09, 0x6d, 0x69, 0x6e, 0x5f, 0x70, 0x72, 0x69,
 	0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x01, 0x52, 0x08, 0x6d, 0x69, 0x6e, 0x50, 0x72, 0x69,
 	0x63, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x6d, 0x61, 0x78, 0x5f, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18,
-	0x03, 0x20, 0x01, 0x28, 0x01, 0x52, 0x08, 0x6d, 0x61, 0x78, 0x50, 0x72, 0x69, 0x63, 0x65, 0x42,
-	0x16, 0x5a, 0x14, 0x2e, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73,
-	0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x36, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x03, 0x20, 0x01, 0x28, 0x01, 0x52, 0x08, 0x6d, 0x61, 0x78, 0x50, 0x72, 0x69, 0x63, 0x65, 0x22,
+	0x30, 0x0a, 0x2e, 0x53, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x65, 0x64, 0x49, 0x64, 0x65,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x4e, 0x6f, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x64,
+	0x65, 0x42, 0x16, 0x5a, 0x14, 0x2e, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69,
+	0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x36, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -3306,7 +3348,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v6.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v6.NodeDetail
@@ -3345,15 +3387,16 @@ var file_data_proto_goTypes = []interface{}{
 	(*IdentityInRefGroup)(nil),           // 34: ndid_abci_state_v6.IdentityInRefGroup
 	(*AllowedModeList)(nil),              // 35: ndid_abci_state_v6.AllowedModeList
 	(*AllowedMinIalForRegisterIdentityAtFirstIdp)(nil), // 36: ndid_abci_state_v6.AllowedMinIalForRegisterIdentityAtFirstIdp
-	(*ErrorCode)(nil),                             // 37: ndid_abci_state_v6.ErrorCode
-	(*ErrorCodeList)(nil),                         // 38: ndid_abci_state_v6.ErrorCodeList
-	(*ServicePriceCeilingList)(nil),               // 39: ndid_abci_state_v6.ServicePriceCeilingList
-	(*ServicePriceCeilingByCurency)(nil),          // 40: ndid_abci_state_v6.ServicePriceCeilingByCurency
-	(*ServicePriceMinEffectiveDatetimeDelay)(nil), // 41: ndid_abci_state_v6.ServicePriceMinEffectiveDatetimeDelay
-	(*ServicePriceList)(nil),                      // 42: ndid_abci_state_v6.ServicePriceList
-	(*ServicePrice)(nil),                          // 43: ndid_abci_state_v6.ServicePrice
-	(*ServicePriceByCurrency)(nil),                // 44: ndid_abci_state_v6.ServicePriceByCurrency
-	(*wrappers.BoolValue)(nil),                    // 45: google.protobuf.BoolValue
+	(*ErrorCode)(nil),                                      // 37: ndid_abci_state_v6.ErrorCode
+	(*ErrorCodeList)(nil),                                  // 38: ndid_abci_state_v6.ErrorCodeList
+	(*ServicePriceCeilingList)(nil),                        // 39: ndid_abci_state_v6.ServicePriceCeilingList
+	(*ServicePriceCeilingByCurency)(nil),                   // 40: ndid_abci_state_v6.ServicePriceCeilingByCurency
+	(*ServicePriceMinEffectiveDatetimeDelay)(nil),          // 41: ndid_abci_state_v6.ServicePriceMinEffectiveDatetimeDelay
+	(*ServicePriceList)(nil),                               // 42: ndid_abci_state_v6.ServicePriceList
+	(*ServicePrice)(nil),                                   // 43: ndid_abci_state_v6.ServicePrice
+	(*ServicePriceByCurrency)(nil),                         // 44: ndid_abci_state_v6.ServicePriceByCurrency
+	(*SuppressedIdentityModificationNotificationNode)(nil), // 45: ndid_abci_state_v6.SuppressedIdentityModificationNotificationNode
+	(*wrappers.BoolValue)(nil),                             // 46: google.protobuf.BoolValue
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v6.NodeDetail.mq:type_name -> ndid_abci_state_v6.MQ
@@ -3369,8 +3412,8 @@ var file_data_proto_depIdxs = []int32{
 	34, // 10: ndid_abci_state_v6.ReferenceGroup.identities:type_name -> ndid_abci_state_v6.IdentityInRefGroup
 	33, // 11: ndid_abci_state_v6.ReferenceGroup.idps:type_name -> ndid_abci_state_v6.IdPInRefGroup
 	19, // 12: ndid_abci_state_v6.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v6.Accessor
-	45, // 13: ndid_abci_state_v6.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
-	45, // 14: ndid_abci_state_v6.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
+	46, // 13: ndid_abci_state_v6.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
+	46, // 14: ndid_abci_state_v6.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
 	37, // 15: ndid_abci_state_v6.ErrorCodeList.error_code:type_name -> ndid_abci_state_v6.ErrorCode
 	40, // 16: ndid_abci_state_v6.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v6.ServicePriceCeilingByCurency
 	43, // 17: ndid_abci_state_v6.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v6.ServicePrice
@@ -3928,6 +3971,18 @@ func file_data_proto_init() {
 				return nil
 			}
 		}
+		file_data_proto_msgTypes[45].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SuppressedIdentityModificationNotificationNode); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -3935,7 +3990,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

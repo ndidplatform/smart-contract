@@ -231,6 +231,10 @@ func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID stri
 		return app.setServicePrice(param, nodeID)
 	case "CreateMessage":
 		return app.createMessage(param, nodeID)
+	case "AddSuppressedIdentityModificationNotificationNode":
+		return app.addSuppressedIdentityModificationNotificationNode(param, nodeID)
+	case "RemoveSuppressedIdentityModificationNotificationNode":
+		return app.removeSuppressedIdentityModificationNotificationNode(param, nodeID)
 	default:
 		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

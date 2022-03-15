@@ -282,3 +282,7 @@ message ServicePriceByCurrency {
   double min_price = 2;
   double max_price = 3;
 }
+
+message SuppressedIdentityModificationNotificationNode {
+  // string node_id = 1;
+}
