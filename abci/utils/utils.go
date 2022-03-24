@@ -28,17 +28,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func ProtoDeterministicMarshal(m proto.Message) ([]byte, error) {
-	var b proto.Buffer
-	b.SetDeterministic(true)
-	if err := b.Marshal(m); err != nil {
+	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(m)
+	if err != nil {
 		return nil, err
 	}
-	retBytes := b.Bytes()
-	if retBytes == nil {
+	retBytes := b
+	if b == nil {
 		retBytes = make([]byte, 0)
 	}
 	return retBytes, nil

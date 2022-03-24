@@ -30,10 +30,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/sirupsen/logrus"
 	"github.com/tendermint/tendermint/abci/types"
 	dbm "github.com/tendermint/tm-db"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v6/abci/code"
 	"github.com/ndidplatform/smart-contract/v6/abci/utils"

@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     working_directory: ~/ndidplatform/smart-contract
     steps:
       - checkout
@@ -43,7 +43,7 @@ jobs:
       - run:
           name: Reset Tendermint data
           command: |
-            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all
+            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe-reset-all
       - run:
           name: Start Tendermint with ABCI app
           command: |
@@ -58,7 +58,7 @@ jobs:
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - checkout
       - setup_remote_docker
@@ -85,7 +85,7 @@ jobs:
             docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - checkout
       - setup_remote_docker

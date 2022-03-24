@@ -27,9 +27,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/tendermint/tendermint/abci/types"
-	kv "github.com/tendermint/tendermint/libs/kv"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/ndidplatform/smart-contract/v6/abci/code"
@@ -137,10 +136,10 @@ func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.Respo
 	accessorToRefCodeValue := refGroupCode
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -379,10 +378,10 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	}
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(user.ReferenceGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = user.ReferenceGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -674,10 +673,10 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -779,10 +778,10 @@ func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID strin
 		}
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -908,10 +907,10 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	}
 
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -1018,10 +1017,10 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -1168,10 +1167,10 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 		app.state.Set([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(user.ReferenceGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = user.ReferenceGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -1319,10 +1318,10 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	accessorToRefCodeValue := refGroupCode
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
-	var attributes []kv.Pair
-	var attribute kv.Pair
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []types.EventAttribute
+	var attribute types.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = string(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }

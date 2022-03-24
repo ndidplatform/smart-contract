@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = ".;ndid_tendermint_abci_interface_v6";
+option go_package = "./;ndid_tendermint_abci_interface_v6";
 
 package ndid_tendermint_abci_interface_v6;
 

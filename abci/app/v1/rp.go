@@ -25,8 +25,8 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/tendermint/tendermint/abci/types"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v6/abci/code"
 	"github.com/ndidplatform/smart-contract/v6/abci/utils"

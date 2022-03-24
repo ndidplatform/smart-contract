@@ -23,7 +23,7 @@ NODE3_ABCI_DB_DIR="$TMP_DIR/as_abci_db"
 NODE4_ABCI_DB_DIR="$TMP_DIR/proxy_abci_db"
 
 reset_all_and_run_node_in_background() {
-  go run ./abci --home $1 unsafe_reset_all && \
+  go run ./abci --home $1 unsafe-reset-all && \
   CGO_ENABLED=1 \
   CGO_LDFLAGS="-lsnappy" \
   ABCI_DB_DIR_PATH=$2 \

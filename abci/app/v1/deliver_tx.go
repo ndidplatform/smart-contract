@@ -26,23 +26,22 @@ import (
 	"fmt"
 
 	"github.com/tendermint/tendermint/abci/types"
-	kv "github.com/tendermint/tendermint/libs/kv"
 
 	"github.com/ndidplatform/smart-contract/v6/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx
 func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
-	var attributes []kv.Pair
+	var attributes []types.EventAttribute
 	if code == 0 {
-		var attribute kv.Pair
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("true")
+		var attribute types.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "true"
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute kv.Pair
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("false")
+		var attribute types.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "false"
 		attributes = append(attributes, attribute)
 	}
 	var events []types.Event
@@ -59,17 +58,17 @@ func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraDat
 	}
 }
 
-func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []kv.Pair) types.ResponseDeliverTx {
-	var attributes []kv.Pair
+func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []types.EventAttribute) types.ResponseDeliverTx {
+	var attributes []types.EventAttribute
 	if code == 0 {
-		var attribute kv.Pair
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("true")
+		var attribute types.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "true"
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute kv.Pair
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("false")
+		var attribute types.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "false"
 		attributes = append(attributes, attribute)
 	}
 	attributes = append(attributes, additionalAttributes...)

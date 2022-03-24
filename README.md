@@ -6,7 +6,7 @@ Tendermint bundled with ABCI app
 
 ## Prerequisites
 
-- Go version >= 1.13.0
+- Go version >= 1.17.0
 
   - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
@@ -97,37 +97,37 @@ CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go build -ldflags "-X github.com/ndidplatfo
 - Run IdP node
 
   ```sh
-  ./did-tendermint --home ./config/tendermint/IdP unsafe_reset_all && ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
+  ./did-tendermint --home ./config/tendermint/IdP unsafe-reset-all && ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
   ```
 
   or
 
   ```sh
-  go run ./abci --home ./config/tendermint/IdP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/IdP node
+  go run ./abci --home ./config/tendermint/IdP unsafe-reset-all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=IdP_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/IdP node
   ```
 
 - Run RP node
 
   ```sh
-  ./did-tendermint --home ./config/tendermint/RP unsafe_reset_all && ABCI_DB_DIR_PATH=RP_DB ./did-tendermint --home ./config/tendermint/RP node
+  ./did-tendermint --home ./config/tendermint/RP unsafe-reset-all && ABCI_DB_DIR_PATH=RP_DB ./did-tendermint --home ./config/tendermint/RP node
   ```
 
   or
 
   ```sh
-  go run ./abci --home ./config/tendermint/RP unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=RP_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/RP node
+  go run ./abci --home ./config/tendermint/RP unsafe-reset-all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=RP_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/RP node
   ```
 
 - Run AS node
 
   ```sh
-  ./did-tendermint --home ./config/tendermint/AS unsafe_reset_all && ABCI_DB_DIR_PATH=AS_DB ./did-tendermint --home ./config/tendermint/AS node
+  ./did-tendermint --home ./config/tendermint/AS unsafe-reset-all && ABCI_DB_DIR_PATH=AS_DB ./did-tendermint --home ./config/tendermint/AS node
   ```
 
   or
 
   ```sh
-  go run ./abci --home ./config/tendermint/AS unsafe_reset_all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=AS_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/AS node
+  go run ./abci --home ./config/tendermint/AS unsafe-reset-all && CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" ABCI_DB_DIR_PATH=AS_DB go run -tags "cleveldb" ./abci --home ./config/tendermint/AS node
   ```
 
 ## Run in Docker

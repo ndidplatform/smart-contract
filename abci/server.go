@@ -31,20 +31,17 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abciclient "github.com/tendermint/tendermint/abci/client"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/libs/service"
 	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
 
 	abciApp "github.com/ndidplatform/smart-contract/v6/abci/app"
 )
-
-type loggerWriter struct{}
 
 const (
 	fileDatetimeFormat = "02-01-2006_15-04-05"
@@ -69,7 +66,7 @@ func init() {
 		logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666)
 		logrus.SetOutput(logFile)
 	} else {
-		panic(fmt.Errorf("Unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
+		panic(fmt.Errorf("unknown log target: \"%s\". Only \"console\" and \"file\" are allowed", logTarget))
 	}
 
 	switch logLevel {
@@ -101,19 +98,25 @@ func main() {
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
 		cmd.GenValidatorCmd,
+		cmd.ReIndexEventCmd,
 		cmd.InitFilesCmd,
 		cmd.ProbeUpnpCmd,
-		cmd.LiteCmd,
+		cmd.LightCmd,
 		cmd.ReplayCmd,
 		cmd.ReplayConsoleCmd,
 		cmd.ResetAllCmd,
 		cmd.ResetPrivValidatorCmd,
+		// cmd.ResetStateCmd,
 		cmd.ShowValidatorCmd,
 		cmd.TestnetFilesCmd,
 		cmd.ShowNodeIDCmd,
 		cmd.GenNodeKeyCmd,
 		cmd.VersionCmd,
-		abciVersionCmd)
+		cmd.InspectCmd,
+		cmd.RollbackStateCmd,
+		// custom commands
+		abciVersionCmd,
+	)
 
 	// NOTE:
 	// Users wishing to:
@@ -134,43 +137,21 @@ func main() {
 	}
 }
 
-// Ref: github.com/tendermint/tendermint/node/node.go (func DefaultNewNode)
-func newNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
-	var app types.Application
-	app = abciApp.NewABCIApplicationInterface()
+func newNode(config *cfg.Config, logger log.Logger) (service.Service, error) {
+	var app abcitypes.Application = abciApp.NewABCIApplicationInterface()
 
-	// Generate node PrivKey
-	nodeKey, err := p2p.LoadOrGenNodeKey(config.NodeKeyFile())
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert old PrivValidator if it exists.
-	oldPrivVal := config.OldPrivValidatorFile()
-	newPrivValKey := config.PrivValidatorKeyFile()
-	newPrivValState := config.PrivValidatorStateFile()
-	if _, err := os.Stat(oldPrivVal); !os.IsNotExist(err) {
-		oldPV, err := privval.LoadOldFilePV(oldPrivVal)
-		if err != nil {
-			return nil, fmt.Errorf("Error reading OldPrivValidator from %v: %v\n", oldPrivVal, err)
-		}
-		logger.Info("Upgrading PrivValidator file",
-			"old", oldPrivVal,
-			"newKey", newPrivValKey,
-			"newState", newPrivValState,
-		)
-		oldPV.Upgrade(newPrivValKey, newPrivValState)
-	}
-
-	return nm.NewNode(config,
-		privval.LoadOrGenFilePV(newPrivValKey, newPrivValState),
-		nodeKey,
-		proxy.NewLocalClientCreator(app),
-		nm.DefaultGenesisDocProviderFunc(config),
-		nm.DefaultDBProvider,
-		nm.DefaultMetricsProvider(config.Instrumentation),
-		logger.With("module", "node"),
+	// create node
+	node, err := nm.New(
+		config,
+		logger,
+		abciclient.NewLocalCreator(app),
+		nil,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new Tendermint node: %w", err)
+	}
+
+	return node, nil
 }
 
 func getEnv(key, defaultValue string) string {

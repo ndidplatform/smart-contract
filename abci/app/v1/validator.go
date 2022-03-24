@@ -30,6 +30,7 @@ import (
 	"strings"
 
 	"github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	"github.com/ndidplatform/smart-contract/v6/abci/code"
 )
@@ -63,7 +64,7 @@ func (app *ABCIApplication) Validators() (validators []types.Validator) {
 
 // add, update, or remove a validator
 func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
-	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetData())
+	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetEd25519())
 	key := []byte("val:" + pubKeyBase64)
 
 	if v.Power == 0 {
@@ -100,11 +101,6 @@ func (app *ABCIApplication) setValidator(param string, nodeID string) types.Resp
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
 	}
-	var pubKeyObj types.PubKey
-	pubKeyObj.Type = "ed25519"
-	pubKeyObj.Data = pubKey
-	var newValidator types.ValidatorUpdate
-	newValidator.PubKey = pubKeyObj
-	newValidator.Power = funcParam.Power
-	return app.updateValidator(newValidator)
+
+	return app.updateValidator(types.UpdateValidator(pubKey, funcParam.Power, ed25519.KeyType))
 }

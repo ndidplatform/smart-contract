@@ -27,7 +27,7 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
@@ -51,7 +51,10 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 		panic(fmt.Errorf("Could not create DB directory: %v", err.Error()))
 	}
 	name := "didDB"
-	db := dbm.NewDB(name, dbm.BackendType(dbType), dbDir)
+	db, err := dbm.NewDB(name, dbm.BackendType(dbType), dbDir)
+	if err != nil {
+		panic(fmt.Errorf("Could not create DB instance: %v", err.Error()))
+	}
 
 	return &ABCIApplicationInterface{
 		appV1: appV1.NewABCIApplication(logger, db),
@@ -59,15 +62,11 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	}
 }
 
-func (app *ABCIApplicationInterface) Info(req types.RequestInfo) types.ResponseInfo {
+func (app *ABCIApplicationInterface) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo {
 	return app.appV1.Info(req)
 }
 
-func (app *ABCIApplicationInterface) SetOption(req types.RequestSetOption) types.ResponseSetOption {
-	return app.appV1.SetOption(req)
-}
-
-func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.ResponseCheckTx {
+func (app *ABCIApplicationInterface) CheckTx(req abcitypes.RequestCheckTx) abcitypes.ResponseCheckTx {
 	// IMPORTANT: Need to move app state load to this struct level if using multiple ABCI app versions
 	// otherwise app.CurrentBlockHeight will always be 0 on process start
 	switch {
@@ -78,7 +77,7 @@ func (app *ABCIApplicationInterface) CheckTx(req types.RequestCheckTx) types.Res
 	}
 }
 
-func (app *ABCIApplicationInterface) DeliverTx(req types.RequestDeliverTx) types.ResponseDeliverTx {
+func (app *ABCIApplicationInterface) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
 	switch {
 	case app.CurrentBlockHeight >= 0:
 		return app.appV1.DeliverTx(req)
@@ -87,25 +86,41 @@ func (app *ABCIApplicationInterface) DeliverTx(req types.RequestDeliverTx) types
 	}
 }
 
-func (app *ABCIApplicationInterface) Commit() types.ResponseCommit {
+func (app *ABCIApplicationInterface) Commit() abcitypes.ResponseCommit {
 	return app.appV1.Commit()
 }
 
-func (app *ABCIApplicationInterface) Query(reqQuery types.RequestQuery) types.ResponseQuery {
+func (app *ABCIApplicationInterface) Query(reqQuery abcitypes.RequestQuery) abcitypes.ResponseQuery {
 	return app.appV1.Query(reqQuery)
 }
 
-func (app *ABCIApplicationInterface) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+func (app *ABCIApplicationInterface) InitChain(req abcitypes.RequestInitChain) abcitypes.ResponseInitChain {
 	return app.appV1.InitChain(req)
 }
 
-func (app *ABCIApplicationInterface) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
+func (app *ABCIApplicationInterface) BeginBlock(req abcitypes.RequestBeginBlock) abcitypes.ResponseBeginBlock {
 	app.CurrentBlockHeight = req.Header.Height
 	return app.appV1.BeginBlock(req)
 }
 
-func (app *ABCIApplicationInterface) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
+func (app *ABCIApplicationInterface) EndBlock(req abcitypes.RequestEndBlock) abcitypes.ResponseEndBlock {
 	return app.appV1.EndBlock(req)
+}
+
+func (app *ABCIApplicationInterface) ListSnapshots(req abcitypes.RequestListSnapshots) abcitypes.ResponseListSnapshots {
+	return app.appV1.ListSnapshots(req)
+}
+
+func (app *ABCIApplicationInterface) OfferSnapshot(req abcitypes.RequestOfferSnapshot) abcitypes.ResponseOfferSnapshot {
+	return app.appV1.OfferSnapshot(req)
+}
+
+func (app *ABCIApplicationInterface) LoadSnapshotChunk(req abcitypes.RequestLoadSnapshotChunk) abcitypes.ResponseLoadSnapshotChunk {
+	return app.appV1.LoadSnapshotChunk(req)
+}
+
+func (app *ABCIApplicationInterface) ApplySnapshotChunk(req abcitypes.RequestApplySnapshotChunk) abcitypes.ResponseApplySnapshotChunk {
+	return app.appV1.ApplySnapshotChunk(req)
 }
 
 func getEnv(key, defaultValue string) string {

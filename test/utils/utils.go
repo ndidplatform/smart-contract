@@ -18,10 +18,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	protoTm "github.com/ndidplatform/smart-contract/v6/protos/tendermint"
-	kv "github.com/tendermint/tendermint/libs/kv"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmRand "github.com/tendermint/tendermint/libs/rand"
+	"google.golang.org/protobuf/proto"
+
+	protoTm "github.com/ndidplatform/smart-contract/v6/protos/tendermint"
 )
 
 var tendermintAddr = GetEnv("TENDERMINT_ADDRESS", "http://localhost:45000")
@@ -179,7 +180,7 @@ type ResponseTx struct {
 		DeliverTx struct {
 			Log  string   `json:"log"`
 			Fee  struct{} `json:"fee"`
-			Tags []kv.Pair
+			Tags []abcitypes.EventAttribute
 		} `json:"deliver_tx"`
 		Hash string `json:"hash"`
 	} `json:"result"`
