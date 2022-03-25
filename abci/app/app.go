@@ -31,8 +31,8 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	appV1 "github.com/ndidplatform/smart-contract/v6/abci/app/v1"
-	// appV2 "github.com/ndidplatform/smart-contract/v6/abci/app2/v2"
+	appV1 "github.com/ndidplatform/smart-contract/v7/abci/app/v1"
+	// appV2 "github.com/ndidplatform/smart-contract/v7/abci/app2/v2"
 )
 
 type ABCIApplicationInterface struct {

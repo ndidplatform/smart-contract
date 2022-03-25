@@ -31,9 +31,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/ndidplatform/smart-contract/v6/abci/code"
-	"github.com/ndidplatform/smart-contract/v6/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v6/protos/data"
+	"github.com/ndidplatform/smart-contract/v7/abci/code"
+	"github.com/ndidplatform/smart-contract/v7/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
 func (app *ABCIApplication) AddAccessor(param string, nodeID string) types.ResponseDeliverTx {

@@ -22,7 +22,7 @@ import (
 	tmRand "github.com/tendermint/tendermint/libs/rand"
 	"google.golang.org/protobuf/proto"
 
-	protoTm "github.com/ndidplatform/smart-contract/v6/protos/tendermint"
+	protoTm "github.com/ndidplatform/smart-contract/v7/protos/tendermint"
 )
 
 var tendermintAddr = GetEnv("TENDERMINT_ADDRESS", "http://localhost:45000")

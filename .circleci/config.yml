@@ -36,7 +36,7 @@ jobs:
           name: Build Tendermint with ABCI app
           command: |
             go build \
-            -ldflags "-X github.com/ndidplatform/smart-contract/v6/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
+            -ldflags "-X github.com/ndidplatform/smart-contract/v7/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
             -tags "cleveldb" \
             -o ./did-tendermint \
             ./abci

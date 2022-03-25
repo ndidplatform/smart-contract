@@ -29,9 +29,9 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ndidplatform/smart-contract/v6/abci/code"
-	"github.com/ndidplatform/smart-contract/v6/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v6/protos/data"
+	"github.com/ndidplatform/smart-contract/v7/abci/code"
+	"github.com/ndidplatform/smart-contract/v7/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
 var modeFunctionMap = map[string]bool{

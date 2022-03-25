@@ -40,7 +40,7 @@ import (
 	"github.com/tendermint/tendermint/libs/service"
 	nm "github.com/tendermint/tendermint/node"
 
-	abciApp "github.com/ndidplatform/smart-contract/v6/abci/app"
+	abciApp "github.com/ndidplatform/smart-contract/v7/abci/app"
 )
 
 const (

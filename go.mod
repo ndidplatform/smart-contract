@@ -1,4 +1,4 @@
-module github.com/ndidplatform/smart-contract/v6
+module github.com/ndidplatform/smart-contract/v7
 
 go 1.17
 
