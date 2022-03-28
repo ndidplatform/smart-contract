@@ -125,7 +125,7 @@ func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID stri
 	case "RegisterIdentity":
 		return app.registerIdentity(param, nodeID)
 	case "AddAccessor":
-		return app.AddAccessor(param, nodeID)
+		return app.addAccessor(param, nodeID)
 	case "CreateRequest":
 		return app.createRequest(param, nodeID)
 	case "CreateIdpResponse":

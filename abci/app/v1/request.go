@@ -451,46 +451,164 @@ func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
-func (app *ABCIApplication) createMessage(param string, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateMessage, Parameter: %s", param)
-	var funcParam CreateMessageParam
+func (app *ABCIApplication) getRequest(param string, height int64) types.ResponseQuery {
+	app.logger.Infof("GetRequest, Parameter: %s", param)
+	var funcParam GetRequestParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-
-	// log chain ID
-	app.logger.Infof("CreateMessage, Chain ID: %s", app.CurrentChain)
-	var message data.Message
-	// set request data
-	message.MessageId = funcParam.MessageID
-
-	key := messageKeyPrefix + keySeparator + message.MessageId
-	messageIDExist, err := app.state.Has([]byte(key), false)
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
+	value, err := app.state.GetVersioned([]byte(key), height, true)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if messageIDExist {
-		return app.ReturnDeliverTxLog(code.DuplicateMessageID, "Duplicate message ID", "")
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	message.Message = funcParam.Message
-	message.Purpose = funcParam.Purpose
-
-	// set Owner
-	message.Owner = nodeID
-	// set creation_block_height
-	message.CreationBlockHeight = app.state.CurrentBlockHeight
-	// set chain_id
-	message.ChainId = app.CurrentChain
-
-	value, err := utils.ProtoDeterministicMarshal(&message)
+	if value == nil {
+		valueJSON := []byte("{}")
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	app.state.Set([]byte(key), []byte(value))
+
+	var res GetRequestResult
+	res.IsClosed = request.Closed
+	res.IsTimedOut = request.TimedOut
+	res.MessageHash = request.RequestMessageHash
+	res.Mode = request.Mode
+
+	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", message.MessageId)
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getRequestDetail(param string, height int64, committedState bool) types.ResponseQuery {
+	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
+	var funcParam GetRequestParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
+	var value []byte
+	value, err = app.state.GetVersioned([]byte(key), height, committedState)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	if value == nil {
+		valueJSON := []byte("{}")
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+	}
+
+	var result GetRequestDetailResult
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
+	if err != nil {
+		value = []byte("")
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
+	}
+
+	result.RequestID = request.RequestId
+	result.MinIdp = int(request.MinIdp)
+	result.MinAal = float64(request.MinAal)
+	result.MinIal = float64(request.MinIal)
+	result.Timeout = int(request.RequestTimeout)
+	result.IdPIDList = request.IdpIdList
+	result.DataRequestList = make([]DataRequest, 0)
+	for _, dataRequest := range request.DataRequestList {
+		newRow := DataRequest{
+			ServiceID:         dataRequest.ServiceId,
+			As:                dataRequest.AsIdList,
+			Count:             int(dataRequest.MinAs),
+			ResponseList:      make([]ASResponse, 0, len(dataRequest.ResponseList)),
+			RequestParamsHash: dataRequest.RequestParamsHash,
+		}
+		for _, asResponse := range dataRequest.ResponseList {
+			if asResponse.ErrorCode == 0 {
+				newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+					AsID:         asResponse.AsId,
+					Signed:       &asResponse.Signed,
+					ReceivedData: &asResponse.ReceivedData,
+				})
+			} else {
+				newRow.ResponseList = append(newRow.ResponseList, ASResponse{
+					AsID:      asResponse.AsId,
+					ErrorCode: &asResponse.ErrorCode,
+				})
+			}
+		}
+		result.DataRequestList = append(result.DataRequestList, newRow)
+	}
+	result.MessageHash = request.RequestMessageHash
+	result.Responses = make([]Response, 0)
+	for _, response := range request.ResponseList {
+		var newRow Response
+		if response.ErrorCode == 0 {
+			var validIal *bool
+			if response.ValidIal != "" {
+				tValue := response.ValidIal == "true"
+				validIal = &tValue
+			}
+			var validSignature *bool
+			if response.ValidSignature != "" {
+				tValue := response.ValidSignature == "true"
+				validSignature = &tValue
+			}
+			ial := float64(response.Ial)
+			aal := float64(response.Aal)
+			newRow = Response{
+				IdpID:          response.IdpId,
+				Ial:            &ial,
+				Aal:            &aal,
+				Status:         &response.Status,
+				Signature:      &response.Signature,
+				ValidIal:       validIal,
+				ValidSignature: validSignature,
+			}
+		} else {
+			newRow = Response{
+				IdpID:     response.IdpId,
+				ErrorCode: &response.ErrorCode,
+			}
+		}
+		result.Responses = append(result.Responses, newRow)
+	}
+	result.IsClosed = request.Closed
+	result.IsTimedOut = request.TimedOut
+	result.Mode = request.Mode
+
+	// Set purpose
+	result.Purpose = request.Purpose
+
+	// make nil to array len 0
+	if result.IdPIDList == nil {
+		result.IdPIDList = make([]string, 0)
+	}
+
+	if request.RequestType != "" {
+		result.RequestType = &request.RequestType
+	}
+
+	// Set requester_node_id
+	result.RequesterNodeID = request.Owner
+
+	// Set creation_block_height
+	result.CreationBlockHeight = request.CreationBlockHeight
+
+	// Set creation_chain_id
+	result.CreationChainID = request.ChainId
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		value = []byte("")
+		return app.ReturnQuery(value, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
