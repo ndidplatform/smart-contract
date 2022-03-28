@@ -39,6 +39,11 @@ var (
 	// nonceKeyPrefix  = []byte("nonce:")
 )
 
+var (
+	actionSet    = []byte("SET")
+	actionDelete = []byte("DELETE")
+)
+
 type AppStateMetadata struct {
 	Height  int64  `json:"height"`
 	AppHash []byte `json:"app_hash"`
@@ -96,6 +101,7 @@ func (appState *AppState) SaveMetadata() error {
 
 func (appState *AppState) Set(key, value []byte) {
 	appState.HashData = append(appState.HashData, key...)
+	appState.HashData = append(appState.HashData, actionSet...)
 	appState.HashData = append(appState.HashData, value...)
 
 	appState.uncommittedState[string(key)] = value
@@ -124,6 +130,7 @@ func (appState *AppState) SetVersioned(key, value []byte) error {
 
 	if len(versions) == 0 || versions[len(versions)-1] != appState.CurrentBlockHeight {
 		appState.HashData = append(appState.HashData, versionsKey...)
+		appState.HashData = append(appState.HashData, actionSet...)
 		versionBytes := make([]byte, 8)
 		for _, version := range versions {
 			binary.BigEndian.PutUint64(versionBytes, uint64(version))
@@ -136,6 +143,7 @@ func (appState *AppState) SetVersioned(key, value []byte) error {
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(appState.CurrentBlockHeight, 10)
 
 	appState.HashData = append(appState.HashData, key...)
+	appState.HashData = append(appState.HashData, actionSet...)
 	appState.HashData = append(appState.HashData, value...)
 
 	appState.uncommittedState[keyWithVersionStr] = value
@@ -221,7 +229,15 @@ func (appState *AppState) getVersioned(key []byte, height int64) (value []byte, 
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(version, 10)
 
 	if existInUncommittedState {
-		value = appState.uncommittedState[keyWithVersionStr]
+		var exist bool
+		value, exist = appState.uncommittedState[keyWithVersionStr]
+		if !exist {
+			keyWithVersion := []byte(keyWithVersionStr)
+			value, err = appState.db.Get(keyWithVersion)
+			if err != nil {
+				return nil, err
+			}
+		}
 	} else {
 		keyWithVersion := []byte(keyWithVersionStr)
 		value, err = appState.db.Get(keyWithVersion)
@@ -331,7 +347,7 @@ func (appState *AppState) Delete(key []byte) error {
 		return nil
 	}
 	appState.HashData = append(appState.HashData, key...)
-	appState.HashData = append(appState.HashData, []byte("delete")...) // Remove or replace with something else?
+	appState.HashData = append(appState.HashData, actionDelete...)
 
 	appState.uncommittedState[string(key)] = nil
 
