@@ -61,19 +61,19 @@ tendermint_wait_for_sync_complete() {
 }
 
 tendermint_set_db_backend_cleveldb() {
-  sed -i -E "s/db-backend = .*$/db-backend = \\\"cleveldb\\\"/" ${TMHOME}/config/config.toml
+  sed -i -E "s/db_backend = .*$/db_backend = \\\"cleveldb\\\"/" ${TMHOME}/config/config.toml
 }
 
 tendermint_set_addr_book_strict() {
-  sed -i -E "s/addr-book-strict = (true|false)/addr-book-strict = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${TMHOME}/config/config.toml
 }
 
 tendermint_set_create_empty_block() {
-  sed -i -E "s/create-empty-blocks = (true|false)/create-empty-blocks = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/create_empty_blocks = (true|false)/create_empty_blocks = ${1}/" ${TMHOME}/config/config.toml
 }
 
 tendermint_set_create_empty_block_interval() {
-  sed -i -E "s/create-empty-blocks-interval = .*$/create-empty-blocks-interval = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/create_empty_blocks_interval = .*$/create_empty_blocks_interval = ${1}/" ${TMHOME}/config/config.toml
 }
 
 tendermint_set_mempool_recheck() {
@@ -81,18 +81,18 @@ tendermint_set_mempool_recheck() {
 }
 
 tendermint_set_config_for_prod() {
-  sed -i -E "s/flush-throttle-timeout = .*$/flush-throttle-timeout = \\\"10ms\\\"/" ${TMHOME}/config/config.toml
-  sed -i -E "s/max-packet-msg-payload-size = .*$/max-packet-msg-payload-size = 10240/" ${TMHOME}/config/config.toml # 10KB
-  sed -i -E "s/send-rate = .*$/send-rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
-  sed -i -E "s/recv-rate = .*$/recv-rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
+  sed -i -E "s/flush_throttle_timeout = .*$/flush_throttle_timeout = \\\"10ms\\\"/" ${TMHOME}/config/config.toml
+  sed -i -E "s/max_packet_msg_payload_size = .*$/max_packet_msg_payload_size = 10240/" ${TMHOME}/config/config.toml # 10KB
+  sed -i -E "s/send_rate = .*$/send_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
+  sed -i -E "s/recv_rate = .*$/recv_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
 }
 
 tendermint_set_skip_timeout_commit() {
-  sed -i -E "s/skip-timeout-commit = (true|false)/skip-timeout-commit = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/skip_timeout_commit = (true|false)/skip_timeout_commit = ${1}/" ${TMHOME}/config/config.toml
 }
 
-tendermint_set_bootstrap_peers() {
-  sed -i -E "s/bootstrap-peers = .*$/bootstrap-peers = \\\"${1}\\\"/" ${TMHOME}/config/config.toml
+tendermint_set_seeds() {
+  sed -i -E "s/seeds = .*$/seeds = \\\"${1}\\\"/" ${TMHOME}/config/config.toml
 }
 
 TYPE=${1}
@@ -125,7 +125,7 @@ if [ ! -f ${TMHOME}/config/genesis.json ]; then
       until tendermint_wait_for_sync_complete ${SEED_HOSTNAME} ${SEED_RPC_PORT}; do sleep 1; done
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
-      tendermint_set_bootstrap_peers ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
+      tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
       did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
@@ -144,7 +144,7 @@ else
       ;;
     secondary)
       until SEED_ID=$(tendermint_get_id_from_seed); do sleep 1; done
-      tendermint_set_bootstrap_peers ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
+      tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
       did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
