@@ -271,8 +271,8 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = user.ReferenceGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(user.ReferenceGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -369,8 +369,8 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = refGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -479,8 +479,8 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = refGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -629,8 +629,8 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = user.ReferenceGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(user.ReferenceGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -734,8 +734,8 @@ func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID strin
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = refGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -842,8 +842,8 @@ func (app *ABCIApplication) addAccessor(param string, nodeID string) types.Respo
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = refGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -971,8 +971,8 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = refGroupCode
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
@@ -1122,8 +1122,8 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
-	attribute.Key = "reference_group_code"
-	attribute.Value = string(refGroupCode)
+	attribute.Key = []byte("reference_group_code")
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }

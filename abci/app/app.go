@@ -123,6 +123,10 @@ func (app *ABCIApplicationInterface) ApplySnapshotChunk(req abcitypes.RequestApp
 	return app.appV1.ApplySnapshotChunk(req)
 }
 
+func (app *ABCIApplicationInterface) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
+	return app.appV1.SetOption(req)
+}
+
 func getEnv(key, defaultValue string) string {
 	value, exists := os.LookupEnv(key)
 	if !exists {

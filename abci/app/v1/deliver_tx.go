@@ -35,13 +35,13 @@ func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraDat
 	var attributes []types.EventAttribute
 	if code == 0 {
 		var attribute types.EventAttribute
-		attribute.Key = "success"
-		attribute.Value = "true"
+		attribute.Key = []byte("success")
+		attribute.Value = []byte("true")
 		attributes = append(attributes, attribute)
 	} else {
 		var attribute types.EventAttribute
-		attribute.Key = "success"
-		attribute.Value = "false"
+		attribute.Key = []byte("success")
+		attribute.Value = []byte("false")
 		attributes = append(attributes, attribute)
 	}
 	var events []types.Event
@@ -62,13 +62,13 @@ func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log st
 	var attributes []types.EventAttribute
 	if code == 0 {
 		var attribute types.EventAttribute
-		attribute.Key = "success"
-		attribute.Value = "true"
+		attribute.Key = []byte("success")
+		attribute.Value = []byte("true")
 		attributes = append(attributes, attribute)
 	} else {
 		var attribute types.EventAttribute
-		attribute.Key = "success"
-		attribute.Value = "false"
+		attribute.Key = []byte("success")
+		attribute.Value = []byte("false")
 		attributes = append(attributes, attribute)
 	}
 	attributes = append(attributes, additionalAttributes...)

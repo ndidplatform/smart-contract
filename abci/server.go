@@ -31,14 +31,15 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	abciclient "github.com/tendermint/tendermint/abci/client"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
 	cfg "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
-	"github.com/tendermint/tendermint/libs/service"
 	nm "github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
+	"github.com/tendermint/tendermint/privval"
+	"github.com/tendermint/tendermint/proxy"
 
 	abciApp "github.com/ndidplatform/smart-contract/v7/abci/app"
 )
@@ -98,7 +99,6 @@ func main() {
 	rootCmd := cmd.RootCmd
 	rootCmd.AddCommand(
 		cmd.GenValidatorCmd,
-		cmd.ReIndexEventCmd,
 		cmd.InitFilesCmd,
 		cmd.ProbeUpnpCmd,
 		cmd.LightCmd,
@@ -112,7 +112,6 @@ func main() {
 		cmd.ShowNodeIDCmd,
 		cmd.GenNodeKeyCmd,
 		cmd.VersionCmd,
-		cmd.InspectCmd,
 		cmd.RollbackStateCmd,
 		// custom commands
 		abciVersionCmd,
@@ -137,15 +136,31 @@ func main() {
 	}
 }
 
-func newNode(config *cfg.Config, logger log.Logger) (service.Service, error) {
+func newNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 	var app abcitypes.Application = abciApp.NewABCIApplicationInterface()
 
+	// read private validator
+	pv := privval.LoadFilePV(
+		config.PrivValidatorKeyFile(),
+		config.PrivValidatorStateFile(),
+	)
+
+	// read node key
+	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())
+	if err != nil {
+		return nil, fmt.Errorf("failed to load node's key: %w", err)
+	}
+
 	// create node
-	node, err := nm.New(
+	node, err := nm.NewNode(
 		config,
+		pv,
+		nodeKey,
+		proxy.NewLocalClientCreator(app),
+		nm.DefaultGenesisDocProviderFunc(config),
+		nm.DefaultDBProvider,
+		nm.DefaultMetricsProvider(config.Instrumentation),
 		logger,
-		abciclient.NewLocalCreator(app),
-		nil,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new Tendermint node: %w", err)
