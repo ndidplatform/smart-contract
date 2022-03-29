@@ -3,7 +3,7 @@ module github.com/ndidplatform/smart-contract/v6
 go 1.13
 
 require (
-	github.com/gogo/protobuf v1.3.1
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.4.0
 	github.com/prometheus/client_golang v1.5.0
 	github.com/satori/go.uuid v1.2.0
