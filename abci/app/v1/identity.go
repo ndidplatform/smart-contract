@@ -1128,6 +1128,332 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
+func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQuery {
+	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
+	var funcParam CheckExistingIdentityParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result CheckExistingIdentityResult
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
+	}
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		if refGroupCodeFromDB == nil {
+			returnValue, err := json.Marshal(result)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			return app.ReturnQuery(returnValue, "success", app.state.Height)
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "success", app.state.Height)
+	}
+	result.Exist = true
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
+	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
+	var funcParam GetAccessorKeyParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result GetAccessorKeyResult
+	result.AccessorPublicKey = ""
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupCodeFromDB == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		for _, accessor := range idp.Accessors {
+			if accessor.AccessorId == funcParam.AccessorID {
+				result.AccessorPublicKey = accessor.AccessorPublicKey
+				result.Active = accessor.Active
+				break
+			}
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) checkExistingAccessorID(param string) types.ResponseQuery {
+	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
+	var funcParam CheckExistingAccessorIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result CheckExistingResult
+	result.Exist = false
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupCodeFromDB == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		for _, accessor := range idp.Accessors {
+			if accessor.AccessorId == funcParam.AccessorID {
+				result.Exist = true
+				break
+			}
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
+	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
+	var funcParam GetIdentityInfoParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result GetIdentityInfoResult
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
+	}
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		if refGroupCodeFromDB == nil {
+			returnValue, err := json.Marshal(result)
+			if err != nil {
+				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			}
+			return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupValue == nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		returnValue, err := json.Marshal(result)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		if funcParam.NodeID == idp.NodeId && idp.Active {
+			result.Ial = idp.Ial
+			if idp.Lial != nil {
+				result.Lial = &idp.Lial.Value
+			}
+			if idp.Laal != nil {
+				result.Laal = &idp.Laal.Value
+			}
+			result.ModeList = idp.Mode
+			break
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if result.Ial <= 0.0 {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
+	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
+	var funcParam GetAccessorOwnerParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result GetAccessorOwnerResult
+	result.NodeID = ""
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupCodeFromDB == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	for _, idp := range refGroup.Idps {
+		for _, accessor := range idp.Accessors {
+			if accessor.AccessorId == funcParam.AccessorID {
+				result.NodeID = idp.NodeId
+				break
+			}
+		}
+	}
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
+	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
+	var funcParam GetReferenceGroupCodeParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+	refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupCodeFromDB == nil {
+		refGroupCodeFromDB = []byte("")
+	}
+	var result GetReferenceGroupCodeResult
+	result.ReferenceGroupCode = string(refGroupCodeFromDB)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if string(refGroupCodeFromDB) == "" {
+		return app.ReturnQuery(returnValue, "not found", app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
+	app.logger.Infof("GetReferenceGroupCodeByAccessorID, Parameter: %s", param)
+	var funcParam GetReferenceGroupCodeByAccessorIDParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if refGroupCodeFromDB == nil {
+		refGroupCodeFromDB = []byte("")
+	}
+	var result GetReferenceGroupCodeResult
+	result.ReferenceGroupCode = string(refGroupCodeFromDB)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
 //
 // Identity related request operations
 //
@@ -1197,6 +1523,34 @@ func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.Resp
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {
+	app.logger.Infof("GetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
+	var result GetAllowedMinIalForRegisterIdentityAtFirstIdpResult
+	result.MinIal = app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(true)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(committedState bool) float64 {
+	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
+	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
+	allowedMinIalValue, err := app.state.Get([]byte(allowedMinIalKey), committedState)
+	if err != nil {
+		return 0
+	}
+	if allowedMinIalValue == nil {
+		return 0
+	}
+	err = proto.Unmarshal(allowedMinIalValue, &allowedMinIal)
+	if err != nil {
+		return 0
+	}
+	return allowedMinIal.MinIal
 }
 
 //

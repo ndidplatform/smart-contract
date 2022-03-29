@@ -612,3 +612,67 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
+
+func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
+	app.logger.Infof("GetDataSignature, Parameter: %s", param)
+	var funcParam GetDataSignatureParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	signDataKey := dataSignatureKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID + keySeparator + funcParam.RequestID
+	signDataValue, err := app.state.Get([]byte(signDataKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if signDataValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+	var result GetDataSignatureResult
+	result.Signature = string(signDataValue)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery {
+	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
+	var funcParam GetAllowedModeListParam
+	err := json.Unmarshal([]byte(param), &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var result GetAllowedModeListResult
+	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose, true)
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, committedState bool) (result []int32) {
+	allowedModeKey := "AllowedModeList" + keySeparator + purpose
+	var allowedModeList data.AllowedModeList
+	allowedModeValue, err := app.state.Get([]byte(allowedModeKey), committedState)
+	if err != nil {
+		return nil
+	}
+	if allowedModeValue == nil {
+		// return default value
+		if !modeFunctionMap[purpose] {
+			result = append(result, 1)
+		}
+		result = append(result, 2)
+		result = append(result, 3)
+		return result
+	}
+	err = proto.Unmarshal(allowedModeValue, &allowedModeList)
+	if err != nil {
+		return result
+	}
+	result = allowedModeList.Mode
+	return result
+}
