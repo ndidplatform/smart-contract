@@ -99,6 +99,7 @@ func (appState *AppState) SaveMetadata() error {
 	return nil
 }
 
+// Set value `nil` equals Delete
 func (appState *AppState) Set(key, value []byte) {
 	appState.HashData = append(appState.HashData, key...)
 	appState.HashData = append(appState.HashData, actionSet...)
@@ -301,9 +302,13 @@ func (appState *AppState) Has(key []byte, committed bool) (bool, error) {
 }
 
 func (appState *AppState) has(key []byte) (bool, error) {
-	_, existInUncommittedState := appState.uncommittedState[string(key)]
+	value, existInUncommittedState := appState.uncommittedState[string(key)]
 	if existInUncommittedState {
-		return true, nil
+		if value != nil {
+			return true, nil
+		} else {
+			return false, nil
+		}
 	}
 	return appState.db.Has(key)
 }
@@ -324,9 +329,13 @@ func (appState *AppState) hasVersioned(key []byte) (bool, error) {
 	versionsKeyStr := string(key) + "|versions"
 	versionsKey := []byte(versionsKeyStr)
 
-	_, existInUncommittedState := appState.uncommittedVersionsState[versionsKeyStr]
+	value, existInUncommittedState := appState.uncommittedVersionsState[versionsKeyStr]
 	if existInUncommittedState {
-		return true, nil
+		if value != nil {
+			return true, nil
+		} else {
+			return false, nil
+		}
 	}
 
 	return appState.db.Has(versionsKey)

@@ -347,6 +347,168 @@ func TestSetVersionedAndSave1(t *testing.T) {
 	assert.Equal(t, valueToSetVersions2, value)
 }
 
+func TestHas1(t *testing.T) {
+	var err error
+	var exist bool
+
+	key := []byte("testhaskey1")
+	valueToSet := []byte("value1")
+
+	appState, err := NewAppState(testDb)
+	if err != nil {
+		t.Fatalf("error new app state: %+v", err)
+	}
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	appState.Set(key, valueToSet)
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.True(t, exist)
+}
+
+func TestHas2(t *testing.T) {
+	var err error
+	var exist bool
+
+	key := []byte("testhaskey2")
+	valueToSet := []byte("value1")
+
+	appState, err := NewAppState(testDb)
+	if err != nil {
+		t.Fatalf("error new app state: %+v", err)
+	}
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	appState.Set(key, valueToSet)
+
+	appState.Delete(key)
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+}
+
+func TestHasAndSave1(t *testing.T) {
+	var err error
+	var exist bool
+
+	key := []byte("testhasandsavekey1")
+	valueToSet := []byte("value1")
+
+	appState, err := NewAppState(testDb)
+	if err != nil {
+		t.Fatalf("error new app state: %+v", err)
+	}
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	appState.Set(key, valueToSet)
+
+	appState.Save()
+
+	exist, err = appState.Has(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.True(t, exist)
+
+	exist, err = appState.Has(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.True(t, exist)
+}
+
+func TestHasVersioned1(t *testing.T) {
+	var err error
+	var exist bool
+
+	key := []byte("testhasversionedkey1")
+	valueToSet := []byte("value1")
+
+	appState, err := NewAppState(testDb)
+	if err != nil {
+		t.Fatalf("error new app state: %+v", err)
+	}
+
+	appState.CurrentBlockHeight = 1
+
+	exist, err = appState.HasVersioned(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.HasVersioned(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	appState.SetVersioned(key, valueToSet)
+
+	exist, err = appState.HasVersioned(key, true)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.False(t, exist)
+
+	exist, err = appState.HasVersioned(key, false)
+	if err != nil {
+		t.Fatalf("error has: %+v", err)
+	}
+	assert.True(t, exist)
+}
+
 func TestDelete1(t *testing.T) {
 	var err error
 	var value []byte
