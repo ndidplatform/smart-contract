@@ -98,7 +98,7 @@ priceToSetLoop:
 
 	var newServicePrice *data.ServicePrice = &data.ServicePrice{
 		PriceByCurrencyList: servicePriceByCurrencyListToSet,
-		EffectiveDatetime:   funcParam.EffectiveDatetime.UnixNano() / int64(time.Millisecond), // in milliseconds
+		EffectiveDatetime:   funcParam.EffectiveDatetime.UnixMilli(), // in milliseconds
 		MoreInfoUrl:         funcParam.MoreInfoURL,
 		Detail:              funcParam.Detail,
 		CreationBlockHeight: app.state.CurrentBlockHeight,
@@ -193,7 +193,7 @@ func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuer
 		for _, servicePrice := range servicePriceList.ServicePriceList {
 			var retValServicePrice ServicePrice = ServicePrice{
 				PriceByCurrencyList: make([]ServicePriceByCurrency, 0),
-				EffectiveDatetime:   time.Unix(0, servicePrice.EffectiveDatetime*int64(time.Millisecond)), // in milliseconds
+				EffectiveDatetime:   time.UnixMilli(servicePrice.EffectiveDatetime), // in milliseconds
 				MoreInfoURL:         servicePrice.MoreInfoUrl,
 				Detail:              servicePrice.Detail,
 				CreationBlockHeight: servicePrice.CreationBlockHeight,
