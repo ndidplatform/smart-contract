@@ -95,6 +95,11 @@ func (app *ABCIApplication) setToken(nodeID string, amount float64) error {
 	return nil
 }
 
+type SetPriceFuncParam struct {
+	Func  string  `json:"func"`
+	Price float64 `json:"price"`
+}
+
 func (app *ABCIApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
@@ -107,6 +112,14 @@ func (app *ABCIApplication) setPriceFunc(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetPriceFuncParam struct {
+	Func string `json:"func"`
+}
+
+type GetPriceFuncResult struct {
+	Price float64 `json:"price"`
 }
 
 func (app *ABCIApplication) getPriceFunc(param string, committedState bool) types.ResponseQuery {
@@ -210,6 +223,11 @@ func (app *ABCIApplication) getToken(nodeID string, committedState bool) (float6
 	return token.Amount, nil
 }
 
+type SetNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
+}
+
 func (app *ABCIApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
@@ -230,6 +248,11 @@ func (app *ABCIApplication) setNodeToken(param string, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type AddNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
 }
 
 func (app *ABCIApplication) addNodeToken(param string, nodeID string) types.ResponseDeliverTx {
@@ -254,6 +277,11 @@ func (app *ABCIApplication) addNodeToken(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type ReduceNodeTokenParam struct {
+	NodeID string  `json:"node_id"`
+	Amount float64 `json:"amount"`
+}
+
 func (app *ABCIApplication) reduceNodeToken(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
@@ -274,6 +302,14 @@ func (app *ABCIApplication) reduceNodeToken(param string, nodeID string) types.R
 		return app.ReturnDeliverTxLog(errCode, errLog, "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetNodeTokenParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeTokenResult struct {
+	Amount float64 `json:"amount"`
 }
 
 func (app *ABCIApplication) getNodeToken(param string, committedState bool) types.ResponseQuery {

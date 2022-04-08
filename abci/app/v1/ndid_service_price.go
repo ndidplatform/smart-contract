@@ -34,6 +34,16 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type SetServicePriceCeilingParam struct {
+	ServiceID                  string                   `json:"service_id"`
+	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
+}
+
+type PriceCeilingByCurrency struct {
+	Currency string  `json:"currency"`
+	Price    float64 `json:"price"`
+}
+
 func (app *ABCIApplication) setServicePriceCeiling(param string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceCeiling, Parameter: %s", param)
 	var funcParam SetServicePriceCeilingParam
@@ -75,6 +85,14 @@ func (app *ABCIApplication) setServicePriceCeiling(param string) types.ResponseD
 	app.state.Set([]byte(servicePriceCeilingKey), []byte(servicePriceCeilingListBytes))
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetServicePriceCeilingParam struct {
+	ServiceID string `json:"service_id"`
+}
+
+type GetServicePriceCeilingResult struct {
+	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
 }
 
 func (app *ABCIApplication) getServicePriceCeiling(param string) types.ResponseQuery {
@@ -135,6 +153,11 @@ func (app *ABCIApplication) getServicePriceCeiling(param string) types.ResponseQ
 	return app.ReturnQuery(retValJSON, "success", app.state.Height)
 }
 
+type SetServicePriceMinEffectiveDatetimeDelayParam struct {
+	ServiceID      string `json:"service_id"`
+	DurationSecond uint32 `json:"duration_second"`
+}
+
 func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
@@ -170,6 +193,14 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param strin
 	}
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetServicePriceMinEffectiveDatetimeDelayParam struct {
+	ServiceID string `json:"service_id"`
+}
+
+type GetServicePriceMinEffectiveDatetimeDelayResult struct {
+	DurationSecond uint32 `json:"duration_second"`
 }
 
 func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param string) types.ResponseQuery {

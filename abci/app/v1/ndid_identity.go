@@ -32,6 +32,10 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type TimeOutBlockRegisterIdentity struct {
+	TimeOutBlock int64 `json:"time_out_block"`
+}
+
 func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
@@ -52,6 +56,10 @@ func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID
 	}
 	app.state.Set([]byte(key), []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
+	MinIal float64 `json:"min_ial"`
 }
 
 func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {

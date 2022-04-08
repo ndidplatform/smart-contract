@@ -35,6 +35,24 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type Identity struct {
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
+type RegisterIdentityParam struct {
+	ReferenceGroupCode string     `json:"reference_group_code"`
+	NewIdentityList    []Identity `json:"new_identity_list"`
+	Ial                float64    `json:"ial"`
+	Lial               *bool      `json:"lial"`
+	Laal               *bool      `json:"laal"`
+	ModeList           []int32    `json:"mode_list"`
+	AccessorID         string     `json:"accessor_id"`
+	AccessorPublicKey  string     `json:"accessor_public_key"`
+	AccessorType       string     `json:"accessor_type"`
+	RequestID          string     `json:"request_id"`
+}
+
 func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
@@ -277,6 +295,15 @@ func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
+type UpdateIdentityParam struct {
+	ReferenceGroupCode     string   `json:"reference_group_code"`
+	IdentityNamespace      string   `json:"identity_namespace"`
+	IdentityIdentifierHash string   `json:"identity_identifier_hash"`
+	Ial                    *float64 `json:"ial"`
+	Lial                   *bool    `json:"lial"`
+	Laal                   *bool    `json:"laal"`
+}
+
 func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
@@ -373,6 +400,14 @@ func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.Re
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+}
+
+type UpdateIdentityModeListParam struct {
+	ReferenceGroupCode     string  `json:"reference_group_code"`
+	IdentityNamespace      string  `json:"identity_namespace"`
+	IdentityIdentifierHash string  `json:"identity_identifier_hash"`
+	ModeList               []int32 `json:"mode_list"`
+	RequestID              string  `json:"request_id"`
 }
 
 func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
@@ -483,6 +518,12 @@ func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) 
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+}
+
+type AddIdentityParam struct {
+	ReferenceGroupCode string     `json:"reference_group_code"`
+	NewIdentityList    []Identity `json:"new_identity_list"`
+	RequestID          string     `json:"request_id"`
 }
 
 func (app *ABCIApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
@@ -635,6 +676,13 @@ func (app *ABCIApplication) addIdentity(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
+type RevokeIdentityAssociationParam struct {
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	RequestID              string `json:"request_id"`
+}
+
 func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
 	var funcParam RevokeIdentityAssociationParam
@@ -738,6 +786,16 @@ func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID strin
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+}
+
+type AddAccessorParam struct {
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	AccessorID             string `json:"accessor_id"`
+	AccessorPublicKey      string `json:"accessor_public_key"`
+	AccessorType           string `json:"accessor_type"`
+	RequestID              string `json:"request_id"`
 }
 
 func (app *ABCIApplication) addAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -846,6 +904,11 @@ func (app *ABCIApplication) addAccessor(param string, nodeID string) types.Respo
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+}
+
+type RevokeAccessorParam struct {
+	AccessorIDList []string `json:"accessor_id_list"`
+	RequestID      string   `json:"request_id"`
 }
 
 func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -975,6 +1038,14 @@ func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.Re
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+}
+
+type RevokeAndAddAccessorParam struct {
+	RevokingAccessorID string `json:"revoking_accessor_id"`
+	AccessorID         string `json:"accessor_id"`
+	AccessorPublicKey  string `json:"accessor_public_key"`
+	AccessorType       string `json:"accessor_type"`
+	RequestID          string `json:"request_id"`
 }
 
 func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) types.ResponseDeliverTx {
@@ -1128,6 +1199,16 @@ func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) ty
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
+type CheckExistingIdentityParam struct {
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
+type CheckExistingIdentityResult struct {
+	Exist bool `json:"exist"`
+}
+
 func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQuery {
 	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
@@ -1190,6 +1271,15 @@ func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQu
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
+type GetAccessorKeyParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type GetAccessorKeyResult struct {
+	AccessorPublicKey string `json:"accessor_public_key"`
+	Active            bool   `json:"active"`
+}
+
 func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
@@ -1236,6 +1326,14 @@ func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
+type CheckExistingAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type CheckExistingResult struct {
+	Exist bool `json:"exist"`
+}
+
 func (app *ABCIApplication) checkExistingAccessorID(param string) types.ResponseQuery {
 	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorIDParam
@@ -1279,6 +1377,20 @@ func (app *ABCIApplication) checkExistingAccessorID(param string) types.Response
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+type GetIdentityInfoParam struct {
+	ReferenceGroupCode     string `json:"reference_group_code"`
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+	NodeID                 string `json:"node_id"`
+}
+
+type GetIdentityInfoResult struct {
+	Ial      float64 `json:"ial"`
+	Lial     *bool   `json:"lial"`
+	Laal     *bool   `json:"laal"`
+	ModeList []int32 `json:"mode_list"`
 }
 
 func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
@@ -1358,6 +1470,14 @@ func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
+type GetAccessorOwnerParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
+type GetAccessorOwnerResult struct {
+	NodeID string `json:"node_id"`
+}
+
 func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
 	var funcParam GetAccessorOwnerParam
@@ -1403,6 +1523,15 @@ func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
+type GetReferenceGroupCodeParam struct {
+	IdentityNamespace      string `json:"identity_namespace"`
+	IdentityIdentifierHash string `json:"identity_identifier_hash"`
+}
+
+type GetReferenceGroupCodeResult struct {
+	ReferenceGroupCode string `json:"reference_group_code"`
+}
+
 func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeParam
@@ -1428,6 +1557,10 @@ func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQu
 		return app.ReturnQuery(returnValue, "not found", app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+type GetReferenceGroupCodeByAccessorIDParam struct {
+	AccessorID string `json:"accessor_id"`
 }
 
 func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
@@ -1523,6 +1656,10 @@ func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.Resp
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
+	MinIal float64 `json:"min_ial"`
 }
 
 func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {

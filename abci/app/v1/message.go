@@ -33,6 +33,12 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type CreateMessageParam struct {
+	MessageID string `json:"message_id"`
+	Message   string `json:"message"`
+	Purpose   string `json:"purpose"`
+}
+
 func (app *ABCIApplication) createMessage(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateMessage, Parameter: %s", param)
 	var funcParam CreateMessageParam
@@ -77,6 +83,14 @@ func (app *ABCIApplication) createMessage(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", message.MessageId)
 }
 
+type GetMessageParam struct {
+	MessageID string `json:"message_id"`
+}
+
+type GetMessageResult struct {
+	Message string `json:"message"`
+}
+
 func (app *ABCIApplication) getMessage(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetMessage, Parameter: %s", param)
 	var funcParam GetMessageParam
@@ -108,6 +122,15 @@ func (app *ABCIApplication) getMessage(param string, height int64) types.Respons
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
+
+type GetMessageDetailResult struct {
+	MessageID           string `json:"message_id"`
+	Message             string `json:"message"`
+	Purpose             string `json:"purpose"`
+	RequesterNodeID     string `json:"requester_node_id"`
+	CreationBlockHeight int64  `json:"creation_block_height"`
+	CreationChainID     string `json:"creation_chain_id"`
 }
 
 func (app *ABCIApplication) getMessageDetail(param string, height int64, committedState bool) types.ResponseQuery {

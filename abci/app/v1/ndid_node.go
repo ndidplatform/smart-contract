@@ -34,9 +34,23 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type RegisterNodeParam struct {
+	NodeID          string   `json:"node_id"`
+	PublicKey       string   `json:"public_key"`
+	MasterPublicKey string   `json:"master_public_key"`
+	NodeName        string   `json:"node_name"`
+	Role            string   `json:"role"`
+	MaxIal          float64  `json:"max_ial"`            // IdP only attribute
+	MaxAal          float64  `json:"max_aal"`            // IdP only attribute
+	OnTheFlySupport *bool    `json:"on_the_fly_support"` // IdP only attribute
+	IsIdPAgent      *bool    `json:"agent"`              // IdP only attribute
+	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
+	Whitelist       []string `json:"node_id_whitelist"`
+}
+
 func (app *ABCIApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterNode, Parameter: %s", param)
-	var funcParam RegisterNode
+	var funcParam RegisterNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -190,6 +204,17 @@ func (app *ABCIApplication) registerNode(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type UpdateNodeByNDIDParam struct {
+	NodeID          string   `json:"node_id"`
+	MaxIal          float64  `json:"max_ial"`
+	MaxAal          float64  `json:"max_aal"`
+	OnTheFlySupport *bool    `json:"on_the_fly_support"`
+	NodeName        string   `json:"node_name"`
+	IsIdPAgent      *bool    `json:"agent"`
+	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
+	Whitelist       []string `json:"node_id_whitelist"`
+}
+
 func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
@@ -259,6 +284,10 @@ func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type DisableNodeParam struct {
+	NodeID string `json:"node_id"`
+}
+
 func (app *ABCIApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
@@ -288,9 +317,13 @@ func (app *ABCIApplication) disableNode(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EnableNodeParam struct {
+	NodeID string `json:"node_id"`
+}
+
 func (app *ABCIApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNode, Parameter: %s", param)
-	var funcParam DisableNodeParam
+	var funcParam EnableNodeParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -315,6 +348,12 @@ func (app *ABCIApplication) enableNode(param string, nodeID string) types.Respon
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type AddNodeToProxyNodeParam struct {
+	NodeID      string `json:"node_id"`
+	ProxyNodeID string `json:"proxy_node_id"`
+	Config      string `json:"config"`
 }
 
 func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
@@ -385,6 +424,12 @@ func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) type
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.state.Set([]byte(behindProxyNodeKey), []byte(behindProxyNodeJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type UpdateNodeProxyNodeParam struct {
+	NodeID      string `json:"node_id"`
+	ProxyNodeID string `json:"proxy_node_id"`
+	Config      string `json:"config"`
 }
 
 func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
@@ -480,6 +525,10 @@ func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) typ
 	app.state.Set([]byte(behindProxyNodeKey), []byte(behindProxyNodeJSON))
 	app.state.Set([]byte(newBehindProxyNodeKey), []byte(newBehindProxyNodeJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type RemoveNodeFromProxyNode struct {
+	NodeID string `json:"node_id"`
 }
 
 func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {

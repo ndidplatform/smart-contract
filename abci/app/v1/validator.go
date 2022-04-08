@@ -90,6 +90,11 @@ func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type SetValidatorParam struct {
+	PublicKey string `json:"public_key"`
+	Power     int64  `json:"power"`
+}
+
 func (app *ABCIApplication) setValidator(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam

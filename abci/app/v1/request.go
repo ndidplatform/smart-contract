@@ -33,6 +33,46 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type IdPResponse struct {
+	Ial            *float64 `json:"ial,omitempty"`
+	Aal            *float64 `json:"aal,omitempty"`
+	Status         *string  `json:"status,omitempty"`
+	Signature      *string  `json:"signature,omitempty"`
+	IdpID          string   `json:"idp_id"`
+	ValidIal       *bool    `json:"valid_ial"`
+	ValidSignature *bool    `json:"valid_signature"`
+	ErrorCode      *int32   `json:"error_code,omitempty"`
+}
+
+type ASResponse struct {
+	AsID         string `json:"as_id"`
+	Signed       *bool  `json:"signed,omitempty"`
+	ReceivedData *bool  `json:"received_data,omitempty"`
+	ErrorCode    *int32 `json:"error_code,omitempty"`
+}
+
+type DataRequest struct {
+	ServiceID         string       `json:"service_id"`
+	As                []string     `json:"as_id_list"`
+	Count             int          `json:"min_as"`
+	RequestParamsHash string       `json:"request_params_hash"`
+	ResponseList      []ASResponse `json:"response_list"`
+}
+
+type CreateRequestParam struct {
+	RequestID       string        `json:"request_id"`
+	MinIdp          int           `json:"min_idp"`
+	MinAal          float64       `json:"min_aal"`
+	MinIal          float64       `json:"min_ial"`
+	Timeout         int           `json:"request_timeout"`
+	IdPIDList       []string      `json:"idp_id_list"`
+	DataRequestList []DataRequest `json:"data_request_list"`
+	MessageHash     string        `json:"request_message_hash"`
+	Purpose         string        `json:"purpose"`
+	Mode            int32         `json:"mode"`
+	RequestType     *string       `json:"request_type"`
+}
+
 func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam CreateRequestParam
@@ -274,6 +314,17 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 
+type ResponseValid struct {
+	IdpID          string `json:"idp_id"`
+	ValidIal       *bool  `json:"valid_ial"`
+	ValidSignature *bool  `json:"valid_signature"`
+}
+
+type CloseRequestParam struct {
+	RequestID         string          `json:"request_id"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
 func (app *ABCIApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
@@ -332,6 +383,11 @@ func (app *ABCIApplication) closeRequest(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
+type TimeOutRequestParam struct {
+	RequestID         string          `json:"request_id"`
+	ResponseValidList []ResponseValid `json:"response_valid_list"`
+}
+
 func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
@@ -388,6 +444,12 @@ func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+}
+
+type SetDataReceivedParam struct {
+	RequestID string `json:"request_id"`
+	ServiceID string `json:"service_id"`
+	AsID      string `json:"as_id"`
 }
 
 func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
@@ -454,6 +516,17 @@ func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.R
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }
 
+type GetRequestParam struct {
+	RequestID string `json:"request_id"`
+}
+
+type GetRequestResult struct {
+	IsClosed    bool   `json:"closed"`
+	IsTimedOut  bool   `json:"timed_out"`
+	MessageHash string `json:"request_message_hash"`
+	Mode        int32  `json:"mode"`
+}
+
 func (app *ABCIApplication) getRequest(param string, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
@@ -488,6 +561,26 @@ func (app *ABCIApplication) getRequest(param string, height int64) types.Respons
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
+
+type GetRequestDetailResult struct {
+	RequestID           string        `json:"request_id"`
+	MinIdp              int           `json:"min_idp"`
+	MinAal              float64       `json:"min_aal"`
+	MinIal              float64       `json:"min_ial"`
+	Timeout             int           `json:"request_timeout"`
+	IdPIDList           []string      `json:"idp_id_list"`
+	DataRequestList     []DataRequest `json:"data_request_list"`
+	MessageHash         string        `json:"request_message_hash"`
+	Responses           []IdPResponse `json:"response_list"`
+	IsClosed            bool          `json:"closed"`
+	IsTimedOut          bool          `json:"timed_out"`
+	Purpose             string        `json:"purpose"`
+	Mode                int32         `json:"mode"`
+	RequestType         *string       `json:"request_type"`
+	RequesterNodeID     string        `json:"requester_node_id"`
+	CreationBlockHeight int64         `json:"creation_block_height"`
+	CreationChainID     string        `json:"creation_chain_id"`
 }
 
 func (app *ABCIApplication) getRequestDetail(param string, height int64, committedState bool) types.ResponseQuery {
@@ -550,9 +643,9 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 		result.DataRequestList = append(result.DataRequestList, newRow)
 	}
 	result.MessageHash = request.RequestMessageHash
-	result.Responses = make([]Response, 0)
+	result.Responses = make([]IdPResponse, 0)
 	for _, response := range request.ResponseList {
-		var newRow Response
+		var newRow IdPResponse
 		if response.ErrorCode == 0 {
 			var validIal *bool
 			if response.ValidIal != "" {
@@ -566,7 +659,7 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 			}
 			ial := float64(response.Ial)
 			aal := float64(response.Aal)
-			newRow = Response{
+			newRow = IdPResponse{
 				IdpID:          response.IdpId,
 				Ial:            &ial,
 				Aal:            &aal,
@@ -576,7 +669,7 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 				ValidSignature: validSignature,
 			}
 		} else {
-			newRow = Response{
+			newRow = IdPResponse{
 				IdpID:     response.IdpId,
 				ErrorCode: &response.ErrorCode,
 			}
@@ -616,6 +709,16 @@ func (app *ABCIApplication) getRequestDetail(param string, height int64, committ
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
+type GetDataSignatureParam struct {
+	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
+	RequestID string `json:"request_id"`
+}
+
+type GetDataSignatureResult struct {
+	Signature string `json:"signature"`
+}
+
 func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 	app.logger.Infof("GetDataSignature, Parameter: %s", param)
 	var funcParam GetDataSignatureParam
@@ -638,6 +741,14 @@ func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
+}
+
+type GetAllowedModeListParam struct {
+	Purpose string `json:"purpose"`
+}
+
+type GetAllowedModeListResult struct {
+	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
 func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery {

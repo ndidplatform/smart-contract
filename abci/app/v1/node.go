@@ -34,6 +34,15 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type MsqAddress struct {
+	IP   string `json:"ip"`
+	Port int64  `json:"port"`
+}
+
+type SetMqAddressesParam struct {
+	Addresses []MsqAddress `json:"addresses"`
+}
+
 func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
@@ -68,6 +77,14 @@ func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.Re
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type GetNodeMasterPublicKeyParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeMasterPublicKeyResult struct {
+	MasterPublicKey string `json:"master_public_key"`
+}
+
 func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
 	var funcParam GetNodeMasterPublicKeyParam
@@ -99,7 +116,14 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQ
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
 
+type GetNodePublicKeyParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodePublicKeyResult struct {
+	PublicKey string `json:"public_key"`
 }
 
 func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
@@ -150,6 +174,38 @@ func (app *ABCIApplication) getNodeNameByNodeID(nodeID string) string {
 		return ""
 	}
 	return nodeDetail.NodeName
+}
+
+type GetIdpNodesParam struct {
+	ReferenceGroupCode                     string   `json:"reference_group_code"`
+	IdentityNamespace                      string   `json:"identity_namespace"`
+	IdentityIdentifierHash                 string   `json:"identity_identifier_hash"`
+	FilterForNodeID                        *string  `json:"filter_for_node_id"`
+	IsIdpAgent                             *bool    `json:"agent"`
+	MinAal                                 float64  `json:"min_aal"`
+	MinIal                                 float64  `json:"min_ial"`
+	OnTheFlySupport                        *bool    `json:"on_the_fly_support"`
+	NodeIDList                             []string `json:"node_id_list"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	ModeList                               []int32  `json:"mode_list"`
+}
+
+type GetIdpNodesResult struct {
+	Node []MsqDestinationNode `json:"node"`
+}
+
+type MsqDestinationNode struct {
+	ID                                     string   `json:"node_id"`
+	Name                                   string   `json:"node_name"`
+	MaxIal                                 float64  `json:"max_ial"`
+	MaxAal                                 float64  `json:"max_aal"`
+	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
+	Ial                                    *float64 `json:"ial,omitempty"`
+	Lial                                   *bool    `json:"lial"`
+	Laal                                   *bool    `json:"laal"`
+	ModeList                               *[]int32 `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+	IsIdpAgent                             bool     `json:"agent"`
 }
 
 func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
@@ -352,6 +408,36 @@ func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
+type GetAsNodesByServiceIdParam struct {
+	ServiceID  string   `json:"service_id"`
+	NodeIDList []string `json:"node_id_list"`
+}
+
+type GetAsNodesByServiceIdResult struct {
+	Node []ASNode `json:"node"`
+}
+
+type ASNode struct {
+	ID        string  `json:"node_id"`
+	Name      string  `json:"node_name"`
+	MinIal    float64 `json:"min_ial"`
+	MinAal    float64 `json:"min_aal"`
+	ServiceID string  `json:"service_id"`
+	Active    bool    `json:"active"`
+}
+
+type GetAsNodesByServiceIdWithNameResult struct {
+	Node []ASNodeResult `json:"node"`
+}
+
+type ASNodeResult struct {
+	ID                     string   `json:"node_id"`
+	Name                   string   `json:"node_name"`
+	MinIal                 float64  `json:"min_ial"`
+	MinAal                 float64  `json:"min_aal"`
+	SupportedNamespaceList []string `json:"supported_namespace_list"`
+}
+
 func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
@@ -475,6 +561,12 @@ func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQu
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
+type GetMqAddressesParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetMqAddressesResult []MsqAddress
+
 func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
 	app.logger.Infof("GetMqAddresses, Parameter: %s", param)
 	var funcParam GetMqAddressesParam
@@ -511,6 +603,12 @@ func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
 		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+}
+
+type UpdateNodeParam struct {
+	PublicKey                              string   `json:"public_key"`
+	MasterPublicKey                        string   `json:"master_public_key"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 func (app *ABCIApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
@@ -551,6 +649,40 @@ func (app *ABCIApplication) updateNode(param string, nodeID string) types.Respon
 	}
 	app.state.Set([]byte(key), []byte(nodeDetailValue))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetNodeInfoParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type GetNodeInfoResult struct {
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	// for IdP
+	MaxIal                                 *float64  `json:"max_ial,omitempty"`
+	MaxAal                                 *float64  `json:"max_aal,omitempty"`
+	OnTheFlySupport                        *bool     `json:"on_the_fly_support,omitempty"`
+	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
+	IsIdpAgent                             *bool     `json:"agent,omitempty"`
+	// for IdP and RP
+	UseWhitelist *bool     `json:"node_id_whitelist_active,omitempty"`
+	Whitelist    *[]string `json:"node_id_whitelist,omitempty"`
+	// for node behind proxy
+	Proxy *ProxyNodeInfo `json:"proxy,omitempty"`
+	// for all
+	Mq     []MsqAddress `json:"mq"`
+	Active bool         `json:"active"`
+}
+
+type ProxyNodeInfo struct {
+	NodeID          string       `json:"node_id"`
+	NodeName        string       `json:"node_name"`
+	PublicKey       string       `json:"public_key"`
+	MasterPublicKey string       `json:"master_public_key"`
+	Mq              []MsqAddress `json:"mq"`
+	Config          string       `json:"config"`
 }
 
 func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
@@ -645,6 +777,34 @@ func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 	return app.ReturnQuery(value, "success", app.state.Height)
+}
+
+type GetIdpNodesInfoResult struct {
+	Node []IdpNode `json:"node"`
+}
+
+type IdpNode struct {
+	NodeID                                 string        `json:"node_id"`
+	Name                                   string        `json:"name"`
+	MaxIal                                 float64       `json:"max_ial"`
+	MaxAal                                 float64       `json:"max_aal"`
+	OnTheFlySupport                        bool          `json:"on_the_fly_support"`
+	PublicKey                              string        `json:"public_key"`
+	Mq                                     []MsqAddress  `json:"mq"`
+	IsIdpAgent                             bool          `json:"agent"`
+	UseWhitelist                           *bool         `json:"node_id_whitelist_active,omitempty"`
+	Whitelist                              *[]string     `json:"node_id_whitelist,omitempty"`
+	Ial                                    *float64      `json:"ial,omitempty"`
+	ModeList                               *[]int32      `json:"mode_list,omitempty"`
+	SupportedRequestMessageDataUrlTypeList []string      `json:"supported_request_message_data_url_type_list"`
+	Proxy                                  *IdpNodeProxy `json:"proxy,omitempty"`
+}
+
+type IdpNodeProxy struct {
+	NodeID    string       `json:"node_id"`
+	PublicKey string       `json:"public_key"`
+	Mq        []MsqAddress `json:"mq"`
+	Config    string       `json:"config"`
 }
 
 func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
@@ -888,6 +1048,35 @@ func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
 	return app.ReturnQuery(value, "success", app.state.Height)
 }
 
+type GetAsNodesInfoByServiceIdResult struct {
+	Node []interface{} `json:"node"`
+}
+
+type ASWithMqNode struct {
+	ID                     string       `json:"node_id"`
+	Name                   string       `json:"name"`
+	MinIal                 float64      `json:"min_ial"`
+	MinAal                 float64      `json:"min_aal"`
+	PublicKey              string       `json:"public_key"`
+	Mq                     []MsqAddress `json:"mq"`
+	SupportedNamespaceList []string     `json:"supported_namespace_list"`
+}
+
+type ASWithMqNodeBehindProxy struct {
+	NodeID                 string   `json:"node_id"`
+	Name                   string   `json:"name"`
+	MinIal                 float64  `json:"min_ial"`
+	MinAal                 float64  `json:"min_aal"`
+	PublicKey              string   `json:"public_key"`
+	SupportedNamespaceList []string `json:"supported_namespace_list"`
+	Proxy                  struct {
+		NodeID    string       `json:"node_id"`
+		PublicKey string       `json:"public_key"`
+		Mq        []MsqAddress `json:"mq"`
+		Config    string       `json:"config"`
+	} `json:"proxy"`
+}
+
 func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesInfoByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
@@ -1062,6 +1251,37 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.Respon
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }
 
+type GetNodesBehindProxyNodeParam struct {
+	ProxyNodeID string `json:"proxy_node_id"`
+}
+
+type GetNodesBehindProxyNodeResult struct {
+	Nodes []interface{} `json:"nodes"`
+}
+
+type IdPBehindProxy struct {
+	NodeID                                 string   `json:"node_id"`
+	NodeName                               string   `json:"node_name"`
+	Role                                   string   `json:"role"`
+	PublicKey                              string   `json:"public_key"`
+	MasterPublicKey                        string   `json:"master_public_key"`
+	MaxIal                                 float64  `json:"max_ial"`
+	MaxAal                                 float64  `json:"max_aal"`
+	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
+	IsIdpAgent                             bool     `json:"agent"`
+	Config                                 string   `json:"config"`
+	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
+}
+
+type ASorRPBehindProxy struct {
+	NodeID          string `json:"node_id"`
+	NodeName        string `json:"node_name"`
+	Role            string `json:"role"`
+	PublicKey       string `json:"public_key"`
+	MasterPublicKey string `json:"master_public_key"`
+	Config          string `json:"config"`
+}
+
 func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.ResponseQuery {
 	app.logger.Infof("GetNodesBehindProxyNode, Parameter: %s", param)
 	var funcParam GetNodesBehindProxyNodeParam
@@ -1143,6 +1363,14 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.Response
 		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+}
+
+type GetNodeIDListParam struct {
+	Role string `json:"role"`
+}
+
+type GetNodeIDListResult struct {
+	NodeIDList []string `json:"node_id_list"`
 }
 
 func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {

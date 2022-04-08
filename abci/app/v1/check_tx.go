@@ -309,6 +309,10 @@ func (app *ABCIApplication) checkIsRPorIDP(param string, nodeID string) types.Re
 	return ReturnCheckTx(code.OK, "")
 }
 
+type RequestIDParam struct {
+	RequestID string `json:"request_id"`
+}
+
 func (app *ABCIApplication) checkIsOwnerRequest(param string, nodeID string, committedState bool) types.ResponseCheckTx {
 	var funcParam RequestIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)

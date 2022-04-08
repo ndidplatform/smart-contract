@@ -33,6 +33,13 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type AddServiceParam struct {
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
+}
+
 func (app *ABCIApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
@@ -92,9 +99,13 @@ func (app *ABCIApplication) addService(param string, nodeID string) types.Respon
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EnableServiceParam struct {
+	ServiceID string `json:"service_id"`
+}
+
 func (app *ABCIApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableService, Parameter: %s", param)
-	var funcParam DisableServiceParam
+	var funcParam EnableServiceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -141,6 +152,10 @@ func (app *ABCIApplication) enableService(param string, nodeID string) types.Res
 	app.state.Set([]byte(serviceKey), []byte(serviceJSON))
 	app.state.Set([]byte(allServiceKey), []byte(allServiceJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type DisableServiceParam struct {
+	ServiceID string `json:"service_id"`
 }
 
 func (app *ABCIApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
@@ -195,6 +210,13 @@ func (app *ABCIApplication) disableService(param string, nodeID string) types.Re
 	app.state.Set([]byte(serviceKey), []byte(serviceJSON))
 	app.state.Set([]byte(allServiceKey), []byte(allServiceJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type UpdateServiceParam struct {
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
 }
 
 func (app *ABCIApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
@@ -262,6 +284,11 @@ func (app *ABCIApplication) updateService(param string, nodeID string) types.Res
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type RegisterServiceDestinationByNDIDParam struct {
+	ServiceID string `json:"service_id"`
+	NodeID    string `json:"node_id"`
+}
+
 func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
@@ -310,6 +337,11 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeI
 	}
 	app.state.Set([]byte(approveServiceKey), []byte(approveServiceJSON))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type DisableServiceDestinationByNDIDParam struct {
+	ServiceID string `json:"service_id"`
+	NodeID    string `json:"node_id"`
 }
 
 func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
@@ -373,9 +405,14 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EnableServiceDestinationByNDIDParam struct {
+	ServiceID string `json:"service_id"`
+	NodeID    string `json:"node_id"`
+}
+
 func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
-	var funcParam DisableServiceDestinationByNDIDParam
+	var funcParam EnableServiceDestinationByNDIDParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

@@ -33,6 +33,13 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type RegisterServiceDestinationParam struct {
+	MinAal                 float64  `json:"min_aal"`
+	MinIal                 float64  `json:"min_ial"`
+	ServiceID              string   `json:"service_id"`
+	SupportedNamespaceList []string `json:"supported_namespace_list"`
+}
+
 func (app *ABCIApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
@@ -166,6 +173,13 @@ func (app *ABCIApplication) registerServiceDestination(param string, nodeID stri
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type UpdateServiceDestinationParam struct {
+	ServiceID              string   `json:"service_id"`
+	MinIal                 float64  `json:"min_ial"`
+	MinAal                 float64  `json:"min_aal"`
+	SupportedNamespaceList []string `json:"supported_namespace_list"`
+}
+
 func (app *ABCIApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
@@ -262,6 +276,10 @@ func (app *ABCIApplication) updateServiceDestination(param string, nodeID string
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type DisableServiceDestinationParam struct {
+	ServiceID string `json:"service_id"`
+}
+
 func (app *ABCIApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
@@ -342,9 +360,13 @@ func (app *ABCIApplication) disableServiceDestination(param string, nodeID strin
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EnableServiceDestinationParam struct {
+	ServiceID string `json:"service_id"`
+}
+
 func (app *ABCIApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
-	var funcParam DisableServiceDestinationParam
+	var funcParam EnableServiceDestinationParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")

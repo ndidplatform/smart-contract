@@ -39,6 +39,12 @@ func (*ABCIApplication) checkErrorCodeType(errorCodeType string) bool {
 	return contains(errorCodeType, []string{"idp", "as"})
 }
 
+type AddErrorCodeParam struct {
+	ErrorCode   int32  `json:"error_code"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+}
+
 func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddErrorCode, Parameter: %s", param)
 	var funcParam AddErrorCodeParam
@@ -97,6 +103,11 @@ func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.Resp
 	app.state.Set([]byte(errorsKey), []byte(errorCodeListBytes))
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type RemoveErrorCodeParam struct {
+	ErrorCode int32  `json:"error_code"`
+	Type      string `json:"type"`
 }
 
 func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.ResponseDeliverTx {

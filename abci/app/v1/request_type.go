@@ -33,6 +33,10 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type AddRequestTypeParam struct {
+	Name string `json:"name"`
+}
+
 // regulator only
 func (app *ABCIApplication) addRequestType(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddRequestType, Parameter: %s", param)
@@ -61,6 +65,10 @@ func (app *ABCIApplication) addRequestType(param string, nodeID string) types.Re
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type RemoveRequestTypeParam struct {
+	Name string `json:"name"`
+}
+
 // regulator only
 func (app *ABCIApplication) removeRequestType(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveRequestType, Parameter: %s", param)
@@ -81,6 +89,10 @@ func (app *ABCIApplication) removeRequestType(param string, nodeID string) types
 	app.state.Delete([]byte(key))
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetRequestTypeListParam struct {
+	Prefix string `json:"prefix"`
 }
 
 func (app *ABCIApplication) getRequestTypeList(param string, height int64) types.ResponseQuery {

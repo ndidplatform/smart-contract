@@ -34,6 +34,20 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type SetServicePriceParam struct {
+	ServiceID           string                   `json:"service_id"`
+	PriceByCurrencyList []ServicePriceByCurrency `json:"price_by_currency_list"`
+	EffectiveDatetime   time.Time                `json:"effective_datetime"`
+	MoreInfoURL         string                   `json:"more_info_url"`
+	Detail              string                   `json:"detail"`
+}
+
+type ServicePriceByCurrency struct {
+	Currency string  `json:"currency"`
+	MinPrice float64 `json:"min_price"`
+	MaxPrice float64 `json:"max_price"`
+}
+
 func (app *ABCIApplication) setServicePrice(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePrice, Parameter: %s", param)
 	var funcParam SetServicePriceParam
@@ -140,6 +154,29 @@ priceToSetLoop:
 	}
 
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type GetServicePriceListParam struct {
+	NodeID    string `json:"node_id"`
+	ServiceID string `json:"service_id"`
+}
+
+type GetServicePriceListResult struct {
+	ServicePriceListByNode []ServicePriceListByNode `json:"price_list_by_node"`
+}
+
+type ServicePriceListByNode struct {
+	NodeID           string         `json:"node_id"`
+	ServicePriceList []ServicePrice `json:"price_list"`
+}
+
+type ServicePrice struct {
+	PriceByCurrencyList []ServicePriceByCurrency `json:"price_by_currency_list"`
+	EffectiveDatetime   time.Time                `json:"effective_datetime"`
+	MoreInfoURL         string                   `json:"more_info_url"`
+	Detail              string                   `json:"detail"`
+	CreationBlockHeight int64                    `json:"creation_block_height"`
+	CreationChainID     string                   `json:"creation_chain_id"`
 }
 
 func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuery {

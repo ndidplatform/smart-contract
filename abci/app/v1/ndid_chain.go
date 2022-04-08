@@ -33,6 +33,13 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type InitNDIDParam struct {
+	NodeID           string `json:"node_id"`
+	PublicKey        string `json:"public_key"`
+	MasterPublicKey  string `json:"master_public_key"`
+	ChainHistoryInfo string `json:"chain_history_info"`
+}
+
 func (app *ABCIApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
@@ -59,6 +66,15 @@ func (app *ABCIApplication) initNDID(param string, nodeID string) types.Response
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type SetInitDataParam struct {
+	KVList []KeyValue `json:"kv_list"`
+}
+
+type KeyValue struct {
+	Key   []byte `json:"key"`
+	Value []byte `json:"value"`
+}
+
 func (app *ABCIApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetInitData, Parameter: %s", param)
 	var funcParam SetInitDataParam
@@ -72,6 +88,8 @@ func (app *ABCIApplication) SetInitData(param string, nodeID string) types.Respo
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EndInitParam struct{}
+
 func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EndInit, Parameter: %s", param)
 	var funcParam EndInitParam
@@ -81,6 +99,10 @@ func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseD
 	}
 	app.state.Set(initStateKeyBytes, []byte("false"))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type SetLastBlockParam struct {
+	BlockHeight int64 `json:"block_height"`
 }
 
 func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {

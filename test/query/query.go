@@ -378,7 +378,7 @@ func TestGetServicesByAsID(t *testing.T, caseID int64, expected string) {
 	GetServicesByAsID(t, param, expected)
 }
 
-func GetAccessorKey(t *testing.T, param app.GetAccessorGroupIDParam, expected string) {
+func GetAccessorKey(t *testing.T, param GetAccessorGroupIDParam, expected string) {
 	fnName := "GetAccessorKey"
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -397,8 +397,12 @@ func GetAccessorKey(t *testing.T, param app.GetAccessorGroupIDParam, expected st
 	t.Logf("PASS: %s", fnName)
 }
 
+type GetAccessorGroupIDParam struct {
+	AccessorID string `json:"accessor_id"`
+}
+
 func TestGetAccessorKey(t *testing.T, accessorID, expected string) {
-	var param app.GetAccessorGroupIDParam
+	var param GetAccessorGroupIDParam
 	param.AccessorID = accessorID
 	GetAccessorKey(t, param, expected)
 }

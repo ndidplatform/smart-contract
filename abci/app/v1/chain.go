@@ -28,6 +28,10 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 )
 
+type IsInitEndedResult struct {
+	InitEnded bool `json:"init_ended"`
+}
+
 func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult

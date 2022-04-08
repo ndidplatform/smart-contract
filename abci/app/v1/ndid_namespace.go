@@ -33,9 +33,17 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type AddNamespaceParam struct {
+	Namespace                                    string `json:"namespace"`
+	Description                                  string `json:"description"`
+	Active                                       bool   `json:"active"`
+	AllowedIdentifierCountInReferenceGroup       int32  `json:"allowed_identifier_count_in_reference_group"`
+	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
+}
+
 func (app *ABCIApplication) addNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNamespace, Parameter: %s", param)
-	var funcParam Namespace
+	var funcParam AddNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -78,9 +86,13 @@ func (app *ABCIApplication) addNamespace(param string, nodeID string) types.Resp
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
+type EnableNamespaceParam struct {
+	Namespace string `json:"namespace"`
+}
+
 func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNamespace, Parameter: %s", param)
-	var funcParam DisableNamespaceParam
+	var funcParam EnableNamespaceParam
 	err := json.Unmarshal([]byte(param), &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
@@ -109,6 +121,10 @@ func (app *ABCIApplication) enableNamespace(param string, nodeID string) types.R
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type DisableNamespaceParam struct {
+	Namespace string `json:"namespace"`
 }
 
 func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.ResponseDeliverTx {
@@ -142,6 +158,13 @@ func (app *ABCIApplication) disableNamespace(param string, nodeID string) types.
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+type UpdateNamespaceParam struct {
+	Namespace                                    string `json:"namespace"`
+	Description                                  string `json:"description"`
+	AllowedIdentifierCountInReferenceGroup       int32  `json:"allowed_identifier_count_in_reference_group"`
+	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
 func (app *ABCIApplication) updateNamespace(param string, nodeID string) types.ResponseDeliverTx {

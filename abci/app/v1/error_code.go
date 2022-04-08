@@ -32,6 +32,15 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type GetErrorCodeListParam struct {
+	Type string `json:"type"`
+}
+
+type GetErrorCodeListResult struct {
+	ErrorCode   int32  `json:"error_code"`
+	Description string `json:"description"`
+}
+
 func (app *ABCIApplication) getErrorCodeList(param string) types.ResponseQuery {
 	var funcParam GetErrorCodeListParam
 	err := json.Unmarshal([]byte(param), &funcParam)

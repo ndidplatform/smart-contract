@@ -31,6 +31,18 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type ServiceDetail struct {
+	ServiceID         string `json:"service_id"`
+	ServiceName       string `json:"service_name"`
+	DataSchema        string `json:"data_schema"`
+	DataSchemaVersion string `json:"data_schema_version"`
+	Active            bool   `json:"active"`
+}
+
+type GetServiceDetailParam struct {
+	ServiceID string `json:"service_id"`
+}
+
 func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
 	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
@@ -108,6 +120,23 @@ func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
 		return ""
 	}
 	return result.ServiceName
+}
+
+type GetServicesByAsIDParam struct {
+	AsID string `json:"as_id"`
+}
+
+type GetServicesByAsIDResult struct {
+	Services []Service `json:"services"`
+}
+
+type Service struct {
+	ServiceID              string   `json:"service_id"`
+	MinIal                 float64  `json:"min_ial"`
+	MinAal                 float64  `json:"min_aal"`
+	Active                 bool     `json:"active"`
+	Suspended              bool     `json:"suspended"`
+	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
 func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery {

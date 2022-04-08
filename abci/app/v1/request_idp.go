@@ -34,6 +34,15 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
+type CreateIdpResponseParam struct {
+	Aal       float64 `json:"aal"`
+	Ial       float64 `json:"ial"`
+	RequestID string  `json:"request_id"`
+	Signature string  `json:"signature"`
+	Status    string  `json:"status"`
+	ErrorCode *int32  `json:"error_code"`
+}
+
 func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var funcParam CreateIdpResponseParam

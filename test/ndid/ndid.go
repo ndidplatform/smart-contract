@@ -105,7 +105,7 @@ func EndInit(t *testing.T, nodeID, privK string, param app.EndInitParam) {
 
 func IsInitEnded(t *testing.T, expected bool) {
 	fnName := "IsInitEnded"
-	var param app.IsInitEndedParam
+	var param struct{}
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
 		fmt.Println("error:", err)
@@ -142,7 +142,7 @@ func SetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, nodeID, privK s
 	t.Logf("PASS: %s", fnName)
 }
 
-func AddNamespace(t *testing.T, nodeID, privK string, param app.Namespace) {
+func AddNamespace(t *testing.T, nodeID, privK string, param app.AddNamespaceParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -161,7 +161,7 @@ func AddNamespace(t *testing.T, nodeID, privK string, param app.Namespace) {
 }
 
 func TestAddNamespace(t *testing.T, namespace string) {
-	var param app.Namespace
+	var param app.AddNamespaceParam
 	param.Namespace = namespace
 	switch namespace {
 	case data.UserNamespace1:
@@ -206,7 +206,7 @@ func TestNDIDUpdateNamespace(t *testing.T) {
 	UpdateNamespace(t, ndidNodeID, data.NdidPrivK, param)
 }
 
-func RegisterNode(t *testing.T, nodeID, privK string, param app.RegisterNode) {
+func RegisterNode(t *testing.T, nodeID, privK string, param app.RegisterNodeParam) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -248,7 +248,7 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	var param app.RegisterNode
+	var param app.RegisterNodeParam
 	switch nodeID {
 	case data.IdP1:
 		privKey := utils.GetPrivateKeyFromString(data.IdpPrivK1)
