@@ -51,6 +51,9 @@ func (app *ABCIApplication) createRequest(param string, nodeID string) types.Res
 	}
 	var requesterNodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetaiValue), &requesterNodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
 
 	// log chain ID
 	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
