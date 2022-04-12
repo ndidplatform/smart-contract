@@ -78,7 +78,8 @@ jobs:
           name: Build docker images and push to docker hub
           command: |
             cd docker
-            docker buildx create --use
+            docker context create multi-arch-build
+            docker buildx create --use multi-arch-build
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
             ./buildx.sh --push
@@ -104,7 +105,8 @@ jobs:
           name: Build docker images and push to docker hub
           command: |
             cd docker
-            docker buildx create --use
+            docker context create multi-arch-build
+            docker buildx create --use multi-arch-build
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG_DEV:-development}
             ./buildx.sh --push
