@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/golang:1.17
+      - image: cimg/go:1.17
     working_directory: ~/ndidplatform/smart-contract
     steps:
       - checkout
@@ -43,11 +43,11 @@ jobs:
       - run:
           name: Reset Tendermint data
           command: |
-            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP unsafe-reset-all
+            ABCI_DB_DIR_PATH=abci_db ./did-tendermint --home ./config/tendermint/IdP unsafe-reset-all
       - run:
           name: Start Tendermint with ABCI app
           command: |
-            ABCI_DB_DIR_PATH=IdP_DB ./did-tendermint --home ./config/tendermint/IdP node
+            ABCI_DB_DIR_PATH=abci_db ./did-tendermint --home ./config/tendermint/IdP node
           background: true
 
       - run: sleep 15
@@ -58,19 +58,13 @@ jobs:
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
     docker:
-      - image: circleci/golang:1.17
+      - image: cimg/base:stable
     steps:
       - checkout
       - setup_remote_docker
+          version: 20.10.11
       - run:
-          name: Build docker images
-          command: |
-            cd docker
-            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
-            DOCKER_TAG=${DOCKER_TAG:-latest}
-            ./build.sh
-      - run:
-          name: Push to docker hub
+          name: Login to docker hub
           command: |
             if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
             then
@@ -79,25 +73,23 @@ jobs:
               echo "- DOCKER_PASS"
               exit 1
             fi
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Build docker images and push to docker hub
+          command: |
+            cd docker
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
+            ./buildx.sh -- --push
   push_dev_to_docker_hub:
     docker:
-      - image: circleci/golang:1.17
+      - image: cimg/base:stable
     steps:
       - checkout
       - setup_remote_docker
+          version: 20.10.11
       - run:
-          name: Build docker images
-          command: |
-            cd docker
-            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
-            DOCKER_TAG=${DOCKER_TAG_DEV:-development}
-            ./build.sh
-      - run:
-          name: Push to docker hub
+          name: Login to docker hub
           command: |
             if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
             then
@@ -106,10 +98,14 @@ jobs:
               echo "- DOCKER_PASS"
               exit 1
             fi
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Build docker images and push to docker hub
+          command: |
+            cd docker
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG_DEV:-development}
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
+            ./buildx.sh -- --push
 workflows:
   version: 2
   build_and_deploy:
