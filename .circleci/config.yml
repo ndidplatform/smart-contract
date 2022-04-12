@@ -64,7 +64,14 @@ jobs:
       - setup_remote_docker:
           version: 20.10.11
       - run:
-          name: Login to docker hub
+          name: Build docker images
+          command: |
+            cd docker
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG:-latest}
+            ./build.sh
+      - run:
+          name: Push to docker hub
           command: |
             if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
             then
@@ -73,16 +80,10 @@ jobs:
               echo "- DOCKER_PASS"
               exit 1
             fi
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run:
-          name: Build docker images and push to docker hub
-          command: |
-            cd docker
-            docker context create multi-arch-build
-            docker buildx create --use multi-arch-build
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
-            ./buildx.sh --push
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
       - image: cimg/base:stable
@@ -91,7 +92,14 @@ jobs:
       - setup_remote_docker:
           version: 20.10.11
       - run:
-          name: Login to docker hub
+          name: Build docker images
+          command: |
+            cd docker
+            REPO_NAME=${REPO_NAME:-$DOCKER_USER}
+            DOCKER_TAG=${DOCKER_TAG_DEV:-development}
+            ./build.sh
+      - run:
+          name: Push to docker hub
           command: |
             if [ ! "$DOCKER_USER"  -o  ! "$DOCKER_PASS"  ]
             then
@@ -100,16 +108,10 @@ jobs:
               echo "- DOCKER_PASS"
               exit 1
             fi
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-      - run:
-          name: Build docker images and push to docker hub
-          command: |
-            cd docker
-            docker context create multi-arch-build
-            docker buildx create --use multi-arch-build
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG_DEV:-development}
-            ./buildx.sh --push
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
 workflows:
   version: 2
   build_and_deploy:
