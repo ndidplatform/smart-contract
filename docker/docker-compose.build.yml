@@ -7,4 +7,11 @@ services:
       labels:
         build.commit: ${BUILD_COMMIT}
         build.date: ${BUILD_DATE}
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+          - linux/arm/v7
+          - linux/arm/v6
+        pull: true
     image: ${REPO_NAME:-ndidplatform}/did-tendermint:${DOCKER_TAG:-latest}
