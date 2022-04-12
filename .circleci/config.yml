@@ -80,7 +80,7 @@ jobs:
             cd docker
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG:-latest}
-            ./buildx.sh -- --push
+            ./buildx.sh --push
   push_dev_to_docker_hub:
     docker:
       - image: cimg/base:stable
@@ -105,7 +105,7 @@ jobs:
             cd docker
             REPO_NAME=${REPO_NAME:-$DOCKER_USER}
             DOCKER_TAG=${DOCKER_TAG_DEV:-development}
-            ./buildx.sh -- --push
+            ./buildx.sh --push
 workflows:
   version: 2
   build_and_deploy:
