@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 7.0.0 (TBD)
 
 BREAKING CHANGES:
 
