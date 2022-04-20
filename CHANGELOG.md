@@ -1,6 +1,6 @@
 # Changelog
 
-## 7.0.0 (TBD)
+## 7.0.0 (April 20, 2022)
 
 BREAKING CHANGES:
 
