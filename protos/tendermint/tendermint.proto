@@ -6,7 +6,7 @@ package ndid_tendermint_abci_interface_v7;
 
 message Tx {
   string method = 1;
-  string params = 2;
+  bytes params = 2;
   bytes nonce = 3;
   bytes signature = 4;
   string node_id = 5;
@@ -14,5 +14,5 @@ message Tx {
 
 message Query {
   string method = 1;
-  string params = 2;
+  bytes params = 2;
 }

@@ -70,7 +70,7 @@ func CreateSignatureAndNonce(fnName string, paramJSON []byte, privKey *rsa.Priva
 func CreateTxn(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
 	var tx protoTm.Tx
 	tx.Method = string(fnName)
-	tx.Params = string(param)
+	tx.Params = param
 	tx.Nonce = nonce
 	tx.Signature = signature
 	tx.NodeId = string(nodeID)
@@ -113,7 +113,7 @@ func CreateTxn(fnName []byte, param []byte, nonce []byte, signature []byte, node
 func Query(fnName []byte, param []byte) (interface{}, error) {
 	var data protoTm.Query
 	data.Method = string(fnName)
-	data.Params = string(param)
+	data.Params = param
 	dataByte, err := proto.Marshal(&data)
 	if err != nil {
 		log.Printf("err: %s", err.Error())

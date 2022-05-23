@@ -36,10 +36,10 @@ type TimeOutBlockRegisterIdentity struct {
 	TimeOutBlock int64 `json:"time_out_block"`
 }
 
-func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -62,10 +62,10 @@ type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
 	MinIal float64 `json:"min_ial"`
 }
 
-func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

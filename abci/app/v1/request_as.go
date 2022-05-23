@@ -41,10 +41,10 @@ type CreateAsResponseParam struct {
 	ErrorCode *int32 `json:"error_code"`
 }
 
-func (app *ABCIApplication) createAsResponse(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createAsResponse(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
 	var createAsResponseParam CreateAsResponseParam
-	err := json.Unmarshal([]byte(param), &createAsResponseParam)
+	err := json.Unmarshal(param, &createAsResponseParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

@@ -40,10 +40,10 @@ type AddServiceParam struct {
 	DataSchemaVersion string `json:"data_schema_version"`
 }
 
-func (app *ABCIApplication) addService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addService(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -103,10 +103,10 @@ type EnableServiceParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) enableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableService(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableService, Parameter: %s", param)
 	var funcParam EnableServiceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -158,10 +158,10 @@ type DisableServiceParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) disableService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableService(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -219,10 +219,10 @@ type UpdateServiceParam struct {
 	DataSchemaVersion string `json:"data_schema_version"`
 }
 
-func (app *ABCIApplication) updateService(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateService(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateService, Parameter: %s", param)
 	var funcParam UpdateServiceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -289,10 +289,10 @@ type RegisterServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) registerServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestinationByNDID(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -344,10 +344,10 @@ type DisableServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) disableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestinationByNDID(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -410,10 +410,10 @@ type EnableServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) enableServiceDestinationByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestinationByNDID(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam EnableServiceDestinationByNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

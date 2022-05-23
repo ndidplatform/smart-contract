@@ -31,7 +31,7 @@ import (
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
 )
 
-func (app *ABCIApplication) getNamespaceList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNamespaceList(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	value, err := app.state.Get(allNamespaceKeyBytes, true)
 	if err != nil {

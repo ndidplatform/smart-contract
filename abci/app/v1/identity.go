@@ -53,10 +53,10 @@ type RegisterIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) registerIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -304,10 +304,10 @@ type UpdateIdentityParam struct {
 	Laal                   *bool    `json:"laal"`
 }
 
-func (app *ABCIApplication) updateIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -410,10 +410,10 @@ type UpdateIdentityModeListParam struct {
 	RequestID              string  `json:"request_id"`
 }
 
-func (app *ABCIApplication) updateIdentityModeList(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentityModeList(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentityModeList, Parameter: %s", param)
 	var funcParam UpdateIdentityModeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -526,10 +526,10 @@ type AddIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) addIdentity(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddIdentity, Parameter: %s", param)
 	var funcParam AddIdentityParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -683,10 +683,10 @@ type RevokeIdentityAssociationParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeIdentityAssociation(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeIdentityAssociation(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
 	var funcParam RevokeIdentityAssociationParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -798,10 +798,10 @@ type AddAccessorParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) addAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessor, Parameter: %s", param)
 	var funcParam AddAccessorParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -911,10 +911,10 @@ type RevokeAccessorParam struct {
 	RequestID      string   `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeAccessor, Parameter: %s", param)
 	var funcParam RevokeAccessorParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -1048,10 +1048,10 @@ type RevokeAndAddAccessorParam struct {
 	RequestID          string `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeAndAddAccessor(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAndAddAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeAndAddAccessor, Parameter: %s", param)
 	var funcParam RevokeAndAddAccessorParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -1209,10 +1209,10 @@ type CheckExistingIdentityResult struct {
 	Exist bool `json:"exist"`
 }
 
-func (app *ABCIApplication) checkExistingIdentity(param string) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingIdentity(param []byte) types.ResponseQuery {
 	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1280,10 +1280,10 @@ type GetAccessorKeyResult struct {
 	Active            bool   `json:"active"`
 }
 
-func (app *ABCIApplication) getAccessorKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorKey(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1334,10 +1334,10 @@ type CheckExistingResult struct {
 	Exist bool `json:"exist"`
 }
 
-func (app *ABCIApplication) checkExistingAccessorID(param string) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingAccessorID(param []byte) types.ResponseQuery {
 	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1393,10 +1393,10 @@ type GetIdentityInfoResult struct {
 	ModeList []int32 `json:"mode_list"`
 }
 
-func (app *ABCIApplication) getIdentityInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdentityInfo(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
 	var funcParam GetIdentityInfoParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1478,10 +1478,10 @@ type GetAccessorOwnerResult struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) getAccessorOwner(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorOwner(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
 	var funcParam GetAccessorOwnerParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1532,10 +1532,10 @@ type GetReferenceGroupCodeResult struct {
 	ReferenceGroupCode string `json:"reference_group_code"`
 }
 
-func (app *ABCIApplication) GetReferenceGroupCode(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCode(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1563,10 +1563,10 @@ type GetReferenceGroupCodeByAccessorIDParam struct {
 	AccessorID string `json:"accessor_id"`
 }
 
-func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCodeByAccessorID, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeByAccessorIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1662,7 +1662,7 @@ type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
 	MinIal float64 `json:"min_ial"`
 }
 
-func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var result GetAllowedMinIalForRegisterIdentityAtFirstIdpResult
 	result.MinIal = app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(true)

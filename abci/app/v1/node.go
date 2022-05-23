@@ -43,10 +43,10 @@ type SetMqAddressesParam struct {
 	Addresses []MsqAddress `json:"addresses"`
 }
 
-func (app *ABCIApplication) setMqAddresses(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setMqAddresses(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -85,10 +85,10 @@ type GetNodeMasterPublicKeyResult struct {
 	MasterPublicKey string `json:"master_public_key"`
 }
 
-func (app *ABCIApplication) getNodeMasterPublicKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeMasterPublicKey(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
 	var funcParam GetNodeMasterPublicKeyParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -126,10 +126,10 @@ type GetNodePublicKeyResult struct {
 	PublicKey string `json:"public_key"`
 }
 
-func (app *ABCIApplication) getNodePublicKey(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodePublicKey(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
 	var funcParam GetNodePublicKeyParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -208,10 +208,10 @@ type MsqDestinationNode struct {
 	IsIdpAgent                             bool     `json:"agent"`
 }
 
-func (app *ABCIApplication) getIdpNodes(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetIdpNodes, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -438,10 +438,10 @@ type ASNodeResult struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) getAsNodesByServiceId(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesByServiceId(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -567,10 +567,10 @@ type GetMqAddressesParam struct {
 
 type GetMqAddressesResult []MsqAddress
 
-func (app *ABCIApplication) getMqAddresses(param string) types.ResponseQuery {
+func (app *ABCIApplication) getMqAddresses(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetMqAddresses, Parameter: %s", param)
 	var funcParam GetMqAddressesParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -611,10 +611,10 @@ type UpdateNodeParam struct {
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
-func (app *ABCIApplication) updateNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -685,10 +685,10 @@ type ProxyNodeInfo struct {
 	Config          string       `json:"config"`
 }
 
-func (app *ABCIApplication) getNodeInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
 	var funcParam GetNodeInfoParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -807,10 +807,10 @@ type IdpNodeProxy struct {
 	Config    string       `json:"config"`
 }
 
-func (app *ABCIApplication) getIdpNodesInfo(param string) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetIdpNodesInfo, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1077,10 +1077,10 @@ type ASWithMqNodeBehindProxy struct {
 	} `json:"proxy"`
 }
 
-func (app *ABCIApplication) getAsNodesInfoByServiceId(param string) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAsNodesInfoByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1282,10 +1282,10 @@ type ASorRPBehindProxy struct {
 	Config          string `json:"config"`
 }
 
-func (app *ABCIApplication) getNodesBehindProxyNode(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNodesBehindProxyNode, Parameter: %s", param)
 	var funcParam GetNodesBehindProxyNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -1373,10 +1373,10 @@ type GetNodeIDListResult struct {
 	NodeIDList []string `json:"node_id_list"`
 }
 
-func (app *ABCIApplication) getNodeIDList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetNodeIDList, Parameter: %s", param)
 	var funcParam GetNodeIDListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

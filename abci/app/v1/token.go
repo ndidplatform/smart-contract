@@ -100,10 +100,10 @@ type SetPriceFuncParam struct {
 	Price float64 `json:"price"`
 }
 
-func (app *ABCIApplication) setPriceFunc(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setPriceFunc(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -122,10 +122,10 @@ type GetPriceFuncResult struct {
 	Price float64 `json:"price"`
 }
 
-func (app *ABCIApplication) getPriceFunc(param string, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getPriceFunc(param []byte, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -228,10 +228,10 @@ type SetNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) setNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -255,10 +255,10 @@ type AddNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) addNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -282,10 +282,10 @@ type ReduceNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) reduceNodeToken(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) reduceNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -312,10 +312,10 @@ type GetNodeTokenResult struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) getNodeToken(param string, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getNodeToken(param []byte, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.Height)
 	}

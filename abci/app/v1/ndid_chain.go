@@ -40,10 +40,10 @@ type InitNDIDParam struct {
 	ChainHistoryInfo string `json:"chain_history_info"`
 }
 
-func (app *ABCIApplication) initNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) initNDID(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -75,10 +75,10 @@ type KeyValue struct {
 	Value []byte `json:"value"`
 }
 
-func (app *ABCIApplication) SetInitData(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetInitData(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetInitData, Parameter: %s", param)
 	var funcParam SetInitDataParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -90,10 +90,10 @@ func (app *ABCIApplication) SetInitData(param string, nodeID string) types.Respo
 
 type EndInitParam struct{}
 
-func (app *ABCIApplication) EndInit(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) EndInit(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EndInit, Parameter: %s", param)
 	var funcParam EndInitParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -105,10 +105,10 @@ type SetLastBlockParam struct {
 	BlockHeight int64 `json:"block_height"`
 }
 
-func (app *ABCIApplication) setLastBlock(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setLastBlock(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetLastBlock, Parameter: %s", param)
 	var funcParam SetLastBlockParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

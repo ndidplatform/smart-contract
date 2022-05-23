@@ -43,10 +43,10 @@ type GetServiceDetailParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServiceDetail(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -71,7 +71,7 @@ func (app *ABCIApplication) getServiceDetail(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) getServiceList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServiceList(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
 	value, err := app.state.Get([]byte(key), true)
@@ -139,10 +139,10 @@ type Service struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) getServicesByAsID(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServicesByAsID(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
 	var funcParam GetServicesByAsIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

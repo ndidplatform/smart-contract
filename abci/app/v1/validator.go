@@ -95,10 +95,10 @@ type SetValidatorParam struct {
 	Power     int64  `json:"power"`
 }
 
-func (app *ABCIApplication) setValidator(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setValidator(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

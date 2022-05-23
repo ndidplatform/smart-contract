@@ -39,10 +39,10 @@ type AddSuppressedIdentityModificationNotificationNodeParam struct {
 }
 
 // regulator only
-func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam AddSuppressedIdentityModificationNotificationNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -91,10 +91,10 @@ type RemoveSuppressedIdentityModificationNotificationNodeParam struct {
 }
 
 // regulator only
-func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam RemoveSuppressedIdentityModificationNotificationNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -120,10 +120,10 @@ type GetSuppressedIdentityModificationNotificationNodeListParam struct {
 	Prefix string `json:"prefix"`
 }
 
-func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeList(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeList(param []byte, height int64) types.ResponseQuery {
 	app.logger.Infof("GetSuppressedIdentityModificationNotificationNodeList, Parameter: %s", param)
 	var funcParam GetSuppressedIdentityModificationNotificationNodeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -163,10 +163,10 @@ type IsSuppressedIdentityModificationNotificationNodeResult struct {
 	Suppressed bool `json:"suppressed"`
 }
 
-func (app *ABCIApplication) isSuppressedIdentityModificationNotificationNode(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) isSuppressedIdentityModificationNotificationNode(param []byte, height int64) types.ResponseQuery {
 	app.logger.Infof("IsSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam IsSuppressedIdentityModificationNotificationNodeParams
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

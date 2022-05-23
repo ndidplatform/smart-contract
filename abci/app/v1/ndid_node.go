@@ -48,10 +48,10 @@ type RegisterNodeParam struct {
 	Whitelist       []string `json:"node_id_whitelist"`
 }
 
-func (app *ABCIApplication) registerNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -215,10 +215,10 @@ type UpdateNodeByNDIDParam struct {
 	Whitelist       []string `json:"node_id_whitelist"`
 }
 
-func (app *ABCIApplication) updateNodeByNDID(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeByNDID(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -288,10 +288,10 @@ type DisableNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) disableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -321,10 +321,10 @@ type EnableNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) enableNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNode, Parameter: %s", param)
 	var funcParam EnableNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -356,10 +356,10 @@ type AddNodeToProxyNodeParam struct {
 	Config      string `json:"config"`
 }
 
-func (app *ABCIApplication) addNodeToProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToProxyNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToProxyNode, Parameter: %s", param)
 	var funcParam AddNodeToProxyNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -432,10 +432,10 @@ type UpdateNodeProxyNodeParam struct {
 	Config      string `json:"config"`
 }
 
-func (app *ABCIApplication) updateNodeProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeProxyNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNodeProxyNode, Parameter: %s", param)
 	var funcParam UpdateNodeProxyNodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -531,10 +531,10 @@ type RemoveNodeFromProxyNode struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) removeNodeFromProxyNode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeNodeFromProxyNode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveNodeFromProxyNode, Parameter: %s", param)
 	var funcParam RemoveNodeFromProxyNode
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

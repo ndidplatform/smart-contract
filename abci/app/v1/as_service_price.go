@@ -48,10 +48,10 @@ type ServicePriceByCurrency struct {
 	MaxPrice float64 `json:"max_price"`
 }
 
-func (app *ABCIApplication) setServicePrice(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePrice(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePrice, Parameter: %s", param)
 	var funcParam SetServicePriceParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -179,10 +179,10 @@ type ServicePrice struct {
 	CreationChainID     string                   `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getServicePriceList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceList(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServicePriceList, Parameter: %s", param)
 	var funcParam GetServicePriceListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

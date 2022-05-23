@@ -40,10 +40,10 @@ type RegisterServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) registerServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -180,10 +180,10 @@ type UpdateServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) updateServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -280,10 +280,10 @@ type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) disableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -364,10 +364,10 @@ type EnableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) enableServiceDestination(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam EnableServiceDestinationParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

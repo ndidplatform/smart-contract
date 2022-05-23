@@ -39,10 +39,10 @@ type CreateMessageParam struct {
 	Purpose   string `json:"purpose"`
 }
 
-func (app *ABCIApplication) createMessage(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createMessage(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateMessage, Parameter: %s", param)
 	var funcParam CreateMessageParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -91,10 +91,10 @@ type GetMessageResult struct {
 	Message string `json:"message"`
 }
 
-func (app *ABCIApplication) getMessage(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getMessage(param []byte, height int64) types.ResponseQuery {
 	app.logger.Infof("GetMessage, Parameter: %s", param)
 	var funcParam GetMessageParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -133,10 +133,10 @@ type GetMessageDetailResult struct {
 	CreationChainID     string `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getMessageDetail(param string, height int64, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getMessageDetail(param []byte, height int64, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetMessageDetail, Parameter: %s", param)
 	var funcParam GetMessageParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

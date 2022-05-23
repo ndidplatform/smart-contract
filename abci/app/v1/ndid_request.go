@@ -37,10 +37,10 @@ type SetAllowedModeListParam struct {
 	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
-func (app *ABCIApplication) SetAllowedModeList(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) SetAllowedModeList(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedModeList, Parameter: %s", param)
 	var funcParam SetAllowedModeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

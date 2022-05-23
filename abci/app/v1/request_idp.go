@@ -43,10 +43,10 @@ type CreateIdpResponseParam struct {
 	ErrorCode *int32  `json:"error_code"`
 }
 
-func (app *ABCIApplication) createIdpResponse(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createIdpResponse(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
 	var funcParam CreateIdpResponseParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

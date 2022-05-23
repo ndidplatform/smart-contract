@@ -264,7 +264,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method == "" || param == "" || nonce == nil || signature == nil || nodeID == "" {
+	if method == "" || param == nil || nonce == nil || signature == nil || nodeID == "" {
 		res.Code = code.InvalidTransactionFormat
 		res.Log = "Invalid transaction format"
 		go recordCheckTxFailMetrics(method)

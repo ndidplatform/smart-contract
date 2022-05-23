@@ -45,10 +45,10 @@ type AddErrorCodeParam struct {
 	Type        string `json:"type"`
 }
 
-func (app *ABCIApplication) addErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addErrorCode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddErrorCode, Parameter: %s", param)
 	var funcParam AddErrorCodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -110,10 +110,10 @@ type RemoveErrorCodeParam struct {
 	Type      string `json:"type"`
 }
 
-func (app *ABCIApplication) removeErrorCode(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeErrorCode(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveErrorCode, Parameter: %s", param)
 	var funcParam RemoveErrorCodeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}

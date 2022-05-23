@@ -38,10 +38,10 @@ type AddRequestTypeParam struct {
 }
 
 // regulator only
-func (app *ABCIApplication) addRequestType(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addRequestType(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddRequestType, Parameter: %s", param)
 	var funcParam AddRequestTypeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -70,10 +70,10 @@ type RemoveRequestTypeParam struct {
 }
 
 // regulator only
-func (app *ABCIApplication) removeRequestType(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeRequestType(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveRequestType, Parameter: %s", param)
 	var funcParam RemoveRequestTypeParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -95,10 +95,10 @@ type GetRequestTypeListParam struct {
 	Prefix string `json:"prefix"`
 }
 
-func (app *ABCIApplication) getRequestTypeList(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getRequestTypeList(param []byte, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequestTypeList, Parameter: %s", param)
 	var funcParam GetRequestTypeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

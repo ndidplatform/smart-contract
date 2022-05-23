@@ -39,12 +39,12 @@ func (app *ABCIApplication) ReturnQuery(value []byte, log string, height int64) 
 }
 
 // QueryRouter is Pointer to function
-func (app *ABCIApplication) QueryRouter(method string, param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) QueryRouter(method string, param []byte, height int64) types.ResponseQuery {
 	result := app.callQuery(method, param, height)
 	return result
 }
 
-func (app *ABCIApplication) callQuery(name string, param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) callQuery(name string, param []byte, height int64) types.ResponseQuery {
 	switch name {
 	case "GetNodePublicKey":
 		return app.getNodePublicKey(param)

@@ -32,7 +32,7 @@ type IsInitEndedResult struct {
 	InitEnded bool `json:"init_ended"`
 }
 
-func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
+func (app *ABCIApplication) isInitEnded(param []byte) types.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult
 	result.InitEnded = false
@@ -50,7 +50,7 @@ func (app *ABCIApplication) isInitEnded(param string) types.ResponseQuery {
 	return app.ReturnQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) getChainHistory(param string) types.ResponseQuery {
+func (app *ABCIApplication) getChainHistory(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetChainHistory, Parameter: %s", param)
 	chainHistoryInfoKey := "ChainHistoryInfo"
 	value, err := app.state.Get([]byte(chainHistoryInfoKey), true)

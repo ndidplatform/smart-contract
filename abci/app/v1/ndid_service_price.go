@@ -44,10 +44,10 @@ type PriceCeilingByCurrency struct {
 	Price    float64 `json:"price"`
 }
 
-func (app *ABCIApplication) setServicePriceCeiling(param string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePriceCeiling(param []byte) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceCeiling, Parameter: %s", param)
 	var funcParam SetServicePriceCeilingParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -95,10 +95,10 @@ type GetServicePriceCeilingResult struct {
 	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
 }
 
-func (app *ABCIApplication) getServicePriceCeiling(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceCeiling(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServicePriceCeiling, Parameter: %s", param)
 	var funcParam GetServicePriceCeilingParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -158,10 +158,10 @@ type SetServicePriceMinEffectiveDatetimeDelayParam struct {
 	DurationSecond uint32 `json:"duration_second"`
 }
 
-func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byte) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -203,10 +203,10 @@ type GetServicePriceMinEffectiveDatetimeDelayResult struct {
 	DurationSecond uint32 `json:"duration_second"`
 }
 
-func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param string) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam GetServicePriceMinEffectiveDatetimeDelayParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

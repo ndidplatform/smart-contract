@@ -73,10 +73,10 @@ type CreateRequestParam struct {
 	RequestType     *string       `json:"request_type"`
 }
 
-func (app *ABCIApplication) createRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createRequest(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam CreateRequestParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -325,10 +325,10 @@ type CloseRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) closeRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) closeRequest(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -388,10 +388,10 @@ type TimeOutRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) timeOutRequest(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) timeOutRequest(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -452,10 +452,10 @@ type SetDataReceivedParam struct {
 	AsID      string `json:"as_id"`
 }
 
-func (app *ABCIApplication) setDataReceived(param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setDataReceived(param []byte, nodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -527,10 +527,10 @@ type GetRequestResult struct {
 	Mode        int32  `json:"mode"`
 }
 
-func (app *ABCIApplication) getRequest(param string, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getRequest(param []byte, height int64) types.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -583,10 +583,10 @@ type GetRequestDetailResult struct {
 	CreationChainID     string        `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getRequestDetail(param string, height int64, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getRequestDetail(param []byte, height int64, committedState bool) types.ResponseQuery {
 	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -719,10 +719,10 @@ type GetDataSignatureResult struct {
 	Signature string `json:"signature"`
 }
 
-func (app *ABCIApplication) getDataSignature(param string) types.ResponseQuery {
+func (app *ABCIApplication) getDataSignature(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetDataSignature, Parameter: %s", param)
 	var funcParam GetDataSignatureParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
@@ -751,10 +751,10 @@ type GetAllowedModeListResult struct {
 	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
-func (app *ABCIApplication) GetAllowedModeList(param string) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedModeList(param []byte) types.ResponseQuery {
 	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
 	var funcParam GetAllowedModeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

@@ -87,7 +87,7 @@ func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log st
 }
 
 // DeliverTxRouter is Pointer to function
-func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
 	// ---- check authorization ----
 	checkTxResult := app.CheckTxRouter(method, param, nonce, signature, nodeID, false)
 	if checkTxResult.Code != code.OK {
@@ -116,7 +116,7 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param string, nonce [
 	return result
 }
 
-func (app *ABCIApplication) callDeliverTx(name string, param string, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID string) types.ResponseDeliverTx {
 	switch name {
 	case "InitNDID":
 		return app.initNDID(param, nodeID)

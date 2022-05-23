@@ -41,9 +41,9 @@ type GetErrorCodeListResult struct {
 	Description string `json:"description"`
 }
 
-func (app *ABCIApplication) getErrorCodeList(param string) types.ResponseQuery {
+func (app *ABCIApplication) getErrorCodeList(param []byte) types.ResponseQuery {
 	var funcParam GetErrorCodeListParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}

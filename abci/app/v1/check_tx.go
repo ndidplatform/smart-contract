@@ -107,7 +107,7 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 }
 
-func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkTxInitNDID(param []byte, nodeID string) types.ResponseCheckTx {
 	exist, err := app.state.Has(masterNDIDKeyBytes, true)
 	if err != nil {
 		return ReturnCheckTx(code.AppStateError, "")
@@ -119,7 +119,7 @@ func (app *ABCIApplication) checkTxInitNDID(param string, nodeID string) types.R
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkTxSetMqAddresses(param []byte, nodeID string) types.ResponseCheckTx {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -139,7 +139,7 @@ func (app *ABCIApplication) checkTxSetMqAddresses(param string, nodeID string) t
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) isNDIDNode(param string, nodeID string, committedState bool) bool {
+func (app *ABCIApplication) isNDIDNode(param []byte, nodeID string, committedState bool) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -156,7 +156,7 @@ func (app *ABCIApplication) isNDIDNode(param string, nodeID string, committedSta
 	return false
 }
 
-func (app *ABCIApplication) isRPNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isRPNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -173,7 +173,7 @@ func (app *ABCIApplication) isRPNode(param string, nodeID string) bool {
 	return false
 }
 
-func (app *ABCIApplication) isIDPNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -190,7 +190,7 @@ func (app *ABCIApplication) isIDPNode(param string, nodeID string) bool {
 	return false
 }
 
-func (app *ABCIApplication) isIDPAgentNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPAgentNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -207,7 +207,7 @@ func (app *ABCIApplication) isIDPAgentNode(param string, nodeID string) bool {
 	return false
 }
 
-func (app *ABCIApplication) isIDPorIDPAgentNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPorIDPAgentNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -224,7 +224,7 @@ func (app *ABCIApplication) isIDPorIDPAgentNode(param string, nodeID string) boo
 	return false
 }
 
-func (app *ABCIApplication) isASNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isASNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -241,7 +241,7 @@ func (app *ABCIApplication) isASNode(param string, nodeID string) bool {
 	return false
 }
 
-func (app *ABCIApplication) isIDPorRPNode(param string, nodeID string) bool {
+func (app *ABCIApplication) isIDPorRPNode(param []byte, nodeID string) bool {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
@@ -261,7 +261,7 @@ func (app *ABCIApplication) isIDPorRPNode(param string, nodeID string) bool {
 	return false
 }
 
-func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsNDID(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isNDIDNode(param, nodeID, true)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
@@ -269,7 +269,7 @@ func (app *ABCIApplication) checkIsNDID(param string, nodeID string) types.Respo
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsRP(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsRP(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isRPNode(param, nodeID)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallRPMethod, "This node does not have permission to call RP method")
@@ -277,7 +277,7 @@ func (app *ABCIApplication) checkIsRP(param string, nodeID string) types.Respons
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsIDP(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPNode(param, nodeID)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
@@ -285,7 +285,7 @@ func (app *ABCIApplication) checkIsIDP(param string, nodeID string) types.Respon
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsIDPOrIDPAgent(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsIDPOrIDPAgent(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPorIDPAgentNode(param, nodeID)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP or IdP agent method")
@@ -293,7 +293,7 @@ func (app *ABCIApplication) checkIsIDPOrIDPAgent(param string, nodeID string) ty
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsAS(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isASNode(param, nodeID)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
@@ -301,7 +301,7 @@ func (app *ABCIApplication) checkIsAS(param string, nodeID string) types.Respons
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) checkIsRPorIDP(param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsRPorIDP(param []byte, nodeID string) types.ResponseCheckTx {
 	ok := app.isIDPorRPNode(param, nodeID)
 	if !ok {
 		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
@@ -313,9 +313,9 @@ type RequestIDParam struct {
 	RequestID string `json:"request_id"`
 }
 
-func (app *ABCIApplication) checkIsOwnerRequest(param string, nodeID string, committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) checkIsOwnerRequest(param []byte, nodeID string, committedState bool) types.ResponseCheckTx {
 	var funcParam RequestIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
@@ -340,7 +340,7 @@ func (app *ABCIApplication) checkIsOwnerRequest(param string, nodeID string, com
 	return ReturnCheckTx(code.OK, "")
 }
 
-func verifySignature(param string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
+func verifySignature(param []byte, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
 	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -348,7 +348,7 @@ func verifySignature(param string, nonce []byte, signature []byte, publicKey str
 	if err != nil {
 		return false, err
 	}
-	tempPSSmessage := append([]byte(method), []byte(param)...)
+	tempPSSmessage := append([]byte(method), param...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
@@ -371,7 +371,7 @@ func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	}
 }
 
-func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(method string, param string, nodeID string, committedState bool) (string, uint32, string) {
+func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(method string, param []byte, nodeID string, committedState bool) (string, uint32, string) {
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
@@ -392,9 +392,9 @@ func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(method stri
 	return publicKey, code.OK, ""
 }
 
-func getPublicKeyInitNDID(param string) string {
+func getPublicKeyInitNDID(param []byte) string {
 	var funcParam InitNDIDParam
-	err := json.Unmarshal([]byte(param), &funcParam)
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return ""
 	}
@@ -475,12 +475,12 @@ func checkPubKey(key string) (returnCode uint32, log string) {
 	return code.OK, ""
 }
 
-func checkNodePubKeys(param string) (returnCode uint32, log string) {
+func checkNodePubKeys(param []byte) (returnCode uint32, log string) {
 	var keys struct {
 		MasterPublicKey string `json:"master_public_key"`
 		PublicKey       string `json:"public_key"`
 	}
-	err := json.Unmarshal([]byte(param), &keys)
+	err := json.Unmarshal(param, &keys)
 	if err != nil {
 		return code.UnmarshalError, err.Error()
 	}
@@ -502,11 +502,11 @@ func checkNodePubKeys(param string) (returnCode uint32, log string) {
 	return code.OK, ""
 }
 
-func checkAccessorPubKey(param string) (returnCode uint32, log string) {
+func checkAccessorPubKey(param []byte) (returnCode uint32, log string) {
 	var key struct {
 		AccessorPublicKey string `json:"accessor_public_key"`
 	}
-	err := json.Unmarshal([]byte(param), &key)
+	err := json.Unmarshal(param, &key)
 	if err != nil {
 		return code.UnmarshalError, err.Error()
 	}
@@ -575,7 +575,7 @@ func (app *ABCIApplication) checkLastBlock(committedState bool) types.ResponseCh
 
 // CheckTxRouter check if Tx is valid
 // CheckTx must get committed state while DeliverTx must get uncommitted state
-func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
 
 	// ---- Check current block <= last block ----
 	if method != "SetLastBlock" {
@@ -685,7 +685,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param string, nonce []b
 	return result
 }
 
-func (app *ABCIApplication) callCheckTx(name string, param string, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string) types.ResponseCheckTx {
 	switch name {
 	case "InitNDID":
 		return app.checkTxInitNDID(param, nodeID)
