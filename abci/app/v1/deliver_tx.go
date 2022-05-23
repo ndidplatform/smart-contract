@@ -202,6 +202,8 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.removeErrorCode(param, nodeID)
 	case "SetInitData":
 		return app.SetInitData(param, nodeID)
+	case "SetInitData_pb":
+		return app.SetInitData_pb(param, nodeID)
 	case "EndInit":
 		return app.EndInit(param, nodeID)
 	case "SetLastBlock":

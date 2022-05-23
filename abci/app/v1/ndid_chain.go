@@ -27,10 +27,12 @@ import (
 	"strconv"
 
 	"github.com/tendermint/tendermint/abci/types"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v7/abci/code"
 	"github.com/ndidplatform/smart-contract/v7/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v7/protos/data"
+	protoParam "github.com/ndidplatform/smart-contract/v7/protos/param"
 )
 
 type InitNDIDParam struct {
@@ -83,6 +85,19 @@ func (app *ABCIApplication) SetInitData(param []byte, nodeID string) types.Respo
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	for _, kv := range funcParam.KVList {
+		app.state.Set(kv.Key, kv.Value)
+	}
+	return app.ReturnDeliverTxLog(code.OK, "success", "")
+}
+
+func (app *ABCIApplication) SetInitData_pb(param []byte, nodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetInitData_pb, Parameter: %s", param)
+	var funcParam protoParam.SetInitDataParam
+	err := proto.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+	for _, kv := range funcParam.KvList {
 		app.state.Set(kv.Key, kv.Value)
 	}
 	return app.ReturnDeliverTxLog(code.OK, "success", "")

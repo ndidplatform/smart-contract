@@ -88,6 +88,7 @@ var IsMethod = map[string]bool{
 	"RemoveNodeFromProxyNode":          true,
 	"RevokeAccessor":                   true,
 	"SetInitData":                      true,
+	"SetInitData_pb":                   true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
 	"RevokeIdentityAssociation":        true,
@@ -547,7 +548,7 @@ func (app *ABCIApplication) checkCanSetInitData(committedState bool) types.Respo
 		return ReturnCheckTx(code.AppStateError, "")
 	}
 	if string(value) != "true" {
-		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+		return ReturnCheckTx(code.ChainIsAlreadyInitialized, "Chain is already initialized")
 	}
 	return ReturnCheckTx(code.OK, "")
 }
@@ -586,7 +587,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []b
 	}
 
 	// ---- Check can set init data ----
-	if method == "SetInitData" {
+	if method == "SetInitData" || method == "SetInitData_pb" {
 		return app.checkCanSetInitData(committedState)
 	}
 
@@ -715,6 +716,7 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		"AddErrorCode",
 		"RemoveErrorCode",
 		"SetInitData",
+		"SetInitData_pb",
 		"EndInit",
 		"SetLastBlock",
 		"SetAllowedModeList",

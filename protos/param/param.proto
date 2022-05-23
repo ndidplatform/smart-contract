@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "./;ndid_abci_param_v7";
+
+package ndid_abci_param_v7;
+
+message KeyValue {
+  bytes key = 1;
+  bytes value = 2;
+}
+
+message SetInitDataParam {
+  repeated KeyValue kv_list = 1;
+}

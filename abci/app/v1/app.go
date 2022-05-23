@@ -167,35 +167,37 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
 	}
 
-	// Check signature
-	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
-	if retCode != code.OK {
-		go recordDeliverTxFailMetrics(method)
-		return app.ReturnDeliverTxLog(retCode, retLog, "")
-	}
-
-	verifiedSignatureKey := string(signature) + "|" + nodeID
-	verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures.Load(verifiedSignatureKey)
-
-	if verifiedSigResultExist {
-		app.logger.Debugf("Found cached verified Tx signature result")
-		app.verifiedSignatures.Delete(verifiedSignatureKey)
-		if verifiedSigNodePubKey != publicKey {
-			app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
+	if mustCheckNodeSignature(method) {
+		// Check signature
+		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+		if retCode != code.OK {
 			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			return app.ReturnDeliverTxLog(retCode, retLog, "")
 		}
-	} else {
-		app.logger.Debugf("Cached verified Tx signature result could not be found")
-		app.logger.Debugf("Verifying Tx signature")
-		verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-		if err != nil {
-			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
-		}
-		if verifyResult == false {
-			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
+
+		verifiedSignatureKey := string(signature) + "|" + nodeID
+		verifiedSigNodePubKey, verifiedSigResultExist := app.verifiedSignatures.Load(verifiedSignatureKey)
+
+		if verifiedSigResultExist {
+			app.logger.Debugf("Found cached verified Tx signature result")
+			app.verifiedSignatures.Delete(verifiedSignatureKey)
+			if verifiedSigNodePubKey != publicKey {
+				app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
+				go recordDeliverTxFailMetrics(method)
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+		} else {
+			app.logger.Debugf("Cached verified Tx signature result could not be found")
+			app.logger.Debugf("Verifying Tx signature")
+			verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+			if err != nil {
+				go recordDeliverTxFailMetrics(method)
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+			}
+			if verifyResult == false {
+				go recordDeliverTxFailMetrics(method)
+				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
+			}
 		}
 	}
 
@@ -279,23 +281,25 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		return res
 	}
 
-	// Check signature
-	publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
-	if retCode != code.OK {
-		return ReturnCheckTx(retCode, retLog)
-	}
-
-	verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
-	if err != nil {
-		go recordCheckTxFailMetrics(method)
-		return ReturnCheckTx(code.VerifySignatureError, err.Error())
-	}
-	if verifyResult == false {
-		go recordCheckTxFailMetrics(method)
-		return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
-	}
 	verifiedSignatureKey := string(signature) + "|" + nodeID
-	app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
+	if mustCheckNodeSignature(method) {
+		// Check signature
+		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
+		if retCode != code.OK {
+			return ReturnCheckTx(retCode, retLog)
+		}
+
+		verifyResult, err := verifySignature(param, nonce, signature, publicKey, method)
+		if err != nil {
+			go recordCheckTxFailMetrics(method)
+			return ReturnCheckTx(code.VerifySignatureError, err.Error())
+		}
+		if verifyResult == false {
+			go recordCheckTxFailMetrics(method)
+			return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
+		}
+		app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
+	}
 
 	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
 	if result.Code != code.OK {
@@ -380,6 +384,15 @@ func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.Respon
 		return app.ReturnQuery(nil, "method can't be empty", app.state.Height)
 	}
 	return app.QueryRouter(method, param, height)
+}
+
+func mustCheckNodeSignature(method string) bool {
+	switch method {
+	case "SetInitData":
+	case "SetInitData_pb":
+		return false
+	}
+	return true
 }
 
 func getEnv(key, defaultValue string) string {
