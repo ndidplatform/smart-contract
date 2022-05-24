@@ -43,6 +43,7 @@ var (
 
 const (
 	keySeparator                                         = "|"
+	nonceKeyPrefix                                       = "n"
 	nodeIDKeyPrefix                                      = "NodeID"
 	behindProxyNodeKeyPrefix                             = "BehindProxyNode"
 	tokenKeyPrefix                                       = "Token"
@@ -65,4 +66,5 @@ const (
 	servicePriceListKeyPrefix                            = "ServicePriceListKey"
 	requestTypeKeyPrefix                                 = "RequestType"
 	suppressedIdentityModificationNotificationNodePrefix = "SuppressedIdentityModificationNotificationNode"
+	validatorKeyPrefix                                   = "Validator"
 )

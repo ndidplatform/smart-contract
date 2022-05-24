@@ -341,7 +341,7 @@ func (app *ABCIApplication) checkIsOwnerRequest(param []byte, nodeID string, com
 	return ReturnCheckTx(code.OK, "")
 }
 
-func verifySignature(param []byte, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
+func verifySignature(param []byte, chainID string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
 	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -350,7 +350,8 @@ func verifySignature(param []byte, nonce []byte, signature []byte, publicKey str
 		return false, err
 	}
 	tempPSSmessage := append([]byte(method), param...)
-	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
+	tempPSSmessage = append(tempPSSmessage, []byte(chainID)...)
+	tempPSSmessage = append(tempPSSmessage, nonce...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
@@ -372,7 +373,12 @@ func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	}
 }
 
-func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(method string, param []byte, nodeID string, committedState bool) (string, uint32, string) {
+func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(
+	method string,
+	param []byte,
+	nodeID string,
+	committedState bool,
+) (string, uint32, string) {
 	var publicKey string
 	if method == "InitNDID" {
 		publicKey = getPublicKeyInitNDID(param)
@@ -798,7 +804,8 @@ func (app *ABCIApplication) checkIsProxyNode(nodeID string) bool {
 }
 
 func (app *ABCIApplication) isDuplicateNonce(nonce []byte) bool {
-	hasNonce, err := app.state.Has(nonce, false)
+	nonceKey := append([]byte(nonceKeyPrefix+keySeparator), nonce...)
+	hasNonce, err := app.state.Has(nonceKey, false)
 	if err != nil {
 		panic(err)
 	}

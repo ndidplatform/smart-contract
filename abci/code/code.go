@@ -148,6 +148,7 @@ const (
 	SuppressedIdentityModificationNotificationNodeIDDoesNotExist  uint32 = 124
 	NotIdPNode                                                    uint32 = 125
 	ChainIsAlreadyInitialized                                     uint32 = 126
+	ChainIdMismatch                                               uint32 = 127
 
 	UnknownError uint32 = 999
 )

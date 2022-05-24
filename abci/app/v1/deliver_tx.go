@@ -108,11 +108,15 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce [
 		}
 	}
 
-	// Set used nonce to stateDB
-	emptyValue := make([]byte, 0)
-	app.state.Set([]byte(nonce), emptyValue)
-	nonceStr := string(nonce)
-	app.deliverTxNonceState[nonceStr] = []byte(nil)
+	if mustCheckNodeSignature(method) {
+		// Set used nonce to stateDB
+		nonceKey := append([]byte(nonceKeyPrefix+keySeparator), nonce...)
+		emptyValue := make([]byte, 0)
+		app.state.Set(nonceKey, emptyValue)
+		nonceStr := string(nonce)
+		app.deliverTxNonceState[nonceStr] = []byte(nil)
+	}
+
 	return result
 }
 
