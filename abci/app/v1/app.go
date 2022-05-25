@@ -94,6 +94,7 @@ func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseI
 
 // Save the validators in the merkle tree
 func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
+	app.logger.Infof("InitChain: %s", req.ChainId)
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
@@ -107,6 +108,14 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	app.state.CurrentBlockHeight = req.Header.Height
+
+	// avoid hash reset on InitChain
+	if req.Header.Height > 1 {
+		app.state.HasHashData = false
+		app.state.HashDigest = sha256.New()
+	}
+	app.state.HashDigest.Write(app.state.AppHash)
+
 	app.CurrentChain = req.Header.ChainID
 	// reset valset changes
 	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
@@ -305,11 +314,6 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 	return result
 }
 
-func hash(data []byte) []byte {
-	sum := sha256.Sum256(data)
-	return sum[:]
-}
-
 func (app *ABCIApplication) Commit() types.ResponseCommit {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
@@ -326,15 +330,13 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 
 	appHashStartTime := time.Now()
 	// Calculate app hash
-	if len(app.state.HashData) > 0 {
-		app.state.HashData = append(app.state.AppHash, app.state.HashData...)
-		app.state.AppHash = hash(app.state.HashData)
+
+	if app.state.HasHashData {
+		app.state.AppHash = app.state.HashDigest.Sum(nil)
 	}
 	appHash := app.state.AppHash
 	appHashDuration := time.Since(appHashStartTime)
 	go recordAppHashDurationMetrics(appHashDuration)
-
-	app.state.HashData = make([]byte, 0)
 
 	// Save state
 	app.state.SaveMetadata()

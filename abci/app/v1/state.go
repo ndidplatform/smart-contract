@@ -23,8 +23,10 @@
 package app
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"hash"
 	"strconv"
 
 	dbm "github.com/tendermint/tm-db"
@@ -53,7 +55,8 @@ type AppState struct {
 	AppStateMetadata
 	db                       dbm.DB
 	CurrentBlockHeight       int64
-	HashData                 []byte
+	HasHashData              bool
+	HashDigest               hash.Hash
 	uncommittedState         map[string][]byte
 	uncommittedVersionsState map[string][]int64
 }
@@ -67,7 +70,8 @@ func NewAppState(db dbm.DB) (appState *AppState, err error) {
 		AppStateMetadata:         *appStateMetadata,
 		db:                       db,
 		CurrentBlockHeight:       appStateMetadata.Height,
-		HashData:                 make([]byte, 0),
+		HasHashData:              false,
+		HashDigest:               sha256.New(),
 		uncommittedState:         make(map[string][]byte),
 		uncommittedVersionsState: make(map[string][]int64),
 	}
@@ -101,9 +105,10 @@ func (appState *AppState) SaveMetadata() error {
 
 // Set value `nil` equals Delete
 func (appState *AppState) Set(key, value []byte) {
-	appState.HashData = append(appState.HashData, key...)
-	appState.HashData = append(appState.HashData, actionSet...)
-	appState.HashData = append(appState.HashData, value...)
+	appState.HasHashData = true
+	appState.HashDigest.Write(key)
+	appState.HashDigest.Write(actionSet)
+	appState.HashDigest.Write(value)
 
 	appState.uncommittedState[string(key)] = value
 }
@@ -130,12 +135,15 @@ func (appState *AppState) SetVersioned(key, value []byte) error {
 	}
 
 	if len(versions) == 0 || versions[len(versions)-1] != appState.CurrentBlockHeight {
-		appState.HashData = append(appState.HashData, versionsKey...)
-		appState.HashData = append(appState.HashData, actionSet...)
+		appState.HasHashData = true
+		appState.HashDigest.Write(versionsKey)
+		appState.HashDigest.Write(actionSet)
+
 		versionBytes := make([]byte, 8)
 		for _, version := range versions {
 			binary.BigEndian.PutUint64(versionBytes, uint64(version))
-			appState.HashData = append(appState.HashData, versionBytes...)
+
+			appState.HashDigest.Write(versionBytes)
 		}
 
 		appState.uncommittedVersionsState[versionsKeyStr] = append(versions, appState.CurrentBlockHeight)
@@ -143,9 +151,10 @@ func (appState *AppState) SetVersioned(key, value []byte) error {
 
 	keyWithVersionStr := string(key) + "|" + strconv.FormatInt(appState.CurrentBlockHeight, 10)
 
-	appState.HashData = append(appState.HashData, key...)
-	appState.HashData = append(appState.HashData, actionSet...)
-	appState.HashData = append(appState.HashData, value...)
+	appState.HasHashData = true
+	appState.HashDigest.Write(key)
+	appState.HashDigest.Write(actionSet)
+	appState.HashDigest.Write(value)
 
 	appState.uncommittedState[keyWithVersionStr] = value
 
@@ -355,8 +364,10 @@ func (appState *AppState) Delete(key []byte) error {
 	if !hasKey {
 		return nil
 	}
-	appState.HashData = append(appState.HashData, key...)
-	appState.HashData = append(appState.HashData, actionDelete...)
+
+	appState.HasHashData = true
+	appState.HashDigest.Write(key)
+	appState.HashDigest.Write(actionDelete)
 
 	appState.uncommittedState[string(key)] = nil
 
