@@ -1,5 +1,21 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Change ABCI transaction format
+  - Add `chain_id` (string). No longer need to copy nonce over from previous chains when migrate (given that chain ID is different and unique). This also help reduce initial data.
+  - Change `params` data type to byte array.
+- `SetInitData` and `SetInitData_pb` methods do not require signature and nonce. (Reduce transaction size on migration.)
+- ABCI state key change for nonce - now it has a prefix.
+- ABCI state key change for validator - change key prefix.
+- Save ABCI state and set initial app hash on `InitChain`.
+
+IMPROVEMENTS:
+
+- Add `SetInitData_pb` method - same as `SetInitData` but uses protobuf as parameter instead of JSON string to reduce transaction size.
+
 ## 7.0.0 (May 13, 2022)
 
 BREAKING CHANGES:
