@@ -101,7 +101,17 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 			app.logger.Error("Error updating validators", "r", r)
 		}
 	}
-	return types.ResponseInitChain{}
+
+	app.state.Save()
+	if app.state.HasHashData {
+		app.state.AppHash = app.state.HashDigest.Sum(nil)
+	}
+	// Save state
+	app.state.SaveMetadata()
+
+	return types.ResponseInitChain{
+		AppHash: app.state.AppHash,
+	}
 }
 
 // Track the block hash and header information
@@ -109,11 +119,8 @@ func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.Respon
 	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
 	app.state.CurrentBlockHeight = req.Header.Height
 
-	// avoid hash reset on InitChain
-	if req.Header.Height > 1 {
-		app.state.HasHashData = false
-		app.state.HashDigest = sha256.New()
-	}
+	app.state.HasHashData = false
+	app.state.HashDigest = sha256.New()
 	app.state.HashDigest.Write(app.state.AppHash)
 
 	app.CurrentChain = req.Header.ChainID
