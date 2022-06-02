@@ -7,6 +7,8 @@ BREAKING CHANGES:
 - Change ABCI transaction format
   - Add `chain_id` (string). No longer need to copy nonce over from previous chains when migrate (given that chain ID is different and unique). This also help reduce initial data.
   - Change `params` data type to byte array.
+- Change ABCI query format
+  - Change `params` data type to byte array.
 - `SetInitData` and `SetInitData_pb` methods do not require signature and nonce. (Reduce transaction size on migration.)
 - ABCI state key change for nonce - now it has a prefix.
 - ABCI state key change for validator - change key prefix.
