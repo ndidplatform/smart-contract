@@ -41,6 +41,10 @@ const (
 )
 
 const (
+	syncWriteEvery = 50000
+)
+
+const (
 	logProgressEvery = 100000
 )
 
@@ -101,19 +105,26 @@ func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir
 		hashDigest.Write(actionSet)
 		hashDigest.Write(kv.Value)
 
-		err = appState.db.SetSync(kv.Key, kv.Value)
-		if err != nil {
-			return nil, err
+		if keyCount+1%syncWriteEvery == 0 || keyCount+1 == initialStateMetadata.TotalKeyCount {
+			err = appState.db.SetSync(kv.Key, kv.Value)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err = appState.db.Set(kv.Key, kv.Value)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		keyCount++
 
 		if keyCount%logProgressEvery == 0 {
 			logger.Infof(
-				"Initial state data keys written: %d/%d (%d%)",
+				"Initial state data keys written: %d/%d (%.2f%%)",
 				keyCount,
 				initialStateMetadata.TotalKeyCount,
-				(keyCount/initialStateMetadata.TotalKeyCount)*100,
+				(float64(keyCount)/float64(initialStateMetadata.TotalKeyCount))*100,
 			)
 		}
 	}
