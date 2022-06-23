@@ -53,9 +53,10 @@ type ABCIApplication struct {
 	valUpdates          map[string]types.ValidatorUpdate
 	verifiedSignatures  *utils.StringMap
 	lastBlockTime       time.Time
+	initialStateDir     string
 }
 
-func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
+func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string) *ABCIApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -80,6 +81,7 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB) *ABCIApplication {
 		state:               *appState,
 		valUpdates:          make(map[string]types.ValidatorUpdate),
 		verifiedSignatures:  utils.NewStringMap(),
+		initialStateDir:     initialStateDir,
 	}
 }
 
@@ -95,6 +97,21 @@ func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseI
 // Save the validators in the merkle tree
 func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
 	app.logger.Infof("InitChain: %s", req.ChainId)
+
+	// load initial state data from file if provided
+	if app.initialStateDir != "" {
+		app.logger.Infof("Loading initial state data from directory: %s", app.initialStateDir)
+
+		hash, err := app.state.LoadInitialState(app.logger, app.initialStateDir)
+		if err != nil {
+			panic(err)
+		}
+
+		app.state.HashDigest.Write(hash)
+	} else {
+		app.logger.Infof("No initial state data provided")
+	}
+
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {

@@ -56,9 +56,11 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 		panic(fmt.Errorf("Could not create DB instance: %v", err.Error()))
 	}
 
+	var initialStateDir = getEnv("ABCI_INITIAL_STATE_DIR_PATH", "")
+
 	return &ABCIApplicationInterface{
-		appV1: appV1.NewABCIApplication(logger, db),
-		// appV2: appV2.NewABCIApplication(logger, db),
+		appV1: appV1.NewABCIApplication(logger, db, initialStateDir),
+		// appV2: appV2.NewABCIApplication(logger, db, initialStateDir),
 	}
 }
 

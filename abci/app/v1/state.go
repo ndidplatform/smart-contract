@@ -38,7 +38,6 @@ import (
 
 var (
 	appStateMetadataKey = []byte("stateKey")
-	// nonceKeyPrefix  = []byte("nonce:")
 )
 
 var (
