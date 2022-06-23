@@ -61,7 +61,7 @@ func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir
 	}
 
 	logger.Infof(
-		"initial state data total key count: %d",
+		"Initial state data total key count: %d",
 		initialStateMetadata.TotalKeyCount,
 	)
 
@@ -107,13 +107,15 @@ func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir
 
 		if keyCount%logProgressEvery == 0 {
 			logger.Infof(
-				"initial state data keys written: %d/%d (%d%)",
+				"Initial state data keys written: %d/%d (%d%)",
 				keyCount,
 				initialStateMetadata.TotalKeyCount,
 				(keyCount/initialStateMetadata.TotalKeyCount)*100,
 			)
 		}
 	}
+
+	logger.Infof("Initial state data loaded")
 
 	hash = hashDigest.Sum(nil)
 
