@@ -30,6 +30,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -48,6 +49,8 @@ type InitialStateMetadata struct {
 }
 
 func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir string) (hash []byte, err error) {
+	startTime := time.Now()
+
 	metadataJSON, err := ioutil.ReadFile(filepath.Join(initialStateDir, initialStateMetadataFilename))
 	if err != nil {
 		return nil, err
@@ -115,7 +118,7 @@ func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir
 		}
 	}
 
-	logger.Infof("Initial state data loaded")
+	logger.Infof("Initial state data loaded, time used: %s", time.Since(startTime))
 
 	hash = hashDigest.Sum(nil)
 
