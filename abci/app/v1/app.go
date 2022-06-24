@@ -107,6 +107,7 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 			panic(err)
 		}
 
+		app.state.HasHashData = true
 		app.state.HashDigest.Write(hash)
 	} else {
 		app.logger.Infof("No initial state data provided")
