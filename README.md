@@ -73,6 +73,7 @@ Tendermint bundled with ABCI app
 - `ABCI_LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
 - `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
+- `ABCI_INITIAL_STATE_DIR_PATH`: Directory path for initial ABCI app state data created by [migration-tools](https://github.com/ndidplatform/migration-tools). If not provided, the program will assume that there's no initial data to load on `InitChain`.
 
 ## Build
 
@@ -151,8 +152,8 @@ docker-compose -f docker/docker-compose.yml up
 
 ### Note about docker
 
-- To run docker container without building an image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/abci/ and https://hub.docker.com/r/ndidplatform/tendermint/).
-- To pull latest image from Dockerhub, run `docker pull ndidplatform/abci` and `docker pull ndidplatform/tendermint`
+- To run docker container without building an image, run command in **Run** section (no building required). It will run docker container with images from Dockerhub (https://hub.docker.com/r/ndidplatform/did-tendermint).
+- To pull latest image from Dockerhub, run `docker pull ndidplatform/did-tendermint`
 - Docker container can be run with `-u` or `--user` flag (e.g. `-u 65534:65534`). In case you are using docker-compose, `user` can be specified in docker-compose file (e.g. `user: 65534:65534`) (see [Compose file reference](https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir) for more detail).
 - When running docker container with non-root user, source directories that will be mounted into the container as `ABCI_DB_DIR_PATH` and `TMHOME` must be created beforehand with the non-root user as owner.
 

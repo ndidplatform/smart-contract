@@ -13,7 +13,7 @@ BREAKING CHANGES:
 - ABCI state key change for nonce - now it has a prefix.
 - ABCI state key change for validator - change key prefix.
 - Save ABCI state and set initial app hash on `InitChain`.
-- Support ABCI initial state loading from file on `InitChain`.
+- Support ABCI initial state loading from file on `InitChain` by setting environment variable `ABCI_INITIAL_STATE_DIR_PATH`.
 
 IMPROVEMENTS:
 
