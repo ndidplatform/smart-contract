@@ -175,7 +175,6 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 
 	method := txObj.Method
 	param := txObj.Params
-	chainID := txObj.ChainId
 	nonce := txObj.Nonce
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
@@ -187,16 +186,6 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		duration := time.Since(startTime)
 		go recordDeliverTxDurationMetrics(duration, method)
 	}()
-
-	if mustCheckNodeSignature(method) {
-		// ---- Check chain ID ----
-		if chainID != app.CurrentChain {
-			res.Code = code.ChainIdMismatch
-			res.Log = "Chain ID mismatch"
-			go recordCheckTxFailMetrics(method)
-			return res
-		}
-	}
 
 	if mustCheckNodeSignature(method) {
 		// ---- Check duplicate nonce ----
@@ -236,7 +225,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		} else {
 			app.logger.Debugf("Cached verified Tx signature result could not be found")
 			app.logger.Debugf("Verifying Tx signature")
-			verifyResult, err := verifySignature(param, chainID, nonce, signature, publicKey, method)
+			verifyResult, err := verifySignature(param, app.CurrentChain, nonce, signature, publicKey, method)
 			if err != nil {
 				go recordDeliverTxFailMetrics(method)
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
@@ -278,7 +267,6 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	method := txObj.Method
 	param := txObj.Params
-	chainID := txObj.ChainId
 	nonce := txObj.Nonce
 	signature := txObj.Signature
 	nodeID := txObj.NodeId
@@ -290,16 +278,6 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		duration := time.Since(startTime)
 		go recordCheckTxDurationMetrics(duration, method)
 	}()
-
-	if mustCheckNodeSignature(method) {
-		// ---- Check chain ID ----
-		if chainID != app.CurrentChain {
-			res.Code = code.ChainIdMismatch
-			res.Log = "Chain ID mismatch"
-			go recordCheckTxFailMetrics(method)
-			return res
-		}
-	}
 
 	if mustCheckNodeSignature(method) {
 		// ---- Check duplicate nonce ----
@@ -326,7 +304,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
-	if method == "" || param == nil || chainID == "" || nodeID == "" {
+	if method == "" || param == nil || nodeID == "" {
 		res.Code = code.InvalidTransactionFormat
 		res.Log = "Invalid transaction format"
 		go recordCheckTxFailMetrics(method)
@@ -357,7 +335,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 			return ReturnCheckTx(retCode, retLog)
 		}
 
-		verifyResult, err := verifySignature(param, chainID, nonce, signature, publicKey, method)
+		verifyResult, err := verifySignature(param, app.CurrentChain, nonce, signature, publicKey, method)
 		if err != nil {
 			go recordCheckTxFailMetrics(method)
 			return ReturnCheckTx(code.VerifySignatureError, err.Error())
