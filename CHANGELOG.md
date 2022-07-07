@@ -5,7 +5,7 @@
 BREAKING CHANGES:
 
 - Change ABCI transaction format
-  - Add `chain_id` (string). No longer need to copy nonce over from previous chains when migrate (given that chain ID is different and unique). This also help reduce initial data.
+  - Include `chain_id` (string) to signature data. No longer need to copy nonce over from previous chains when migrate (given that chain ID is different and unique). This also help reduce initial data.
   - Change `params` data type to byte array.
 - Change ABCI query format
   - Change `params` data type to byte array.
