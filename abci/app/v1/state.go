@@ -46,8 +46,9 @@ var (
 )
 
 type AppStateMetadata struct {
-	Height  int64  `json:"height"`
-	AppHash []byte `json:"app_hash"`
+	InitialStateDataLoaded bool   `json:"initial_state_data_loaded"`
+	Height                 int64  `json:"height"`
+	AppHash                []byte `json:"app_hash"`
 }
 
 type AppState struct {

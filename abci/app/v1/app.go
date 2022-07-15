@@ -24,6 +24,7 @@ package app
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -85,11 +86,27 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string)
 	}
 }
 
+type InfoData struct {
+	InitialStateDataLoaded bool `json:"initial_state_data_loaded"`
+}
+
 func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
 	var res types.ResponseInfo
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
+
+	infoData := &InfoData{
+		InitialStateDataLoaded: app.state.InitialStateDataLoaded,
+	}
+	infoDataBytes, err := json.Marshal(infoData)
+	if err != nil {
+		app.logger.Warnf("ABCI Info: JSON marshal err: %+v", err)
+		res.Data = "{}"
+	} else {
+		res.Data = string(infoDataBytes)
+	}
+
 	res.AppVersion = app.AppProtocolVersion
 	return res
 }
@@ -109,6 +126,8 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 
 		app.state.HasHashData = true
 		app.state.HashDigest.Write(hash)
+
+		app.state.InitialStateDataLoaded = true
 	} else {
 		app.logger.Infof("No initial state data provided")
 	}
