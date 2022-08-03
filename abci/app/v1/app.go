@@ -25,6 +25,7 @@ package app
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -76,6 +77,7 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string)
 	return &ABCIApplication{
 		AppProtocolVersion:  ABCIProtocolVersion,
 		Version:             ABCIVersion,
+		CurrentChain:        appState.ChainID,
 		checkTxNonceState:   utils.NewStringByteArrayMap(),
 		deliverTxNonceState: make(map[string][]byte),
 		logger:              logger,
@@ -132,6 +134,9 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 		app.logger.Infof("No initial state data provided")
 	}
 
+	app.CurrentChain = req.ChainId
+	app.state.ChainID = req.ChainId
+
 	for _, v := range req.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
@@ -160,7 +165,10 @@ func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.Respon
 	app.state.HashDigest = sha256.New()
 	app.state.HashDigest.Write(app.state.AppHash)
 
-	app.CurrentChain = req.Header.ChainID
+	if app.state.ChainID != req.Header.ChainID {
+		panic(errors.New("chain ID mismatch (ABCI state != Tendermint)"))
+	}
+
 	// reset valset changes
 	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
 	app.lastBlockTime = req.Header.Time

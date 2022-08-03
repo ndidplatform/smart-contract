@@ -47,6 +47,7 @@ var (
 
 type AppStateMetadata struct {
 	InitialStateDataLoaded bool   `json:"initial_state_data_loaded"`
+	ChainID                string `json:"chain_id"`
 	Height                 int64  `json:"height"`
 	AppHash                []byte `json:"app_hash"`
 }
