@@ -27,7 +27,7 @@ import (
 
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v7/abci/code"
+	"github.com/ndidplatform/smart-contract/v8/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx

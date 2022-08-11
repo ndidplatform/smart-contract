@@ -37,10 +37,10 @@ import (
 	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ndidplatform/smart-contract/v7/abci/code"
-	"github.com/ndidplatform/smart-contract/v7/abci/utils"
-	"github.com/ndidplatform/smart-contract/v7/abci/version"
-	protoTm "github.com/ndidplatform/smart-contract/v7/protos/tendermint"
+	"github.com/ndidplatform/smart-contract/v8/abci/code"
+	"github.com/ndidplatform/smart-contract/v8/abci/utils"
+	"github.com/ndidplatform/smart-contract/v8/abci/version"
+	protoTm "github.com/ndidplatform/smart-contract/v8/protos/tendermint"
 )
 
 type ABCIApplication struct {

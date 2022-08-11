@@ -32,7 +32,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
-	"github.com/ndidplatform/smart-contract/v7/abci/code"
+	"github.com/ndidplatform/smart-contract/v8/abci/code"
 )
 
 const (

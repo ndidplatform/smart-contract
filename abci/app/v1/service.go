@@ -28,7 +28,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	data "github.com/ndidplatform/smart-contract/v7/protos/data"
+	data "github.com/ndidplatform/smart-contract/v8/protos/data"
 )
 
 type ServiceDetail struct {

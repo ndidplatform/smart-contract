@@ -27,7 +27,7 @@ COPY .git /ndidplatform/smart-contract/.git
 ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go build \
-    -ldflags "-X github.com/ndidplatform/smart-contract/v7/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
+    -ldflags "-X github.com/ndidplatform/smart-contract/v8/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
     -tags "cleveldb" \
     -o ./did-tendermint \
     ./abci

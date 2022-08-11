@@ -28,9 +28,9 @@ import (
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v7/abci/code"
-	"github.com/ndidplatform/smart-contract/v7/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v7/protos/data"
+	"github.com/ndidplatform/smart-contract/v8/abci/code"
+	"github.com/ndidplatform/smart-contract/v8/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v8/protos/data"
 )
 
 type AddRequestTypeParam struct {

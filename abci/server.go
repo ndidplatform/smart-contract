@@ -41,7 +41,7 @@ import (
 	"github.com/tendermint/tendermint/privval"
 	"github.com/tendermint/tendermint/proxy"
 
-	abciApp "github.com/ndidplatform/smart-contract/v7/abci/app"
+	abciApp "github.com/ndidplatform/smart-contract/v8/abci/app"
 )
 
 const (

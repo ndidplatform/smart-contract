@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v7/test/as"
-	"github.com/ndidplatform/smart-contract/v7/test/common"
-	"github.com/ndidplatform/smart-contract/v7/test/data"
-	"github.com/ndidplatform/smart-contract/v7/test/idp"
-	"github.com/ndidplatform/smart-contract/v7/test/ndid"
-	"github.com/ndidplatform/smart-contract/v7/test/query"
+	"github.com/ndidplatform/smart-contract/v8/test/as"
+	"github.com/ndidplatform/smart-contract/v8/test/common"
+	"github.com/ndidplatform/smart-contract/v8/test/data"
+	"github.com/ndidplatform/smart-contract/v8/test/idp"
+	"github.com/ndidplatform/smart-contract/v8/test/ndid"
+	"github.com/ndidplatform/smart-contract/v8/test/query"
 )
 
 func TestNDIDInitNDID(t *testing.T) {
