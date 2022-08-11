@@ -52,19 +52,57 @@ func GeneratePublicKey(publicKey *rsa.PublicKey) ([]byte, error) {
 }
 
 func CreateSignatureAndNonce(fnName string, paramJSON []byte, privKey *rsa.PrivateKey) (nonce string, signature []byte) {
+	status, err := Status()
+	if err != nil {
+		fmt.Println(err.Error())
+		return "", nil
+	}
+
+	currentChainID := status.Result.NodeInfo.Network
+
 	nonce = base64.StdEncoding.EncodeToString([]byte(tmRand.Str(12)))
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
+	tempPSSmessage = append(tempPSSmessage, []byte(currentChainID)...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
 	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
 	hashed := pssh.Sum(nil)
-	signature, err := rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
+	signature, err = rsa.SignPKCS1v15(rand.Reader, privKey, newhash, hashed)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	return nonce, signature
+}
+
+func Status() (*ResponseStatus, error) {
+	var URL *url.URL
+	URL, err := url.Parse(tendermintAddr)
+	if err != nil {
+		panic(err)
+	}
+	URL.Path += "/status"
+	encodedURL := URL.String()
+	req, err := http.NewRequest("GET", encodedURL, nil)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var body *ResponseStatus
+	json.NewDecoder(resp.Body).Decode(&body)
+	return body, nil
 }
 
 func CreateTxn(fnName []byte, param []byte, nonce []byte, signature []byte, nodeID []byte) (interface{}, error) {
@@ -197,5 +235,48 @@ type ResponseQuery struct {
 			Value  string `json:"value"`
 			Height string `json:"height"`
 		} `json:"response"`
+	} `json:"result"`
+}
+
+type ResponseStatus struct {
+	Jsonrpc string `json:"jsonrpc"`
+	ID      int    `json:"id"`
+	Result  struct {
+		NodeInfo struct {
+			ProtocolVersion struct {
+				P2P   string `json:"p2p"`
+				Block string `json:"block"`
+				App   string `json:"app"`
+			} `json:"protocol_version"`
+			ID         string `json:"id"`
+			ListenAddr string `json:"listen_addr"`
+			Network    string `json:"network"`
+			Version    string `json:"version"`
+			Channels   string `json:"channels"`
+			Moniker    string `json:"moniker"`
+			Other      struct {
+				TxIndex    string `json:"tx_index"`
+				RPCAddress string `json:"rpc_address"`
+			} `json:"other"`
+		} `json:"node_info"`
+		SyncInfo struct {
+			LatestBlockHash     string    `json:"latest_block_hash"`
+			LatestAppHash       string    `json:"latest_app_hash"`
+			LatestBlockHeight   string    `json:"latest_block_height"`
+			LatestBlockTime     time.Time `json:"latest_block_time"`
+			EarliestBlockHash   string    `json:"earliest_block_hash"`
+			EarliestAppHash     string    `json:"earliest_app_hash"`
+			EarliestBlockHeight string    `json:"earliest_block_height"`
+			EarliestBlockTime   time.Time `json:"earliest_block_time"`
+			CatchingUp          bool      `json:"catching_up"`
+		} `json:"sync_info"`
+		ValidatorInfo struct {
+			Address string `json:"address"`
+			PubKey  struct {
+				Type  string `json:"type"`
+				Value string `json:"value"`
+			} `json:"pub_key"`
+			VotingPower string `json:"voting_power"`
+		} `json:"validator_info"`
 	} `json:"result"`
 }
