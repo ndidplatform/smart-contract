@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD
+## 8.0.0 (August 11, 2022)
 
 BREAKING CHANGES:
 
