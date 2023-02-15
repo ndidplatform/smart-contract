@@ -325,32 +325,102 @@ type CloseRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) closeRequest(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateCloseRequest(funcParam CloseRequestParam, callerNodeID string, committedState bool) error {
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
+	}
+
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check node ID is owner of request
+	if request.Owner != callerNodeID {
+		return &ApplicationError{
+			Code:    code.NotOwnerOfRequest,
+			Message: "This node is not owner of request",
+		}
+	}
+
+	if request.Closed {
+		return &ApplicationError{
+			Code:    code.RequestIsClosed,
+			Message: "Request is closed",
+		}
+	}
+
+	if request.TimedOut {
+		return &ApplicationError{
+			Code:    code.RequestIsTimedOut,
+			Message: "Request is timed out",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) closeRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam CloseRequestParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateCloseRequest(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) closeRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	value, err := app.state.GetVersioned([]byte(key), 0, false)
+
+	err = app.validateCloseRequest(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if value == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	}
+
 	var request data.Request
-	err = proto.Unmarshal([]byte(value), &request)
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not close a closed request", "")
-	}
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not close a timed out request", "")
-	}
+
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
@@ -372,11 +442,11 @@ func (app *ABCIApplication) closeRequest(param []byte, nodeID string) types.Resp
 		}
 	}
 	request.Closed = true
-	value, err = utils.ProtoDeterministicMarshal(&request)
+	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	err = app.state.SetVersioned([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -388,32 +458,102 @@ type TimeOutRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) timeOutRequest(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateTimeOutRequest(funcParam TimeOutRequestParam, callerNodeID string, committedState bool) error {
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
+	}
+
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check node ID is owner of request
+	if request.Owner != callerNodeID {
+		return &ApplicationError{
+			Code:    code.NotOwnerOfRequest,
+			Message: "This node is not owner of request",
+		}
+	}
+
+	if request.Closed {
+		return &ApplicationError{
+			Code:    code.RequestIsClosed,
+			Message: "Request is closed",
+		}
+	}
+
+	if request.TimedOut {
+		return &ApplicationError{
+			Code:    code.RequestIsTimedOut,
+			Message: "Request is timed out",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) timeOutRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam TimeOutRequestParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateTimeOutRequest(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) timeOutRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	value, err := app.state.GetVersioned([]byte(key), 0, false)
+
+	err = app.validateTimeOutRequest(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if value == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	}
+
 	var request data.Request
-	err = proto.Unmarshal([]byte(value), &request)
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can not set time out a timed out request", "")
-	}
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can not set time out a closed request", "")
-	}
+
 	for _, valid := range funcParam.ResponseValidList {
 		for index := range request.ResponseList {
 			if valid.IdpID == request.ResponseList[index].IdpId {
@@ -435,11 +575,11 @@ func (app *ABCIApplication) timeOutRequest(param []byte, nodeID string) types.Re
 		}
 	}
 	request.TimedOut = true
-	value, err = utils.ProtoDeterministicMarshal(&request)
+	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	err = app.state.SetVersioned([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
@@ -452,35 +592,100 @@ type SetDataReceivedParam struct {
 	AsID      string `json:"as_id"`
 }
 
-func (app *ABCIApplication) setDataReceived(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetDataReceived(funcParam SetDataReceivedParam, callerNodeID string, committedState bool) error {
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
+	}
+
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check node ID is owner of request
+	if request.Owner != callerNodeID {
+		return &ApplicationError{
+			Code:    code.NotOwnerOfRequest,
+			Message: "This node is not owner of request",
+		}
+	}
+
+	if request.Closed {
+		return &ApplicationError{
+			Code:    code.RequestIsClosed,
+			Message: "Request is closed",
+		}
+	}
+
+	if request.TimedOut {
+		return &ApplicationError{
+			Code:    code.RequestIsTimedOut,
+			Message: "Request is timed out",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setDataReceivedCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetDataReceivedParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetDataReceived(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setDataReceived(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	value, err := app.state.GetVersioned([]byte(key), 0, false)
+
+	err = app.validateSetDataReceived(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if value == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
-	}
+
 	var request data.Request
-	err = proto.Unmarshal([]byte(value), &request)
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-
-	// Check IsClosed
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
-	}
-
-	// Check IsTimedOut
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
 	}
 
 	var targetAsResponse *data.ASResponse
@@ -494,7 +699,7 @@ func (app *ABCIApplication) setDataReceived(param []byte, nodeID string) types.R
 			}
 		}
 	}
-	// Check as_id is exist in as_id_list
+	// Check if as_id exists in as_id_list
 	if targetAsResponse == nil {
 		return app.ReturnDeliverTxLog(code.AsIDDoesNotExistInASList, "AS ID does not exist in answered AS list", "")
 	}
@@ -505,11 +710,11 @@ func (app *ABCIApplication) setDataReceived(param []byte, nodeID string) types.R
 	// Update targetAsResponse status
 	targetAsResponse.ReceivedData = true
 
-	value, err = utils.ProtoDeterministicMarshal(&request)
+	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	err = app.state.SetVersioned([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}

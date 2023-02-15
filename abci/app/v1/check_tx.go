@@ -314,33 +314,6 @@ type RequestIDParam struct {
 	RequestID string `json:"request_id"`
 }
 
-func (app *ABCIApplication) checkIsOwnerRequest(param []byte, nodeID string, committedState bool) types.ResponseCheckTx {
-	var funcParam RequestIDParam
-	err := json.Unmarshal(param, &funcParam)
-	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
-	}
-	// Check request is existed
-	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
-	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
-	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
-	}
-	if requestValue == nil {
-		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
-	}
-	var request data.Request
-	err = proto.Unmarshal([]byte(requestValue), &request)
-	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
-	}
-	// Check node ID is owner of request
-	if request.Owner != nodeID {
-		return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
 func verifySignature(param []byte, chainID string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
@@ -524,12 +497,6 @@ func checkAccessorPubKey(param []byte) (returnCode uint32, log string) {
 	return code.OK, ""
 }
 
-var IsCheckOwnerRequestMethod = map[string]bool{
-	"CloseRequest":    true,
-	"TimeOutRequest":  true,
-	"SetDataReceived": true,
-}
-
 var IsMasterKeyMethod = map[string]bool{
 	"UpdateNode": true,
 }
@@ -665,10 +632,7 @@ func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []b
 
 	var result types.ResponseCheckTx
 
-	// special case checkIsOwnerRequest
-	if IsCheckOwnerRequestMethod[method] {
-		result = app.checkIsOwnerRequest(param, nodeID, committedState)
-	} else if IsMasterKeyMethod[method] {
+	if IsMasterKeyMethod[method] {
 		// If verifyResult is true, return true
 		return ReturnCheckTx(code.OK, "")
 	} else {
@@ -761,6 +725,14 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.checkTxSetMqAddresses(param, nodeID)
 	case "CreateMessage":
 		return app.checkIsRP(param, nodeID)
+
+	// new checkTx pattern: separate by function
+	case "SetDataReceived":
+		return app.setDataReceivedCheckTx(param, nodeID)
+	case "CloseRequest":
+		return app.closeRequestCheckTx(param, nodeID)
+	case "TimeOutRequest":
+		return app.timeOutRequestCheckTx(param, nodeID)
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

@@ -1,5 +1,12 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Add and refactor `CloseRequest`, `TimeOutRequest`, and `SetDataReceived` validations on CheckTx
+  - Prevent transactions with invalid input/parameters/state to be included in blocks
+
 ## 8.0.0 (August 11, 2022)
 
 BREAKING CHANGES:
