@@ -2996,6 +2996,171 @@ func (*SuppressedIdentityModificationNotificationNode) Descriptor() ([]byte, []i
 	return file_data_proto_rawDescGZIP(), []int{46}
 }
 
+type IdPActiveHours struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ActiveHours []*ActiveHours `protobuf:"bytes,1,rep,name=active_hours,json=activeHours,proto3" json:"active_hours,omitempty"`
+}
+
+func (x *IdPActiveHours) Reset() {
+	*x = IdPActiveHours{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[47]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IdPActiveHours) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IdPActiveHours) ProtoMessage() {}
+
+func (x *IdPActiveHours) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[47]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IdPActiveHours.ProtoReflect.Descriptor instead.
+func (*IdPActiveHours) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *IdPActiveHours) GetActiveHours() []*ActiveHours {
+	if x != nil {
+		return x.ActiveHours
+	}
+	return nil
+}
+
+type ActiveHours struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DayOfWeek     string          `protobuf:"bytes,1,opt,name=day_of_week,json=dayOfWeek,proto3" json:"day_of_week,omitempty"`
+	ActivePeriods []*ActivePeriod `protobuf:"bytes,2,rep,name=active_periods,json=activePeriods,proto3" json:"active_periods,omitempty"`
+	UtcOffset     int32           `protobuf:"varint,3,opt,name=utc_offset,json=utcOffset,proto3" json:"utc_offset,omitempty"` // offset in minutes
+}
+
+func (x *ActiveHours) Reset() {
+	*x = ActiveHours{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[48]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ActiveHours) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActiveHours) ProtoMessage() {}
+
+func (x *ActiveHours) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[48]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActiveHours.ProtoReflect.Descriptor instead.
+func (*ActiveHours) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *ActiveHours) GetDayOfWeek() string {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return ""
+}
+
+func (x *ActiveHours) GetActivePeriods() []*ActivePeriod {
+	if x != nil {
+		return x.ActivePeriods
+	}
+	return nil
+}
+
+func (x *ActiveHours) GetUtcOffset() int32 {
+	if x != nil {
+		return x.UtcOffset
+	}
+	return 0
+}
+
+type ActivePeriod struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Start int32 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"` // seconds from midnight
+	End   int32 `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`     // seconds from midnight
+}
+
+func (x *ActivePeriod) Reset() {
+	*x = ActivePeriod{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[49]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ActivePeriod) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivePeriod) ProtoMessage() {}
+
+func (x *ActivePeriod) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[49]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivePeriod.ProtoReflect.Descriptor instead.
+func (*ActivePeriod) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *ActivePeriod) GetStart() int32 {
+	if x != nil {
+		return x.Start
+	}
+	return 0
+}
+
+func (x *ActivePeriod) GetEnd() int32 {
+	if x != nil {
+		return x.End
+	}
+	return 0
+}
+
 var File_data_proto protoreflect.FileDescriptor
 
 var file_data_proto_rawDesc = []byte{
@@ -3375,9 +3540,27 @@ var file_data_proto_rawDesc = []byte{
 	0x65, 0x22, 0x30, 0x0a, 0x2e, 0x53, 0x75, 0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x65, 0x64, 0x49,
 	0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74,
 	0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e,
-	0x6f, 0x64, 0x65, 0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61,
-	0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x38, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x64, 0x65, 0x22, 0x54, 0x0a, 0x0e, 0x49, 0x64, 0x50, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65,
+	0x48, 0x6f, 0x75, 0x72, 0x73, 0x12, 0x42, 0x0a, 0x0c, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x5f,
+	0x68, 0x6f, 0x75, 0x72, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x6e, 0x64,
+	0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x38,
+	0x2e, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x48, 0x6f, 0x75, 0x72, 0x73, 0x52, 0x0b, 0x61, 0x63,
+	0x74, 0x69, 0x76, 0x65, 0x48, 0x6f, 0x75, 0x72, 0x73, 0x22, 0x95, 0x01, 0x0a, 0x0b, 0x41, 0x63,
+	0x74, 0x69, 0x76, 0x65, 0x48, 0x6f, 0x75, 0x72, 0x73, 0x12, 0x1e, 0x0a, 0x0b, 0x64, 0x61, 0x79,
+	0x5f, 0x6f, 0x66, 0x5f, 0x77, 0x65, 0x65, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09,
+	0x64, 0x61, 0x79, 0x4f, 0x66, 0x57, 0x65, 0x65, 0x6b, 0x12, 0x47, 0x0a, 0x0e, 0x61, 0x63, 0x74,
+	0x69, 0x76, 0x65, 0x5f, 0x70, 0x65, 0x72, 0x69, 0x6f, 0x64, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x20, 0x2e, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74,
+	0x61, 0x74, 0x65, 0x5f, 0x76, 0x38, 0x2e, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x50, 0x65, 0x72,
+	0x69, 0x6f, 0x64, 0x52, 0x0d, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x50, 0x65, 0x72, 0x69, 0x6f,
+	0x64, 0x73, 0x12, 0x1d, 0x0a, 0x0a, 0x75, 0x74, 0x63, 0x5f, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x09, 0x75, 0x74, 0x63, 0x4f, 0x66, 0x66, 0x73, 0x65,
+	0x74, 0x22, 0x36, 0x0a, 0x0c, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x50, 0x65, 0x72, 0x69, 0x6f,
+	0x64, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x72, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x05, 0x73, 0x74, 0x61, 0x72, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x65, 0x6e, 0x64, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x65, 0x6e, 0x64, 0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b,
+	0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f,
+	0x76, 0x38, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3392,7 +3575,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 50)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v8.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v8.NodeDetail
@@ -3441,7 +3624,10 @@ var file_data_proto_goTypes = []interface{}{
 	(*ServicePriceByCurrency)(nil),                         // 44: ndid_abci_state_v8.ServicePriceByCurrency
 	(*RequestType)(nil),                                    // 45: ndid_abci_state_v8.RequestType
 	(*SuppressedIdentityModificationNotificationNode)(nil), // 46: ndid_abci_state_v8.SuppressedIdentityModificationNotificationNode
-	(*wrapperspb.BoolValue)(nil),                           // 47: google.protobuf.BoolValue
+	(*IdPActiveHours)(nil),                                 // 47: ndid_abci_state_v8.IdPActiveHours
+	(*ActiveHours)(nil),                                    // 48: ndid_abci_state_v8.ActiveHours
+	(*ActivePeriod)(nil),                                   // 49: ndid_abci_state_v8.ActivePeriod
+	(*wrapperspb.BoolValue)(nil),                           // 50: google.protobuf.BoolValue
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v8.NodeDetail.mq:type_name -> ndid_abci_state_v8.MQ
@@ -3457,17 +3643,19 @@ var file_data_proto_depIdxs = []int32{
 	34, // 10: ndid_abci_state_v8.ReferenceGroup.identities:type_name -> ndid_abci_state_v8.IdentityInRefGroup
 	33, // 11: ndid_abci_state_v8.ReferenceGroup.idps:type_name -> ndid_abci_state_v8.IdPInRefGroup
 	19, // 12: ndid_abci_state_v8.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v8.Accessor
-	47, // 13: ndid_abci_state_v8.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
-	47, // 14: ndid_abci_state_v8.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
+	50, // 13: ndid_abci_state_v8.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
+	50, // 14: ndid_abci_state_v8.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
 	37, // 15: ndid_abci_state_v8.ErrorCodeList.error_code:type_name -> ndid_abci_state_v8.ErrorCode
 	40, // 16: ndid_abci_state_v8.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v8.ServicePriceCeilingByCurency
 	43, // 17: ndid_abci_state_v8.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v8.ServicePrice
 	44, // 18: ndid_abci_state_v8.ServicePrice.price_by_currency_list:type_name -> ndid_abci_state_v8.ServicePriceByCurrency
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	48, // 19: ndid_abci_state_v8.IdPActiveHours.active_hours:type_name -> ndid_abci_state_v8.ActiveHours
+	49, // 20: ndid_abci_state_v8.ActiveHours.active_periods:type_name -> ndid_abci_state_v8.ActivePeriod
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_data_proto_init() }
@@ -4040,6 +4228,42 @@ func file_data_proto_init() {
 				return nil
 			}
 		}
+		file_data_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IdPActiveHours); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[48].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ActiveHours); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[49].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ActivePeriod); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4047,7 +4271,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   47,
+			NumMessages:   50,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

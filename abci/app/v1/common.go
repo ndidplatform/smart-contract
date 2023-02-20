@@ -66,5 +66,6 @@ const (
 	servicePriceListKeyPrefix                            = "ServicePriceListKey"
 	requestTypeKeyPrefix                                 = "RequestType"
 	suppressedIdentityModificationNotificationNodePrefix = "SuppressedIdentityModificationNotificationNode"
+	idpActiveHoursKeyPrefix                              = "IdPActiveHours"
 	validatorKeyPrefix                                   = "Validator"
 )

@@ -291,3 +291,18 @@ message RequestType {
 message SuppressedIdentityModificationNotificationNode {
   // string node_id = 1;
 }
+
+message IdPActiveHours {
+  repeated ActiveHours active_hours = 1;
+}
+
+message ActiveHours {
+  string day_of_week = 1;
+  repeated ActivePeriod active_periods = 2;
+  int32 utc_offset = 3; // offset in minutes
+}
+
+message ActivePeriod {
+  int32 start = 1; // seconds from midnight
+  int32 end = 2; // seconds from midnight
+}
