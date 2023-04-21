@@ -26,12 +26,13 @@ run_node_in_background() {
   CGO_ENABLED=1 \
   CGO_LDFLAGS="-lsnappy" \
   ABCI_DB_DIR_PATH=$2 \
+  TENDERMINT_RETAIN_BLOCK_COUNT=$3 \
   go run -tags "cleveldb" ./abci --home $1 node &
 }
 
-run_node_in_background $NODE1_TENDERMINT_HOME_DIR $NODE1_ABCI_DB_DIR
-run_node_in_background $NODE2_TENDERMINT_HOME_DIR $NODE2_ABCI_DB_DIR
-run_node_in_background $NODE3_TENDERMINT_HOME_DIR $NODE3_ABCI_DB_DIR
-run_node_in_background $NODE4_TENDERMINT_HOME_DIR $NODE4_ABCI_DB_DIR
+run_node_in_background $NODE1_TENDERMINT_HOME_DIR $NODE1_ABCI_DB_DIR 0
+run_node_in_background $NODE2_TENDERMINT_HOME_DIR $NODE2_ABCI_DB_DIR 0
+run_node_in_background $NODE3_TENDERMINT_HOME_DIR $NODE3_ABCI_DB_DIR 0
+run_node_in_background $NODE4_TENDERMINT_HOME_DIR $NODE4_ABCI_DB_DIR 0
 
 wait

@@ -56,9 +56,10 @@ type ABCIApplication struct {
 	verifiedSignatures  *utils.StringMap
 	lastBlockTime       time.Time
 	initialStateDir     string
+	retainBlockCount    int64
 }
 
-func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string) *ABCIApplication {
+func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string, retainBlockCount int64) *ABCIApplication {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("%s", identifyPanic())
@@ -85,6 +86,7 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string)
 		valUpdates:          make(map[string]types.ValidatorUpdate),
 		verifiedSignatures:  utils.NewStringMap(),
 		initialStateDir:     initialStateDir,
+		retainBlockCount:    retainBlockCount,
 	}
 }
 
@@ -411,7 +413,16 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 
 	duration := time.Since(startTime)
 	go recordCommitDurationMetrics(duration)
-	return types.ResponseCommit{Data: appHash}
+
+	var retainHeight int64 = 0
+	if app.retainBlockCount > 0 && app.state.CurrentBlockHeight > app.retainBlockCount {
+		retainHeight = app.state.CurrentBlockHeight - app.retainBlockCount
+	}
+
+	return types.ResponseCommit{
+		Data:         appHash,
+		RetainHeight: retainHeight,
+	}
 }
 
 func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {

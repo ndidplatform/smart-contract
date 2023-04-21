@@ -74,6 +74,7 @@ Tendermint bundled with ABCI app
 - `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
 - `ABCI_INITIAL_STATE_DIR_PATH`: Directory path for initial ABCI app state data created by [migration-tools](https://github.com/ndidplatform/migration-tools). If not provided, the program will assume that there's no initial data to load on `InitChain`.
+- `TENDERMINT_RETAIN_BLOCK_COUNT`: Number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
 
 ## Build
 

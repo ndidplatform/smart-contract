@@ -25,6 +25,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -48,19 +49,30 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	var dbDir = getEnv("ABCI_DB_DIR_PATH", "./DID")
 
 	if err := tmos.EnsureDir(dbDir, 0700); err != nil {
-		panic(fmt.Errorf("Could not create DB directory: %v", err.Error()))
+		panic(fmt.Errorf("could not create DB directory: %v", err.Error()))
 	}
 	name := "didDB"
 	db, err := dbm.NewDB(name, dbm.BackendType(dbType), dbDir)
 	if err != nil {
-		panic(fmt.Errorf("Could not create DB instance: %v", err.Error()))
+		panic(fmt.Errorf("could not create DB instance: %v", err.Error()))
 	}
 
 	var initialStateDir = getEnv("ABCI_INITIAL_STATE_DIR_PATH", "")
 
+	var retainBlockCountStr = getEnv("TENDERMINT_RETAIN_BLOCK_COUNT", "")
+	var retainBlockCount int64
+	if retainBlockCountStr == "" {
+		retainBlockCount = 0
+	} else {
+		retainBlockCount, err = strconv.ParseInt(retainBlockCountStr, 10, 64)
+		if err != nil {
+			panic(fmt.Errorf("could not parse TENDERMINT_RETAIN_BLOCK_COUNT: %v", err.Error()))
+		}
+	}
+
 	return &ABCIApplicationInterface{
-		appV1: appV1.NewABCIApplication(logger, db, initialStateDir),
-		// appV2: appV2.NewABCIApplication(logger, db, initialStateDir),
+		appV1: appV1.NewABCIApplication(logger, db, initialStateDir, retainBlockCount),
+		// appV2: appV2.NewABCIApplication(logger, db, initialStateDir, retainBlockCount),
 	}
 }
 
