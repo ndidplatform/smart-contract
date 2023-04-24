@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+IMPROVEMENTS:
+
+- Tendermint v0.34.24.
+
 ## 8.0.0 (August 11, 2022)
 
 BREAKING CHANGES:

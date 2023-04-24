@@ -6,7 +6,7 @@ Tendermint bundled with ABCI app
 
 ## Prerequisites
 
-- Go version >= 1.17.0
+- Go version >= 1.18.0
 
   - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
   - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
