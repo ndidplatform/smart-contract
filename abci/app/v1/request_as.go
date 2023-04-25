@@ -41,136 +41,82 @@ type CreateAsResponseParam struct {
 	ErrorCode *int32 `json:"error_code"`
 }
 
-func (app *ABCIApplication) createAsResponse(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
-	var createAsResponseParam CreateAsResponseParam
-	err := json.Unmarshal(param, &createAsResponseParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseParam, callerNodeID string, committedState bool) error {
+	ok := app.isASNode(callerNodeID)
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
 	}
 
-	requestKey := requestKeyPrefix + keySeparator + createAsResponseParam.RequestID
-	requestJSON, err := app.state.GetVersioned([]byte(requestKey), 0, false)
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
-	if requestJSON == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
 	}
 	var request data.Request
-	err = proto.Unmarshal([]byte(requestJSON), &request)
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-
-	// Check error code exists
-	if createAsResponseParam.ErrorCode != nil {
-		errorCodeKey := errorCodeKeyPrefix + keySeparator + "as" + keySeparator + fmt.Sprintf("%d", *createAsResponseParam.ErrorCode)
-		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if !hasErrorCodeKey {
-			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
 		}
 	}
 
 	// Check closed request
 	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Request is closed", "")
+		return &ApplicationError{
+			Code:    code.RequestIsClosed,
+			Message: "Request is closed",
+		}
 	}
 
 	// Check timed out request
 	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Request is timed out", "")
-	}
-
-	// Check Service ID
-	serviceKey := serviceKeyPrefix + keySeparator + createAsResponseParam.ServiceID
-	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal([]byte(serviceJSON), &service)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-
-	// Check service is active
-	if !service.Active {
-		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
-	}
-
-	// Check service destination is approved by NDID
-	approveServiceKey := approvedServiceKeyPrefix + keySeparator + createAsResponseParam.ServiceID + keySeparator + nodeID
-	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if approveServiceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var approveService data.ApproveService
-	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if !approveService.Active {
-		return app.ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not approved by NDID", "")
-	}
-
-	// Check service destination is active
-	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + createAsResponseParam.ServiceID
-	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-
-	if serviceDestinationValue == nil {
-		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
-	}
-
-	var nodes data.ServiceDesList
-	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-
-	for index := range nodes.Node {
-		if nodes.Node[index].NodeId == nodeID {
-			if !nodes.Node[index].Active {
-				return app.ReturnDeliverTxLog(code.ServiceDestinationIsNotActive, "Service destination is not active", "")
-			}
-			break
+		return &ApplicationError{
+			Code:    code.RequestIsTimedOut,
+			Message: "Request is timed out",
 		}
 	}
 
 	// Check nodeID is exist in as_id_list
 	exist := false
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			for _, as := range dataRequest.AsIdList {
-				if as == nodeID {
+				if as == callerNodeID {
 					exist = true
 					break
 				}
 			}
 		}
 	}
-	if exist == false {
-		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInASList, "Node ID does not exist in AS list", "")
+	if !exist {
+		return &ApplicationError{
+			Code:    code.NodeIDDoesNotExistInASList,
+			Message: "Node ID does not exist in AS list",
+		}
 	}
 
 	// Check Duplicate AS ID
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			for _, asResponse := range dataRequest.ResponseList {
-				if asResponse.AsId == nodeID {
-					return app.ReturnDeliverTxLog(code.DuplicateASResponse, "Duplicate AS response", "")
+				if asResponse.AsId == callerNodeID {
+					return &ApplicationError{
+						Code:    code.DuplicateASResponse,
+						Message: "Duplicate AS response",
+					}
 				}
 			}
 		}
@@ -178,7 +124,7 @@ func (app *ABCIApplication) createAsResponse(param []byte, nodeID string) types.
 
 	// Check min_as
 	for _, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			if dataRequest.MinAs > 0 {
 				var nonErrorResponseCount int64 = 0
 				for _, asResponse := range dataRequest.ResponseList {
@@ -187,54 +133,227 @@ func (app *ABCIApplication) createAsResponse(param []byte, nodeID string) types.
 					}
 				}
 				if nonErrorResponseCount >= dataRequest.MinAs {
-					return app.ReturnDeliverTxLog(code.DataRequestIsCompleted, "Can't create AS response to a request with enough AS responses", "")
+					return &ApplicationError{
+						Code:    code.DataRequestIsCompleted,
+						Message: "Can't create AS response to a request with enough AS responses",
+					}
 				}
 				var remainingPossibleResponseCount int64 = int64(len(dataRequest.AsIdList)) - int64(len(dataRequest.ResponseList))
 				if nonErrorResponseCount+remainingPossibleResponseCount < dataRequest.MinAs {
-					return app.ReturnDeliverTxLog(code.DataRequestCannotBeFulfilled, "Can't create AS response to a data request that cannot be fulfilled", "")
+					return &ApplicationError{
+						Code:    code.DataRequestCannotBeFulfilled,
+						Message: "Can't create AS response to a data request that cannot be fulfilled",
+					}
 				}
 			}
 		}
 	}
 
+	// Check error code exists
+	if funcParam.ErrorCode != nil {
+		errorCodeKey := errorCodeKeyPrefix + keySeparator + "as" + keySeparator + fmt.Sprintf("%d", *funcParam.ErrorCode)
+		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !hasErrorCodeKey {
+			return &ApplicationError{
+				Code:    code.InvalidErrorCode,
+				Message: "ErrorCode does not exist",
+			}
+		}
+	}
+
+	// Check Service ID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check service is active
+	if !service.Active {
+		return &ApplicationError{
+			Code:    code.ServiceIsNotActive,
+			Message: "Service is not active",
+		}
+	}
+
+	// Check service destination is approved by NDID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + callerNodeID
+	approveServiceValue, err := app.state.Get([]byte(approveServiceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if approveServiceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceValue), &approveService)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	if !approveService.Active {
+		return &ApplicationError{
+			Code:    code.ServiceDestinationIsNotActive,
+			Message: "Service destination is not approved by NDID",
+		}
+	}
+
+	// Check service destination is active
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+
+	if serviceDestinationValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceDestinationNotFound,
+			Message: "Service destination not found",
+		}
+	}
+
+	var nodes data.ServiceDesList
+	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	for index := range nodes.Node {
+		if nodes.Node[index].NodeId == callerNodeID {
+			if !nodes.Node[index].Active {
+				return &ApplicationError{
+					Code:    code.ServiceDestinationIsNotActive,
+					Message: "Service destination is not active",
+				}
+			}
+			break
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) createAsResponseCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam CreateAsResponseParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateCreateAsResponse(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) createAsResponse(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
+	var funcParam CreateAsResponseParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateCreateAsResponse(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
 	var signDataKey string
 	var signDataValue string
-	if createAsResponseParam.ErrorCode == nil {
-		signDataKey = dataSignatureKeyPrefix + keySeparator + nodeID + keySeparator + createAsResponseParam.ServiceID + keySeparator + createAsResponseParam.RequestID
-		signDataValue = createAsResponseParam.Signature
+	if funcParam.ErrorCode == nil {
+		signDataKey = dataSignatureKeyPrefix + keySeparator + callerNodeID + keySeparator + funcParam.ServiceID + keySeparator + funcParam.RequestID
+		signDataValue = funcParam.Signature
 	}
 
 	// Update answered_as_id_list in request
 	for index, dataRequest := range request.DataRequestList {
-		if dataRequest.ServiceId == createAsResponseParam.ServiceID {
+		if dataRequest.ServiceId == funcParam.ServiceID {
 			var asResponse data.ASResponse
-			if createAsResponseParam.ErrorCode == nil {
+			if funcParam.ErrorCode == nil {
 				asResponse = data.ASResponse{
-					AsId:         nodeID,
+					AsId:         callerNodeID,
 					Signed:       true,
 					ReceivedData: false,
 				}
 			} else {
 				asResponse = data.ASResponse{
-					AsId:      nodeID,
-					ErrorCode: *createAsResponseParam.ErrorCode,
+					AsId:      callerNodeID,
+					ErrorCode: *funcParam.ErrorCode,
 				}
 			}
 			request.DataRequestList[index].ResponseList = append(dataRequest.ResponseList, &asResponse)
 		}
 	}
 
-	requestJSON, err = utils.ProtoDeterministicMarshal(&request)
+	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	err = app.state.SetVersioned([]byte(requestKey), []byte(requestJSON))
+	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if createAsResponseParam.ErrorCode == nil {
+	if funcParam.ErrorCode == nil {
 		app.state.Set([]byte(signDataKey), []byte(signDataValue))
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", createAsResponseParam.RequestID)
+
+	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }

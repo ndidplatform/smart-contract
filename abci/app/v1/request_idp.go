@@ -43,27 +43,77 @@ type CreateIdpResponseParam struct {
 	ErrorCode *int32  `json:"error_code"`
 }
 
-func (app *ABCIApplication) createIdpResponse(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
-	var funcParam CreateIdpResponseParam
-	err := json.Unmarshal(param, &funcParam)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpResponseParam, callerNodeID string, committedState bool) error {
+	ok := app.isIDPorIDPAgentNode(callerNodeID)
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP or IdP agent method",
+		}
 	}
 
 	// get request
-	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	value, err := app.state.GetVersioned([]byte(key), 0, false)
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
-	if value == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
 	}
 	var request data.Request
-	err = proto.Unmarshal([]byte(value), &request)
+	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check closed request
+	if request.Closed {
+		return &ApplicationError{
+			Code:    code.RequestIsClosed,
+			Message: "Can't response a request that's closed",
+		}
+	}
+	// Check timed out request
+	if request.TimedOut {
+		return &ApplicationError{
+			Code:    code.RequestIsTimedOut,
+			Message: "Can't response a request that's timed out",
+		}
+	}
+
+	// Check nodeID is exist in idp_id_list
+	exist := false
+	for _, idpID := range request.IdpIdList {
+		if idpID == callerNodeID {
+			exist = true
+			break
+		}
+	}
+	if !exist {
+		return &ApplicationError{
+			Code:    code.NodeIDDoesNotExistInIdPList,
+			Message: "Node ID does not exist in IdP list",
+		}
+	}
+
+	// Check duplicate response from the same IdP
+	for _, currentResponse := range request.ResponseList {
+		if currentResponse.IdpId == callerNodeID {
+			return &ApplicationError{
+				Code:    code.DuplicateIdPResponse,
+				Message: "Duplicate IdP response",
+			}
+		}
 	}
 
 	// Check min_idp
@@ -74,100 +124,161 @@ func (app *ABCIApplication) createIdpResponse(param []byte, nodeID string) types
 		}
 	}
 	if nonErrorResponseCount >= request.MinIdp {
-		return app.ReturnDeliverTxLog(code.RequestIsCompleted, "Can't response to a request that is completed", "")
+		return &ApplicationError{
+			Code:    code.RequestIsCompleted,
+			Message: "Can't response to a request that is completed",
+		}
 	}
 	var remainingPossibleResponseCount int64 = int64(len(request.IdpIdList)) - int64(len(request.ResponseList))
 	if nonErrorResponseCount+remainingPossibleResponseCount < request.MinIdp {
-		return app.ReturnDeliverTxLog(code.RequestCannotBeFulfilled, "Can't response to a request that cannot be fulfilled", "")
-	}
-
-	response := data.Response{
-		IdpId: nodeID,
-	}
-
-	// Check closed request
-	if request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsClosed, "Can't response a request that's closed", "")
-	}
-	// Check timed out request
-	if request.TimedOut {
-		return app.ReturnDeliverTxLog(code.RequestIsTimedOut, "Can't response a request that's timed out", "")
+		return &ApplicationError{
+			Code:    code.RequestCannotBeFulfilled,
+			Message: "Can't response to a request that cannot be fulfilled",
+		}
 	}
 
 	if funcParam.ErrorCode == nil {
-		response.Ial = funcParam.Ial
-		response.Aal = funcParam.Aal
-		response.Status = funcParam.Status
-		response.Signature = funcParam.Signature
-
 		// Check AAL
-		if request.MinAal > response.Aal {
-			return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is less than min AAL", "")
+		if request.MinAal > funcParam.Aal {
+			return &ApplicationError{
+				Code:    code.AALError,
+				Message: "Response's AAL is less than min AAL",
+			}
 		}
 		// Check IAL
-		if request.MinIal > response.Ial {
-			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is less than min IAL", "")
+		if request.MinIal > funcParam.Ial {
+			return &ApplicationError{
+				Code:    code.IALError,
+				Message: "Response's IAL is less than min IAL",
+			}
 		}
-		// Check AAL, IAL with MaxIalAal
-		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		// Check IAL and AAL with response node's MaxIal and MaxAal
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		if nodeDetailValue == nil {
-			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			return &ApplicationError{
+				Code:    code.NodeIDNotFound,
+				Message: "Node ID not found",
+			}
 		}
 		var nodeDetail data.NodeDetail
 		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
 		}
-		if response.Aal > nodeDetail.MaxAal {
-			return app.ReturnDeliverTxLog(code.AALError, "Response's AAL is greater than max AAL", "")
+		if funcParam.Aal > nodeDetail.MaxAal {
+			return &ApplicationError{
+				Code:    code.AALError,
+				Message: "Response's AAL is greater than max AAL",
+			}
 		}
-		if response.Ial > nodeDetail.MaxIal {
-			return app.ReturnDeliverTxLog(code.IALError, "Response's IAL is greater than max IAL", "")
+		if funcParam.Ial > nodeDetail.MaxIal {
+			return &ApplicationError{
+				Code:    code.IALError,
+				Message: "Response's IAL is greater than max IAL",
+			}
 		}
 	} else {
 		// Check error code exists
 		errorCodeKey := errorCodeKeyPrefix + keySeparator + "idp" + keySeparator + fmt.Sprintf("%d", *funcParam.ErrorCode)
-		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), false)
+		hasErrorCodeKey, err := app.state.Has([]byte(errorCodeKey), committedState)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		if !hasErrorCodeKey {
-			return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
+			return &ApplicationError{
+				Code:    code.InvalidErrorCode,
+				Message: "ErrorCode does not exist",
+			}
 		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) createIdpResponseCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam CreateIdpResponseParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateCreateIdpResponse(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) createIdpResponse(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("CreateIdpResponse, Parameter: %s", param)
+	var funcParam CreateIdpResponseParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateCreateIdpResponse(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	// get request
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	value, err := app.state.GetVersioned([]byte(requestKey), 0, false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(value), &request)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	response := data.Response{
+		IdpId: callerNodeID,
+	}
+
+	if funcParam.ErrorCode == nil {
+		// normal response
+		response.Ial = funcParam.Ial
+		response.Aal = funcParam.Aal
+		response.Status = funcParam.Status
+		response.Signature = funcParam.Signature
+	} else {
+		// error response
 		response.ErrorCode = *funcParam.ErrorCode
 	}
 
-	// Check nodeID is exist in idp_id_list
-	exist := false
-	for _, idpID := range request.IdpIdList {
-		if idpID == nodeID {
-			exist = true
-			break
-		}
-	}
-	if exist == false {
-		return app.ReturnDeliverTxLog(code.NodeIDDoesNotExistInIdPList, "Node ID does not exist in IdP list", "")
-	}
-
-	// Check duplicate response from the same IdP
-	for _, oldResponse := range request.ResponseList {
-		if oldResponse.IdpId == nodeID {
-			return app.ReturnDeliverTxLog(code.DuplicateIdPResponse, "Duplicate IdP response", "")
-		}
-	}
-
 	request.ResponseList = append(request.ResponseList, &response)
+
 	value, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	err = app.state.SetVersioned([]byte(key), []byte(value))
+	err = app.state.SetVersioned([]byte(requestKey), []byte(value))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
 }

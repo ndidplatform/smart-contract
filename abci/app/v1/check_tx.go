@@ -710,10 +710,7 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		"AddIdentity",
 		"RevokeAndAddAccessor":
 		return app.checkIsIDP(nodeID)
-	case "CreateIdpResponse":
-		return app.checkIsIDPOrIDPAgent(nodeID)
-	case "CreateAsResponse",
-		"RegisterServiceDestination",
+	case "RegisterServiceDestination",
 		"UpdateServiceDestination",
 		"DisableServiceDestination",
 		"EnableServiceDestination",
@@ -724,9 +721,13 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 	case "CreateMessage":
 		return app.checkIsRP(nodeID)
 
-		// new checkTx pattern: separate by function
+	// new checkTx pattern: separate by function
 	case "CreateRequest":
 		return app.createRequestCheckTx(param, nodeID)
+	case "CreateIdpResponse":
+		return app.createIdpResponseCheckTx(param, nodeID)
+	case "CreateAsResponse":
+		return app.createAsResponseCheckTx(param, nodeID)
 	case "SetDataReceived":
 		return app.setDataReceivedCheckTx(param, nodeID)
 	case "CloseRequest":
