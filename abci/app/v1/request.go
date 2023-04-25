@@ -73,103 +73,133 @@ type CreateRequestParam struct {
 	RequestType     *string       `json:"request_type"`
 }
 
-func (app *ABCIApplication) createRequest(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("CreateRequest, Parameter: %s", param)
-	var funcParam CreateRequestParam
-	err := json.Unmarshal(param, &funcParam)
+func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, callerNodeID string, committedState bool) error {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	// get RP node detail
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if nodeDetaiValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
+
 	var requesterNodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetaiValue), &requesterNodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
 
-	// log chain ID
-	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
-	var request data.Request
-	// set request data
-	request.RequestId = funcParam.RequestID
-	request.Mode = funcParam.Mode
+	if !(requesterNodeDetail.Role == "RP" || (requesterNodeDetail.Role == "IdP" && !requesterNodeDetail.IsIdpAgent)) {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallRPandIdPMethod,
+			Message: "This node does not have permission to call RP and IdP method",
+		}
+	}
 
 	if requesterNodeDetail.Role == "IdP" {
 		// IdP must not be able to create request with mode 1 or 2
-		if request.Mode == 1 {
-			return app.ReturnDeliverTxLog(code.IdPCreateRequestMode1And2NotAllowed, "IdP cannot create request with mode 1 or 2", "")
+		if funcParam.Mode == 1 {
+			return &ApplicationError{
+				Code:    code.IdPCreateRequestMode1And2NotAllowed,
+				Message: "IdP cannot create request with mode 1 or 2",
+			}
 		}
 		// IdP must not be able to create request with data request to AS
 		if len(funcParam.DataRequestList) > 0 {
-			return app.ReturnDeliverTxLog(code.IdPCreateRequestWithDataRequestNotAllowed, "IdP cannot create request with data request", "")
+			return &ApplicationError{
+				Code:    code.IdPCreateRequestWithDataRequestNotAllowed,
+				Message: "IdP cannot create request with data request",
+			}
 		}
 	}
 
-	key := requestKeyPrefix + keySeparator + request.RequestId
-	requestIDExist, err := app.state.HasVersioned([]byte(key), false)
+	key := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestIDExist, err := app.state.HasVersioned([]byte(key), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if requestIDExist {
-		return app.ReturnDeliverTxLog(code.DuplicateRequestID, "Duplicate Request ID", "")
+		return &ApplicationError{
+			Code:    code.DuplicateRequestID,
+			Message: "Duplicate Request ID",
+		}
 	}
 
-	request.MinIdp = int64(funcParam.MinIdp)
-	request.MinAal = funcParam.MinAal
-	request.MinIal = funcParam.MinIal
-	request.RequestTimeout = int64(funcParam.Timeout)
-	// request.DataRequestList = funcParam.DataRequestList
-	request.RequestMessageHash = funcParam.MessageHash
 	// Check valid mode
-	allowedMode := app.GetAllowedModeFromStateDB(funcParam.Purpose, false)
+	allowedMode := app.GetAllowedModeFromStateDB(funcParam.Purpose, committedState)
 	validMode := false
 	for _, mode := range allowedMode {
-		if mode == request.Mode {
+		if mode == funcParam.Mode {
 			validMode = true
 			break
 		}
 	}
 	if !validMode {
-		return app.ReturnDeliverTxLog(code.InvalidMode, "Must be create request on valid mode", "")
+		return &ApplicationError{
+			Code:    code.InvalidMode,
+			Message: "Must be create request on valid mode",
+		}
 	}
-	request.IdpIdList = funcParam.IdPIDList
+
 	// Check all IdP in list is active
-	for _, idp := range request.IdpIdList {
-		// Check idp is in the rp whitelist
+	for _, idp := range funcParam.IdPIDList {
+		// Check IdP is in the rp whitelist
 		if requesterNodeDetail.UseWhitelist && !contains(idp, requesterNodeDetail.Whitelist) {
-			return app.ReturnDeliverTxLog(code.NodeNotInWhitelist, "IdP is not in RP whitelist", "")
+			return &ApplicationError{
+				Code:    code.NodeNotInWhitelist,
+				Message: "IdP is not in RP whitelist",
+			}
 		}
 
 		// Get node detail
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp
-		nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		if nodeDetaiValue == nil {
-			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+			return &ApplicationError{
+				Code:    code.NodeIDNotFound,
+				Message: "Node ID not found",
+			}
 		}
 		var node data.NodeDetail
 		err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
 		}
 		// Check node is active
 		if !node.Active {
-			return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
+			return &ApplicationError{
+				Code:    code.NodeIDInIdPListIsNotActive,
+				Message: "Node ID in IdP list is not active",
+			}
 		}
 
-		// Check rp is in the idp whitelist
-		if node.UseWhitelist && !contains(nodeID, node.Whitelist) {
-			return app.ReturnDeliverTxLog(code.NodeNotInWhitelist, "RP is not in IdP whitelist", "")
+		// Check RP is in the IdP whitelist
+		if node.UseWhitelist && !contains(callerNodeID, node.Whitelist) {
+			return &ApplicationError{
+				Code:    code.NodeNotInWhitelist,
+				Message: "RP is not in IdP whitelist",
+			}
 		}
 
 		// If node is behind proxy
@@ -177,38 +207,211 @@ func (app *ABCIApplication) createRequest(param []byte, nodeID string) types.Res
 			proxyNodeID := node.ProxyNodeId
 			// Get proxy node detail
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
+			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), committedState)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
 			}
 			if proxyNodeDetailValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				return &ApplicationError{
+					Code:    code.NodeIDNotFound,
+					Message: "Node ID not found",
+				}
 			}
 			var proxyNode data.NodeDetail
 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return &ApplicationError{
+					Code:    code.UnmarshalError,
+					Message: err.Error(),
+				}
 			}
 			// Check proxy node is active
 			if !proxyNode.Active {
-				return app.ReturnDeliverTxLog(code.NodeIDInIdPListIsNotActive, "Node ID in IdP list is not active", "")
+				return &ApplicationError{
+					Code:    code.NodeIDInIdPListIsNotActive,
+					Message: "Node ID in IdP list is not active",
+				}
 			}
 		}
 	}
+
+	serviceIDInDataRequestList := make(map[string]struct{})
+	nodeDetailMap := make(map[string]*data.NodeDetail)
+	for index := range funcParam.DataRequestList {
+		// Check for duplicate service ID in data request list
+		if _, exist := serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID]; exist {
+			return &ApplicationError{
+				Code:    code.DuplicateServiceIDInDataRequest,
+				Message: "Duplicate Service ID In Data Request",
+			}
+		}
+		serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID] = struct{}{}
+
+		// Check all AS in as_list is active
+		for _, as := range funcParam.DataRequestList[index].As {
+			var node *data.NodeDetail
+			if _, ok := nodeDetailMap[as]; !ok {
+				// Get node detail
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
+				nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+				if err != nil {
+					return &ApplicationError{
+						Code:    code.AppStateError,
+						Message: err.Error(),
+					}
+				}
+				if nodeDetaiValue == nil {
+					return &ApplicationError{
+						Code:    code.NodeIDNotFound,
+						Message: "Node ID not found",
+					}
+				}
+				err = proto.Unmarshal([]byte(nodeDetaiValue), node)
+				if err != nil {
+					return &ApplicationError{
+						Code:    code.UnmarshalError,
+						Message: err.Error(),
+					}
+				}
+				// Save node detail to mapping
+				nodeDetailMap[as] = node
+			} else {
+				// Get node detail from mapping
+				node = nodeDetailMap[as]
+			}
+
+			// Check node is active
+			if !node.Active {
+				return &ApplicationError{
+					Code:    code.NodeIDInASListIsNotActive,
+					Message: "Node ID in AS list is not active",
+				}
+			}
+
+			// If node is behind proxy
+			if node.ProxyNodeId != "" {
+				proxyNodeID := node.ProxyNodeId
+				// Get proxy node detail
+				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
+				proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), committedState)
+				if err != nil {
+					return &ApplicationError{
+						Code:    code.AppStateError,
+						Message: err.Error(),
+					}
+				}
+				if proxyNodeDetailValue == nil {
+					return &ApplicationError{
+						Code:    code.NodeIDNotFound,
+						Message: "Node ID not found",
+					}
+				}
+				var proxyNode data.NodeDetail
+				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
+				if err != nil {
+					return &ApplicationError{
+						Code:    code.UnmarshalError,
+						Message: err.Error(),
+					}
+				}
+				// Check proxy node is active
+				if !proxyNode.Active {
+					return &ApplicationError{
+						Code:    code.NodeIDInASListIsNotActive,
+						Message: "Node ID in AS list is not active",
+					}
+				}
+			}
+		}
+	}
+
+	if funcParam.RequestType != nil {
+		key := requestTypeKeyPrefix + keySeparator + *funcParam.RequestType
+		requestTypeExists, err := app.state.Has([]byte(key), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !requestTypeExists {
+			return &ApplicationError{
+				Code:    code.RequestTypeDoesNotExist,
+				Message: "Invalid request type",
+			}
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) createRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam CreateRequestParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateCreateRequest(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("CreateRequest, Parameter: %s", param)
+	var funcParam CreateRequestParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateCreateRequest(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	// get requester node detail
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var requesterNodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetaiValue), &requesterNodeDetail)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
+
+	var request data.Request
+	// set request data
+	request.RequestId = funcParam.RequestID
+	request.Mode = funcParam.Mode
+	request.MinIdp = int64(funcParam.MinIdp)
+	request.MinAal = funcParam.MinAal
+	request.MinIal = funcParam.MinIal
+	request.RequestTimeout = int64(funcParam.Timeout)
+	request.RequestMessageHash = funcParam.MessageHash
+	request.IdpIdList = funcParam.IdPIDList
+
 	// set data request
 	request.DataRequestList = make([]*data.DataRequest, 0)
-	serviceIDInDataRequestList := make(map[string]int)
-	nodeDetailMap := make(map[string]*data.NodeDetail, 0)
 	for index := range funcParam.DataRequestList {
 		var newRow data.DataRequest
 		newRow.ServiceId = funcParam.DataRequestList[index].ServiceID
-
-		// Check for duplicate service ID in data request list
-		_, exist := serviceIDInDataRequestList[newRow.ServiceId]
-		if exist {
-			return app.ReturnDeliverTxLog(code.DuplicateServiceIDInDataRequest, "Duplicate Service ID In Data Request", "")
-		}
-		serviceIDInDataRequestList[newRow.ServiceId]++
 
 		newRow.RequestParamsHash = funcParam.DataRequestList[index].RequestParamsHash
 		newRow.MinAs = int64(funcParam.DataRequestList[index].Count)
@@ -217,100 +420,43 @@ func (app *ABCIApplication) createRequest(param []byte, nodeID string) types.Res
 			newRow.AsIdList = make([]string, 0)
 		}
 		newRow.ResponseList = make([]*data.ASResponse, 0)
-		// Check all as in as_list is active
-		for _, as := range newRow.AsIdList {
-			var node data.NodeDetail
-			if nodeDetailMap[as] == nil {
-				// Get node detail
-				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
-				nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-				}
-				if nodeDetaiValue == nil {
-					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-				}
-				err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-				// Save node detail to mapping
-				nodeDetailMap[as] = &node
-			} else {
-				// Get node detail from mapping
-				node = *nodeDetailMap[as]
-			}
 
-			// Check node is active
-			if !node.Active {
-				return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
-			}
-
-			// If node is behind proxy
-			if node.ProxyNodeId != "" {
-				proxyNodeID := node.ProxyNodeId
-				// Get proxy node detail
-				proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
-				proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), false)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-				}
-				if proxyNodeDetailValue == nil {
-					return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-				}
-				var proxyNode data.NodeDetail
-				err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
-				if err != nil {
-					return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-				}
-				// Check proxy node is active
-				if !proxyNode.Active {
-					return app.ReturnDeliverTxLog(code.NodeIDInASListIsNotActive, "Node ID in AS list is not active", "")
-				}
-			}
-		}
 		request.DataRequestList = append(request.DataRequestList, &newRow)
 	}
+
 	// set default value
 	request.Closed = false
 	request.TimedOut = false
-	request.Purpose = ""
 	request.UseCount = 0
 
 	if funcParam.RequestType != nil {
-		key := requestTypeKeyPrefix + keySeparator + *funcParam.RequestType
-		requestTypeExists, err := app.state.Has([]byte(key), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if !requestTypeExists {
-			return app.ReturnDeliverTxLog(code.RequestTypeDoesNotExist, err.Error(), "")
-		}
-
 		request.RequestType = *funcParam.RequestType
 	}
 
-	// set Owner
-	request.Owner = nodeID
-	// set Can add accossor
+	// set request owner node ID
+	request.Owner = callerNodeID
+
+	// set purpose e.g. add accessor
 	if requesterNodeDetail.Role == "IdP" {
 		request.Purpose = funcParam.Purpose
 	}
-	// set default value
+
 	request.ResponseList = make([]*data.Response, 0)
-	// set creation_block_height
+	// set creation block height
 	request.CreationBlockHeight = app.state.CurrentBlockHeight
-	// set chain_id
+	// set chain ID
 	request.ChainId = app.CurrentChain
 
 	value, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+	key := requestKeyPrefix + keySeparator + request.RequestId
 	err = app.state.SetVersioned([]byte(key), []byte(value))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
 }
 

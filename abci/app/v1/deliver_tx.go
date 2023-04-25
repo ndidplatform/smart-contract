@@ -99,7 +99,7 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce [
 
 	result := app.callDeliverTx(method, param, nodeID)
 	// ---- Burn token ----
-	if !app.isNDIDNode(param, nodeID, false) && !isNDIDMethod[method] {
+	if !app.isNDIDNode(nodeID, false) && !isNDIDMethod[method] {
 		needToken := app.getTokenPriceByFunc(method, false)
 		errCode, errLog := app.reduceToken(nodeID, needToken)
 		if errCode != code.OK {
