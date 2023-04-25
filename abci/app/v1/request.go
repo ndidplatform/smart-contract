@@ -122,8 +122,8 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
-	key := requestKeyPrefix + keySeparator + funcParam.RequestID
-	requestIDExist, err := app.state.HasVersioned([]byte(key), committedState)
+	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
+	requestIDExist, err := app.state.HasVersioned([]byte(requestKey), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
@@ -252,7 +252,7 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 
 		// Check all AS in as_list is active
 		for _, as := range funcParam.DataRequestList[index].As {
-			var node *data.NodeDetail
+			var node data.NodeDetail
 			if _, ok := nodeDetailMap[as]; !ok {
 				// Get node detail
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
@@ -269,7 +269,7 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 						Message: "Node ID not found",
 					}
 				}
-				err = proto.Unmarshal([]byte(nodeDetaiValue), node)
+				err = proto.Unmarshal([]byte(nodeDetaiValue), &node)
 				if err != nil {
 					return &ApplicationError{
 						Code:    code.UnmarshalError,
@@ -277,10 +277,10 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 					}
 				}
 				// Save node detail to mapping
-				nodeDetailMap[as] = node
+				nodeDetailMap[as] = &node
 			} else {
 				// Get node detail from mapping
-				node = nodeDetailMap[as]
+				node = *nodeDetailMap[as]
 			}
 
 			// Check node is active
