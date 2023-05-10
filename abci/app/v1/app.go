@@ -74,6 +74,7 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string)
 	ABCIVersion := version.Version
 	ABCIProtocolVersion := version.AppProtocolVersion
 	logger.Infof("Start ABCI version: %s", ABCIVersion)
+
 	return &ABCIApplication{
 		AppProtocolVersion:  ABCIProtocolVersion,
 		Version:             ABCIVersion,
@@ -110,6 +111,7 @@ func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseI
 	}
 
 	res.AppVersion = app.AppProtocolVersion
+
 	return res
 }
 
@@ -172,6 +174,7 @@ func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.Respon
 	// reset valset changes
 	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
 	app.lastBlockTime = req.Header.Time
+
 	return types.ResponseBeginBlock{}
 }
 
@@ -182,6 +185,7 @@ func (app *ABCIApplication) EndBlock(req types.RequestEndBlock) types.ResponseEn
 	for _, newValidator := range app.valUpdates {
 		valUpdates = append(valUpdates, newValidator)
 	}
+
 	return types.ResponseEndBlock{ValidatorUpdates: valUpdates}
 }
 
@@ -216,7 +220,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 
 	if mustCheckNodeSignature(method) {
 		// ---- Check duplicate nonce ----
-		nonceDup := app.isDuplicateNonce(nonce)
+		nonceDup := app.isDuplicateNonce(nonce, false)
 		if nonceDup {
 			go recordDeliverTxFailMetrics(method)
 			return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
@@ -257,7 +261,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 				go recordDeliverTxFailMetrics(method)
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
 			}
-			if verifyResult == false {
+			if !verifyResult {
 				go recordDeliverTxFailMetrics(method)
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
 			}
@@ -274,6 +278,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 	if result.Code != code.OK {
 		go recordDeliverTxFailMetrics(method)
 	}
+
 	return result
 }
 
@@ -308,7 +313,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 
 	if mustCheckNodeSignature(method) {
 		// ---- Check duplicate nonce ----
-		nonceDup := app.isDuplicateNonce(nonce)
+		nonceDup := app.isDuplicateNonce(nonce, true)
 		if nonceDup {
 			res.Code = code.DuplicateNonce
 			res.Log = "Duplicate nonce"
@@ -367,7 +372,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 			go recordCheckTxFailMetrics(method)
 			return ReturnCheckTx(code.VerifySignatureError, err.Error())
 		}
-		if verifyResult == false {
+		if !verifyResult {
 			go recordCheckTxFailMetrics(method)
 			return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
 		}
@@ -379,6 +384,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		app.verifiedSignatures.Delete(verifiedSignatureKey)
 		go recordCheckTxFailMetrics(method)
 	}
+
 	return result
 }
 
@@ -411,6 +417,7 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 
 	duration := time.Since(startTime)
 	go recordCommitDurationMetrics(duration)
+
 	return types.ResponseCommit{Data: appHash}
 }
 
@@ -449,6 +456,7 @@ func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.Respon
 	if method == "" {
 		return app.ReturnQuery(nil, "method can't be empty", app.state.Height)
 	}
+
 	return app.QueryRouter(method, param, height)
 }
 

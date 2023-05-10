@@ -28,6 +28,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	appTypes "github.com/ndidplatform/smart-contract/v8/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v8/abci/code"
 	"github.com/ndidplatform/smart-contract/v8/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v8/protos/data"
@@ -98,14 +99,15 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
-	if !(requesterNodeDetail.Role == "RP" || (requesterNodeDetail.Role == "IdP" && !requesterNodeDetail.IsIdpAgent)) {
+	if !(appTypes.NodeRole(requesterNodeDetail.Role) == appTypes.NodeRoleRp ||
+		(appTypes.NodeRole(requesterNodeDetail.Role) == appTypes.NodeRoleIdp && !requesterNodeDetail.IsIdpAgent)) {
 		return &ApplicationError{
 			Code:    code.NoPermissionForCallRPandIdPMethod,
 			Message: "This node does not have permission to call RP and IdP method",
 		}
 	}
 
-	if requesterNodeDetail.Role == "IdP" {
+	if appTypes.NodeRole(requesterNodeDetail.Role) == appTypes.NodeRoleIdp {
 		// IdP must not be able to create request with mode 1 or 2
 		if funcParam.Mode == 1 {
 			return &ApplicationError{
@@ -437,7 +439,7 @@ func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) typ
 	request.Owner = callerNodeID
 
 	// set purpose e.g. add accessor
-	if requesterNodeDetail.Role == "IdP" {
+	if appTypes.NodeRole(requesterNodeDetail.Role) == appTypes.NodeRoleIdp {
 		request.Purpose = funcParam.Purpose
 	}
 

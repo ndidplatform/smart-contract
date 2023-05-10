@@ -39,12 +39,53 @@ type CreateMessageParam struct {
 	Purpose   string `json:"purpose"`
 }
 
-func (app *ABCIApplication) createMessage(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateCreateMessage(funcParam CreateMessageParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isRPNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallRPMethod,
+			Message: "This node does not have permission to call RP method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) createMessageCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam CreateMessageParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateCreateMessage(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("CreateMessage, Parameter: %s", param)
 	var funcParam CreateMessageParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateCreateMessage(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// log chain ID
@@ -66,7 +107,7 @@ func (app *ABCIApplication) createMessage(param []byte, nodeID string) types.Res
 	message.Purpose = funcParam.Purpose
 
 	// set Owner
-	message.Owner = nodeID
+	message.Owner = callerNodeID
 	// set creation_block_height
 	message.CreationBlockHeight = app.state.CurrentBlockHeight
 	// set chain_id

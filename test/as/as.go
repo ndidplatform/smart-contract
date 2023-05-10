@@ -32,7 +32,7 @@ import (
 	"github.com/ndidplatform/smart-contract/v8/test/utils"
 )
 
-func RegisterServiceDestination(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationParam, expected string) {
+func RegisterServiceDestination(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -42,14 +42,20 @@ func RegisterServiceDestination(t *testing.T, nodeID, privK string, param app.Re
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRegisterServiceDestination(t *testing.T, caseID int64, expected string) {
+func TestRegisterServiceDestination(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.RegisterServiceDestinationParam
@@ -69,10 +75,10 @@ func TestRegisterServiceDestination(t *testing.T, caseID int64, expected string)
 		nodeID = data.AS2
 		privK = data.AsPrivK2
 	}
-	RegisterServiceDestination(t, nodeID, privK, param, expected)
+	RegisterServiceDestination(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func UpdateServiceDestination(t *testing.T, nodeID, privK string, param app.UpdateServiceDestinationParam, expected string) {
+func UpdateServiceDestination(t *testing.T, nodeID, privK string, param app.UpdateServiceDestinationParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -82,14 +88,20 @@ func UpdateServiceDestination(t *testing.T, nodeID, privK string, param app.Upda
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUpdateServiceDestination(t *testing.T, caseID int64, expected string) {
+func TestUpdateServiceDestination(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.UpdateServiceDestinationParam
@@ -102,5 +114,5 @@ func TestUpdateServiceDestination(t *testing.T, caseID int64, expected string) {
 		nodeID = data.AS1
 		privK = data.AsPrivK1
 	}
-	UpdateServiceDestination(t, nodeID, privK, param, expected)
+	UpdateServiceDestination(t, nodeID, privK, param, expected, expectResultFrom)
 }

@@ -37,22 +37,72 @@ type AddRequestTypeParam struct {
 	Name string `json:"name"`
 }
 
+func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
+	exists, err := app.state.Has([]byte(key), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if exists {
+		return &ApplicationError{
+			Code:    code.RequestTypeAlreadyExists,
+			Message: "request type already exists",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addRequestTypeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddRequestTypeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddRequestType(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
 // regulator only
-func (app *ABCIApplication) addRequestType(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addRequestType(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddRequestType, Parameter: %s", param)
 	var funcParam AddRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
-	exists, err := app.state.Has([]byte(key), false)
+
+	err = app.validateAddRequestType(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if exists {
-		return app.ReturnDeliverTxLog(code.RequestTypeAlreadyExists, "request type already exists", "")
-	}
+
+	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
 
 	var requestType data.RequestType
 	value, err := utils.ProtoDeterministicMarshal(&requestType)
@@ -69,22 +119,72 @@ type RemoveRequestTypeParam struct {
 	Name string `json:"name"`
 }
 
+func (app *ABCIApplication) validateRemoveRequestType(funcParam RemoveRequestTypeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
+	exists, err := app.state.Has([]byte(key), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !exists {
+		return &ApplicationError{
+			Code:    code.RequestTypeDoesNotExist,
+			Message: "request type does not exist",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) removeRequestTypeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RemoveRequestTypeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRemoveRequestType(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
 // regulator only
-func (app *ABCIApplication) removeRequestType(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeRequestType(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveRequestType, Parameter: %s", param)
 	var funcParam RemoveRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
-	exists, err := app.state.Has([]byte(key), false)
+
+	err = app.validateRemoveRequestType(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if !exists {
-		return app.ReturnDeliverTxLog(code.RequestTypeDoesNotExist, "request type does not exist", "")
-	}
+
+	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
 
 	app.state.Delete([]byte(key))
 

@@ -36,13 +36,55 @@ type TimeOutBlockRegisterIdentity struct {
 	TimeOutBlock int64 `json:"time_out_block"`
 }
 
-func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetTimeOutBlockRegisterIdentity(funcParam TimeOutBlockRegisterIdentity, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam TimeOutBlockRegisterIdentity
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	key := "TimeOutBlockRegisterIdentity"
 	var timeOut data.TimeOutBlockRegisterIdentity
 	timeOut.TimeOutBlock = funcParam.TimeOutBlock
@@ -62,13 +104,55 @@ type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
 	MinIal float64 `json:"min_ial"`
 }
 
-func (app *ABCIApplication) SetAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdpCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
 	var allowedMinIal data.AllowedMinIalForRegisterIdentityAtFirstIdp
 	allowedMinIal.MinIal = funcParam.MinIal

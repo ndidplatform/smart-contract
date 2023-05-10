@@ -95,13 +95,55 @@ type SetValidatorParam struct {
 	Power     int64  `json:"power"`
 }
 
-func (app *ABCIApplication) setValidator(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setValidatorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetValidatorParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetValidator(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateSetValidator(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.DecodingError, err.Error(), "")

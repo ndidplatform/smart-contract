@@ -34,7 +34,7 @@ import (
 	"github.com/ndidplatform/smart-contract/v8/test/utils"
 )
 
-func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIdentityParam, expected string) {
+func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIdentityParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -44,14 +44,20 @@ func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIden
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf(`PASS: %s, Expected log: "%s"`, fnName, expected)
 }
 
-func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
+func TestRegisterIdentity(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	h1 := sha256.New()
 	h2 := sha256.New()
 	var nodeID string
@@ -205,7 +211,7 @@ func TestRegisterIdentity(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	}
-	RegisterIdentity(t, nodeID, privK, param, expected)
+	RegisterIdentity(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
 func CreateIdpResponse(t *testing.T, nodeID, privK string, param app.CreateIdpResponseParam) {
@@ -278,7 +284,7 @@ func TestCreateIdpResponse(t *testing.T, requestID string) {
 	CreateIdpResponse(t, nodeID, privK, param)
 }
 
-func AddAccessor(t *testing.T, nodeID, privK string, param app.AddAccessorParam, expected string) {
+func AddAccessor(t *testing.T, nodeID, privK string, param app.AddAccessorParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -288,14 +294,20 @@ func AddAccessor(t *testing.T, nodeID, privK string, param app.AddAccessorParam,
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf(`PASS: %s, Expected log: "%s"`, fnName, expected)
 }
 
-func TestAddAccessor(t *testing.T, caseID int64, expected string) {
+func TestAddAccessor(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.AddAccessorParam
@@ -329,10 +341,10 @@ func TestAddAccessor(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	}
-	AddAccessor(t, nodeID, privK, param, expected)
+	AddAccessor(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func UpdateIdentity(t *testing.T, nodeID, privK string, param app.UpdateIdentityParam, expected string) {
+func UpdateIdentity(t *testing.T, nodeID, privK string, param app.UpdateIdentityParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -342,14 +354,20 @@ func UpdateIdentity(t *testing.T, nodeID, privK string, param app.UpdateIdentity
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUpdateIdentity(t *testing.T, caseID int64, expected string) {
+func TestUpdateIdentity(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.UpdateIdentityParam
@@ -361,10 +379,10 @@ func TestUpdateIdentity(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP1
 		privK = data.IdpPrivK1
 	}
-	UpdateIdentity(t, nodeID, privK, param, expected)
+	UpdateIdentity(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param app.RevokeIdentityAssociationParam, expected string) {
+func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param app.RevokeIdentityAssociationParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -374,14 +392,20 @@ func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param app.Rev
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRevokeIdentityAssociation(t *testing.T, caseID int64, expected string) {
+func TestRevokeIdentityAssociation(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.RevokeIdentityAssociationParam
@@ -392,10 +416,10 @@ func TestRevokeIdentityAssociation(t *testing.T, caseID int64, expected string) 
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	}
-	RevokeIdentityAssociation(t, nodeID, privK, param, expected)
+	RevokeIdentityAssociation(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param app.UpdateIdentityModeListParam, expected string) {
+func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param app.UpdateIdentityModeListParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -405,14 +429,20 @@ func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param app.Update
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUpdateIdentityModeList(t *testing.T, caseID int64, expected string) {
+func TestUpdateIdentityModeList(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.UpdateIdentityModeListParam
@@ -424,10 +454,10 @@ func TestUpdateIdentityModeList(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP1
 		privK = data.IdpPrivK1
 	}
-	UpdateIdentityModeList(t, nodeID, privK, param, expected)
+	UpdateIdentityModeList(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func AddIdentity(t *testing.T, nodeID, privK string, param app.AddIdentityParam, expected string) {
+func AddIdentity(t *testing.T, nodeID, privK string, param app.AddIdentityParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -437,14 +467,20 @@ func AddIdentity(t *testing.T, nodeID, privK string, param app.AddIdentityParam,
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestAddIdentity(t *testing.T, caseID int64, expected string) {
+func TestAddIdentity(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.AddIdentityParam
@@ -462,10 +498,10 @@ func TestAddIdentity(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP2
 		privK = data.IdpPrivK2
 	}
-	AddIdentity(t, nodeID, privK, param, expected)
+	AddIdentity(t, nodeID, privK, param, expected, expectResultFrom)
 }
 
-func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param app.RevokeAndAddAccessorParam, expected string) {
+func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param app.RevokeAndAddAccessorParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -475,14 +511,20 @@ func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param app.RevokeAn
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRevokeAndAddAccessor(t *testing.T, caseID int64, expected string) {
+func TestRevokeAndAddAccessor(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.RevokeAndAddAccessorParam
@@ -496,5 +538,5 @@ func TestRevokeAndAddAccessor(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP1
 		privK = data.IdpPrivK1
 	}
-	RevokeAndAddAccessor(t, nodeID, privK, param, expected)
+	RevokeAndAddAccessor(t, nodeID, privK, param, expected, expectResultFrom)
 }

@@ -364,7 +364,7 @@ func TestAddService(t *testing.T, serviceID string) {
 	AddService(t, ndidNodeID, data.NdidPrivK, param)
 }
 
-func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationByNDIDParam, expected string) {
+func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param app.RegisterServiceDestinationByNDIDParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -374,14 +374,20 @@ func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param 
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf(`PASS: %s, Expected log: "%s"`, fnName, expected)
 }
 
-func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected string) {
+func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var param app.RegisterServiceDestinationByNDIDParam
 	switch caseID {
 	case 1:
@@ -397,10 +403,10 @@ func TestRegisterServiceDestinationByNDID(t *testing.T, caseID int64, expected s
 		param.ServiceID = data.ServiceID1
 		param.NodeID = data.AS2
 	}
-	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected)
+	RegisterServiceDestinationByNDID(t, ndidNodeID, data.NdidPrivK, param, expected, expectResultFrom)
 }
 
-func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodeParam, expected string) {
+func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodeParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -410,7 +416,13 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodePara
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`param: %s`, paramJSON)
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -418,16 +430,16 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodePara
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode int32, description string, expected string) {
+func TestAddErrorCode(t *testing.T, errorCodeType string, errorCode int32, description string, expected string, expectResultFrom string) {
 	param := app.AddErrorCodeParam{
 		ErrorCode:   errorCode,
 		Description: description,
 		Type:        errorCodeType,
 	}
-	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
+	AddErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected, expectResultFrom)
 }
 
-func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCodeParam, expected string) {
+func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCodeParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -437,7 +449,13 @@ func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCo
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`param: %s`, paramJSON)
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
@@ -445,10 +463,10 @@ func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCo
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode int32, expected string) {
+func TestRemoveErrorCode(t *testing.T, errorCodeType string, errorCode int32, expected string, expectResultFrom string) {
 	param := app.RemoveErrorCodeParam{
 		ErrorCode: errorCode,
 		Type:      errorCodeType,
 	}
-	RemoveErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected)
+	RemoveErrorCode(t, ndidNodeID, data.NdidPrivK, param, expected, expectResultFrom)
 }

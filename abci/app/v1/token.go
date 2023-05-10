@@ -58,40 +58,62 @@ func (app *ABCIApplication) setTokenPriceByFunc(fnName string, price float64) er
 	tokenPrice.Price = price
 	value, err := utils.ProtoDeterministicMarshal(&tokenPrice)
 	if err != nil {
-		return err
+		return &ApplicationError{
+			Code:    code.MarshalError,
+			Message: err.Error(),
+		}
 	}
 	app.state.Set([]byte(key), []byte(value))
+
 	return nil
 }
 
-func (app *ABCIApplication) createTokenAccount(nodeID string) {
+func (app *ABCIApplication) createTokenAccount(nodeID string) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
 	var token data.Token
 	token.Amount = 0
-	value, _ := utils.ProtoDeterministicMarshal(&token)
+	value, err := utils.ProtoDeterministicMarshal(&token)
+	if err != nil {
+		return err
+	}
 	app.state.Set([]byte(key), []byte(value))
+
+	return nil
 }
 
 func (app *ABCIApplication) setToken(nodeID string, amount float64) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
-		return err
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if value == nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
 	}
 	var token data.Token
 	err = proto.Unmarshal(value, &token)
 	if err != nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
 	token.Amount = amount
 	value, err = utils.ProtoDeterministicMarshal(&token)
 	if err != nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.MarshalError,
+			Message: err.Error(),
+		}
 	}
 	app.state.Set([]byte(key), []byte(value))
+
 	return nil
 }
 
@@ -100,17 +122,63 @@ type SetPriceFuncParam struct {
 	Price float64 `json:"price"`
 }
 
-func (app *ABCIApplication) setPriceFunc(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetPriceFunc(funcParam SetPriceFuncParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setPriceFuncCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetPriceFuncParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetPriceFunc(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setPriceFunc(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateSetPriceFunc(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	err = app.setTokenPriceByFunc(funcParam.Func, funcParam.Price)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -144,66 +212,102 @@ func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
-		return err
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if value == nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
 	}
 	var token data.Token
 	err = proto.Unmarshal(value, &token)
 	if err != nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
 	token.Amount = token.Amount + amount
 	value, err = utils.ProtoDeterministicMarshal(&token)
 	if err != nil {
-		return errors.New("token account not found")
+		return &ApplicationError{
+			Code:    code.MarshalError,
+			Message: err.Error(),
+		}
 	}
 	app.state.Set([]byte(key), []byte(value))
+
 	return nil
 }
 
-func (app *ABCIApplication) checkTokenAccount(nodeID string) bool {
+func (app *ABCIApplication) checkTokenAccount(nodeID string, committedState bool) (bool, error) {
 	key := tokenKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(key), false)
+	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if value == nil {
-		return false
+		return false, nil
 	}
 	var token data.Token
 	err = proto.Unmarshal(value, &token)
 	if err != nil {
-		return false
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	return true
+
+	return true, nil
 }
 
-func (app *ABCIApplication) reduceToken(nodeID string, amount float64) (errorCode uint32, errorLog string) {
+func (app *ABCIApplication) reduceToken(nodeID string, amount float64) error {
 	key := tokenKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
-		return code.AppStateError, ""
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if value == nil {
-		return code.TokenAccountNotFound, "token account not found"
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
 	}
 	var token data.Token
 	err = proto.Unmarshal(value, &token)
 	if err != nil {
-		return code.TokenAccountNotFound, "token account not found"
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
 	if amount > token.Amount {
-		return code.TokenNotEnough, "token not enough"
+		return &ApplicationError{
+			Code:    code.TokenNotEnough,
+			Message: "token not enough",
+		}
 	}
 	token.Amount = token.Amount - amount
 	value, err = utils.ProtoDeterministicMarshal(&token)
 	if err != nil {
-		return code.TokenAccountNotFound, "token account not found"
+		return &ApplicationError{
+			Code:    code.MarshalError,
+			Message: err.Error(),
+		}
 	}
 	app.state.Set([]byte(key), []byte(value))
-	return code.OK, ""
+
+	return nil
 }
 
 func (app *ABCIApplication) getToken(nodeID string, committedState bool) (float64, error) {
@@ -228,25 +332,80 @@ type SetNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) setNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetNodeToken(funcParam SetNodeTokenParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return &ApplicationError{
+			Code:    code.AmountMustBeGreaterOrEqualToZero,
+			Message: "Amount must be greater than or equal to zero",
+		}
+	}
+
+	// Check token account
+	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !tokenAccountFound {
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetNodeTokenParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetNodeToken(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Validate parameter
-	if funcParam.Amount < 0 {
-		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+
+	err = app.validateSetNodeToken(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	// Check token account
-	if !app.checkTokenAccount(funcParam.NodeID) {
-		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
-	}
+
 	err = app.setToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
 	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -255,25 +414,83 @@ type AddNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) addNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateAddNodeToken(funcParam AddNodeTokenParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return &ApplicationError{
+			Code:    code.AmountMustBeGreaterOrEqualToZero,
+			Message: "Amount must be greater than or equal to zero",
+		}
+	}
+
+	// Check token account
+	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !tokenAccountFound {
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddNodeTokenParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddNodeToken(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) addNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Validate parameter
-	if funcParam.Amount < 0 {
-		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+
+	err = app.validateAddNodeToken(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	// Check token account
-	if !app.checkTokenAccount(funcParam.NodeID) {
-		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
-	}
+
 	err = app.addToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -282,25 +499,83 @@ type ReduceNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) reduceNodeToken(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateReduceNodeToken(funcParam ReduceNodeTokenParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	// Validate parameter
+	if funcParam.Amount < 0 {
+		return &ApplicationError{
+			Code:    code.AmountMustBeGreaterOrEqualToZero,
+			Message: "Amount must be greater than or equal to zero",
+		}
+	}
+
+	// Check token account
+	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !tokenAccountFound {
+		return &ApplicationError{
+			Code:    code.TokenAccountNotFound,
+			Message: "token account not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) reduceNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam ReduceNodeTokenParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateReduceNodeToken(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) reduceNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Validate parameter
-	if funcParam.Amount < 0 {
-		return app.ReturnDeliverTxLog(code.AmountMustBeGreaterOrEqualToZero, "Amount must be greater than or equal to zero", "")
+
+	err = app.validateReduceNodeToken(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	// Check token account
-	if !app.checkTokenAccount(funcParam.NodeID) {
-		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, "token account not found", "")
+
+	err = app.reduceToken(funcParam.NodeID, funcParam.Amount)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	errCode, errLog := app.reduceToken(funcParam.NodeID, funcParam.Amount)
-	if errCode != code.OK {
-		return app.ReturnDeliverTxLog(errCode, errLog, "")
-	}
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 

@@ -44,7 +44,31 @@ type CreateIdpResponseParam struct {
 }
 
 func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpResponseParam, callerNodeID string, committedState bool) error {
-	ok := app.isIDPorIDPAgentNode(callerNodeID)
+	// Check IAL and AAL with response node's MaxIal and MaxAal
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if nodeDetailValue == nil {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	ok := app.isIDPorIDPAgentNode(&nodeDetail)
 	if !ok {
 		return &ApplicationError{
 			Code:    code.NoPermissionForCallIdPMethod,
@@ -152,29 +176,7 @@ func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpRespons
 				Message: "Response's IAL is less than min IAL",
 			}
 		}
-		// Check IAL and AAL with response node's MaxIal and MaxAal
-		nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
-		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
-		if err != nil {
-			return &ApplicationError{
-				Code:    code.AppStateError,
-				Message: err.Error(),
-			}
-		}
-		if nodeDetailValue == nil {
-			return &ApplicationError{
-				Code:    code.NodeIDNotFound,
-				Message: "Node ID not found",
-			}
-		}
-		var nodeDetail data.NodeDetail
-		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-		if err != nil {
-			return &ApplicationError{
-				Code:    code.UnmarshalError,
-				Message: err.Error(),
-			}
-		}
+
 		if funcParam.Aal > nodeDetail.MaxAal {
 			return &ApplicationError{
 				Code:    code.AALError,

@@ -44,7 +44,7 @@ const (
 	AALError                                                      uint32 = 17
 	IALError                                                      uint32 = 18
 	DuplicateNodeID                                               uint32 = 19
-	WrongRole                                                     uint32 = 20
+	InvalidNodeRole                                               uint32 = 20
 	DuplicateNamespace                                            uint32 = 21
 	NamespaceNotFound                                             uint32 = 22
 	DuplicateRequestID                                            uint32 = 23
@@ -108,7 +108,7 @@ const (
 	ChainIsNotInitialized                                         uint32 = 83
 	DuplicateNonce                                                uint32 = 84
 	NotExistValidator                                             uint32 = 85
-	IdentityAlreadyExisted                                        uint32 = 86
+	IdentityAlreadyExists                                         uint32 = 86
 	IdentityCannotBeEmpty                                         uint32 = 87
 	GotRefGroupCodeAndIdentity                                    uint32 = 88
 	RefGroupNotFound                                              uint32 = 89

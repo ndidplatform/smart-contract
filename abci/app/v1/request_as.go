@@ -42,7 +42,10 @@ type CreateAsResponseParam struct {
 }
 
 func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseParam, callerNodeID string, committedState bool) error {
-	ok := app.isASNode(callerNodeID)
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return &ApplicationError{
 			Code:    code.NoPermissionForCallASMethod,

@@ -48,7 +48,109 @@ type ServicePriceByCurrency struct {
 	MaxPrice float64 `json:"max_price"`
 }
 
-func (app *ABCIApplication) setServicePrice(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetServicePrice(funcParam SetServicePriceParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
+	}
+
+	// check if service ID exists
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	exists, err := app.state.Has([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !exists {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
+	servicePriceCeilingListBytes, err := app.state.Get([]byte(servicePriceCeilingKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if servicePriceCeilingListBytes == nil {
+		return &ApplicationError{
+			Code:    code.ServicePriceCeilingListNotFound,
+			Message: "Service price ceiling list not found",
+		}
+	}
+	var servicePriceCeilingList data.ServicePriceCeilingList
+	err = proto.Unmarshal([]byte(servicePriceCeilingListBytes), &servicePriceCeilingList)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+priceToSetLoop:
+	for _, priceToSet := range funcParam.PriceByCurrencyList {
+		for _, priceCeiling := range servicePriceCeilingList.PriceCeilingByCurrencyList {
+			if priceCeiling.Currency == priceToSet.Currency {
+				if priceToSet.MaxPrice >= 0 {
+					if priceToSet.MaxPrice > priceCeiling.Price {
+						return &ApplicationError{
+							Code:    code.ServiceMaxPriceGreaterThanPriceCeiling,
+							Message: "Service max price is greater than price ceiling",
+						}
+					}
+				}
+				// less then 0 price ceiling means no ceiling/limit
+
+				if priceToSet.MinPrice > priceToSet.MaxPrice {
+					return &ApplicationError{
+						Code:    code.ServicePriceMinCannotBeGreaterThanMax,
+						Message: "Service minimum price cannot be greater than maximum price",
+					}
+				}
+
+				continue priceToSetLoop
+			}
+		}
+		return &ApplicationError{
+			Code:    code.ServicePriceCeilingNotFound,
+			Message: "Service price ceiling not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setServicePriceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetServicePriceParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetServicePrice(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setServicePrice(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePrice, Parameter: %s", param)
 	var funcParam SetServicePriceParam
 	err := json.Unmarshal(param, &funcParam)
@@ -56,14 +158,12 @@ func (app *ABCIApplication) setServicePrice(param []byte, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// check if service ID exists
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	exists, err := app.state.Has([]byte(serviceKey), false)
+	err = app.validateSetServicePrice(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if !exists {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// Get service's price ceiling
@@ -71,9 +171,6 @@ func (app *ABCIApplication) setServicePrice(param []byte, nodeID string) types.R
 	servicePriceCeilingListBytes, err := app.state.Get([]byte(servicePriceCeilingKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if servicePriceCeilingListBytes == nil {
-		return app.ReturnDeliverTxLog(code.ServicePriceCeilingListNotFound, "Service price ceiling list not found", "")
 	}
 	var servicePriceCeilingList data.ServicePriceCeilingList
 	err = proto.Unmarshal([]byte(servicePriceCeilingListBytes), &servicePriceCeilingList)
@@ -87,17 +184,6 @@ priceToSetLoop:
 	for _, priceToSet := range funcParam.PriceByCurrencyList {
 		for _, priceCeiling := range servicePriceCeilingList.PriceCeilingByCurrencyList {
 			if priceCeiling.Currency == priceToSet.Currency {
-				if priceToSet.MaxPrice >= 0 {
-					if priceToSet.MaxPrice > priceCeiling.Price {
-						return app.ReturnDeliverTxLog(code.ServiceMaxPriceGreaterThanPriceCeiling, "Service max price is greater than price ceiling", "")
-					}
-				}
-				// less then 0 price ceiling means no ceiling/limit
-
-				if priceToSet.MinPrice > priceToSet.MaxPrice {
-					return app.ReturnDeliverTxLog(code.ServicePriceMinCannotBeGreaterThanMax, "Service minimum price cannot be greater than maximum price", "")
-				}
-
 				servicePriceByCurrencyListToSet = append(servicePriceByCurrencyListToSet, &data.ServicePriceByCurrency{
 					Currency: priceToSet.Currency,
 					MinPrice: priceToSet.MinPrice,
@@ -107,7 +193,6 @@ priceToSetLoop:
 				continue priceToSetLoop
 			}
 		}
-		return app.ReturnDeliverTxLog(code.ServicePriceCeilingNotFound, "Service price ceiling not found", "")
 	}
 
 	var newServicePrice *data.ServicePrice = &data.ServicePrice{
@@ -119,7 +204,7 @@ priceToSetLoop:
 		CreationChainId:     app.CurrentChain,
 	}
 
-	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + nodeID + keySeparator + funcParam.ServiceID
+	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + callerNodeID + keySeparator + funcParam.ServiceID
 	currentServicePriceListBytes, err := app.state.Get([]byte(servicePriceListKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
