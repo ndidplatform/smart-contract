@@ -29,6 +29,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	appTypes "github.com/ndidplatform/smart-contract/v8/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v8/abci/code"
 	"github.com/ndidplatform/smart-contract/v8/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v8/protos/data"
@@ -38,8 +39,80 @@ type AddSuppressedIdentityModificationNotificationNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
+func (app *ABCIApplication) validateAddSuppressedIdentityModificationNotificationNode(funcParam AddSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	// check if node ID exists and is an IdP
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(nodeDetailValue, &node)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	if appTypes.NodeRole(node.Role) != appTypes.NodeRoleIdp {
+		return &ApplicationError{
+			Code:    code.NotIdPNode,
+			Message: "not an IdP node",
+		}
+	}
+
+	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
+	exists, err := app.state.Has([]byte(key), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if exists {
+		return &ApplicationError{
+			Code:    code.SuppressedIdentityModificationNotificationNodeIDAlreadyExists,
+			Message: "suppressed identity modification notification node ID already exists",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddSuppressedIdentityModificationNotificationNodeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
 // regulator only
-func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam AddSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
@@ -47,33 +120,15 @@ func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(pa
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// check if node ID exists and is an IdP
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	var node data.NodeDetail
-	err = proto.Unmarshal(nodeDetailValue, &node)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if node.Role != "IdP" {
-		return app.ReturnDeliverTxLog(code.NotIdPNode, "not an IdP node", "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
-	exists, err := app.state.Has([]byte(key), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if exists {
-		return app.ReturnDeliverTxLog(
-			code.SuppressedIdentityModificationNotificationNodeIDAlreadyExists,
-			"suppressed identity modification notification node ID already exists",
-			"",
-		)
-	}
 
 	var suppressedIdentityModificationNotificationNode data.SuppressedIdentityModificationNotificationNode
 	value, err := utils.ProtoDeterministicMarshal(&suppressedIdentityModificationNotificationNode)
@@ -90,26 +145,72 @@ type RemoveSuppressedIdentityModificationNotificationNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
+func (app *ABCIApplication) validateRemoveSuppressedIdentityModificationNotificationNode(funcParam RemoveSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
+	exists, err := app.state.Has([]byte(key), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !exists {
+		return &ApplicationError{
+			Code:    code.SuppressedIdentityModificationNotificationNodeIDDoesNotExist,
+			Message: "suppressed identity modification notification node ID does not exist",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RemoveSuppressedIdentityModificationNotificationNodeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
 // regulator only
-func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam RemoveSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
-	exists, err := app.state.Has([]byte(key), false)
+
+	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if !exists {
-		return app.ReturnDeliverTxLog(
-			code.SuppressedIdentityModificationNotificationNodeIDDoesNotExist,
-			"suppressed identity modification notification node ID does not exist",
-			"",
-		)
-	}
+
+	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
 
 	app.state.Delete([]byte(key))
 

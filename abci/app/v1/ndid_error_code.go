@@ -45,7 +45,69 @@ type AddErrorCodeParam struct {
 	Type        string `json:"type"`
 }
 
-func (app *ABCIApplication) addErrorCode(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	funcParam.Type = strings.ToLower(funcParam.Type)
+	if !app.checkErrorCodeType(funcParam.Type) {
+		return &ApplicationError{
+			Code:    code.InvalidErrorCode,
+			Message: "Invalid error code type",
+		}
+	}
+	if funcParam.ErrorCode == 0 {
+		return &ApplicationError{
+			Code:    code.InvalidErrorCode,
+			Message: "ErrorCode cannot be 0",
+		}
+	}
+
+	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
+	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if hasErrorKey {
+		return &ApplicationError{
+			Code:    code.InvalidErrorCode,
+			Message: "ErrorCode already exists",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addErrorCodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddErrorCodeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddErrorCode(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddErrorCode, Parameter: %s", param)
 	var funcParam AddErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
@@ -53,14 +115,16 @@ func (app *ABCIApplication) addErrorCode(param []byte, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	err = app.validateAddErrorCode(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	// convert error type to lower case
 	funcParam.Type = strings.ToLower(funcParam.Type)
-	if !app.checkErrorCodeType(funcParam.Type) {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "Invalid error code type", "")
-	}
-	if funcParam.ErrorCode == 0 {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode cannot be 0", "")
-	}
 
 	errorCode := data.ErrorCode{
 		ErrorCode:   funcParam.ErrorCode,
@@ -73,13 +137,6 @@ func (app *ABCIApplication) addErrorCode(param []byte, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", errorCode.ErrorCode)
-	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if hasErrorKey {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode is already in the database", "")
-	}
 	app.state.Set([]byte(errorKey), []byte(errorCodeBytes))
 
 	// add error code to ErrorCodeList
@@ -110,7 +167,55 @@ type RemoveErrorCodeParam struct {
 	Type      string `json:"type"`
 }
 
-func (app *ABCIApplication) removeErrorCode(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateRemoveErrorCode(funcParam RemoveErrorCodeParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
+	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !hasErrorKey {
+		return &ApplicationError{
+			Code:    code.InvalidErrorCode,
+			Message: "ErrorCode does not exist",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) removeErrorCodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RemoveErrorCodeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRemoveErrorCode(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RemoveErrorCode, Parameter: %s", param)
 	var funcParam RemoveErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
@@ -118,15 +223,16 @@ func (app *ABCIApplication) removeErrorCode(param []byte, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
+	err = app.validateRemoveErrorCode(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	// remove error code from ErrorCode index
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
-	hasErrorKey, err := app.state.Has([]byte(errorKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if !hasErrorKey {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode not exists", "")
-	}
 	err = app.state.Delete([]byte(errorKey))
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -156,7 +262,7 @@ func (app *ABCIApplication) removeErrorCode(param []byte, nodeID string) types.R
 	}
 
 	if len(newErrorCodeList.ErrorCode) != len(errorCodeList.ErrorCode)-1 {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode not exists", "")
+		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
 	}
 
 	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&newErrorCodeList)
@@ -164,5 +270,6 @@ func (app *ABCIApplication) removeErrorCode(param []byte, nodeID string) types.R
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(errorsKey), []byte(errorCodeListBytes))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

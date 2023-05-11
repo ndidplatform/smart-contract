@@ -44,7 +44,56 @@ type PriceCeilingByCurrency struct {
 	Price    float64 `json:"price"`
 }
 
-func (app *ABCIApplication) setServicePriceCeiling(param []byte) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetServicePriceCeiling(funcParam SetServicePriceCeilingParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	// check if service ID exists
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	exists, err := app.state.Has([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !exists {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setServicePriceCeilingCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetServicePriceCeilingParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setServicePriceCeiling(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceCeiling, Parameter: %s", param)
 	var funcParam SetServicePriceCeilingParam
 	err := json.Unmarshal(param, &funcParam)
@@ -52,14 +101,12 @@ func (app *ABCIApplication) setServicePriceCeiling(param []byte) types.ResponseD
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// check if service ID exists
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	exists, err := app.state.Has([]byte(serviceKey), false)
+	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if !exists {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// set/overwrite service's price ceiling list
@@ -72,8 +119,7 @@ func (app *ABCIApplication) setServicePriceCeiling(param []byte) types.ResponseD
 		priceCeilingByCurrencyList = append(priceCeilingByCurrencyList, &servicePriceCeilingByCurrency)
 	}
 
-	var servicePriceCeilingList data.ServicePriceCeilingList
-	servicePriceCeilingList = data.ServicePriceCeilingList{
+	servicePriceCeilingList := data.ServicePriceCeilingList{
 		PriceCeilingByCurrencyList: priceCeilingByCurrencyList,
 	}
 
@@ -158,12 +204,71 @@ type SetServicePriceMinEffectiveDatetimeDelayParam struct {
 	DurationSecond uint32 `json:"duration_second"`
 }
 
-func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byte) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetServicePriceMinEffectiveDatetimeDelay(funcParam SetServicePriceMinEffectiveDatetimeDelayParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	if funcParam.ServiceID != "" {
+		// check if service ID exists
+		serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+		exists, err := app.state.Has([]byte(serviceKey), false)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !exists {
+			return &ApplicationError{
+				Code:    code.ServiceIDNotFound,
+				Message: "Service ID not found",
+			}
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelayCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	servicePriceMinEffectiveDatetimeDelay := data.ServicePriceMinEffectiveDatetimeDelay{
@@ -175,16 +280,6 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byt
 	}
 
 	if funcParam.ServiceID != "" {
-		// check if service ID exists
-		serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-		exists, err := app.state.Has([]byte(serviceKey), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if !exists {
-			return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-		}
-
 		key := servicePriceMinEffectiveDatetimeDelayKeyPrefix + keySeparator + funcParam.ServiceID
 		app.state.Set([]byte(key), servicePriceMinEffectiveDatetimeDelayBytes)
 	} else {

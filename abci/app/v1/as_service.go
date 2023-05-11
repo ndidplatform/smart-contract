@@ -40,7 +40,162 @@ type RegisterServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateRegisterServiceDestination(funcParam RegisterServiceDestinationParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
+	}
+
+	// Check Service ID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	// Check service is active
+	if !service.Active {
+		return &ApplicationError{
+			Code:    code.ServiceIsNotActive,
+			Message: "Service is not active",
+		}
+	}
+
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + callerNodeID
+	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	var services data.ServiceList
+	if provideServiceValue != nil {
+		err := proto.Unmarshal([]byte(provideServiceValue), &services)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+	}
+
+	// Check duplicate service ID
+	for _, service := range services.Services {
+		if service.ServiceId == funcParam.ServiceID {
+			return &ApplicationError{
+				Code:    code.DuplicateServiceID,
+				Message: "Duplicate service ID in provide service list",
+			}
+		}
+	}
+
+	// Check approve register service destination from NDID
+	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + callerNodeID
+	approveServiceValue, err := app.state.Get([]byte(approveServiceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if approveServiceValue == nil {
+		return &ApplicationError{
+			Code:    code.NoPermissionForRegisterServiceDestination,
+			Message: "This node does not have permission to register service destination",
+		}
+	}
+	var approveService data.ApproveService
+	err = proto.Unmarshal([]byte(approveServiceValue), &approveService)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	if !approveService.Active {
+		return &ApplicationError{
+			Code:    code.NoPermissionForRegisterServiceDestination,
+			Message: "This node does not have permission to register service destination",
+		}
+	}
+
+	// Add ServiceDestination
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+
+	if serviceDestinationValue != nil {
+		var nodes data.ServiceDesList
+		err := proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+
+		// Check duplicate node ID before add
+		for _, node := range nodes.Node {
+			if node.NodeId == callerNodeID {
+				return &ApplicationError{
+					Code:    code.DuplicateNodeID,
+					Message: "Duplicate node ID",
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) registerServiceDestinationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RegisterServiceDestinationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) registerServiceDestination(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterServiceDestination, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationParam
 	err := json.Unmarshal(param, &funcParam)
@@ -48,27 +203,15 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID stri
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Check Service ID
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
+	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal([]byte(serviceJSON), &service)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
-	// Check service is active
-	if !service.Active {
-		return app.ReturnDeliverTxLog(code.ServiceIsNotActive, "Service is not active", "")
-	}
-
-	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + callerNodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -80,30 +223,6 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID stri
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 	}
-	// Check duplicate service ID
-	for _, service := range services.Services {
-		if service.ServiceId == funcParam.ServiceID {
-			return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID in provide service list", "")
-		}
-	}
-
-	// Check approve register service destination from NDID
-	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + nodeID
-	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if approveServiceJSON == nil {
-		return app.ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
-	}
-	var approveService data.ApproveService
-	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if approveService.Active == false {
-		return app.ReturnDeliverTxLog(code.NoPermissionForRegisterServiceDestination, "This node does not have permission to register service destination", "")
-	}
 
 	// Append to ProvideService list
 	var newService data.Service
@@ -114,34 +233,27 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID stri
 	newService.SupportedNamespaceList = funcParam.SupportedNamespaceList
 	services.Services = append(services.Services, &newService)
 
-	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
+	provideServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
 	// Add ServiceDestination
 	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
-	chkExists, err := app.state.Get([]byte(serviceDestinationKey), false)
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 
-	if chkExists != nil {
+	if serviceDestinationValue != nil {
 		var nodes data.ServiceDesList
-		err := proto.Unmarshal([]byte(chkExists), &nodes)
+		err := proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
 
-		// Check duplicate node ID before add
-		for _, node := range nodes.Node {
-			if node.NodeId == nodeID {
-				return app.ReturnDeliverTxLog(code.DuplicateNodeID, "Duplicate node ID", "")
-			}
-		}
-
 		var newNode data.ASNode
-		newNode.NodeId = nodeID
+		newNode.NodeId = callerNodeID
 		newNode.MinIal = funcParam.MinIal
 		newNode.MinAal = funcParam.MinAal
 		newNode.ServiceId = funcParam.ServiceID
@@ -156,7 +268,7 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID stri
 	} else {
 		var nodes data.ServiceDesList
 		var newNode data.ASNode
-		newNode.NodeId = nodeID
+		newNode.NodeId = callerNodeID
 		newNode.MinIal = funcParam.MinIal
 		newNode.MinAal = funcParam.MinAal
 		newNode.ServiceId = funcParam.ServiceID
@@ -169,7 +281,8 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, nodeID stri
 		}
 		app.state.Set([]byte(serviceDestinationKey), []byte(value))
 	}
-	app.state.Set([]byte(provideServiceKey), []byte(provideServiceJSON))
+	app.state.Set([]byte(provideServiceKey), []byte(provideServiceValue))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -180,7 +293,71 @@ type UpdateServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateUpdateServiceDestination(funcParam UpdateServiceDestinationParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
+	}
+
+	// Check Service ID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceDestinationValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceDestinationNotFound,
+			Message: "Service destination not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) updateServiceDestinationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam UpdateServiceDestinationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) updateServiceDestination(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateServiceDestination, Parameter: %s", param)
 	var funcParam UpdateServiceDestinationParam
 	err := json.Unmarshal(param, &funcParam)
@@ -188,19 +365,12 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Check Service ID
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
+	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal([]byte(serviceJSON), &service)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -210,10 +380,6 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 
-	if serviceDestinationValue == nil {
-		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
-	}
-
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
@@ -221,7 +387,7 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].NodeId == nodeID {
+		if nodes.Node[index].NodeId == callerNodeID {
 			// selective update
 			if funcParam.MinAal > 0 {
 				nodes.Node[index].MinAal = funcParam.MinAal
@@ -237,7 +403,7 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string
 	}
 
 	// Update ProvideService
-	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + callerNodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -263,16 +429,17 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, nodeID string
 			break
 		}
 	}
-	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
+	provideServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	serviceDestinationJSON, err := utils.ProtoDeterministicMarshal(&nodes)
+	serviceDestinationValue, err = utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(provideServiceKey), []byte(provideServiceJSON))
-	app.state.Set([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
+	app.state.Set([]byte(provideServiceKey), []byte(provideServiceValue))
+	app.state.Set([]byte(serviceDestinationKey), []byte(serviceDestinationValue))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -280,7 +447,71 @@ type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateDisableServiceDestination(funcParam DisableServiceDestinationParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
+	}
+
+	// Check Service ID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceDestinationValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceDestinationNotFound,
+			Message: "Service destination not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) disableServiceDestinationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam DisableServiceDestinationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateDisableServiceDestination(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) disableServiceDestination(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableServiceDestination, Parameter: %s", param)
 	var funcParam DisableServiceDestinationParam
 	err := json.Unmarshal(param, &funcParam)
@@ -288,19 +519,12 @@ func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID strin
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Check Service ID
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
+	err = app.validateDisableServiceDestination(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal([]byte(serviceJSON), &service)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -310,10 +534,6 @@ func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID strin
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 
-	if serviceDestinationValue == nil {
-		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
-	}
-
 	var nodes data.ServiceDesList
 	err = proto.Unmarshal([]byte(serviceDestinationValue), &nodes)
 	if err != nil {
@@ -321,14 +541,14 @@ func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID strin
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].NodeId == nodeID {
+		if nodes.Node[index].NodeId == callerNodeID {
 			nodes.Node[index].Active = false
 			break
 		}
 	}
 
 	// Update ProvideService
-	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + callerNodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -346,17 +566,18 @@ func (app *ABCIApplication) disableServiceDestination(param []byte, nodeID strin
 			break
 		}
 	}
-	provideServiceJSON, err := utils.ProtoDeterministicMarshal(&services)
+	provideServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 
-	serviceDestinationJSON, err := utils.ProtoDeterministicMarshal(&nodes)
+	serviceDestinationValue, err = utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set([]byte(provideServiceKey), []byte(provideServiceJSON))
-	app.state.Set([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
+	app.state.Set([]byte(provideServiceKey), []byte(provideServiceValue))
+	app.state.Set([]byte(serviceDestinationKey), []byte(serviceDestinationValue))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -364,7 +585,71 @@ type EnableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateEnableServiceDestination(funcParam EnableServiceDestinationParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallASMethod,
+			Message: "This node does not have permission to call AS method",
+		}
+	}
+
+	// Check Service ID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	serviceDestinationKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if serviceDestinationValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceDestinationNotFound,
+			Message: "Service destination not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) enableServiceDestinationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam EnableServiceDestinationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateEnableServiceDestination(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) enableServiceDestination(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableServiceDestination, Parameter: %s", param)
 	var funcParam EnableServiceDestinationParam
 	err := json.Unmarshal(param, &funcParam)
@@ -372,19 +657,12 @@ func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	// Check Service ID
-	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	serviceJSON, err := app.state.Get([]byte(serviceKey), false)
+	err = app.validateEnableServiceDestination(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceJSON == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "Service ID not found", "")
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal([]byte(serviceJSON), &service)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
 	// Update ServiceDestination
@@ -392,9 +670,6 @@ func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string
 	serviceDestinationValue, err := app.state.Get([]byte(serviceDestinationKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if serviceDestinationValue == nil {
-		return app.ReturnDeliverTxLog(code.ServiceDestinationNotFound, "Service destination not found", "")
 	}
 
 	var nodes data.ServiceDesList
@@ -404,14 +679,14 @@ func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string
 	}
 
 	for index := range nodes.Node {
-		if nodes.Node[index].NodeId == nodeID {
+		if nodes.Node[index].NodeId == callerNodeID {
 			nodes.Node[index].Active = true
 			break
 		}
 	}
 
 	// Update ProvideService
-	provideServiceKey := providedServicesKeyPrefix + keySeparator + nodeID
+	provideServiceKey := providedServicesKeyPrefix + keySeparator + callerNodeID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -440,5 +715,6 @@ func (app *ABCIApplication) enableServiceDestination(param []byte, nodeID string
 	}
 	app.state.Set([]byte(provideServiceKey), []byte(provideServiceJSON))
 	app.state.Set([]byte(serviceDestinationKey), []byte(serviceDestinationJSON))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

@@ -2,6 +2,11 @@
 
 ## TBD
 
+BREAKING CHANGES:
+
+- Add and refactor all function/method validations on CheckTx
+  - Prevent transactions with invalid input/parameters/state to be included in blocks
+
 IMPROVEMENTS:
 
 - Tendermint v0.34.24.

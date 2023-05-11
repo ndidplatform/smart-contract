@@ -22,7 +22,7 @@
 
 package app
 
-var isNDIDMethod = map[string]bool{
+var regulatorMethod = map[string]bool{
 	"InitNDID":                         true,
 	"RegisterNode":                     true,
 	"AddNodeToken":                     true,

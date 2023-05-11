@@ -53,91 +53,296 @@ type RegisterIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) registerIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityParam, callerNodeID string, committedState bool) error {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if nodeDetailValue == nil {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	ok := app.isIDPNode(&nodeDetail)
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	// Valid Mode
+	var validMode = map[int32]bool{}
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", committedState)
+	for _, mode := range allowedMode {
+		validMode[mode] = true
+	}
+
+	// Validate user's ial is <= node's max_ial
+	if funcParam.Ial > nodeDetail.MaxIal {
+		return &ApplicationError{
+			Code:    code.IALError,
+			Message: "IAL must be less than or equals to registered node's max IAL",
+		}
+	}
+	// Check for identity_namespace and identity_identifier_hash. If exist, error.
+	if funcParam.ReferenceGroupCode == "" {
+		return &ApplicationError{
+			Code:    code.RefGroupCodeCannotBeEmpty,
+			Message: "Reference group code is required",
+		}
+	}
+	// Check accessor
+	if funcParam.AccessorID == "" {
+		return &ApplicationError{
+			Code:    code.AccessorIDCannotBeEmpty,
+			Message: "Accessor ID is required",
+		}
+	}
+	if funcParam.AccessorPublicKey == "" {
+		return &ApplicationError{
+			Code:    code.AccessorPublicKeyCannotBeEmpty,
+			Message: "Accessor public key is required",
+		}
+	}
+	if funcParam.AccessorType == "" {
+		return &ApplicationError{
+			Code:    code.AccessorTypeCannotBeEmpty,
+			Message: "Accessor type is required",
+		}
+	}
+	for _, mode := range funcParam.ModeList {
+		if !validMode[mode] {
+			return &ApplicationError{
+				Code:    code.InvalidMode,
+				Message: "Invalid mode for register identity",
+			}
+		}
+	}
+	modeMap := make(map[int32]struct{})
+	for _, mode := range funcParam.ModeList {
+		if _, ok := modeMap[mode]; !ok {
+			modeMap[mode] = struct{}{}
+		}
+	}
+
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + funcParam.ReferenceGroupCode
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+
+	var refGroup data.ReferenceGroup
+
+	mode3 := false
+	if _, ok := modeMap[3]; ok {
+		mode3 = true
+	}
+
+	minIdp := 0
+	if refGroupValue != nil {
+		err := proto.Unmarshal(refGroupValue, &refGroup)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+		// If there's at least one node active
+		for _, idp := range refGroup.Idps {
+			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
+			nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
+			}
+			if nodeDetailValue == nil {
+				return &ApplicationError{
+					Code:    code.NodeIDNotFound,
+					Message: "Node ID not found",
+				}
+			}
+			var nodeDetail data.NodeDetail
+			err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.UnmarshalError,
+					Message: err.Error(),
+				}
+			}
+			if nodeDetail.Active && idp.Active {
+				minIdp = 1
+				break
+			}
+		}
+	}
+	if mode3 && minIdp > 0 {
+		err = app.checkRequestUsable(funcParam.RequestID, "RegisterIdentity", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check min_ial when RegisterIdentity when onboard as first IdP
+	if refGroupValue == nil {
+		if funcParam.Ial < app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(committedState) {
+			return &ApplicationError{
+				Code:    code.IalMustBeGreaterOrEqualMinIal,
+				Message: "IAL must be greater or equal min IAL when onboard as first IdP",
+			}
+		}
+	}
+
+	// Check number of Identifier in new list and old list in stateDB
+	var namespaceCount = map[string]int{}
+	var checkDuplicateNamespaceAndHash = map[string]int{}
+	validNamespace := app.GetNamespaceMap(false)
+	for _, identity := range funcParam.NewIdentityList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return &ApplicationError{
+				Code:    code.IdentityCannotBeEmpty,
+				Message: "Identity detail is required",
+			}
+		}
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
+		identityToRefCodeValue, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if identityToRefCodeValue != nil {
+			return &ApplicationError{
+				Code:    code.IdentityAlreadyExists,
+				Message: "Identity already exists",
+			}
+		}
+		// check namespace is valid
+		if !validNamespace[identity.IdentityNamespace] {
+			return &ApplicationError{
+				Code:    code.InvalidNamespace,
+				Message: "Invalid namespace",
+			}
+		}
+		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
+		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
+	}
+	// Check duplicate count
+	for _, count := range checkDuplicateNamespaceAndHash {
+		if count > 1 {
+			return &ApplicationError{
+				Code:    code.DuplicateIdentifier,
+				Message: "Duplicate identifiers",
+			}
+		}
+	}
+	for _, identity := range refGroup.Identities {
+		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
+	}
+	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(committedState)
+	for namespace, count := range namespaceCount {
+		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
+			return &ApplicationError{
+				Code:    code.IdentifierCountIsGreaterThanAllowedIdentifierCount,
+				Message: "Identifier count is greater than allowed identifier count",
+			}
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) registerIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RegisterIdentityParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRegisterIdentity(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+
+	err = app.validateRegisterIdentity(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	// Valid Mode
-	var validMode = map[int32]bool{}
-	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", false)
-	for _, mode := range allowedMode {
-		validMode[mode] = true
-	}
+
 	user := funcParam
-	// Validate user's ial is <= node's max_ial
-	if user.Ial > nodeDetail.MaxIal {
-		return app.ReturnDeliverTxLog(code.IALError, "IAL must be less than or equals to registered node's MAX IAL", "")
-	}
-	// Check for identity_namespace and identity_identifier_hash. If exist, error.
-	if user.ReferenceGroupCode == "" {
-		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
-	}
-	// Check accessor
-	if user.AccessorID == "" {
-		return app.ReturnDeliverTxLog(code.AccessorIDCannotBeEmpty, "Please input accessor ID", "")
-	}
-	if user.AccessorPublicKey == "" {
-		return app.ReturnDeliverTxLog(code.AccessorPublicKeyCannotBeEmpty, "Please input accessor public key", "")
-	}
-	if user.AccessorType == "" {
-		return app.ReturnDeliverTxLog(code.AccessorTypeCannotBeEmpty, "Please input accessor type", "")
-	}
-	var modeCount = map[int32]int{}
-	for _, mode := range allowedMode {
-		modeCount[mode] = 0
-	}
+
+	// remove duplicates
+	modeMap := make(map[int32]struct{})
+	modeListNoDuplicate := make([]int32, 0)
 	for _, mode := range user.ModeList {
-		if validMode[mode] {
-			modeCount[mode] = modeCount[mode] + 1
-		} else {
-			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
+		if _, ok := modeMap[mode]; !ok {
+			modeMap[mode] = struct{}{}
+			modeListNoDuplicate = append(modeListNoDuplicate, mode)
 		}
 	}
-	user.ModeList = make([]int32, 0)
-	for mode, count := range modeCount {
-		if count > 0 {
-			user.ModeList = append(user.ModeList, mode)
-		}
-	}
+	user.ModeList = modeListNoDuplicate
+	// sort mode list
 	sort.Slice(user.ModeList, func(i, j int) bool { return user.ModeList[i] < user.ModeList[j] })
+
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
+
 	var refGroup data.ReferenceGroup
-	// If referenceGroupCode already existed, add new identity to group
+
+	// If referenceGroupCode already exists, add new identity to group
 
 	mode3 := false
-	for _, mode := range user.ModeList {
-		if mode == 3 {
-			mode3 = true
-			break
-		}
+	if _, ok := modeMap[3]; ok {
+		mode3 = true
 	}
+
 	minIdp := 0
 	if refGroupValue != nil {
 		err := proto.Unmarshal(refGroupValue, &refGroup)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 		}
-		// If have at least one node active
+		// If there's at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
 			nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
@@ -158,64 +363,15 @@ func (app *ABCIApplication) registerIdentity(param []byte, nodeID string) types.
 			}
 		}
 	}
-	if mode3 && minIdp > 0 {
-		checkRequestResult := app.checkRequest(user.RequestID, "RegisterIdentity", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
-		}
-	}
-	// Check min_ial when RegisterIdentity when onboard as first IdP
-	if refGroupValue == nil {
-		if user.Ial < app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(false) {
-			return app.ReturnDeliverTxLog(code.IalMustBeGreaterOrEqualMinIal, "Ial must be greater or equal min ial when onboard as first IdP", "")
-		}
-	}
-	// Check number of Identifier in new list and old list in stateDB
-	var namespaceCount = map[string]int{}
-	var checkDuplicateNamespaceAndHash = map[string]int{}
-	validNamespace := app.GetNamespaceMap(false)
-	for _, identity := range user.NewIdentityList {
-		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
-			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
-		}
-		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		identityToRefCodeValue, err := app.state.Get([]byte(identityToRefCodeKey), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if identityToRefCodeValue != nil {
-			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
-		}
-		// check namespace is valid
-		if !validNamespace[identity.IdentityNamespace] {
-			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
-		}
-		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
-		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
-	}
-	// Check duplicate count
-	for _, count := range checkDuplicateNamespaceAndHash {
-		if count > 1 {
-			return app.ReturnDeliverTxLog(code.DuplicateIdentifier, "There are duplicate identifier", "")
-		}
-	}
-	for _, identity := range refGroup.Identities {
-		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
-	}
-	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
-	for namespace, count := range namespaceCount {
-		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
-			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
-		}
-	}
+
 	var accessor data.Accessor
 	accessor.AccessorId = user.AccessorID
 	accessor.AccessorType = user.AccessorType
 	accessor.AccessorPublicKey = user.AccessorPublicKey
 	accessor.Active = true
-	accessor.Owner = nodeID
+	accessor.Owner = callerNodeID
 	var idp data.IdPInRefGroup
-	idp.NodeId = nodeID
+	idp.NodeId = callerNodeID
 	idp.Mode = append(idp.Mode, user.ModeList...)
 	idp.Accessors = append(idp.Accessors, &accessor)
 	idp.Ial = user.Ial
@@ -234,7 +390,7 @@ func (app *ABCIApplication) registerIdentity(param []byte, nodeID string) types.
 	}
 	foundThisNodeID := false
 	for iIdp, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			refGroup.Idps[iIdp].Active = true
 			refGroup.Idps[iIdp].Mode = funcParam.ModeList
 			// should accessors be replaced instead?
@@ -287,11 +443,13 @@ func (app *ABCIApplication) registerIdentity(param []byte, nodeID string) types.
 	}
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(user.ReferenceGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -304,7 +462,142 @@ type UpdateIdentityParam struct {
 	Laal                   *bool    `json:"laal"`
 }
 
-func (app *ABCIApplication) updateIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return &ApplicationError{
+			Code:    code.GotRefGroupCodeAndIdentity,
+			Message: "Found reference group code and identity detail in parameter",
+		}
+	}
+
+	if funcParam.Ial == nil && funcParam.Lial == nil && funcParam.Laal == nil {
+		return &ApplicationError{
+			Code:    code.NothingToUpdateIdentity,
+			Message: "Nothing to update",
+		}
+	}
+
+	if funcParam.Ial != nil {
+		// Check IAL must less than Max IAL
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if nodeDetailValue == nil {
+			return &ApplicationError{
+				Code:    code.NodeIDNotFound,
+				Message: "Node ID not found",
+			}
+		}
+		var nodeDetail data.NodeDetail
+		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+		if *funcParam.Ial > nodeDetail.MaxIal {
+			return &ApplicationError{
+				Code:    code.IALError,
+				Message: "New IAL is greater than max IAL",
+			}
+		}
+	}
+
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeBytes, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if refGroupCodeBytes == nil {
+			return &ApplicationError{
+				Code:    code.RefGroupNotFound,
+				Message: "Reference group not found",
+			}
+		}
+		refGroupCode = string(refGroupCodeBytes)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupValue == nil {
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	nodeIDToUpdateIndex := -1
+	for index, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			nodeIDToUpdateIndex = index
+			break
+		}
+	}
+	if nodeIDToUpdateIndex < 0 {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) updateIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam UpdateIdentityParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateUpdateIdentity(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal(param, &funcParam)
@@ -312,46 +605,27 @@ func (app *ABCIApplication) updateIdentity(param []byte, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	if funcParam.Ial == nil && funcParam.Lial == nil && funcParam.Laal == nil {
-		return app.ReturnDeliverTxLog(code.NothingToUpdateIdentity, "Nothing to update", "")
+	err = app.validateUpdateIdentity(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
-	if funcParam.Ial != nil {
-		// Check IAL must less than Max IAL
-		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if nodeDetailValue == nil {
-			return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-		}
-		var nodeDetail data.NodeDetail
-		err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		if *funcParam.Ial > nodeDetail.MaxIal {
-			return app.ReturnDeliverTxLog(code.IALError, "New IAL is greater than max IAL", "")
-		}
-	}
-
-	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
-		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
-	}
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeBytes, err := app.state.Get([]byte(identityToRefCodeKey), false)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 		}
-		if refGroupCodeFromDB == nil {
+		if refGroupCodeBytes == nil {
 			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 		}
-		refGroupCode = string(refGroupCodeFromDB)
+		refGroupCode = string(refGroupCodeBytes)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
@@ -368,13 +642,10 @@ func (app *ABCIApplication) updateIdentity(param []byte, nodeID string) types.Re
 	}
 	nodeIDToUpdateIndex := -1
 	for index, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			nodeIDToUpdateIndex = index
 			break
 		}
-	}
-	if nodeIDToUpdateIndex < 0 {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
 	}
 
 	if funcParam.Ial != nil {
@@ -393,12 +664,15 @@ func (app *ABCIApplication) updateIdentity(param []byte, nodeID string) types.Re
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -410,30 +684,149 @@ type UpdateIdentityModeListParam struct {
 	RequestID              string  `json:"request_id"`
 }
 
-func (app *ABCIApplication) updateIdentityModeList(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateUpdateIdentityModeList(funcParam UpdateIdentityModeListParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return &ApplicationError{
+			Code:    code.GotRefGroupCodeAndIdentity,
+			Message: "Found reference group code and identity detail in parameter",
+		}
+	}
+
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if refGroupCodeFromDB == nil {
+			return &ApplicationError{
+				Code:    code.RefGroupNotFound,
+				Message: "Reference group not found",
+			}
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupValue == nil {
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	foundThisNodeID := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			foundThisNodeID = true
+			break
+		}
+	}
+	if !foundThisNodeID {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
+		}
+	}
+
+	// Valid Mode
+	var validMode = map[int32]bool{}
+	allowedMode := app.GetAllowedModeFromStateDB("UpdateIdentityModeList", committedState)
+	for _, mode := range allowedMode {
+		validMode[mode] = true
+	}
+	for _, mode := range funcParam.ModeList {
+		if !validMode[mode] {
+			return &ApplicationError{
+				Code:    code.InvalidMode,
+				Message: "Must register identity on valid mode",
+			}
+		}
+	}
+
+	for index, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			// Check new mode list is higher than current mode list
+			maxCurrentMode := MaxInt32(refGroup.Idps[index].Mode)
+			maxNewMode := MaxInt32(funcParam.ModeList)
+			if maxCurrentMode > maxNewMode {
+				return &ApplicationError{
+					Code:    code.NewModeListMustBeHigherThanCurrentModeList,
+					Message: "New mode list must be higher than current mode list",
+				}
+			}
+			break
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) updateIdentityModeListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam UpdateIdentityModeListParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateIdentityModeList, Parameter: %s", param)
 	var funcParam UpdateIdentityModeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// Check IAL must less than Max IAL
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+
+	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
-		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
-	}
+
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
@@ -448,30 +841,7 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, nodeID string) 
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
-	// Valid Mode
-	var validMode = map[int32]bool{}
-	allowedMode := app.GetAllowedModeFromStateDB("UpdateIdentityModeList", false)
-	for _, mode := range allowedMode {
-		validMode[mode] = true
-	}
-	var modeCount = map[int32]int{}
-	for _, mode := range allowedMode {
-		modeCount[mode] = 0
-	}
-	for _, mode := range funcParam.ModeList {
-		if validMode[mode] {
-			modeCount[mode] = modeCount[mode] + 1
-		} else {
-			return app.ReturnDeliverTxLog(code.InvalidMode, "Must be register identity on valid mode", "")
-		}
-	}
-	funcParam.ModeList = make([]int32, 0)
-	for mode, count := range modeCount {
-		if count > 0 {
-			funcParam.ModeList = append(funcParam.ModeList, mode)
-		}
-	}
-	sort.Slice(funcParam.ModeList, func(i, j int) bool { return funcParam.ModeList[i] < funcParam.ModeList[j] })
+
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
@@ -485,24 +855,22 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, nodeID string) 
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	foundThisNodeID := false
-	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			foundThisNodeID = true
-			break
+
+	// remove duplicates
+	modeMap := make(map[int32]struct{})
+	modeListNoDuplicate := make([]int32, 0)
+	for _, mode := range funcParam.ModeList {
+		if _, ok := modeMap[mode]; !ok {
+			modeMap[mode] = struct{}{}
+			modeListNoDuplicate = append(modeListNoDuplicate, mode)
 		}
 	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
+	funcParam.ModeList = modeListNoDuplicate
+	// sort mode list
+	sort.Slice(funcParam.ModeList, func(i, j int) bool { return funcParam.ModeList[i] < funcParam.ModeList[j] })
+
 	for index, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			// Check new mode list is higher than current mode list
-			maxCurrentMode := MaxInt32(refGroup.Idps[index].Mode)
-			maxNewMode := MaxInt32(funcParam.ModeList)
-			if maxCurrentMode > maxNewMode {
-				return app.ReturnDeliverTxLog(code.NewModeListMustBeHigherThanCurrentModeList, "New mode list must be higher than current mode list", "")
-			}
+		if idp.NodeId == callerNodeID {
 			refGroup.Idps[index].Mode = funcParam.ModeList
 			break
 		}
@@ -512,11 +880,13 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, nodeID string) 
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -526,107 +896,140 @@ type AddIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) addIdentity(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("AddIdentity, Parameter: %s", param)
-	var funcParam AddIdentityParam
-	err := json.Unmarshal(param, &funcParam)
+func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return err
 	}
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	if funcParam.ReferenceGroupCode == "" {
+		return &ApplicationError{
+			Code:    code.RefGroupCodeCannotBeEmpty,
+			Message: "Please input reference group code",
+		}
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + funcParam.ReferenceGroupCode
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	user := funcParam
-	// Check for identity_namespace and identity_identifier_hash. If exist, error.
-	if user.ReferenceGroupCode == "" {
-		return app.ReturnDeliverTxLog(code.RefGroupCodeCannotBeEmpty, "Please input reference group code", "")
-	}
-	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
-	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	if refGroupValue == nil {
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
 	}
 	var refGroup data.ReferenceGroup
-	// If referenceGroupCode already existed, add new identity to group
-	minIdp := 0
-	if refGroupValue != nil {
-		err := proto.Unmarshal(refGroupValue, &refGroup)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-		// If have at least one node active
-		for _, idp := range refGroup.Idps {
-			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
-			nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-			}
-			if nodeDetailValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-			}
-			var nodeDetail data.NodeDetail
-			err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
-			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-			}
-			if nodeDetail.Active {
-				minIdp = 1
-				break
-			}
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
 		}
 	}
+
+	minIdp := 0
+	// If have at least one node active
+	for _, idp := range refGroup.Idps {
+		nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
+		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if nodeDetailValue == nil {
+			return &ApplicationError{
+				Code:    code.NodeIDNotFound,
+				Message: "Node ID not found",
+			}
+		}
+		var nodeDetail data.NodeDetail
+		err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+		if nodeDetail.Active {
+			minIdp = 1
+			break
+		}
+	}
+
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
 	var checkDuplicateNamespaceAndHash = map[string]int{}
-	validNamespace := app.GetNamespaceMap(false)
-	for _, identity := range user.NewIdentityList {
+	validNamespace := app.GetNamespaceMap(committedState)
+	for _, identity := range funcParam.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
-			return app.ReturnDeliverTxLog(code.IdentityCannotBeEmpty, "Please input identity detail", "")
+			return &ApplicationError{
+				Code:    code.IdentityCannotBeEmpty,
+				Message: "Please input identity detail",
+			}
 		}
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
-		identityToRefCodeValue, err := app.state.Get([]byte(identityToRefCodeKey), false)
+		identityToRefCodeValue, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		if identityToRefCodeValue != nil {
-			return app.ReturnDeliverTxLog(code.IdentityAlreadyExisted, "Identity already existed", "")
+			return &ApplicationError{
+				Code:    code.IdentityAlreadyExists,
+				Message: "Identity already exists",
+			}
 		}
 		// check namespace is valid
 		if !validNamespace[identity.IdentityNamespace] {
-			return app.ReturnDeliverTxLog(code.InvalidNamespace, "Namespace is invalid", "")
+			return &ApplicationError{
+				Code:    code.InvalidNamespace,
+				Message: "Invalid namespace",
+			}
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
 		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
 	}
+
 	// Check duplicate count
 	for _, count := range checkDuplicateNamespaceAndHash {
 		if count > 1 {
-			return app.ReturnDeliverTxLog(code.DuplicateIdentifier, "There are duplicate identifier", "")
+			return &ApplicationError{
+				Code:    code.DuplicateIdentifier,
+				Message: "Duplicate identifiers",
+			}
 		}
 	}
 	for _, identity := range refGroup.Identities {
 		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
 	}
-	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(false)
+	allowedIdentifierCount := app.GetNamespaceAllowedIdentifierCountMap(committedState)
 	for namespace, count := range namespaceCount {
 		if count > allowedIdentifierCount[namespace] && allowedIdentifierCount[namespace] > 0 {
-			return app.ReturnDeliverTxLog(code.IdentifierCountIsGreaterThanAllowedIdentifierCount, "Identifier count is greater than allowed identifier count", "")
+			return &ApplicationError{
+				Code:    code.IdentifierCountIsGreaterThanAllowedIdentifierCount,
+				Message: "Identifier count is greater than allowed identifier count",
+			}
 		}
 	}
+
 	foundThisNodeID := false
 	mode3 := false
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			for _, mode := range idp.Mode {
 				if mode == 3 {
 					mode3 = true
@@ -637,42 +1040,115 @@ func (app *ABCIApplication) addIdentity(param []byte, nodeID string) types.Respo
 			break
 		}
 	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
-	if mode3 {
-		checkRequestResult := app.checkRequest(user.RequestID, "AddIdentity", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
+	if !foundThisNodeID {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
 		}
 	}
+
+	if mode3 {
+		err = app.checkRequestUsable(funcParam.RequestID, "AddIdentity", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddIdentityParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddIdentity(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("AddIdentity, Parameter: %s", param)
+	var funcParam AddIdentityParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateAddIdentity(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	user := funcParam
+
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+			break
+		}
+	}
+
 	for _, identity := range user.NewIdentityList {
 		var newIdentity data.IdentityInRefGroup
 		newIdentity.Namespace = identity.IdentityNamespace
 		newIdentity.IdentifierHash = identity.IdentityIdentifierHash
 		refGroup.Identities = append(refGroup.Identities, &newIdentity)
 	}
+
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
+
 	if mode3 {
 		increaseRequestUseCountResult := app.increaseRequestUseCount(user.RequestID)
 		if increaseRequestUseCountResult.Code != code.OK {
 			return increaseRequestUseCountResult
 		}
 	}
+
 	for _, identity := range user.NewIdentityList {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + identity.IdentityNamespace + keySeparator + identity.IdentityIdentifierHash
 		identityToRefCodeValue := []byte(user.ReferenceGroupCode)
 		app.state.Set([]byte(identityToRefCodeKey), []byte(identityToRefCodeValue))
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(user.ReferenceGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -683,63 +1159,71 @@ type RevokeIdentityAssociationParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeIdentityAssociation(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
-	var funcParam RevokeIdentityAssociationParam
-	err := json.Unmarshal(param, &funcParam)
+func (app *ABCIApplication) validateRevokeIdentityAssociation(funcParam RevokeIdentityAssociationParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return err
 	}
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if !nodeDetail.Active {
-		return app.ReturnDeliverTxLog(code.NodeIsNotActive, "Node is not active", "")
-	}
+
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
-		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
+		return &ApplicationError{
+			Code:    code.GotRefGroupCodeAndIdentity,
+			Message: "Found reference group code and identity detail in parameter",
+		}
 	}
+
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
 	} else {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
-		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+			return &ApplicationError{
+				Code:    code.RefGroupNotFound,
+				Message: "Reference group not found",
+			}
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
 	foundThisNodeID := false
 	mode3 := false
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			foundThisNodeID = true
 			for _, mode := range idp.Mode {
 				if mode == 3 {
@@ -750,18 +1234,95 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, nodeID strin
 			break
 		}
 	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
-	if mode3 {
-		minIdp := 1
-		checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeIdentityAssociation", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
+	if !foundThisNodeID {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
 		}
 	}
+
+	if mode3 {
+		minIdp := 1
+		err = app.checkRequestUsable(funcParam.RequestID, "RevokeIdentityAssociation", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) revokeIdentityAssociationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RevokeIdentityAssociationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
+	var funcParam RevokeIdentityAssociationParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+			break
+		}
+	}
+
 	for iIdP, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			refGroup.Idps[iIdP].Active = false
 			for iAcc := range idp.Accessors {
 				refGroup.Idps[iIdP].Accessors[iAcc].Active = false
@@ -769,6 +1330,7 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, nodeID strin
 			break
 		}
 	}
+
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
@@ -780,11 +1342,13 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, nodeID strin
 		}
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -798,25 +1362,154 @@ type AddAccessorParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) addAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
+		return &ApplicationError{
+			Code:    code.GotRefGroupCodeAndIdentity,
+			Message: "Found reference group code and identity detail in parameter",
+		}
+	}
+
+	err = checkPubKey(funcParam.AccessorPublicKey)
+	if err != nil {
+		return err
+	}
+
+	// Check duplicate accessor ID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupCodeFromDB != nil {
+		return &ApplicationError{
+			Code:    code.DuplicateAccessorID,
+			Message: "Duplicate accessor ID",
+		}
+	}
+
+	refGroupCode := ""
+	if funcParam.ReferenceGroupCode != "" {
+		refGroupCode = funcParam.ReferenceGroupCode
+	} else {
+		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
+		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if refGroupCodeFromDB == nil {
+			return &ApplicationError{
+				Code:    code.RefGroupNotFound,
+				Message: "Reference group not found",
+			}
+		}
+		refGroupCode = string(refGroupCodeFromDB)
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupValue == nil {
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	foundThisNodeID := false
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			foundThisNodeID = true
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+			break
+		}
+	}
+	if !foundThisNodeID {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
+		}
+	}
+
+	if mode3 {
+		minIdp := 1
+		err = app.checkRequestUsable(funcParam.RequestID, "AddAccessor", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddAccessorParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddAccessor(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddAccessor, Parameter: %s", param)
 	var funcParam AddAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
-		return app.ReturnDeliverTxLog(code.GotRefGroupCodeAndIdentity, "Found reference group code and identity detail in parameter", "")
-	}
-	// Check duplicate accessor ID
-	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
+
+	err = app.validateAddAccessor(funcParam, callerNodeID, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
-	if refGroupCodeFromDB != nil {
-		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
-	}
+
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
 		refGroupCode = funcParam.ReferenceGroupCode
@@ -844,11 +1537,10 @@ func (app *ABCIApplication) addAccessor(param []byte, nodeID string) types.Respo
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	foundThisNodeID := false
+
 	mode3 := false
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			foundThisNodeID = true
+		if idp.NodeId == callerNodeID {
 			for _, mode := range idp.Mode {
 				if mode == 3 {
 					mode3 = true
@@ -858,26 +1550,15 @@ func (app *ABCIApplication) addAccessor(param []byte, nodeID string) types.Respo
 			break
 		}
 	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
-
-	if mode3 {
-		minIdp := 1
-		checkRequestResult := app.checkRequest(funcParam.RequestID, "AddAccessor", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
-		}
-	}
 
 	var accessor data.Accessor
 	accessor.AccessorId = funcParam.AccessorID
 	accessor.AccessorType = funcParam.AccessorType
 	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
 	accessor.Active = true
-	accessor.Owner = nodeID
+	accessor.Owner = callerNodeID
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			idp.Accessors = append(idp.Accessors, &accessor)
 			break
 		}
@@ -894,15 +1575,17 @@ func (app *ABCIApplication) addAccessor(param []byte, nodeID string) types.Respo
 		}
 	}
 
-	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	accessorToRefCodeValue := refGroupCode
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -911,57 +1594,166 @@ type RevokeAccessorParam struct {
 	RequestID      string   `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateRevokeAccessor(funcParam RevokeAccessorParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
+	}
+
+	// if len(funcParam.AccessorIDList) == 0 {
+	// TODO: err
+	// }
+
+	// check if all accessor IDs have the same ref group code
+	var refGroupCode string
+	for index, accessorID := range funcParam.AccessorIDList {
+		accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + accessorID
+		refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if refGroupCodeFromDB == nil {
+			return &ApplicationError{
+				Code:    code.RefGroupNotFound,
+				Message: "Reference group not found",
+			}
+		}
+		if index == 0 {
+			refGroupCode = string(refGroupCodeFromDB)
+		} else {
+			if string(refGroupCodeFromDB) != refGroupCode {
+				return &ApplicationError{
+					Code:    code.AllAccessorMustHaveSameRefGroupCode,
+					Message: "All accessors must have the same reference group code",
+				}
+			}
+		}
+	}
+
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupValue == nil {
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+			accessorInIdP := make([]string, 0)
+			activeAccessorCount := 0
+			for _, accessor := range idp.Accessors {
+				accessorInIdP = append(accessorInIdP, accessor.AccessorId)
+				if accessor.Active {
+					activeAccessorCount++
+				}
+			}
+			for _, accessorID := range funcParam.AccessorIDList {
+				if !contains(accessorID, accessorInIdP) {
+					return &ApplicationError{
+						Code:    code.AccessorNotFoundInThisIdP,
+						Message: "Accessor not found in this IdP",
+					}
+				}
+			}
+			if activeAccessorCount-len(funcParam.AccessorIDList) < 1 {
+				return &ApplicationError{
+					Code:    code.CannotRevokeAllAccessorsInThisIdP,
+					Message: "Cannot revoke all accessors in this IdP",
+				}
+			}
+		}
+	}
+
+	if mode3 {
+		minIdp := 1
+		err = app.checkRequestUsable(funcParam.RequestID, "RevokeAccessor", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) revokeAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RevokeAccessorParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRevokeAccessor(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("RevokeAccessor, Parameter: %s", param)
 	var funcParam RevokeAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	// check node is active
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
+
+	err = app.validateRevokeAccessor(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	// get ref group code
+	var refGroupCode string
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorIDList[0]
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if !nodeDetail.Active {
-		return app.ReturnDeliverTxLog(code.NodeIsNotActive, "Node is not active", "")
-	}
-	// check all accessor ID have the same ref group code
-	firstRefGroup := ""
-	for index, accsesorID := range funcParam.AccessorIDList {
-		accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + accsesorID
-		refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
-		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-		}
-		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
-		}
-		if index == 0 {
-			firstRefGroup = string(refGroupCodeFromDB)
-		} else {
-			if string(refGroupCodeFromDB) != firstRefGroup {
-				return app.ReturnDeliverTxLog(code.AllAccessorMustHaveSameRefGroupCode, "All accessors must have same reference group code", "")
-			}
-		}
-	}
-	refGroupCode := firstRefGroup
+	refGroupCode = string(refGroupCodeFromDB)
+
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
@@ -971,46 +1763,22 @@ func (app *ABCIApplication) revokeAccessor(param []byte, nodeID string) types.Re
 
 	mode3 := false
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			for _, mode := range idp.Mode {
 				if mode == 3 {
 					mode3 = true
 					break
 				}
 			}
-			accessorInIdP := make([]string, 0)
-			activeAccessorCount := 0
-			for _, accsesor := range idp.Accessors {
-				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
-				if accsesor.Active {
-					activeAccessorCount++
-				}
-			}
-			for _, accsesorID := range funcParam.AccessorIDList {
-				if !contains(accsesorID, accessorInIdP) {
-					return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
-				}
-			}
-			if activeAccessorCount-len(funcParam.AccessorIDList) < 1 {
-				return app.ReturnDeliverTxLog(code.CannotRevokeAllAccessorsInThisIdP, "Cannot revoke all accessors in this IdP", "")
-			}
-		}
-	}
-
-	if mode3 {
-		minIdp := 1
-		checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeAccessor", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
 		}
 	}
 
 	for iIdP, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			for _, accsesorID := range funcParam.AccessorIDList {
-				for iAcc, accsesor := range idp.Accessors {
+		if idp.NodeId == callerNodeID {
+			for _, accessorID := range funcParam.AccessorIDList {
+				for iAcc, accessor := range idp.Accessors {
 					// app.logger.Debugf("Acces:%s", args)
-					if accsesor.AccessorId == accsesorID {
+					if accessor.AccessorId == accessorID {
 						refGroup.Idps[iIdP].Accessors[iAcc].Active = false
 						break
 					}
@@ -1019,24 +1787,25 @@ func (app *ABCIApplication) revokeAccessor(param []byte, nodeID string) types.Re
 			break
 		}
 	}
+
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-
 	if mode3 {
 		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
 		if increaseRequestUseCountResult.Code != code.OK {
 			return increaseRequestUseCountResult
 		}
 	}
-
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = []byte(refGroupCode)
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -1048,55 +1817,60 @@ type RevokeAndAddAccessorParam struct {
 	RequestID          string `json:"request_id"`
 }
 
-func (app *ABCIApplication) revokeAndAddAccessor(param []byte, nodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("RevokeAndAddAccessor, Parameter: %s", param)
-	var funcParam RevokeAndAddAccessorParam
-	err := json.Unmarshal(param, &funcParam)
+func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddAccessorParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return err
 	}
-	// check node is active
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallIdPMethod,
+			Message: "This node does not have permission to call IdP method",
+		}
 	}
-	if nodeDetailValue == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-	}
-	if !nodeDetail.Active {
-		return app.ReturnDeliverTxLog(code.NodeIsNotActive, "Node is not active", "")
-	}
-	// Get ref group code from revoking accessor ID
+
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.RevokingAccessorID
-	refGroupCode, err := app.state.Get([]byte(accessorToRefCodeKey), false)
+	refGroupCode, err := app.state.Get([]byte(accessorToRefCodeKey), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if refGroupCode == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
-	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return &ApplicationError{
+			Code:    code.RefGroupNotFound,
+			Message: "Reference group not found",
+		}
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
+
+	foundThisNodeID := false
 	mode3 := false
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
+			foundThisNodeID = true
 			for _, mode := range idp.Mode {
 				if mode == 3 {
 					mode3 = true
@@ -1105,28 +1879,124 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, nodeID string) ty
 			}
 			accessorInIdP := make([]string, 0)
 			activeAccessorCount := 0
-			for _, accsesor := range idp.Accessors {
-				accessorInIdP = append(accessorInIdP, accsesor.AccessorId)
-				if accsesor.Active {
+			for _, accessor := range idp.Accessors {
+				accessorInIdP = append(accessorInIdP, accessor.AccessorId)
+				if accessor.Active {
 					activeAccessorCount++
 				}
 			}
 			if !contains(funcParam.RevokingAccessorID, accessorInIdP) {
-				return app.ReturnDeliverTxLog(code.AccessorNotFoundInThisIdP, "Accessor not found in this IdP", "")
+				return &ApplicationError{
+					Code:    code.AccessorNotFoundInThisIdP,
+					Message: "Accessor not found in this IdP",
+				}
 			}
 		}
 	}
-	if mode3 {
-		minIdp := 1
-		checkRequestResult := app.checkRequest(funcParam.RequestID, "RevokeAndAddAccessor", minIdp)
-		if checkRequestResult.Code != code.OK {
-			return checkRequestResult
+
+	if !foundThisNodeID {
+		return &ApplicationError{
+			Code:    code.IdentityNotFoundInThisIdP,
+			Message: "Identity not found in this IdP",
 		}
 	}
+
+	if mode3 {
+		minIdp := 1
+		err = app.checkRequestUsable(funcParam.RequestID, "RevokeAndAddAccessor", minIdp, committedState)
+		if err != nil {
+			return err
+		}
+	}
+
+	// check for add new accessor
+
+	// Check duplicate accessor ID
+	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupCodeFromDB != nil {
+		return &ApplicationError{
+			Code:    code.DuplicateAccessorID,
+			Message: "Duplicate accessor ID",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) revokeAndAddAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam RevokeAndAddAccessorParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("RevokeAndAddAccessor, Parameter: %s", param)
+	var funcParam RevokeAndAddAccessorParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	// Get ref group code from revoking accessor ID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.RevokingAccessorID
+	refGroupCode, err := app.state.Get([]byte(accessorToRefCodeKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
+	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+	}
+	var refGroup data.ReferenceGroup
+	err = proto.Unmarshal(refGroupValue, &refGroup)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+	}
+
+	mode3 := false
+	for _, idp := range refGroup.Idps {
+		if idp.NodeId == callerNodeID {
+			for _, mode := range idp.Mode {
+				if mode == 3 {
+					mode3 = true
+					break
+				}
+			}
+		}
+	}
+
 	for iIdP, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			for iAcc, accsesor := range idp.Accessors {
-				if accsesor.AccessorId == funcParam.RevokingAccessorID {
+		if idp.NodeId == callerNodeID {
+			for iAcc, accessor := range idp.Accessors {
+				if accessor.AccessorId == funcParam.RevokingAccessorID {
 					refGroup.Idps[iIdP].Accessors[iAcc].Active = false
 					break
 				}
@@ -1134,44 +2004,17 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, nodeID string) ty
 			break
 		}
 	}
-	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
-	}
-	// Check duplicate accessor ID
-	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
-	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
-	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if refGroupCodeFromDB != nil {
-		return app.ReturnDeliverTxLog(code.DuplicateAccessorID, "Duplicate accessor ID", "")
-	}
-	foundThisNodeID := false
-	mode3 = false
-	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
-			foundThisNodeID = true
-			for _, mode := range idp.Mode {
-				if mode == 3 {
-					mode3 = true
-					break
-				}
-			}
-			break
-		}
-	}
-	if foundThisNodeID == false {
-		return app.ReturnDeliverTxLog(code.IdentityNotFoundInThisIdP, "Identity not found in this IdP", "")
-	}
+
+	// add new accessor
+
 	var accessor data.Accessor
 	accessor.AccessorId = funcParam.AccessorID
 	accessor.AccessorType = funcParam.AccessorType
 	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
 	accessor.Active = true
-	accessor.Owner = nodeID
+	accessor.Owner = callerNodeID
 	for _, idp := range refGroup.Idps {
-		if idp.NodeId == nodeID {
+		if idp.NodeId == callerNodeID {
 			idp.Accessors = append(idp.Accessors, &accessor)
 			break
 		}
@@ -1191,11 +2034,13 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, nodeID string) ty
 	accessorToRefCodeValue := refGroupCode
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
+
 	var attributes []types.EventAttribute
 	var attribute types.EventAttribute
 	attribute.Key = []byte("reference_group_code")
 	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
+
 	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
 }
 
@@ -1630,6 +2475,68 @@ func (app *ABCIApplication) checkRequest(requestID string, purpose string, minId
 		return app.ReturnDeliverTxLog(code.OK, "Request is completed", "")
 	}
 	return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+}
+
+func (app *ABCIApplication) checkRequestUsable(requestID string, purpose string, minIdp int, committedState bool) error {
+	requestKey := requestKeyPrefix + keySeparator + requestID
+	requestValue, err := app.state.GetVersioned([]byte(requestKey), app.state.Height, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if requestValue == nil {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID not found",
+		}
+	}
+	var request data.Request
+	err = proto.Unmarshal([]byte(requestValue), &request)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	if request.Purpose != purpose {
+		return &ApplicationError{
+			Code:    code.InvalidPurpose,
+			Message: "Request has a invalid purpose",
+		}
+	}
+	if request.UseCount > 0 {
+		return &ApplicationError{
+			Code:    code.RequestIsAlreadyUsed,
+			Message: "Request is already used",
+		}
+	}
+	if !request.Closed {
+		return &ApplicationError{
+			Code:    code.RequestIsNotClosed,
+			Message: "Request is not closed",
+		}
+	}
+	var acceptCount int = 0
+	for _, response := range request.ResponseList {
+		if response.ValidIal != "true" {
+			continue
+		}
+		if response.ValidSignature != "true" {
+			continue
+		}
+		if response.Status == "accept" {
+			acceptCount++
+		}
+	}
+	if acceptCount < minIdp {
+		return &ApplicationError{
+			Code:    code.RequestIsNotCompleted,
+			Message: "Request is not completed",
+		}
+	}
+	return nil
 }
 
 func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {

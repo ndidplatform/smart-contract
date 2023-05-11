@@ -270,7 +270,7 @@ func TestCloseRequest(t *testing.T, requestID string) {
 	CloseRequest(t, nodeID, privK, param)
 }
 
-func UpdateNode(t *testing.T, nodeID, privK string, param app.UpdateNodeParam, expected string) {
+func UpdateNode(t *testing.T, nodeID, privK string, param app.UpdateNodeParam, expected string, expectResultFrom string) {
 	privKey := utils.GetPrivateKeyFromString(privK)
 	paramJSON, err := json.Marshal(param)
 	if err != nil {
@@ -280,14 +280,20 @@ func UpdateNode(t *testing.T, nodeID, privK string, param app.UpdateNodeParam, e
 	nonce, signature := utils.CreateSignatureAndNonce(fnName, paramJSON, privKey)
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	var actual string
+	if expectResultFrom == "CheckTx" {
+		actual = resultObj.Result.CheckTx.Log
+	} else {
+		actual = resultObj.Result.DeliverTx.Log
+	}
+	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
 	t.Logf("PASS: %s", fnName)
 }
 
-func TestUpdateNode(t *testing.T, caseID int64, expected string) {
+func TestUpdateNode(t *testing.T, caseID int64, expected string, expectResultFrom string) {
 	var nodeID string
 	var privK string
 	var param app.UpdateNodeParam
@@ -314,5 +320,5 @@ func TestUpdateNode(t *testing.T, caseID int64, expected string) {
 		nodeID = data.IdP1
 		privK = data.AllMasterKey
 	}
-	UpdateNode(t, nodeID, privK, param, expected)
+	UpdateNode(t, nodeID, privK, param, expected, expectResultFrom)
 }

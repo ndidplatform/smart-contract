@@ -31,13 +31,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	appTypes "github.com/ndidplatform/smart-contract/v8/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v8/abci/code"
 	data "github.com/ndidplatform/smart-contract/v8/protos/data"
 )
@@ -68,7 +68,6 @@ var IsMethod = map[string]bool{
 	"RegisterIdentity":                 true,
 	"AddAccessor":                      true,
 	"CreateIdpResponse":                true,
-	"RegisterAccessor":                 true,
 	"UpdateIdentity":                   true,
 	"CreateAsResponse":                 true,
 	"RegisterServiceDestination":       true,
@@ -81,7 +80,6 @@ var IsMethod = map[string]bool{
 	"SetDataReceived":                  true,
 	"DisableServiceDestination":        true,
 	"EnableServiceDestination":         true,
-	"ClearRegisterIdentityTimeout":     true,
 	"SetTimeOutBlockRegisterIdentity":  true,
 	"AddNodeToProxyNode":               true,
 	"UpdateNodeProxyNode":              true,
@@ -108,237 +106,287 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 }
 
-func (app *ABCIApplication) checkTxInitNDID(param []byte, nodeID string) types.ResponseCheckTx {
-	exist, err := app.state.Has(masterNDIDKeyBytes, true)
-	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
+func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleNdid {
+		return true
 	}
-	if exist {
-		// NDID node (first node of the network) is already existed
-		return ReturnCheckTx(code.NDIDisAlreadyExisted, "NDID node is already existed")
-	}
-	return ReturnCheckTx(code.OK, "")
+
+	return false
 }
 
-func (app *ABCIApplication) checkTxSetMqAddresses(param []byte, nodeID string) types.ResponseCheckTx {
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
-	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
-	}
-	var node data.NodeDetail
-	err = proto.Unmarshal(value, &node)
-	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
-	}
-	if string(node.Role) != "RP" &&
-		string(node.Role) != "IdP" &&
-		string(node.Role) != "AS" &&
-		string(node.Role) != "Proxy" {
-		return ReturnCheckTx(code.NoPermissionForSetMqAddresses, "This node does not have permission to set MQ addresses")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) isNDIDNode(param []byte, nodeID string, committedState bool) bool {
+func (app *ABCIApplication) isNDIDNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		return false
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "NDID" {
+
+	return app.isNDIDNode(&node), nil
+}
+
+func (app *ABCIApplication) isRPNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleRp {
 		return true
 	}
+
 	return false
 }
 
-func (app *ABCIApplication) isRPNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isRPNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "RP" {
+
+	return app.isRPNode(&node), nil
+}
+
+func (app *ABCIApplication) isIDPNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleIdp && !node.IsIdpAgent {
 		return true
 	}
+
 	return false
 }
 
-func (app *ABCIApplication) isIDPNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isIDPNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "IdP" && !node.IsIdpAgent {
+
+	return app.isIDPNode(&node), nil
+}
+
+func (app *ABCIApplication) isIDPAgentNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleIdp && node.IsIdpAgent {
 		return true
 	}
+
 	return false
 }
 
-func (app *ABCIApplication) isIDPAgentNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isIDPAgentNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "IdP" && node.IsIdpAgent {
+
+	return app.isIDPAgentNode(&node), nil
+}
+
+func (app *ABCIApplication) isIDPorIDPAgentNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleIdp {
 		return true
 	}
+
 	return false
 }
 
-func (app *ABCIApplication) isIDPorIDPAgentNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isIDPorIDPAgentNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "IdP" {
+
+	return app.isIDPorIDPAgentNode(&node), nil
+}
+
+func (app *ABCIApplication) isASNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleAs {
 		return true
 	}
+
 	return false
 }
 
-func (app *ABCIApplication) isASNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isASNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		return false
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "AS" {
+
+	return app.isASNode(&node), nil
+}
+
+func (app *ABCIApplication) isIDPorRPNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleRp {
 		return true
 	}
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleIdp && !node.IsIdpAgent {
+		return true
+	}
+
 	return false
 }
 
-func (app *ABCIApplication) isIDPorRPNode(param []byte, nodeID string) bool {
+func (app *ABCIApplication) isIDPorRPNodeByNodeID(nodeID string, committedState bool) (bool, error) {
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), true)
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		panic(err)
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		return false
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if node.Role == "RP" {
+
+	return app.isIDPorRPNode(&node), nil
+}
+
+func (app *ABCIApplication) isProxyNode(node *data.NodeDetail) bool {
+	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleProxy {
 		return true
 	}
-	if node.Role == "IdP" && !node.IsIdpAgent {
-		return true
-	}
+
 	return false
 }
 
-func (app *ABCIApplication) checkIsNDID(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isNDIDNode(param, nodeID, true)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallNDIDMethod, "This node does not have permission to call NDID method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkIsRP(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isRPNode(param, nodeID)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallRPMethod, "This node does not have permission to call RP method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkIsIDP(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isIDPNode(param, nodeID)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkIsIDPOrIDPAgent(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isIDPorIDPAgentNode(param, nodeID)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallIdPMethod, "This node does not have permission to call IdP or IdP agent method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkIsAS(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isASNode(param, nodeID)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallASMethod, "This node does not have permission to call AS method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkIsRPorIDP(param []byte, nodeID string) types.ResponseCheckTx {
-	ok := app.isIDPorRPNode(param, nodeID)
-	if !ok {
-		return ReturnCheckTx(code.NoPermissionForCallRPandIdPMethod, "This node does not have permission to call RP and IdP method")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-type RequestIDParam struct {
-	RequestID string `json:"request_id"`
-}
-
-func (app *ABCIApplication) checkIsOwnerRequest(param []byte, nodeID string, committedState bool) types.ResponseCheckTx {
-	var funcParam RequestIDParam
-	err := json.Unmarshal(param, &funcParam)
+func (app *ABCIApplication) isProxyNodeByNodeID(nodeID string, committedState bool) (bool, error) {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return false, &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
-	// Check request is existed
-	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
-	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
+	if value == nil {
+		return false, &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
 	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
+		return false, &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
 	}
-	if requestValue == nil {
-		return types.ResponseCheckTx{Code: code.RequestIDNotFound, Log: "Request ID not found"}
-	}
-	var request data.Request
-	err = proto.Unmarshal([]byte(requestValue), &request)
-	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
-	}
-	// Check node ID is owner of request
-	if request.Owner != nodeID {
-		return ReturnCheckTx(code.NotOwnerOfRequest, "This node is not owner of request")
-	}
-	return ReturnCheckTx(code.OK, "")
+
+	return app.isProxyNode(&node), nil
 }
 
 func verifySignature(param []byte, chainID string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
@@ -369,7 +417,7 @@ func verifySignature(param []byte, chainID string, nonce []byte, signature []byt
 func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
 	return types.ResponseCheckTx{
 		Code: code,
-		Log:  fmt.Sprintf(log),
+		Log:  log,
 	}
 }
 
@@ -442,204 +490,155 @@ func (app *ABCIApplication) getPublicKeyFromNodeID(nodeID string, committedState
 	return nodeDetail.PublicKey
 }
 
-func (app *ABCIApplication) getRoleFromNodeID(nodeID string) string {
-	key := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(key), false)
-	if err != nil {
-		panic(err)
-	}
-	if value == nil {
-		return ""
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal(value, &nodeDetail)
-	if err != nil {
-		return ""
-	}
-	return nodeDetail.Role
-}
-
-func checkPubKey(key string) (returnCode uint32, log string) {
+func checkPubKey(key string) error {
 	block, _ := pem.Decode([]byte(key))
 	if block == nil {
-		return code.InvalidKeyFormat, "Invalid key format. Cannot decode PEM."
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: "Invalid key format. Cannot decode PEM.",
+		}
 	}
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return code.InvalidKeyFormat, err.Error()
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: err.Error(),
+		}
 	}
 
 	switch pubKey := pub.(type) {
 	case *rsa.PublicKey:
 		if pubKey.N.BitLen() < 2048 {
-			return code.RSAKeyLengthTooShort, "RSA key length is too short. Must be at least 2048-bit."
+			return &ApplicationError{
+				Code:    code.RSAKeyLengthTooShort,
+				Message: "RSA key length is too short. Must be at least 2048-bit.",
+			}
 		}
 	case *dsa.PublicKey, *ecdsa.PublicKey:
-		return code.UnsupportedKeyType, "Unsupported key type. Only RSA is allowed."
+		return &ApplicationError{
+			Code:    code.UnsupportedKeyType,
+			Message: "Unsupported key type. Only RSA is allowed.",
+		}
 	default:
-		return code.UnknownKeyType, "Unknown key type. Only RSA is allowed."
-	}
-	return code.OK, ""
-}
-
-func checkNodePubKeys(param []byte) (returnCode uint32, log string) {
-	var keys struct {
-		MasterPublicKey string `json:"master_public_key"`
-		PublicKey       string `json:"public_key"`
-	}
-	err := json.Unmarshal(param, &keys)
-	if err != nil {
-		return code.UnmarshalError, err.Error()
-	}
-	// Validate master public key format
-	if keys.MasterPublicKey != "" {
-		returnCode, log = checkPubKey(keys.MasterPublicKey)
-		if returnCode != code.OK {
-			return returnCode, log
+		return &ApplicationError{
+			Code:    code.UnknownKeyType,
+			Message: "Unknown key type. Only RSA is allowed.",
 		}
 	}
 
-	// Validate public key format
-	if keys.PublicKey != "" {
-		returnCode, log = checkPubKey(keys.PublicKey)
-		if returnCode != code.OK {
-			return returnCode, log
-		}
-	}
-	return code.OK, ""
+	return nil
 }
 
-func checkAccessorPubKey(param []byte) (returnCode uint32, log string) {
-	var key struct {
-		AccessorPublicKey string `json:"accessor_public_key"`
-	}
-	err := json.Unmarshal(param, &key)
-	if err != nil {
-		return code.UnmarshalError, err.Error()
-	}
-	returnCode, log = checkPubKey(key.AccessorPublicKey)
-	if returnCode != code.OK {
-		return returnCode, log
-	}
-	return code.OK, ""
-}
-
-var IsCheckOwnerRequestMethod = map[string]bool{
-	"CloseRequest":    true,
-	"TimeOutRequest":  true,
-	"SetDataReceived": true,
-}
-
-var IsMasterKeyMethod = map[string]bool{
-	"UpdateNode": true,
-}
-
-func (app *ABCIApplication) checkCanCreateTx(committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) checkCanCreateTx(committedState bool) error {
 	value, err := app.state.Get(initStateKeyBytes, committedState)
 	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if string(value) == "" {
-		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
+		return &ApplicationError{
+			Code:    code.ChainIsNotInitialized,
+			Message: "Chain is not initialized",
+		}
 	}
 	if string(value) != "false" {
-		return ReturnCheckTx(code.ChainIsNotInitialized, "Chain is not initialized")
+		return &ApplicationError{
+			Code:    code.ChainIsNotInitialized,
+			Message: "Chain is not initialized",
+		}
 	}
-	return ReturnCheckTx(code.OK, "")
+
+	return nil
 }
 
-func (app *ABCIApplication) checkCanSetInitData(committedState bool) types.ResponseCheckTx {
-	value, err := app.state.Get(initStateKeyBytes, committedState)
-	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
-	}
-	if string(value) != "true" {
-		return ReturnCheckTx(code.ChainIsAlreadyInitialized, "Chain is already initialized")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-func (app *ABCIApplication) checkLastBlock(committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) checkLastBlock(committedState bool) error {
 	value, err := app.state.Get(lastBlockKeyBytes, committedState)
 	if err != nil {
-		return ReturnCheckTx(code.AppStateError, "")
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
 	}
 	if string(value) == "" {
 		value = []byte("-1")
 	}
 	if string(value) == "-1" {
-		return ReturnCheckTx(code.OK, "")
+		return nil
 	}
 	lastBlock, err := strconv.ParseInt(string(value), 10, 64)
 	if err != nil {
-		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
+		return &ApplicationError{
+			Code:    code.ChainIsDisabled,
+			Message: "Chain is disabled",
+		}
 	}
 	if app.state.CurrentBlockHeight > lastBlock {
-		return ReturnCheckTx(code.ChainIsDisabled, "Chain is disabled")
-	}
-	return ReturnCheckTx(code.OK, "")
-}
-
-// CheckTxRouter check if Tx is valid
-// CheckTx must get committed state while DeliverTx must get uncommitted state
-func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
-
-	// ---- Check current block <= last block ----
-	if method != "SetLastBlock" {
-		result := app.checkLastBlock(committedState)
-		if result.Code != code.OK {
-			return result
+		return &ApplicationError{
+			Code:    code.ChainIsDisabled,
+			Message: "Chain is disabled",
 		}
 	}
 
-	// ---- Check can set init data ----
+	return nil
+}
+
+func (app *ABCIApplication) commonValidate(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) error {
+	// ---- Check current block <= last block ----
+	if method != "SetLastBlock" {
+		err := app.checkLastBlock(committedState)
+		if err != nil {
+			return err
+		}
+	}
+
 	if method == "SetInitData" || method == "SetInitData_pb" {
-		return app.checkCanSetInitData(committedState)
+		return nil
 	}
 
 	// ---- Check is in init state ----
 	if method != "InitNDID" && method != "EndInit" {
-		result := app.checkCanCreateTx(committedState)
-		if result.Code != code.OK {
-			return result
-		}
-	}
-
-	// Check pub key
-	if method == "InitNDID" || method == "RegisterNode" || method == "UpdateNode" {
-		checkCode, log := checkNodePubKeys(param)
-		if checkCode != code.OK {
-			return ReturnCheckTx(checkCode, log)
-		}
-	} else if method == "RegisterAccessor" || method == "AddAccessor" {
-		checkCode, log := checkAccessorPubKey(param)
-		if checkCode != code.OK {
-			return ReturnCheckTx(checkCode, log)
+		err := app.checkCanCreateTx(committedState)
+		if err != nil {
+			return err
 		}
 	}
 
 	// If method is not 'InitNDID' then check node is active
 	if method != "InitNDID" {
-		if !app.getActiveStatusByNodeID(nodeID, committedState) {
-			return ReturnCheckTx(code.NodeIsNotActive, "Node is not active")
-		}
-
 		// Get node detail by NodeID
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 		if err != nil {
-			return ReturnCheckTx(code.AppStateError, "")
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
 		}
 		// If node not found then return code.NodeIDNotFound
 		if nodeDetailValue == nil {
-			return ReturnCheckTx(code.NodeIDNotFound, "Node ID not found")
+			return &ApplicationError{
+				Code:    code.NodeIDNotFound,
+				Message: "Node ID not found",
+			}
 		}
-		// Unmarshal node detail
 		var nodeDetail data.NodeDetail
 		err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 		if err != nil {
-			return ReturnCheckTx(code.UnmarshalError, err.Error())
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
 		}
+
+		if !nodeDetail.Active {
+			return &ApplicationError{
+				Code:    code.NodeIsNotActive,
+				Message: "Node is not active",
+			}
+		}
+
 		// If node behind proxy then check proxy is active
 		if nodeDetail.ProxyNodeId != "" {
 			proxyNodeID := nodeDetail.ProxyNodeId
@@ -647,165 +646,214 @@ func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []b
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), committedState)
 			if err != nil {
-				return ReturnCheckTx(code.AppStateError, "")
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
 			}
 			if proxyNodeDetailValue == nil {
-				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
+				return &ApplicationError{
+					Code:    code.ProxyNodeNotFound,
+					Message: "Proxy node not found",
+				}
 			}
 			var proxyNode data.NodeDetail
 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 			if err != nil {
-				return ReturnCheckTx(code.UnmarshalError, err.Error())
+				return &ApplicationError{
+					Code:    code.UnmarshalError,
+					Message: err.Error(),
+				}
 			}
+
 			if !proxyNode.Active {
-				return ReturnCheckTx(code.ProxyNodeIsNotActive, "Proxy node is not active")
+				return &ApplicationError{
+					Code:    code.ProxyNodeIsNotActive,
+					Message: "Proxy node is not active",
+				}
 			}
 		}
-	}
 
-	var result types.ResponseCheckTx
-
-	// special case checkIsOwnerRequest
-	if IsCheckOwnerRequestMethod[method] {
-		result = app.checkIsOwnerRequest(param, nodeID, committedState)
-	} else if IsMasterKeyMethod[method] {
-		// If verifyResult is true, return true
-		return ReturnCheckTx(code.OK, "")
-	} else {
-		result = app.callCheckTx(method, param, nodeID)
-	}
-	// check token for create Tx
-	if result.Code == code.OK {
-		if !app.isNDIDNode(param, nodeID, committedState) && method != "InitNDID" {
+		ndidNode := appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleNdid
+		// check if node has enough token to execute a function
+		if !ndidNode {
 			needToken := app.getTokenPriceByFunc(method, committedState)
 			nodeToken, err := app.getToken(nodeID, committedState)
 			if err != nil {
-				result.Code = code.TokenAccountNotFound
-				result.Log = "token account not found"
+				return &ApplicationError{
+					Code:    code.TokenAccountNotFound,
+					Message: err.Error(),
+				}
 			}
 			if nodeToken < needToken {
-				result.Code = code.TokenNotEnough
-				result.Log = "token not enough"
+				return &ApplicationError{
+					Code:    code.TokenNotEnough,
+					Message: "not enough token",
+				}
 			}
 		}
 	}
-	return result
+
+	return nil
+}
+
+// CheckTxRouter check if Tx is valid
+// CheckTx must get committed state while DeliverTx must get uncommitted state
+func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
+	err := app.commonValidate(method, param, nonce, signature, nodeID, committedState)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return app.callCheckTx(method, param, nodeID)
 }
 
 func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string) types.ResponseCheckTx {
 	switch name {
 	case "InitNDID":
-		return app.checkTxInitNDID(param, nodeID)
-	case "RegisterNode",
-		"AddNodeToken",
-		"ReduceNodeToken",
-		"SetNodeToken",
-		"SetPriceFunc",
-		"AddNamespace",
-		"SetValidator",
-		"AddService",
-		"UpdateNodeByNDID",
-		"UpdateService",
-		"RegisterServiceDestinationByNDID",
-		"DisableNode",
-		"DisableNamespace",
-		"DisableService",
-		"DisableServiceDestinationByNDID",
-		"EnableNode",
-		"EnableServiceDestinationByNDID",
-		"EnableNamespace",
-		"EnableService",
-		"SetTimeOutBlockRegisterIdentity",
-		"AddNodeToProxyNode",
-		"UpdateNodeProxyNode",
-		"RemoveNodeFromProxyNode",
-		"AddErrorCode",
-		"RemoveErrorCode",
-		"SetInitData",
-		"SetInitData_pb",
-		"EndInit",
-		"SetLastBlock",
-		"SetAllowedModeList",
-		"UpdateNamespace",
-		"SetAllowedMinIalForRegisterIdentityAtFirstIdp",
-		"SetServicePriceCeiling",
-		"SetServicePriceMinEffectiveDatetimeDelay",
-		"AddRequestType",
-		"RemoveRequestType",
-		"AddSuppressedIdentityModificationNotificationNode",
-		"RemoveSuppressedIdentityModificationNotificationNode":
-		return app.checkIsNDID(param, nodeID)
-	case "RegisterIdentity",
-		"AddAccessor",
-		"RegisterAccessor",
-		"UpdateIdentity",
-		"ClearRegisterIdentityTimeout",
-		"RevokeAccessor",
-		"RevokeIdentityAssociation",
-		"UpdateIdentityModeList",
-		"AddIdentity",
-		"RevokeAndAddAccessor":
-		return app.checkIsIDP(param, nodeID)
-	case "CreateIdpResponse":
-		return app.checkIsIDPOrIDPAgent(param, nodeID)
-	case "CreateAsResponse",
-		"RegisterServiceDestination",
-		"UpdateServiceDestination",
-		"DisableServiceDestination",
-		"EnableServiceDestination",
-		"SetServicePrice":
-		return app.checkIsAS(param, nodeID)
-	case "CreateRequest":
-		return app.checkIsRPorIDP(param, nodeID)
+		return app.initNDIDCheckTx(param, nodeID)
+	case "SetInitData":
+		return app.setInitDataCheckTx(param, nodeID)
+	case "SetInitData_pb":
+		return app.setInitData_pbCheckTx(param, nodeID)
+	case "EndInit":
+		return app.endInitCheckTx(param, nodeID)
+	case "SetLastBlock":
+		return app.setLastBlockCheckTx(param, nodeID)
+	case "SetValidator":
+		return app.setValidatorCheckTx(param, nodeID)
+	case "SetPriceFunc":
+		return app.setPriceFuncCheckTx(param, nodeID)
+
+	case "RegisterNode":
+		return app.registerNodeCheckTx(param, nodeID)
+	case "UpdateNodeByNDID":
+		return app.updateNodeByNDIDCheckTx(param, nodeID)
+	case "DisableNode":
+		return app.disableNodeCheckTx(param, nodeID)
+	case "EnableNode":
+		return app.enableNodeCheckTx(param, nodeID)
+	case "AddNodeToProxyNode":
+		return app.addNodeToProxyNodeCheckTx(param, nodeID)
+	case "UpdateNodeProxyNode":
+		return app.updateNodeProxyNodeCheckTx(param, nodeID)
+	case "RemoveNodeFromProxyNode":
+		return app.removeNodeFromProxyNodeCheckTx(param, nodeID)
+	case "AddNodeToken":
+		return app.addNodeTokenCheckTx(param, nodeID)
+	case "ReduceNodeToken":
+		return app.reduceNodeTokenCheckTx(param, nodeID)
+	case "SetNodeToken":
+		return app.setNodeTokenCheckTx(param, nodeID)
+
+	case "AddNamespace":
+		return app.addNamespaceCheckTx(param, nodeID)
+	case "DisableNamespace":
+		return app.disableNamespaceCheckTx(param, nodeID)
+	case "EnableNamespace":
+		return app.enableNamespaceCheckTx(param, nodeID)
+	case "UpdateNamespace":
+		return app.updateNamespaceCheckTx(param, nodeID)
+	case "SetAllowedMinIalForRegisterIdentityAtFirstIdp":
+		return app.setAllowedMinIalForRegisterIdentityAtFirstIdpCheckTx(param, nodeID)
+	case "SetTimeOutBlockRegisterIdentity":
+		return app.setTimeOutBlockRegisterIdentityCheckTx(param, nodeID)
+	case "AddSuppressedIdentityModificationNotificationNode":
+		return app.addSuppressedIdentityModificationNotificationNodeCheckTx(param, nodeID)
+	case "RemoveSuppressedIdentityModificationNotificationNode":
+		return app.removeSuppressedIdentityModificationNotificationNodeCheckTx(param, nodeID)
+
+	case "AddService":
+		return app.addServiceCheckTx(param, nodeID)
+	case "DisableService":
+		return app.disableServiceCheckTx(param, nodeID)
+	case "EnableService":
+		return app.enableServiceCheckTx(param, nodeID)
+	case "UpdateService":
+		return app.updateServiceCheckTx(param, nodeID)
+	case "RegisterServiceDestinationByNDID":
+		return app.registerServiceDestinationByNDIDCheckTx(param, nodeID)
+	case "DisableServiceDestinationByNDID":
+		return app.disableServiceDestinationByNDIDCheckTx(param, nodeID)
+	case "EnableServiceDestinationByNDID":
+		return app.enableServiceDestinationByNDIDCheckTx(param, nodeID)
+	case "SetServicePriceCeiling":
+		return app.setServicePriceCeilingCheckTx(param, nodeID)
+	case "SetServicePriceMinEffectiveDatetimeDelay":
+		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
+
+	case "SetAllowedModeList":
+		return app.setAllowedModeListCheckTx(param, nodeID)
+	case "AddRequestType":
+		return app.addRequestTypeCheckTx(param, nodeID)
+	case "RemoveRequestType":
+		return app.removeRequestTypeCheckTx(param, nodeID)
+
+	case "AddErrorCode":
+		return app.addErrorCodeCheckTx(param, nodeID)
+	case "RemoveErrorCode":
+		return app.removeErrorCodeCheckTx(param, nodeID)
+
+	case "UpdateNode":
+		return app.updateNodeCheckTx(param, nodeID)
 	case "SetMqAddresses":
-		return app.checkTxSetMqAddresses(param, nodeID)
+		return app.setMqAddressesCheckTx(param, nodeID)
+
+	case "RegisterIdentity":
+		return app.registerIdentityCheckTx(param, nodeID)
+	case "UpdateIdentity":
+		return app.updateIdentityCheckTx(param, nodeID)
+	case "AddIdentity":
+		return app.addIdentityCheckTx(param, nodeID)
+	case "RevokeIdentityAssociation":
+		return app.revokeIdentityAssociationCheckTx(param, nodeID)
+	case "AddAccessor":
+		return app.addAccessorCheckTx(param, nodeID)
+	case "RevokeAccessor":
+		return app.revokeAccessorCheckTx(param, nodeID)
+	case "RevokeAndAddAccessor":
+		return app.revokeAndAddAccessorCheckTx(param, nodeID)
+	case "UpdateIdentityModeList":
+		return app.updateIdentityModeListCheckTx(param, nodeID)
+
+	case "RegisterServiceDestination":
+		return app.registerServiceDestinationCheckTx(param, nodeID)
+	case "UpdateServiceDestination":
+		return app.updateServiceDestinationCheckTx(param, nodeID)
+	case "DisableServiceDestination":
+		return app.disableServiceDestinationCheckTx(param, nodeID)
+	case "EnableServiceDestination":
+		return app.enableServiceDestinationCheckTx(param, nodeID)
+	case "SetServicePrice":
+		return app.setServicePriceCheckTx(param, nodeID)
+
+	case "CreateRequest":
+		return app.createRequestCheckTx(param, nodeID)
+	case "CreateIdpResponse":
+		return app.createIdpResponseCheckTx(param, nodeID)
+	case "CreateAsResponse":
+		return app.createAsResponseCheckTx(param, nodeID)
+	case "SetDataReceived":
+		return app.setDataReceivedCheckTx(param, nodeID)
+	case "CloseRequest":
+		return app.closeRequestCheckTx(param, nodeID)
+	case "TimeOutRequest":
+		return app.timeOutRequestCheckTx(param, nodeID)
+
 	case "CreateMessage":
-		return app.checkIsRP(param, nodeID)
+		return app.createMessageCheckTx(param, nodeID)
+
 	default:
 		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
 
-func (app *ABCIApplication) getActiveStatusByNodeID(nodeID string, committedState bool) bool {
-	key := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(key), committedState)
-	if err != nil {
-		panic(err)
-	}
-	if value == nil {
-		return false
-	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal(value, &nodeDetail)
-	if err != nil {
-		return false
-	}
-	return nodeDetail.Active
-}
-
-func (app *ABCIApplication) checkIsProxyNode(nodeID string) bool {
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
-	value, err := app.state.Get([]byte(nodeDetailKey), false)
-	if err != nil {
-		panic(err)
-	}
-	if value == nil {
-		return false
-	}
-	var node data.NodeDetail
-	err = proto.Unmarshal([]byte(value), &node)
-	if err != nil {
-		return false
-	}
-	if node.Role != "Proxy" {
-		return false
-	}
-	return true
-}
-
-func (app *ABCIApplication) isDuplicateNonce(nonce []byte) bool {
+func (app *ABCIApplication) isDuplicateNonce(nonce []byte, committedState bool) bool {
 	nonceKey := append([]byte(nonceKeyPrefix+keySeparator), nonce...)
-	hasNonce, err := app.state.Has(nonceKey, false)
+	hasNonce, err := app.state.Has(nonceKey, committedState)
 	if err != nil {
 		panic(err)
 	}

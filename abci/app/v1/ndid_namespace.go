@@ -41,29 +41,93 @@ type AddNamespaceParam struct {
 	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
-func (app *ABCIApplication) addNamespace(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateAddNamespace(funcParam AddNamespaceParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+
+	if allNamespacesValue != nil {
+		var namespaces data.NamespaceList
+		err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.UnmarshalError,
+				Message: err.Error(),
+			}
+		}
+
+		// Check duplicate namespace
+		for _, namespace := range namespaces.Namespaces {
+			if namespace.Namespace == funcParam.Namespace {
+				return &ApplicationError{
+					Code:    code.DuplicateNamespace,
+					Message: "Duplicate namespace",
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) addNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam AddNamespaceParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateAddNamespace(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) addNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam AddNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
+
+	err = app.validateAddNamespace(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
-	if chkExists != nil {
-		err = proto.Unmarshal([]byte(chkExists), &namespaces)
+	if allNamespacesValue != nil {
+		err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 		if err != nil {
 			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
-		}
-
-		// Check duplicate namespace
-		for _, namespace := range namespaces.Namespaces {
-			if namespace.Namespace == funcParam.Namespace {
-				return app.ReturnDeliverTxLog(code.DuplicateNamespace, "Duplicate namespace", "")
-			}
 		}
 	}
 	var newNamespace data.Namespace
@@ -83,6 +147,7 @@ func (app *ABCIApplication) addNamespace(param []byte, nodeID string) types.Resp
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -90,22 +155,98 @@ type EnableNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 
-func (app *ABCIApplication) enableNamespace(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateEnableNamespace(funcParam EnableNamespaceParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if allNamespacesValue == nil {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "List of namespaces not found",
+		}
+	}
+	var namespaces data.NamespaceList
+	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	found := false
+	for _, namespace := range namespaces.Namespaces {
+		if namespace.Namespace == funcParam.Namespace {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "Namespace not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) enableNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam EnableNamespaceParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateEnableNamespace(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) enableNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("EnableNamespace, Parameter: %s", param)
 	var funcParam EnableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
+
+	err = app.validateEnableNamespace(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
-	if chkExists == nil {
-		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
-	}
-	err = proto.Unmarshal([]byte(chkExists), &namespaces)
+	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -127,22 +268,98 @@ type DisableNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 
-func (app *ABCIApplication) disableNamespace(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateDisableNamespace(funcParam DisableNamespaceParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if allNamespacesValue == nil {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "List of namespaces not found",
+		}
+	}
+	var namespaces data.NamespaceList
+	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	found := false
+	for _, namespace := range namespaces.Namespaces {
+		if namespace.Namespace == funcParam.Namespace {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "Namespace not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) disableNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam DisableNamespaceParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateDisableNamespace(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) disableNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("DisableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	chkExists, err := app.state.Get(allNamespaceKeyBytes, false)
+
+	err = app.validateDisableNamespace(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
 	}
-	if chkExists == nil {
-		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "List of namespace not found", "")
-	}
 	var namespaces data.NamespaceList
-	err = proto.Unmarshal([]byte(chkExists), &namespaces)
+	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
@@ -157,6 +374,7 @@ func (app *ABCIApplication) disableNamespace(param []byte, nodeID string) types.
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -167,19 +385,95 @@ type UpdateNamespaceParam struct {
 	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
-func (app *ABCIApplication) updateNamespace(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateUpdateNamespace(funcParam UpdateNamespaceParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if allNamespacesValue == nil {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "List of namespaces not found",
+		}
+	}
+	var namespaces data.NamespaceList
+	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+
+	found := false
+	for _, namespace := range namespaces.Namespaces {
+		if namespace.Namespace == funcParam.Namespace {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return &ApplicationError{
+			Code:    code.NamespaceNotFound,
+			Message: "Namespace not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) updateNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam UpdateNamespaceParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateUpdateNamespace(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) updateNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNamespace, Parameter: %s", param)
 	var funcParam UpdateNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateUpdateNamespace(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	allNamespaceValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if allNamespaceValue == nil {
-		return app.ReturnDeliverTxLog(code.NamespaceNotFound, "Namespace not found", "")
 	}
 	var namespaces data.NamespaceList
 	err = proto.Unmarshal([]byte(allNamespaceValue), &namespaces)
@@ -206,5 +500,6 @@ func (app *ABCIApplication) updateNamespace(param []byte, nodeID string) types.R
 	}
 
 	app.state.Set(allNamespaceKeyBytes, []byte(allNamespaceValue))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }

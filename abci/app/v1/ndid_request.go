@@ -37,13 +37,55 @@ type SetAllowedModeListParam struct {
 	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
-func (app *ABCIApplication) SetAllowedModeList(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetAllowedModeList(funcParam SetAllowedModeListParam, callerNodeID string, committedState bool) error {
+	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &ApplicationError{
+			Code:    code.NoPermissionForCallNDIDMethod,
+			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setAllowedModeListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetAllowedModeListParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetAllowedModeList(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setAllowedModeList(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetAllowedModeList, Parameter: %s", param)
 	var funcParam SetAllowedModeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
+
+	err = app.validateSetAllowedModeList(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
 	allowedModeKey := allowedModeListKeyPrefix + keySeparator + funcParam.Purpose
 	var allowedModeList data.AllowedModeList
 	allowedModeList.Mode = funcParam.AllowedModeList

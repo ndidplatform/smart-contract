@@ -29,6 +29,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	appTypes "github.com/ndidplatform/smart-contract/v8/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v8/abci/code"
 	"github.com/ndidplatform/smart-contract/v8/abci/utils"
 	data "github.com/ndidplatform/smart-contract/v8/protos/data"
@@ -43,14 +44,71 @@ type SetMqAddressesParam struct {
 	Addresses []MsqAddress `json:"addresses"`
 }
 
-func (app *ABCIApplication) setMqAddresses(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateSetMqAddresses(funcParam SetMqAddressesParam, callerNodeID string, committedState bool) error {
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
+	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	var node data.NodeDetail
+	err = proto.Unmarshal(value, &node)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.UnmarshalError,
+			Message: err.Error(),
+		}
+	}
+	if appTypes.NodeRole(node.Role) != appTypes.NodeRoleRp &&
+		appTypes.NodeRole(node.Role) != appTypes.NodeRoleIdp &&
+		appTypes.NodeRole(node.Role) != appTypes.NodeRoleAs &&
+		appTypes.NodeRole(node.Role) != appTypes.NodeRoleProxy {
+		return &ApplicationError{
+			Code:    code.NoPermissionForSetMqAddresses,
+			Message: "This node does not have permission to set MQ addresses",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) setMqAddressesCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetMqAddressesParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateSetMqAddresses(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
+
+	err = app.validateSetMqAddresses(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
@@ -74,6 +132,7 @@ func (app *ABCIApplication) setMqAddresses(param []byte, nodeID string) types.Re
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -611,20 +670,79 @@ type UpdateNodeParam struct {
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
-func (app *ABCIApplication) updateNode(param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, callerNodeID string, committedState bool) error {
+	// Validate master public key format
+	if funcParam.MasterPublicKey != "" {
+		err := checkPubKey(funcParam.MasterPublicKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Validate public key format
+	if funcParam.PublicKey != "" {
+		err := checkPubKey(funcParam.PublicKey)
+		if err != nil {
+			return err
+		}
+	}
+
+	key := nodeIDKeyPrefix + keySeparator + callerNodeID
+	value, err := app.state.Get([]byte(key), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if value == nil {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+
+	return nil
+}
+
+func (app *ABCIApplication) updateNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam UpdateNodeParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return ReturnCheckTx(code.UnmarshalError, err.Error())
+	}
+
+	err = app.validateUpdateNode(funcParam, callerNodeID, true)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return ReturnCheckTx(appErr.Code, appErr.Message)
+		}
+		return ReturnCheckTx(code.UnknownError, err.Error())
+	}
+
+	return ReturnCheckTx(code.OK, "")
+}
+
+func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
 	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
-	key := nodeIDKeyPrefix + keySeparator + nodeID
+
+	err = app.validateUpdateNode(funcParam, callerNodeID, false)
+	if err != nil {
+		if appErr, ok := err.(*ApplicationError); ok {
+			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+		}
+		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+	}
+
+	key := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
-	}
-	if value == nil {
-		return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(value), &nodeDetail)
@@ -640,7 +758,7 @@ func (app *ABCIApplication) updateNode(param []byte, nodeID string) types.Respon
 		nodeDetail.PublicKey = funcParam.PublicKey
 	}
 	// update SupportedRequestMessageDataUrlTypeList and Role of node ID is IdP
-	if funcParam.SupportedRequestMessageDataUrlTypeList != nil && string(app.getRoleFromNodeID(nodeID)) == "IdP" {
+	if funcParam.SupportedRequestMessageDataUrlTypeList != nil && appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = funcParam.SupportedRequestMessageDataUrlTypeList
 	}
 	nodeDetailValue, err := utils.ProtoDeterministicMarshal(&nodeDetail)
@@ -648,6 +766,7 @@ func (app *ABCIApplication) updateNode(param []byte, nodeID string) types.Respon
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(key), []byte(nodeDetailValue))
+
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
@@ -756,7 +875,7 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		result.Proxy = &proxy
 	}
 
-	if nodeDetail.Role == "IdP" {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		result.MaxIal = &nodeDetail.MaxIal
 		result.MaxAal = &nodeDetail.MaxAal
 		result.OnTheFlySupport = &nodeDetail.OnTheFlySupport
@@ -765,7 +884,8 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		result.IsIdpAgent = &nodeDetail.IsIdpAgent
 	}
 
-	if nodeDetail.Role == "IdP" || nodeDetail.Role == "RP" {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp ||
+		appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleRp {
 		result.UseWhitelist = &nodeDetail.UseWhitelist
 		if nodeDetail.UseWhitelist {
 			result.Whitelist = &nodeDetail.Whitelist
@@ -1329,7 +1449,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 			continue
 		}
 
-		if nodeDetail.Role == "IdP" {
+		if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 			var row IdPBehindProxy
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
