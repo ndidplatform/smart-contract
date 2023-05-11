@@ -29,9 +29,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v8/abci/app/v1"
-	"github.com/ndidplatform/smart-contract/v8/test/data"
-	"github.com/ndidplatform/smart-contract/v8/test/utils"
+	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
+	"github.com/ndidplatform/smart-contract/v9/test/data"
+	"github.com/ndidplatform/smart-contract/v9/test/utils"
 )
 
 func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIdentityParam, expected string, expectResultFrom string) {

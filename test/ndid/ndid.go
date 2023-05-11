@@ -29,10 +29,10 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v8/abci/app/v1"
-	"github.com/ndidplatform/smart-contract/v8/test/data"
-	"github.com/ndidplatform/smart-contract/v8/test/query"
-	"github.com/ndidplatform/smart-contract/v8/test/utils"
+	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
+	"github.com/ndidplatform/smart-contract/v9/test/data"
+	"github.com/ndidplatform/smart-contract/v9/test/query"
+	"github.com/ndidplatform/smart-contract/v9/test/utils"
 )
 
 var ndidNodeID = "ndid"

@@ -29,9 +29,9 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ndidplatform/smart-contract/v8/abci/code"
-	"github.com/ndidplatform/smart-contract/v8/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v8/protos/data"
+	"github.com/ndidplatform/smart-contract/v9/abci/code"
+	"github.com/ndidplatform/smart-contract/v9/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
 func (app *ABCIApplication) getTokenPriceByFunc(fnName string, committedState bool) float64 {

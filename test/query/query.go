@@ -32,9 +32,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v8/abci/app/v1"
-	"github.com/ndidplatform/smart-contract/v8/test/data"
-	"github.com/ndidplatform/smart-contract/v8/test/utils"
+	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
+	"github.com/ndidplatform/smart-contract/v9/test/data"
+	"github.com/ndidplatform/smart-contract/v9/test/utils"
 )
 
 func GetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, expected string) {

@@ -29,7 +29,7 @@ import (
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	data "github.com/ndidplatform/smart-contract/v8/protos/data"
+	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
 type GetErrorCodeListParam struct {

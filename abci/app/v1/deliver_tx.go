@@ -25,7 +25,7 @@ package app
 import (
 	"github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v8/abci/code"
+	"github.com/ndidplatform/smart-contract/v9/abci/code"
 )
 
 // app.ReturnDeliverTxLog return types.ResponseDeliverTx
