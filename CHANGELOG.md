@@ -5,6 +5,7 @@
 IMPROVEMENTS:
 
 - Tendermint v0.34.24.
+- Support Tendermint block pruning by setting environment variable `TENDERMINT_RETAIN_BLOCK_COUNT` which indicates number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
 
 ## 8.0.0 (August 11, 2022)
 
