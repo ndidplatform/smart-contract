@@ -243,7 +243,7 @@ type GetIdpNodesParam struct {
 	IsIdpAgent                             *bool    `json:"agent"`
 	MinAal                                 float64  `json:"min_aal"`
 	MinIal                                 float64  `json:"min_ial"`
-	OnTheFlySupport                        *bool    `json:"on_the_fly_support"`
+	SupportedFeatureList                   []string `json:"supported_feature_list"`
 	NodeIDList                             []string `json:"node_id_list"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 	ModeList                               []int32  `json:"mode_list"`
@@ -258,7 +258,7 @@ type MsqDestinationNode struct {
 	Name                                   string   `json:"node_name"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
-	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
+	SupportedFeatureList                   []string `json:"supported_feature_list"`
 	Ial                                    *float64 `json:"ial,omitempty"`
 	Lial                                   *bool    `json:"lial"`
 	Laal                                   *bool    `json:"laal"`
@@ -327,9 +327,13 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
 			return nil
 		}
-		// Filter by OnTheFlySupport
-		if funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport != nodeDetail.OnTheFlySupport {
-			return nil
+		// Filter by SupportedFeatureList
+		if funcParam.SupportedFeatureList != nil {
+			for _, supportedFeature := range funcParam.SupportedFeatureList {
+				if !contains(supportedFeature, nodeDetail.SupportedFeatureList) {
+					return nil
+				}
+			}
 		}
 		// Filter by IsIdpAgent
 		if funcParam.IsIdpAgent != nil && *funcParam.IsIdpAgent != nodeDetail.IsIdpAgent {
@@ -359,7 +363,7 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
-			OnTheFlySupport:                        nodeDetail.OnTheFlySupport,
+			SupportedFeatureList:                   nodeDetail.SupportedFeatureList,
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 		}
@@ -782,7 +786,7 @@ type GetNodeInfoResult struct {
 	// for IdP
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
-	OnTheFlySupport                        *bool     `json:"on_the_fly_support,omitempty"`
+	SupportedFeatureList                   []string  `json:"supported_feature_list"`
 	SupportedRequestMessageDataUrlTypeList *[]string `json:"supported_request_message_data_url_type_list,omitempty"`
 	IsIdpAgent                             *bool     `json:"agent,omitempty"`
 	// for IdP and RP
@@ -875,10 +879,11 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		result.Proxy = &proxy
 	}
 
+	result.SupportedFeatureList = nodeDetail.SupportedFeatureList
+
 	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		result.MaxIal = &nodeDetail.MaxIal
 		result.MaxAal = &nodeDetail.MaxAal
-		result.OnTheFlySupport = &nodeDetail.OnTheFlySupport
 		supportedRequestMessageDataUrlTypeList := append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...)
 		result.SupportedRequestMessageDataUrlTypeList = &supportedRequestMessageDataUrlTypeList
 		result.IsIdpAgent = &nodeDetail.IsIdpAgent
@@ -908,7 +913,7 @@ type IdpNode struct {
 	Name                                   string        `json:"name"`
 	MaxIal                                 float64       `json:"max_ial"`
 	MaxAal                                 float64       `json:"max_aal"`
-	OnTheFlySupport                        bool          `json:"on_the_fly_support"`
+	SupportedFeatureList                   []string      `json:"supported_feature_list"`
 	PublicKey                              string        `json:"public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
 	IsIdpAgent                             bool          `json:"agent"`
@@ -987,9 +992,13 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 		if len(funcParam.NodeIDList) > 0 && !contains(nodeID, funcParam.NodeIDList) {
 			return nil
 		}
-		// Filter by OnTheFlySupport
-		if funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport != nodeDetail.OnTheFlySupport {
-			return nil
+		// Filter by SupportedFeatureList
+		if funcParam.SupportedFeatureList != nil {
+			for _, supportedFeature := range funcParam.SupportedFeatureList {
+				if !contains(supportedFeature, nodeDetail.SupportedFeatureList) {
+					return nil
+				}
+			}
 		}
 		// Filter by IsIdpAgent
 		if funcParam.IsIdpAgent != nil && *funcParam.IsIdpAgent != nodeDetail.IsIdpAgent {
@@ -1059,7 +1068,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
 			PublicKey:                              nodeDetail.PublicKey,
-			OnTheFlySupport:                        nodeDetail.OnTheFlySupport,
+			SupportedFeatureList:                   nodeDetail.SupportedFeatureList,
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 			UseWhitelist:                           &nodeDetail.UseWhitelist,
 			Whitelist:                              whitelist,
@@ -1387,19 +1396,20 @@ type IdPBehindProxy struct {
 	MasterPublicKey                        string   `json:"master_public_key"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
-	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
+	SupportedFeatureList                   []string `json:"supported_feature_list"`
 	IsIdpAgent                             bool     `json:"agent"`
 	Config                                 string   `json:"config"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 type ASorRPBehindProxy struct {
-	NodeID          string `json:"node_id"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	Config          string `json:"config"`
+	NodeID               string   `json:"node_id"`
+	NodeName             string   `json:"node_name"`
+	Role                 string   `json:"role"`
+	PublicKey            string   `json:"public_key"`
+	MasterPublicKey      string   `json:"master_public_key"`
+	SupportedFeatureList []string `json:"supported_feature_list"`
+	Config               string   `json:"config"`
 }
 
 func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.ResponseQuery {
@@ -1458,7 +1468,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
-			row.OnTheFlySupport = nodeDetail.OnTheFlySupport
+			row.SupportedFeatureList = nodeDetail.SupportedFeatureList
 			row.IsIdpAgent = nodeDetail.IsIdpAgent
 			row.Config = nodeDetail.ProxyConfig
 			row.SupportedRequestMessageDataUrlTypeList = nodeDetail.SupportedRequestMessageDataUrlTypeList
@@ -1470,6 +1480,7 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 			row.Role = nodeDetail.Role
 			row.PublicKey = nodeDetail.PublicKey
 			row.MasterPublicKey = nodeDetail.MasterPublicKey
+			row.SupportedFeatureList = nodeDetail.SupportedFeatureList
 			row.Config = nodeDetail.ProxyConfig
 			result.Nodes = append(result.Nodes, row)
 		}

@@ -25,7 +25,7 @@ message NodeDetail {
   bool use_whitelist = 12;
   repeated string whitelist = 13;
   repeated string supported_request_message_data_url_type_list = 14;
-  bool on_the_fly_support = 15;
+  repeated string supported_feature_list = 15;
 }
 
 message MQ {

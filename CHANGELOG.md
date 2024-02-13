@@ -1,5 +1,12 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Remove `on_the_fly_support` flag from (IdP) node property
+- Add `supported_feature_list` to node property
+
 ## 9.0.0 (TBD)
 
 BREAKING CHANGES:
