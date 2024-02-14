@@ -163,6 +163,10 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.reduceNodeToken(param, nodeID)
 	case "SetNodeToken":
 		return app.setNodeToken(param, nodeID)
+	case "AddAllowedNodeSupportedFeature":
+		return app.addAllowedNodeSupportedFeature(param, nodeID)
+	case "RemoveAllowedNodeSupportedFeature":
+		return app.removeAllowedNodeSupportedFeature(param, nodeID)
 
 	case "AddNamespace":
 		return app.addNamespace(param, nodeID)

@@ -104,6 +104,24 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 		}
 	}
 
+	// check if supported feature are valid/allowed
+	for _, supportedFeature := range funcParam.SupportedFeatureList {
+		key := nodeSupportedFeatureKeyPrefix + keySeparator + supportedFeature
+		exists, err := app.state.Has([]byte(key), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !exists {
+			return &ApplicationError{
+				Code:    code.NodeSupportedFeatureDoesNotExist,
+				Message: "invalid node supported feature",
+			}
+		}
+	}
+
 	// if node is Idp or rp, set use_whitelist and whitelist
 	if strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleRp)) ||
 		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleIdp)) {
@@ -348,6 +366,26 @@ func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDP
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
+		}
+	}
+
+	if funcParam.SupportedFeatureList != nil {
+		// check if supported feature are valid/allowed
+		for _, supportedFeature := range funcParam.SupportedFeatureList {
+			key := nodeSupportedFeatureKeyPrefix + keySeparator + supportedFeature
+			exists, err := app.state.Has([]byte(key), committedState)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
+			}
+			if !exists {
+				return &ApplicationError{
+					Code:    code.NodeSupportedFeatureDoesNotExist,
+					Message: "invalid node supported feature",
+				}
+			}
 		}
 	}
 

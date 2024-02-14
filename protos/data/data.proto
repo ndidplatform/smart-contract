@@ -291,3 +291,7 @@ message RequestType {
 message SuppressedIdentityModificationNotificationNode {
   // string node_id = 1;
 }
+
+message NodeSupportedFeature {
+  // string name = 1;
+}

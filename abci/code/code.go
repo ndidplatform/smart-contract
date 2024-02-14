@@ -148,6 +148,8 @@ const (
 	SuppressedIdentityModificationNotificationNodeIDDoesNotExist  uint32 = 124
 	NotIdPNode                                                    uint32 = 125
 	ChainIsAlreadyInitialized                                     uint32 = 126
+	NodeSupportedFeatureAlreadyExists                             uint32 = 127
+	NodeSupportedFeatureDoesNotExist                              uint32 = 128
 
 	UnknownError uint32 = 999
 )

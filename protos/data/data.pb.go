@@ -2996,6 +2996,44 @@ func (*SuppressedIdentityModificationNotificationNode) Descriptor() ([]byte, []i
 	return file_data_proto_rawDescGZIP(), []int{46}
 }
 
+type NodeSupportedFeature struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *NodeSupportedFeature) Reset() {
+	*x = NodeSupportedFeature{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[47]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NodeSupportedFeature) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeSupportedFeature) ProtoMessage() {}
+
+func (x *NodeSupportedFeature) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[47]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeSupportedFeature.ProtoReflect.Descriptor instead.
+func (*NodeSupportedFeature) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{47}
+}
+
 var File_data_proto protoreflect.FileDescriptor
 
 var file_data_proto_rawDesc = []byte{
@@ -3375,9 +3413,11 @@ var file_data_proto_rawDesc = []byte{
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x22, 0x30, 0x0a, 0x2e, 0x53, 0x75,
 	0x70, 0x70, 0x72, 0x65, 0x73, 0x73, 0x65, 0x64, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79,
 	0x4d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x74, 0x69,
-	0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x64, 0x65, 0x42, 0x17, 0x5a, 0x15,
-	0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61,
-	0x74, 0x65, 0x5f, 0x76, 0x38, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x64, 0x65, 0x22, 0x16, 0x0a, 0x14,
+	0x4e, 0x6f, 0x64, 0x65, 0x53, 0x75, 0x70, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x64, 0x46, 0x65, 0x61,
+	0x74, 0x75, 0x72, 0x65, 0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f,
+	0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x38, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3392,7 +3432,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 47)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v8.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v8.NodeDetail
@@ -3441,7 +3481,8 @@ var file_data_proto_goTypes = []interface{}{
 	(*ServicePriceByCurrency)(nil),                         // 44: ndid_abci_state_v8.ServicePriceByCurrency
 	(*RequestType)(nil),                                    // 45: ndid_abci_state_v8.RequestType
 	(*SuppressedIdentityModificationNotificationNode)(nil), // 46: ndid_abci_state_v8.SuppressedIdentityModificationNotificationNode
-	(*wrapperspb.BoolValue)(nil),                           // 47: google.protobuf.BoolValue
+	(*NodeSupportedFeature)(nil),                           // 47: ndid_abci_state_v8.NodeSupportedFeature
+	(*wrapperspb.BoolValue)(nil),                           // 48: google.protobuf.BoolValue
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v8.NodeDetail.mq:type_name -> ndid_abci_state_v8.MQ
@@ -3457,8 +3498,8 @@ var file_data_proto_depIdxs = []int32{
 	34, // 10: ndid_abci_state_v8.ReferenceGroup.identities:type_name -> ndid_abci_state_v8.IdentityInRefGroup
 	33, // 11: ndid_abci_state_v8.ReferenceGroup.idps:type_name -> ndid_abci_state_v8.IdPInRefGroup
 	19, // 12: ndid_abci_state_v8.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v8.Accessor
-	47, // 13: ndid_abci_state_v8.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
-	47, // 14: ndid_abci_state_v8.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
+	48, // 13: ndid_abci_state_v8.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
+	48, // 14: ndid_abci_state_v8.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
 	37, // 15: ndid_abci_state_v8.ErrorCodeList.error_code:type_name -> ndid_abci_state_v8.ErrorCode
 	40, // 16: ndid_abci_state_v8.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v8.ServicePriceCeilingByCurency
 	43, // 17: ndid_abci_state_v8.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v8.ServicePrice
@@ -4040,6 +4081,18 @@ func file_data_proto_init() {
 				return nil
 			}
 		}
+		file_data_proto_msgTypes[47].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NodeSupportedFeature); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4047,7 +4100,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   47,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

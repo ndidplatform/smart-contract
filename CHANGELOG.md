@@ -7,6 +7,13 @@ BREAKING CHANGES:
 - Remove `on_the_fly_support` flag from (IdP) node property
 - Add `supported_feature_list` to node property
 
+FEATURES:
+
+- Node supported feature
+  - Add `AddAllowedNodeSupportedFeature` method.
+  - Add `RemoveAllowedNodeSupportedFeature` method.
+  - [Query] Add `GetAllowedNodeSupportedFeatureList` method.
+
 ## 9.0.0 (TBD)
 
 BREAKING CHANGES:
