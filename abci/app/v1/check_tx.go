@@ -104,6 +104,8 @@ var IsMethod = map[string]bool{
 	"RemoveRequestType":                                    true,
 	"AddSuppressedIdentityModificationNotificationNode":    true,
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
+	"AddAllowedNodeSupportedFeature":                       true,
+	"RemoveAllowedNodeSupportedFeature":                    true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
