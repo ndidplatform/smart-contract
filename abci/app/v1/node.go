@@ -363,7 +363,7 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 			Name:                                   nodeDetail.NodeName,
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
-			SupportedFeatureList:                   nodeDetail.SupportedFeatureList,
+			SupportedFeatureList:                   append(make([]string, 0), nodeDetail.SupportedFeatureList...),
 			SupportedRequestMessageDataUrlTypeList: append(make([]string, 0), nodeDetail.SupportedRequestMessageDataUrlTypeList...),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 		}
@@ -879,7 +879,8 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		result.Proxy = &proxy
 	}
 
-	result.SupportedFeatureList = nodeDetail.SupportedFeatureList
+	supportedFeatureList := append(make([]string, 0), nodeDetail.SupportedFeatureList...)
+	result.SupportedFeatureList = supportedFeatureList
 
 	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		result.MaxIal = &nodeDetail.MaxIal
@@ -1068,7 +1069,7 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 			MaxIal:                                 nodeDetail.MaxIal,
 			MaxAal:                                 nodeDetail.MaxAal,
 			PublicKey:                              nodeDetail.PublicKey,
-			SupportedFeatureList:                   nodeDetail.SupportedFeatureList,
+			SupportedFeatureList:                   append(make([]string, 0), nodeDetail.SupportedFeatureList...),
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 			UseWhitelist:                           &nodeDetail.UseWhitelist,
 			Whitelist:                              whitelist,
