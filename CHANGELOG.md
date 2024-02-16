@@ -1,5 +1,11 @@
 # Changelog
 
+## TBD
+
+BUG FIXES:
+
+- Check duplicate accessor ID on `RegisterIdentity`
+
 ## 9.0.0 (TBD)
 
 BREAKING CHANGES:

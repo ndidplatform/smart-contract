@@ -269,6 +269,22 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 		}
 	}
 
+	// Check duplicate accessor ID
+	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
+	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if refGroupCodeFromDB != nil {
+		return &ApplicationError{
+			Code:    code.DuplicateAccessorID,
+			Message: "Duplicate accessor ID",
+		}
+	}
+
 	return nil
 }
 
