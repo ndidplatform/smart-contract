@@ -30,6 +30,7 @@ import (
 	"testing"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
+	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v9/test/data"
 	"github.com/ndidplatform/smart-contract/v9/test/query"
 	"github.com/ndidplatform/smart-contract/v9/test/utils"
@@ -45,8 +46,12 @@ func TestInitNDID(t *testing.T) {
 	}
 	var param app.InitNDIDParam
 	param.NodeID = ndidNodeID
-	param.PublicKey = string(ndidpublicKeyBytes)
-	param.MasterPublicKey = string(ndidpublicKeyBytes)
+	param.SigningPublicKey = string(ndidpublicKeyBytes)
+	param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+	param.SigningMasterPublicKey = string(ndidpublicKeyBytes)
+	param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+	param.EncryptionPublicKey = string(ndidpublicKeyBytes)
+	param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 	InitNDID(t, ndidNodeID, data.NdidPrivK, param)
 	IsInitEnded(t, false)
 	EndInit(t, ndidNodeID, data.NdidPrivK, app.EndInitParam{})
@@ -257,8 +262,12 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 			log.Fatal(err.Error())
 		}
 		param.NodeID = nodeID
-		param.PublicKey = string(publicKeyBytes)
-		param.MasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningPublicKey = string(publicKeyBytes)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(publicKeyBytes)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.NodeName = "IdP Number 1"
 		param.Role = "IdP"
 		param.MaxIal = 3.0
@@ -270,8 +279,12 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 			log.Fatal(err.Error())
 		}
 		param.NodeID = nodeID
-		param.PublicKey = string(publicKeyBytes)
-		param.MasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningPublicKey = string(publicKeyBytes)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(publicKeyBytes)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.NodeName = "IdP Number 2"
 		param.Role = "IdP"
 		param.MaxIal = 2.3
@@ -284,8 +297,12 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 			log.Fatal(err.Error())
 		}
 		param.NodeID = nodeID
-		param.PublicKey = string(publicKeyBytes)
-		param.MasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningPublicKey = string(publicKeyBytes)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(masterPublicKeyBytes)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(publicKeyBytes)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.NodeName = "IdP Agent 1"
 		param.Role = "IdP"
 		param.MaxIal = 2.3
@@ -304,8 +321,12 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 		}
 		param.NodeName = "AS1"
 		param.NodeID = data.AS1
-		param.PublicKey = string(asPublicKeyBytes)
-		param.MasterPublicKey = string(asMasterPublicKeyBytes)
+		param.SigningPublicKey = string(asPublicKeyBytes)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(asMasterPublicKeyBytes)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(asPublicKeyBytes)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.Role = "AS"
 	case data.AS2:
 		asKey := utils.GetPrivateKeyFromString(data.AsPrivK2)
@@ -320,8 +341,12 @@ func TestRegisterNode(t *testing.T, nodeID string) {
 		}
 		param.NodeName = "AS2"
 		param.NodeID = data.AS2
-		param.PublicKey = string(asPublicKeyBytes)
-		param.MasterPublicKey = string(asPublicKeyBytes2)
+		param.SigningPublicKey = string(asPublicKeyBytes)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(asPublicKeyBytes2)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(asPublicKeyBytes)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.Role = "AS"
 	}
 	RegisterNode(t, ndidNodeID, data.NdidPrivK, param)

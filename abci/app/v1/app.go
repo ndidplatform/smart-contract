@@ -238,7 +238,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 
 	if mustCheckNodeSignature(method) {
 		// Check signature
-		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
+		publicKey, signingAlgorithm, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
 		if retCode != code.OK {
 			go recordDeliverTxFailMetrics(method)
 			return app.ReturnDeliverTxLog(retCode, retLog, "")
@@ -258,7 +258,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		} else {
 			app.logger.Debugf("Cached verified Tx signature result could not be found")
 			app.logger.Debugf("Verifying Tx signature")
-			verifyResult, err := verifySignature(param, app.CurrentChain, nonce, signature, publicKey, method)
+			verifyResult, err := verifySignature(method, param, app.CurrentChain, nonce, signature, publicKey, signingAlgorithm)
 			if err != nil {
 				go recordDeliverTxFailMetrics(method)
 				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
@@ -364,12 +364,12 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 	verifiedSignatureKey := string(signature) + "|" + nodeID
 	if mustCheckNodeSignature(method) {
 		// Check signature
-		publicKey, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
+		publicKey, signingAlgorithm, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
 		if retCode != code.OK {
 			return ReturnCheckTx(retCode, retLog)
 		}
 
-		verifyResult, err := verifySignature(param, app.CurrentChain, nonce, signature, publicKey, method)
+		verifyResult, err := verifySignature(method, param, app.CurrentChain, nonce, signature, publicKey, signingAlgorithm)
 		if err != nil {
 			go recordCheckTxFailMetrics(method)
 			return ReturnCheckTx(code.VerifySignatureError, err.Error())

@@ -24,8 +24,10 @@ package app
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
+	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
@@ -136,17 +138,16 @@ func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) ty
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-type GetNodeMasterPublicKeyParam struct {
-	NodeID string `json:"node_id"`
+type GetNodeSigningMasterPublicKeyParam struct {
+	NodeID  string `json:"node_id"`
+	Version int64  `json:"version"` // TODO
 }
 
-type GetNodeMasterPublicKeyResult struct {
-	MasterPublicKey string `json:"master_public_key"`
-}
+type GetNodeSigningMasterPublicKeyResult NodeKey
 
-func (app *ABCIApplication) getNodeMasterPublicKey(param []byte) types.ResponseQuery {
-	app.logger.Infof("GetNodeMasterPublicKey, Parameter: %s", param)
-	var funcParam GetNodeMasterPublicKeyParam
+func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) types.ResponseQuery {
+	app.logger.Infof("GetNodeSigningMasterPublicKey, Parameter: %s", param)
+	var funcParam GetNodeSigningMasterPublicKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -156,7 +157,7 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param []byte) types.ResponseQ
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	var res GetNodeMasterPublicKeyResult
+	var res NodeKey
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
@@ -169,7 +170,14 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param []byte) types.ResponseQ
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	res.MasterPublicKey = nodeDetail.MasterPublicKey
+	res = NodeKey{
+		PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
+		Algorithm:           nodeDetail.SigningMasterPublicKey.Algorithm,
+		Version:             nodeDetail.SigningMasterPublicKey.Version,
+		CreationBlockHeight: nodeDetail.SigningMasterPublicKey.CreationBlockHeight,
+		CreationChainID:     nodeDetail.SigningMasterPublicKey.CreationChainId,
+		Active:              nodeDetail.SigningMasterPublicKey.Active,
+	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -177,17 +185,16 @@ func (app *ABCIApplication) getNodeMasterPublicKey(param []byte) types.ResponseQ
 	return app.ReturnQuery(valueJSON, "success", app.state.Height)
 }
 
-type GetNodePublicKeyParam struct {
-	NodeID string `json:"node_id"`
+type GetNodeSigningPublicKeyParam struct {
+	NodeID  string `json:"node_id"`
+	Version int64  `json:"version"` // TODO
 }
 
-type GetNodePublicKeyResult struct {
-	PublicKey string `json:"public_key"`
-}
+type GetNodeSigningPublicKeyResult NodeKey
 
-func (app *ABCIApplication) getNodePublicKey(param []byte) types.ResponseQuery {
-	app.logger.Infof("GetNodePublicKey, Parameter: %s", param)
-	var funcParam GetNodePublicKeyParam
+func (app *ABCIApplication) getNodeSigningPublicKey(param []byte) types.ResponseQuery {
+	app.logger.Infof("GetNodeSigningPublicKey, Parameter: %s", param)
+	var funcParam GetNodeSigningPublicKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -197,7 +204,7 @@ func (app *ABCIApplication) getNodePublicKey(param []byte) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	var res GetNodePublicKeyResult
+	var res NodeKey
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
@@ -210,7 +217,61 @@ func (app *ABCIApplication) getNodePublicKey(param []byte) types.ResponseQuery {
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	res.PublicKey = nodeDetail.PublicKey
+	res = NodeKey{
+		PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+		Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+		Version:             nodeDetail.SigningPublicKey.Version,
+		CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+		CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+		Active:              nodeDetail.SigningPublicKey.Active,
+	}
+	valueJSON, err := json.Marshal(res)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+}
+
+type GetNodeEncryptionPublicKeyParam struct {
+	NodeID  string `json:"node_id"`
+	Version int64  `json:"version"` // TODO
+}
+
+type GetNodeEncryptionPublicKeyResult NodeKey
+
+func (app *ABCIApplication) getNodeEncryptionPublicKey(param []byte) types.ResponseQuery {
+	app.logger.Infof("GetNodeEncryptionPublicKey, Parameter: %s", param)
+	var funcParam GetNodeEncryptionPublicKeyParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	var res NodeKey
+	if value == nil {
+		valueJSON, err := json.Marshal(res)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+	}
+	var nodeDetail data.NodeDetail
+	err = proto.Unmarshal(value, &nodeDetail)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	res = NodeKey{
+		PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+		Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+		Version:             nodeDetail.EncryptionPublicKey.Version,
+		CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+		CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+		Active:              nodeDetail.EncryptionPublicKey.Active,
+	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -665,23 +726,41 @@ func (app *ABCIApplication) getMqAddresses(param []byte) types.ResponseQuery {
 }
 
 type UpdateNodeParam struct {
-	PublicKey                              string   `json:"public_key"`
-	MasterPublicKey                        string   `json:"master_public_key"`
+	SigningPublicKey                       string   `json:"signing_public_key"`
+	SigningAlgorithm                       string   `json:"signing_algorithm"`
+	SigningMasterPublicKey                 string   `json:"signing_master_public_key"`
+	SigningMasterAlgorithm                 string   `json:"signing_master_algorithm"`
+	EncryptionPublicKey                    string   `json:"encryption_public_key"`
+	EncryptionAlgorithm                    string   `json:"encryption_algorithm"`
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
 func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, callerNodeID string, committedState bool) error {
 	// Validate master public key format
-	if funcParam.MasterPublicKey != "" {
-		err := checkPubKey(funcParam.MasterPublicKey)
+	if funcParam.SigningMasterPublicKey != "" {
+		err := checkPubKeyForSigning(
+			funcParam.SigningMasterPublicKey,
+			appTypes.SignatureAlgorithm(funcParam.SigningMasterAlgorithm),
+		)
 		if err != nil {
 			return err
 		}
 	}
 
 	// Validate public key format
-	if funcParam.PublicKey != "" {
-		err := checkPubKey(funcParam.PublicKey)
+	if funcParam.SigningPublicKey != "" {
+		err := checkPubKeyForSigning(
+			funcParam.SigningPublicKey,
+			appTypes.SignatureAlgorithm(funcParam.SigningAlgorithm),
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Validate encryption public key format
+	if funcParam.EncryptionPublicKey != "" {
+		err := checkPubKeyForEncryption(funcParam.EncryptionPublicKey)
 		if err != nil {
 			return err
 		}
@@ -750,12 +829,112 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 	// update MasterPublicKey
-	if funcParam.MasterPublicKey != "" {
-		nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	if funcParam.SigningMasterPublicKey != "" {
+		// set current key version inactive
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"signing_master" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
+		nodeDetail.SigningMasterPublicKey.Active = false
+		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+		// new key
+		nodeDetail.SigningMasterPublicKey = &data.NodeKey{
+			PublicKey:           funcParam.SigningMasterPublicKey,
+			Algorithm:           funcParam.SigningMasterAlgorithm,
+			Version:             nodeDetail.SigningMasterPublicKey.Version + 1,
+			CreationBlockHeight: app.state.CurrentBlockHeight,
+			CreationChainId:     app.CurrentChain,
+			Active:              true,
+		}
+		// create key version history
+		nodeKeyKey =
+			nodeKeyKeyPrefix + keySeparator +
+				"signing_master" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
+		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 	}
 	// update PublicKey
-	if funcParam.PublicKey != "" {
-		nodeDetail.PublicKey = funcParam.PublicKey
+	if funcParam.SigningPublicKey != "" {
+		// set current key version inactive
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"signing" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
+		nodeDetail.SigningPublicKey.Active = false
+		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+		// new key
+		nodeDetail.SigningPublicKey = &data.NodeKey{
+			PublicKey:           funcParam.SigningPublicKey,
+			Algorithm:           funcParam.SigningAlgorithm,
+			Version:             nodeDetail.SigningPublicKey.Version + 1,
+			CreationBlockHeight: app.state.CurrentBlockHeight,
+			CreationChainId:     app.CurrentChain,
+			Active:              true,
+		}
+		// create key version history
+		nodeKeyKey =
+			nodeKeyKeyPrefix + keySeparator +
+				"signing" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
+		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+	}
+	// update EncryptionPublicKey
+	if funcParam.EncryptionPublicKey != "" {
+		// set current key version inactive
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"encryption" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
+		nodeDetail.EncryptionPublicKey.Active = false
+		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+		// new key
+		nodeDetail.EncryptionPublicKey = &data.NodeKey{
+			PublicKey:           funcParam.EncryptionPublicKey,
+			Algorithm:           funcParam.EncryptionAlgorithm,
+			Version:             nodeDetail.EncryptionPublicKey.Version + 1,
+			CreationBlockHeight: app.state.CurrentBlockHeight,
+			CreationChainId:     app.CurrentChain,
+			Active:              true,
+		}
+		// create key version history
+		nodeKeyKey =
+			nodeKeyKeyPrefix + keySeparator +
+				"encryption" + keySeparator +
+				callerNodeID + keySeparator +
+				strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
+		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
+		if err != nil {
+			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		}
+		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 	}
 	// update SupportedRequestMessageDataUrlTypeList and Role of node ID is IdP
 	if funcParam.SupportedRequestMessageDataUrlTypeList != nil && appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
@@ -775,10 +954,11 @@ type GetNodeInfoParam struct {
 }
 
 type GetNodeInfoResult struct {
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
+	SigningPublicKey       NodeKey `json:"signing_public_key"`
+	SigningMasterPublicKey NodeKey `json:"signing_master_public_key"`
+	EncryptionPublicKey    NodeKey `json:"encryption_public_key"`
+	NodeName               string  `json:"node_name"`
+	Role                   string  `json:"role"`
 	// for IdP
 	MaxIal                                 *float64  `json:"max_ial,omitempty"`
 	MaxAal                                 *float64  `json:"max_aal,omitempty"`
@@ -795,13 +975,23 @@ type GetNodeInfoResult struct {
 	Active bool         `json:"active"`
 }
 
+type NodeKey struct {
+	PublicKey           string `json:"public_key"`
+	Algorithm           string `json:"algorithm"`
+	Version             int64  `json:"version"`
+	CreationBlockHeight int64  `json:"creation_block_height"`
+	CreationChainID     string `json:"creation_chain_id"`
+	Active              bool   `json:"active"`
+}
+
 type ProxyNodeInfo struct {
-	NodeID          string       `json:"node_id"`
-	NodeName        string       `json:"node_name"`
-	PublicKey       string       `json:"public_key"`
-	MasterPublicKey string       `json:"master_public_key"`
-	Mq              []MsqAddress `json:"mq"`
-	Config          string       `json:"config"`
+	NodeID                 string       `json:"node_id"`
+	NodeName               string       `json:"node_name"`
+	SigningPublicKey       NodeKey      `json:"signing_public_key"`
+	SigningMasterPublicKey NodeKey      `json:"signing_master_public_key"`
+	EncryptionPublicKey    NodeKey      `json:"encryption_public_key"`
+	Mq                     []MsqAddress `json:"mq"`
+	Config                 string       `json:"config"`
 }
 
 func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
@@ -827,11 +1017,33 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 	}
 
 	result := GetNodeInfoResult{
-		PublicKey:       nodeDetail.PublicKey,
-		MasterPublicKey: nodeDetail.MasterPublicKey,
-		NodeName:        nodeDetail.NodeName,
-		Role:            nodeDetail.Role,
-		Active:          nodeDetail.Active,
+		SigningPublicKey: NodeKey{
+			PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+			Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+			Version:             nodeDetail.SigningPublicKey.Version,
+			CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+			CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+			Active:              nodeDetail.SigningPublicKey.Active,
+		},
+		SigningMasterPublicKey: NodeKey{
+			PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
+			Algorithm:           nodeDetail.SigningMasterPublicKey.Algorithm,
+			Version:             nodeDetail.SigningMasterPublicKey.Version,
+			CreationBlockHeight: nodeDetail.SigningMasterPublicKey.CreationBlockHeight,
+			CreationChainID:     nodeDetail.SigningMasterPublicKey.CreationChainId,
+			Active:              nodeDetail.SigningMasterPublicKey.Active,
+		},
+		EncryptionPublicKey: NodeKey{
+			PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+			Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+			Version:             nodeDetail.EncryptionPublicKey.Version,
+			CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+			CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+			Active:              nodeDetail.EncryptionPublicKey.Active,
+		},
+		NodeName: nodeDetail.NodeName,
+		Role:     nodeDetail.Role,
+		Active:   nodeDetail.Active,
 	}
 	for _, mq := range nodeDetail.Mq {
 		result.Mq = append(result.Mq, MsqAddress{
@@ -859,11 +1071,33 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		}
 
 		proxy := ProxyNodeInfo{
-			NodeID:          string(proxyNodeID),
-			NodeName:        proxyNode.NodeName,
-			PublicKey:       proxyNode.PublicKey,
-			MasterPublicKey: proxyNode.MasterPublicKey,
-			Config:          nodeDetail.ProxyConfig,
+			NodeID:   string(proxyNodeID),
+			NodeName: proxyNode.NodeName,
+			SigningPublicKey: NodeKey{
+				PublicKey:           proxyNode.SigningPublicKey.PublicKey,
+				Algorithm:           proxyNode.SigningPublicKey.Algorithm,
+				Version:             proxyNode.SigningPublicKey.Version,
+				CreationBlockHeight: proxyNode.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     proxyNode.SigningPublicKey.CreationChainId,
+				Active:              proxyNode.SigningPublicKey.Active,
+			},
+			SigningMasterPublicKey: NodeKey{
+				PublicKey:           proxyNode.SigningMasterPublicKey.PublicKey,
+				Algorithm:           proxyNode.SigningMasterPublicKey.Algorithm,
+				Version:             proxyNode.SigningMasterPublicKey.Version,
+				CreationBlockHeight: proxyNode.SigningMasterPublicKey.CreationBlockHeight,
+				CreationChainID:     proxyNode.SigningMasterPublicKey.CreationChainId,
+				Active:              proxyNode.SigningMasterPublicKey.Active,
+			},
+			EncryptionPublicKey: NodeKey{
+				PublicKey:           proxyNode.EncryptionPublicKey.PublicKey,
+				Algorithm:           proxyNode.EncryptionPublicKey.Algorithm,
+				Version:             proxyNode.EncryptionPublicKey.Version,
+				CreationBlockHeight: proxyNode.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     proxyNode.EncryptionPublicKey.CreationChainId,
+				Active:              proxyNode.EncryptionPublicKey.Active,
+			},
+			Config: nodeDetail.ProxyConfig,
 		}
 		for _, mq := range proxyNode.Mq {
 			proxy.Mq = append(proxy.Mq, MsqAddress{
@@ -909,7 +1143,8 @@ type IdpNode struct {
 	MaxIal                                 float64       `json:"max_ial"`
 	MaxAal                                 float64       `json:"max_aal"`
 	OnTheFlySupport                        bool          `json:"on_the_fly_support"`
-	PublicKey                              string        `json:"public_key"`
+	SigningPublicKey                       NodeKey       `json:"signing_public_key"`
+	EncryptionPublicKey                    NodeKey       `json:"encryption_public_key"`
 	Mq                                     []MsqAddress  `json:"mq"`
 	IsIdpAgent                             bool          `json:"agent"`
 	UseWhitelist                           *bool         `json:"node_id_whitelist_active,omitempty"`
@@ -921,10 +1156,11 @@ type IdpNode struct {
 }
 
 type IdpNodeProxy struct {
-	NodeID    string       `json:"node_id"`
-	PublicKey string       `json:"public_key"`
-	Mq        []MsqAddress `json:"mq"`
-	Config    string       `json:"config"`
+	NodeID              string       `json:"node_id"`
+	SigningPublicKey    NodeKey      `json:"signing_public_key"`
+	EncryptionPublicKey NodeKey      `json:"encryption_public_key"`
+	Mq                  []MsqAddress `json:"mq"`
+	Config              string       `json:"config"`
 }
 
 func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
@@ -1036,9 +1272,24 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 				return nil
 			}
 			proxy = &IdpNodeProxy{
-				NodeID:    string(proxyNodeID),
-				PublicKey: proxyNode.PublicKey,
-				Config:    nodeDetail.ProxyConfig,
+				NodeID: string(proxyNodeID),
+				SigningPublicKey: NodeKey{
+					PublicKey:           proxyNode.SigningPublicKey.PublicKey,
+					Algorithm:           proxyNode.SigningPublicKey.Algorithm,
+					Version:             proxyNode.SigningPublicKey.Version,
+					CreationBlockHeight: proxyNode.SigningPublicKey.CreationBlockHeight,
+					CreationChainID:     proxyNode.SigningPublicKey.CreationChainId,
+					Active:              proxyNode.SigningPublicKey.Active,
+				},
+				EncryptionPublicKey: NodeKey{
+					PublicKey:           proxyNode.EncryptionPublicKey.PublicKey,
+					Algorithm:           proxyNode.EncryptionPublicKey.Algorithm,
+					Version:             proxyNode.EncryptionPublicKey.Version,
+					CreationBlockHeight: proxyNode.EncryptionPublicKey.CreationBlockHeight,
+					CreationChainID:     proxyNode.EncryptionPublicKey.CreationChainId,
+					Active:              proxyNode.EncryptionPublicKey.Active,
+				},
+				Config: nodeDetail.ProxyConfig,
 			}
 			for _, mq := range proxyNode.Mq {
 				proxy.Mq = append(proxy.Mq, MsqAddress{
@@ -1054,11 +1305,26 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 		}
 
 		idpNode := &IdpNode{
-			NodeID:                                 nodeID,
-			Name:                                   nodeDetail.NodeName,
-			MaxIal:                                 nodeDetail.MaxIal,
-			MaxAal:                                 nodeDetail.MaxAal,
-			PublicKey:                              nodeDetail.PublicKey,
+			NodeID: nodeID,
+			Name:   nodeDetail.NodeName,
+			MaxIal: nodeDetail.MaxIal,
+			MaxAal: nodeDetail.MaxAal,
+			SigningPublicKey: NodeKey{
+				PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+				Version:             nodeDetail.SigningPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningPublicKey.Active,
+			},
+			EncryptionPublicKey: NodeKey{
+				PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+				Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+				Version:             nodeDetail.EncryptionPublicKey.Version,
+				CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+				Active:              nodeDetail.EncryptionPublicKey.Active,
+			},
 			OnTheFlySupport:                        nodeDetail.OnTheFlySupport,
 			IsIdpAgent:                             nodeDetail.IsIdpAgent,
 			UseWhitelist:                           &nodeDetail.UseWhitelist,
@@ -1177,7 +1443,8 @@ type ASWithMqNode struct {
 	Name                   string       `json:"name"`
 	MinIal                 float64      `json:"min_ial"`
 	MinAal                 float64      `json:"min_aal"`
-	PublicKey              string       `json:"public_key"`
+	SigningPublicKey       NodeKey      `json:"signing_public_key"`
+	EncryptionPublicKey    NodeKey      `json:"encryption_public_key"`
 	Mq                     []MsqAddress `json:"mq"`
 	SupportedNamespaceList []string     `json:"supported_namespace_list"`
 }
@@ -1187,13 +1454,15 @@ type ASWithMqNodeBehindProxy struct {
 	Name                   string   `json:"name"`
 	MinIal                 float64  `json:"min_ial"`
 	MinAal                 float64  `json:"min_aal"`
-	PublicKey              string   `json:"public_key"`
+	SigningPublicKey       NodeKey  `json:"signing_public_key"`
+	EncryptionPublicKey    NodeKey  `json:"encryption_public_key"`
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 	Proxy                  struct {
-		NodeID    string       `json:"node_id"`
-		PublicKey string       `json:"public_key"`
-		Mq        []MsqAddress `json:"mq"`
-		Config    string       `json:"config"`
+		NodeID              string       `json:"node_id"`
+		SigningPublicKey    NodeKey      `json:"signing_public_key"`
+		EncryptionPublicKey NodeKey      `json:"encryption_public_key"`
+		Mq                  []MsqAddress `json:"mq"`
+		Config              string       `json:"config"`
 	} `json:"proxy"`
 }
 
@@ -1330,10 +1599,40 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.Respon
 			as.Name = nodeDetail.NodeName
 			as.MinIal = storedData.Node[index].MinIal
 			as.MinAal = storedData.Node[index].MinAal
-			as.PublicKey = nodeDetail.PublicKey
+			as.SigningPublicKey = NodeKey{
+				PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+				Version:             nodeDetail.SigningPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningPublicKey.Active,
+			}
+			as.EncryptionPublicKey = NodeKey{
+				PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+				Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+				Version:             nodeDetail.EncryptionPublicKey.Version,
+				CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+				Active:              nodeDetail.EncryptionPublicKey.Active,
+			}
 			as.SupportedNamespaceList = storedData.Node[index].SupportedNamespaceList
 			as.Proxy.NodeID = string(proxyNodeID)
-			as.Proxy.PublicKey = proxyNode.PublicKey
+			as.Proxy.SigningPublicKey = NodeKey{
+				PublicKey:           proxyNode.SigningPublicKey.PublicKey,
+				Algorithm:           proxyNode.SigningPublicKey.Algorithm,
+				Version:             proxyNode.SigningPublicKey.Version,
+				CreationBlockHeight: proxyNode.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     proxyNode.SigningPublicKey.CreationChainId,
+				Active:              proxyNode.SigningPublicKey.Active,
+			}
+			as.Proxy.EncryptionPublicKey = NodeKey{
+				PublicKey:           proxyNode.EncryptionPublicKey.PublicKey,
+				Algorithm:           proxyNode.EncryptionPublicKey.Algorithm,
+				Version:             proxyNode.EncryptionPublicKey.Version,
+				CreationBlockHeight: proxyNode.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     proxyNode.EncryptionPublicKey.CreationChainId,
+				Active:              proxyNode.EncryptionPublicKey.Active,
+			}
 			if proxyNode.Mq != nil {
 				for _, mq := range proxyNode.Mq {
 					var msq MsqAddress
@@ -1353,13 +1652,28 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.Respon
 				msqAddress = append(msqAddress, msq)
 			}
 			var newRow = ASWithMqNode{
-				storedData.Node[index].NodeId,
-				nodeDetail.NodeName,
-				storedData.Node[index].MinIal,
-				storedData.Node[index].MinAal,
-				nodeDetail.PublicKey,
-				msqAddress,
-				storedData.Node[index].SupportedNamespaceList,
+				ID:     storedData.Node[index].NodeId,
+				Name:   nodeDetail.NodeName,
+				MinIal: storedData.Node[index].MinIal,
+				MinAal: storedData.Node[index].MinAal,
+				SigningPublicKey: NodeKey{
+					PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+					Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+					Version:             nodeDetail.SigningPublicKey.Version,
+					CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+					CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+					Active:              nodeDetail.SigningPublicKey.Active,
+				},
+				EncryptionPublicKey: NodeKey{
+					PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+					Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+					Version:             nodeDetail.EncryptionPublicKey.Version,
+					CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+					CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+					Active:              nodeDetail.EncryptionPublicKey.Active,
+				},
+				Mq:                     msqAddress,
+				SupportedNamespaceList: storedData.Node[index].SupportedNamespaceList,
 			}
 			result.Node = append(result.Node, newRow)
 		}
@@ -1383,8 +1697,9 @@ type IdPBehindProxy struct {
 	NodeID                                 string   `json:"node_id"`
 	NodeName                               string   `json:"node_name"`
 	Role                                   string   `json:"role"`
-	PublicKey                              string   `json:"public_key"`
-	MasterPublicKey                        string   `json:"master_public_key"`
+	SigningPublicKey                       NodeKey  `json:"signing_public_key"`
+	SigningMasterPublicKey                 NodeKey  `json:"signing_master_public_key"`
+	EncryptionPublicKey                    NodeKey  `json:"encryption_public_key"`
 	MaxIal                                 float64  `json:"max_ial"`
 	MaxAal                                 float64  `json:"max_aal"`
 	OnTheFlySupport                        bool     `json:"on_the_fly_support"`
@@ -1394,12 +1709,13 @@ type IdPBehindProxy struct {
 }
 
 type ASorRPBehindProxy struct {
-	NodeID          string `json:"node_id"`
-	NodeName        string `json:"node_name"`
-	Role            string `json:"role"`
-	PublicKey       string `json:"public_key"`
-	MasterPublicKey string `json:"master_public_key"`
-	Config          string `json:"config"`
+	NodeID                 string  `json:"node_id"`
+	NodeName               string  `json:"node_name"`
+	Role                   string  `json:"role"`
+	SigningPublicKey       NodeKey `json:"signing_public_key"`
+	SigningMasterPublicKey NodeKey `json:"signing_master_public_key"`
+	EncryptionPublicKey    NodeKey `json:"encryption_public_key"`
+	Config                 string  `json:"config"`
 }
 
 func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.ResponseQuery {
@@ -1454,8 +1770,30 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
 			row.Role = nodeDetail.Role
-			row.PublicKey = nodeDetail.PublicKey
-			row.MasterPublicKey = nodeDetail.MasterPublicKey
+			row.SigningPublicKey = NodeKey{
+				PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+				Version:             nodeDetail.SigningPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningPublicKey.Active,
+			}
+			row.SigningMasterPublicKey = NodeKey{
+				PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningMasterPublicKey.Algorithm,
+				Version:             nodeDetail.SigningMasterPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningMasterPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningMasterPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningMasterPublicKey.Active,
+			}
+			row.EncryptionPublicKey = NodeKey{
+				PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+				Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+				Version:             nodeDetail.EncryptionPublicKey.Version,
+				CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+				Active:              nodeDetail.EncryptionPublicKey.Active,
+			}
 			row.MaxIal = nodeDetail.MaxIal
 			row.MaxAal = nodeDetail.MaxAal
 			row.OnTheFlySupport = nodeDetail.OnTheFlySupport
@@ -1468,8 +1806,30 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 			row.NodeID = node
 			row.NodeName = nodeDetail.NodeName
 			row.Role = nodeDetail.Role
-			row.PublicKey = nodeDetail.PublicKey
-			row.MasterPublicKey = nodeDetail.MasterPublicKey
+			row.SigningPublicKey = NodeKey{
+				PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
+				Version:             nodeDetail.SigningPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningPublicKey.Active,
+			}
+			row.SigningMasterPublicKey = NodeKey{
+				PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
+				Algorithm:           nodeDetail.SigningMasterPublicKey.Algorithm,
+				Version:             nodeDetail.SigningMasterPublicKey.Version,
+				CreationBlockHeight: nodeDetail.SigningMasterPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.SigningMasterPublicKey.CreationChainId,
+				Active:              nodeDetail.SigningMasterPublicKey.Active,
+			}
+			row.EncryptionPublicKey = NodeKey{
+				PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
+				Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
+				Version:             nodeDetail.EncryptionPublicKey.Version,
+				CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
+				CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
+				Active:              nodeDetail.EncryptionPublicKey.Active,
+			}
 			row.Config = nodeDetail.ProxyConfig
 			result.Nodes = append(result.Nodes, row)
 		}
@@ -1629,5 +1989,149 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 	if len(result.NodeIDList) == 0 {
 		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
 	}
+	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+}
+
+type getNodePublicKeyListParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type getNodePublicKeyListResult struct {
+	SigningPublicKeyList       []NodeKey `json:"signing_public_key_list"`
+	SigningMasterPublicKeyList []NodeKey `json:"signing_master_public_key_list"`
+	EncryptionPublicKeyList    []NodeKey `json:"encryption_public_key_list"`
+}
+
+func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQuery {
+	app.logger.Infof("GetNodePublicKeyList, Parameter: %s", param)
+	var funcParam getNodePublicKeyListParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
+	// check node ID exists
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	if nodeDetailValue == nil {
+		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+	}
+
+	// signing public keys
+	signingPublicKeyList := make([]NodeKey, 0)
+
+	nodeKeyKeyIteratorPrefix :=
+		nodeKeyKeyPrefix + keySeparator +
+			"signing" + keySeparator +
+			funcParam.NodeID + keySeparator
+	r := goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
+	iter, err := app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	for ; iter.Valid(); iter.Next() {
+		value := iter.Value()
+
+		var nodeKey data.NodeKey
+		err = proto.Unmarshal(value, &nodeKey)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		retValNodeKey := NodeKey{
+			PublicKey:           nodeKey.PublicKey,
+			Algorithm:           nodeKey.Algorithm,
+			Version:             nodeKey.Version,
+			CreationBlockHeight: nodeKey.CreationBlockHeight,
+			CreationChainID:     nodeKey.CreationChainId,
+			Active:              nodeKey.Active,
+		}
+
+		signingPublicKeyList = append(signingPublicKeyList, retValNodeKey)
+	}
+	iter.Close()
+
+	// signing master public keys
+	signingMasterPublicKeyList := make([]NodeKey, 0)
+
+	nodeKeyKeyIteratorPrefix =
+		nodeKeyKeyPrefix + keySeparator +
+			"signing_master" + keySeparator +
+			funcParam.NodeID + keySeparator
+	r = goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
+	iter, err = app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	for ; iter.Valid(); iter.Next() {
+		value := iter.Value()
+
+		var nodeKey data.NodeKey
+		err = proto.Unmarshal(value, &nodeKey)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		retValNodeKey := NodeKey{
+			PublicKey:           nodeKey.PublicKey,
+			Algorithm:           nodeKey.Algorithm,
+			Version:             nodeKey.Version,
+			CreationBlockHeight: nodeKey.CreationBlockHeight,
+			CreationChainID:     nodeKey.CreationChainId,
+			Active:              nodeKey.Active,
+		}
+
+		signingMasterPublicKeyList = append(signingMasterPublicKeyList, retValNodeKey)
+	}
+	iter.Close()
+
+	// encryption public keys
+	encryptionPublicKeyList := make([]NodeKey, 0)
+
+	nodeKeyKeyIteratorPrefix =
+		nodeKeyKeyPrefix + keySeparator +
+			"encryption" + keySeparator +
+			funcParam.NodeID + keySeparator
+	r = goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
+	iter, err = app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+	for ; iter.Valid(); iter.Next() {
+		value := iter.Value()
+
+		var nodeKey data.NodeKey
+		err = proto.Unmarshal(value, &nodeKey)
+		if err != nil {
+			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		}
+
+		retValNodeKey := NodeKey{
+			PublicKey:           nodeKey.PublicKey,
+			Algorithm:           nodeKey.Algorithm,
+			Version:             nodeKey.Version,
+			CreationBlockHeight: nodeKey.CreationBlockHeight,
+			CreationChainID:     nodeKey.CreationChainId,
+			Active:              nodeKey.Active,
+		}
+
+		encryptionPublicKeyList = append(encryptionPublicKeyList, retValNodeKey)
+	}
+	iter.Close()
+
+	result := &getNodePublicKeyListResult{
+		SigningPublicKeyList:       signingPublicKeyList,
+		SigningMasterPublicKeyList: signingMasterPublicKeyList,
+		EncryptionPublicKeyList:    encryptionPublicKeyList,
+	}
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	}
+
 	return app.ReturnQuery(resultJSON, "success", app.state.Height)
 }

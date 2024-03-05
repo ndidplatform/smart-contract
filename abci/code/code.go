@@ -148,6 +148,8 @@ const (
 	SuppressedIdentityModificationNotificationNodeIDDoesNotExist  uint32 = 124
 	NotIdPNode                                                    uint32 = 125
 	ChainIsAlreadyInitialized                                     uint32 = 126
+	IncompatibleKeyAlgorithm                                      uint32 = 127
+	UnsupportedSigningAlgorithm                                   uint32 = 128
 
 	UnknownError uint32 = 999
 )

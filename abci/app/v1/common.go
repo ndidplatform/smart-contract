@@ -45,6 +45,7 @@ const (
 	keySeparator                                         = "|"
 	nonceKeyPrefix                                       = "n"
 	nodeIDKeyPrefix                                      = "NodeID"
+	nodeKeyKeyPrefix                                     = "NodeKey"
 	behindProxyNodeKeyPrefix                             = "BehindProxyNode"
 	tokenKeyPrefix                                       = "Token"
 	tokenPriceFuncKeyPrefix                              = "TokenPriceFunc"

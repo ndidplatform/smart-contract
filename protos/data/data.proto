@@ -11,21 +11,31 @@ message KeyVersions {
 }
 
 message NodeDetail {
+  NodeKey signing_public_key = 1;
+  NodeKey signing_master_public_key = 2;
+  NodeKey encryption_public_key = 3;
+  string node_name = 4;
+  string role = 5;
+  double max_ial = 6;
+  double max_aal = 7;
+  repeated MQ mq = 8;
+  bool active = 9;
+  bool is_idp_agent = 10;
+  string proxy_node_id = 11;
+  string proxy_config = 12;
+  bool use_whitelist = 13;
+  repeated string whitelist = 14;
+  repeated string supported_request_message_data_url_type_list = 15;
+  bool on_the_fly_support = 16;
+}
+
+message NodeKey {
   string public_key = 1;
-  string master_public_key = 2;
-  string node_name = 3;
-  string role = 4;
-  double max_ial = 5;
-  double max_aal = 6;
-  repeated MQ mq = 7;
-  bool active = 8;
-  bool is_idp_agent = 9;
-  string proxy_node_id = 10;
-  string proxy_config = 11;
-  bool use_whitelist = 12;
-  repeated string whitelist = 13;
-  repeated string supported_request_message_data_url_type_list = 14;
-  bool on_the_fly_support = 15;
+  string algorithm = 2;
+  int64 version = 3;
+  int64 creation_block_height = 4;
+  string creation_chain_id = 5;
+  bool active = 6;
 }
 
 message MQ {

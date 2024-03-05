@@ -24,6 +24,7 @@ package app
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	"github.com/tendermint/tendermint/abci/types"
@@ -36,17 +37,21 @@ import (
 )
 
 type RegisterNodeParam struct {
-	NodeID          string   `json:"node_id"`
-	PublicKey       string   `json:"public_key"`
-	MasterPublicKey string   `json:"master_public_key"`
-	NodeName        string   `json:"node_name"`
-	Role            string   `json:"role"`
-	MaxIal          float64  `json:"max_ial"`            // IdP only attribute
-	MaxAal          float64  `json:"max_aal"`            // IdP only attribute
-	OnTheFlySupport *bool    `json:"on_the_fly_support"` // IdP only attribute
-	IsIdPAgent      *bool    `json:"agent"`              // IdP only attribute
-	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
-	Whitelist       []string `json:"node_id_whitelist"`
+	NodeID                 string   `json:"node_id"`
+	SigningPublicKey       string   `json:"signing_public_key"`
+	SigningAlgorithm       string   `json:"signing_algorithm"`
+	SigningMasterPublicKey string   `json:"signing_master_public_key"`
+	SigningMasterAlgorithm string   `json:"signing_master_algorithm"`
+	EncryptionPublicKey    string   `json:"encryption_public_key"`
+	EncryptionAlgorithm    string   `json:"encryption_algorithm"`
+	NodeName               string   `json:"node_name"`
+	Role                   string   `json:"role"`
+	MaxIal                 float64  `json:"max_ial"`            // IdP only attribute
+	MaxAal                 float64  `json:"max_aal"`            // IdP only attribute
+	OnTheFlySupport        *bool    `json:"on_the_fly_support"` // IdP only attribute
+	IsIdPAgent             *bool    `json:"agent"`              // IdP only attribute
+	UseWhitelist           *bool    `json:"node_id_whitelist_active"`
+	Whitelist              []string `json:"node_id_whitelist"`
 }
 
 func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, callerNodeID string, committedState bool) error {
@@ -62,19 +67,27 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 	}
 
 	// Validate master public key format
-	if funcParam.MasterPublicKey != "" {
-		err := checkPubKey(funcParam.MasterPublicKey)
-		if err != nil {
-			return err
-		}
+	err = checkPubKeyForSigning(
+		funcParam.SigningMasterPublicKey,
+		appTypes.SignatureAlgorithm(funcParam.SigningMasterAlgorithm),
+	)
+	if err != nil {
+		return err
 	}
 
 	// Validate public key format
-	if funcParam.PublicKey != "" {
-		err := checkPubKey(funcParam.PublicKey)
-		if err != nil {
-			return err
-		}
+	err = checkPubKeyForSigning(
+		funcParam.SigningPublicKey,
+		appTypes.SignatureAlgorithm(funcParam.SigningAlgorithm),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Validate encryption public key format
+	err = checkPubKeyForEncryption(funcParam.EncryptionPublicKey)
+	if err != nil {
+		return err
 	}
 
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -167,8 +180,66 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 
 	// create node detail
 	var nodeDetail data.NodeDetail
-	nodeDetail.PublicKey = funcParam.PublicKey
-	nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	nodeDetail.SigningPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.SigningPublicKey,
+		Algorithm:           funcParam.SigningAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey :=
+		nodeKeyKeyPrefix + keySeparator +
+			"signing" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
+	nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+	nodeDetail.SigningMasterPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.SigningMasterPublicKey,
+		Algorithm:           funcParam.SigningMasterAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey =
+		nodeKeyKeyPrefix + keySeparator +
+			"signing_master" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
+	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+	nodeDetail.EncryptionPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.EncryptionPublicKey,
+		Algorithm:           funcParam.EncryptionAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey =
+		nodeKeyKeyPrefix + keySeparator +
+			"encryption" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
+	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
 	nodeDetail.NodeName = funcParam.NodeName
 
 	switch strings.ToLower(funcParam.Role) {

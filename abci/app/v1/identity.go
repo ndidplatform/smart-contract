@@ -269,6 +269,11 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 		}
 	}
 
+	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1381,7 +1386,7 @@ func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, call
 		}
 	}
 
-	err = checkPubKey(funcParam.AccessorPublicKey)
+	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
 	if err != nil {
 		return err
 	}
@@ -1925,6 +1930,11 @@ func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddA
 			Code:    code.DuplicateAccessorID,
 			Message: "Duplicate accessor ID",
 		}
+	}
+
+	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
+	if err != nil {
+		return err
 	}
 
 	return nil

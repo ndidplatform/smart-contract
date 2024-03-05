@@ -37,10 +37,14 @@ import (
 )
 
 type InitNDIDParam struct {
-	NodeID           string `json:"node_id"`
-	PublicKey        string `json:"public_key"`
-	MasterPublicKey  string `json:"master_public_key"`
-	ChainHistoryInfo string `json:"chain_history_info"`
+	NodeID                 string `json:"node_id"`
+	SigningPublicKey       string `json:"signing_public_key"`
+	SigningAlgorithm       string `json:"signing_algorithm"`
+	SigningMasterPublicKey string `json:"signing_master_public_key"`
+	SigningMasterAlgorithm string `json:"signing_master_algorithm"`
+	EncryptionPublicKey    string `json:"encryption_public_key"`
+	EncryptionAlgorithm    string `json:"encryption_algorithm"`
+	ChainHistoryInfo       string `json:"chain_history_info"`
 }
 
 func (app *ABCIApplication) validateInitNDID(funcParam InitNDIDParam, callerNodeID string, committedState bool) error {
@@ -60,19 +64,27 @@ func (app *ABCIApplication) validateInitNDID(funcParam InitNDIDParam, callerNode
 	}
 
 	// Validate master public key format
-	if funcParam.MasterPublicKey != "" {
-		err = checkPubKey(funcParam.MasterPublicKey)
-		if err != nil {
-			return err
-		}
+	err = checkPubKeyForSigning(
+		funcParam.SigningMasterPublicKey,
+		appTypes.SignatureAlgorithm(funcParam.SigningMasterAlgorithm),
+	)
+	if err != nil {
+		return err
 	}
 
 	// Validate public key format
-	if funcParam.PublicKey != "" {
-		err = checkPubKey(funcParam.PublicKey)
-		if err != nil {
-			return err
-		}
+	err = checkPubKeyForSigning(
+		funcParam.SigningPublicKey,
+		appTypes.SignatureAlgorithm(funcParam.SigningAlgorithm),
+	)
+	if err != nil {
+		return err
+	}
+
+	// Validate encryption public key format
+	err = checkPubKeyForEncryption(funcParam.EncryptionPublicKey)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -113,8 +125,66 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 	}
 
 	var nodeDetail data.NodeDetail
-	nodeDetail.PublicKey = funcParam.PublicKey
-	nodeDetail.MasterPublicKey = funcParam.MasterPublicKey
+	nodeDetail.SigningPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.SigningPublicKey,
+		Algorithm:           funcParam.SigningAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey :=
+		nodeKeyKeyPrefix + keySeparator +
+			"signing" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
+	nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+	nodeDetail.SigningMasterPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.SigningMasterPublicKey,
+		Algorithm:           funcParam.SigningMasterAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey =
+		nodeKeyKeyPrefix + keySeparator +
+			"signing_master" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
+	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
+	nodeDetail.EncryptionPublicKey = &data.NodeKey{
+		PublicKey:           funcParam.EncryptionPublicKey,
+		Algorithm:           funcParam.EncryptionAlgorithm,
+		Version:             1,
+		CreationBlockHeight: app.state.CurrentBlockHeight,
+		CreationChainId:     app.CurrentChain,
+		Active:              true,
+	}
+	// create key version history
+	nodeKeyKey =
+		nodeKeyKeyPrefix + keySeparator +
+			"encryption" + keySeparator +
+			funcParam.NodeID + keySeparator +
+			strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
+	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
+	if err != nil {
+		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+	}
+	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
+
 	nodeDetail.NodeName = "NDID"
 	nodeDetail.Role = string(appTypes.NodeRoleNdid)
 	nodeDetail.Active = true

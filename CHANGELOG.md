@@ -1,5 +1,25 @@
 # Changelog
 
+## TBD
+
+BREAKING CHANGES:
+
+- Change transaction data format for signature.
+- Change node detail public key data type. Store key version and other metadata.
+- Save all node public key versions.
+- Separate node signing key and node encryption key.
+- Accept ECDSA and Ed25519 key algorithms for node signing public key.
+- [Query] Remove `GetNodePublicKey` method.
+- [Query] Remove `GetNodeMasterPublicKey` method.
+
+FEATURES:
+
+- [Query] Add `GetNodePublicKeyList` method.
+- [Query] Add `GetNodeSigningPublicKey` method.
+- [Query] Add `GetNodeSigningMasterPublicKey` method.
+- [Query] Add `GetNodeEncryptionPublicKey` method.
+- [Query] Add `GetNodePublicKeyList` method.
+
 ## 9.0.0 (TBD)
 
 BREAKING CHANGES:

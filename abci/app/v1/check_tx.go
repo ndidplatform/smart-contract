@@ -26,11 +26,14 @@ import (
 	"crypto"
 	"crypto/dsa"
 	"crypto/ecdsa"
+	"crypto/ed25519"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
+	"encoding/asn1"
 	"encoding/json"
 	"encoding/pem"
+	"math/big"
 	"strconv"
 	"strings"
 
@@ -389,28 +392,99 @@ func (app *ABCIApplication) isProxyNodeByNodeID(nodeID string, committedState bo
 	return app.isProxyNode(&node), nil
 }
 
-func verifySignature(param []byte, chainID string, nonce []byte, signature []byte, publicKey string, method string) (result bool, err error) {
+func createHash(message []byte, algorithm crypto.Hash) (hashResult []byte) {
+	h := algorithm.New()
+	h.Write(message)
+	hashed := h.Sum(nil)
+
+	return hashed
+}
+
+type SignValues struct {
+	R, S *big.Int
+}
+
+func verifySignature(
+	method string,
+	param []byte,
+	chainID string,
+	nonce []byte,
+	signature []byte,
+	publicKey string,
+	algorithm appTypes.SignatureAlgorithm,
+) (valid bool, err error) {
 	publicKey = strings.Replace(publicKey, "\t", "", -1)
 	block, _ := pem.Decode([]byte(publicKey))
-	senderPublicKeyInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
-	senderPublicKey := senderPublicKeyInterface.(*rsa.PublicKey)
-	if err != nil {
-		return false, err
-	}
-	tempPSSmessage := append([]byte(method), param...)
-	tempPSSmessage = append(tempPSSmessage, []byte(chainID)...)
-	tempPSSmessage = append(tempPSSmessage, nonce...)
-	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
-	newhash := crypto.SHA256
-	pssh := newhash.New()
-	pssh.Write(PSSmessage)
-	hashed := pssh.Sum(nil)
 
-	err = rsa.VerifyPKCS1v15(senderPublicKey, newhash, hashed, signature)
+	// Get key
+	var callerPublicKey interface{}
+	if strings.Contains(publicKey, "BEGIN RSA PUBLIC KEY") {
+		callerPublicKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
+	} else {
+		callerPublicKey, err = x509.ParsePKIXPublicKey(block.Bytes)
+	}
 	if err != nil {
 		return false, err
 	}
-	return true, nil
+
+	// Build the message
+	message := append([]byte(method), param...)
+	message = append(message, []byte(chainID)...)
+	message = append(message, []byte(nonce)...)
+
+	switch pubKey := callerPublicKey.(type) {
+	case *ecdsa.PublicKey:
+		// Hash the message
+		var hashAlgorithm crypto.Hash
+		switch algorithm {
+		case appTypes.SignatureAlgorithmECDSASHA256:
+			hashAlgorithm = crypto.SHA256
+		case appTypes.SignatureAlgorithmECDSASHA384:
+			hashAlgorithm = crypto.SHA384
+		}
+		hashed := createHash(message, hashAlgorithm)
+
+		var signVal SignValues
+		_, err = asn1.Unmarshal(signature, &signVal)
+		if err != nil {
+			return false, nil
+		}
+
+		return ecdsa.Verify(pubKey, hashed, signVal.R, signVal.S), nil
+	case *rsa.PublicKey:
+		// Hash the message
+		var hashAlgorithm crypto.Hash
+		switch algorithm {
+		case appTypes.SignatureAlgorithmRSAPSSSHA256,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA256:
+			hashAlgorithm = crypto.SHA256
+		case appTypes.SignatureAlgorithmRSAPSSSHA384,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA384:
+			hashAlgorithm = crypto.SHA384
+		case appTypes.SignatureAlgorithmRSAPSSSHA512,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA512:
+			hashAlgorithm = crypto.SHA512
+		}
+		hashed := createHash(message, hashAlgorithm)
+
+		switch algorithm {
+		case appTypes.SignatureAlgorithmRSAPSSSHA256,
+			appTypes.SignatureAlgorithmRSAPSSSHA384,
+			appTypes.SignatureAlgorithmRSAPSSSHA512:
+			err = rsa.VerifyPSS(pubKey, hashAlgorithm, hashed, signature, nil)
+		case appTypes.SignatureAlgorithmRSAPKCS1V15SHA256,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA384,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA512:
+			err = rsa.VerifyPKCS1v15(pubKey, hashAlgorithm, hashed, signature)
+		}
+
+		return err == nil, err
+	case ed25519.PublicKey:
+		valid := ed25519.Verify(pubKey, message, signature)
+		return valid, nil
+	}
+
+	return false, nil
 }
 
 // ReturnCheckTx return types.ResponseDeliverTx
@@ -426,71 +500,76 @@ func (app *ABCIApplication) getNodePublicKeyForSignatureVerification(
 	param []byte,
 	nodeID string,
 	committedState bool,
-) (string, uint32, string) {
-	var publicKey string
+) (publicKeyPem string, algorithm appTypes.SignatureAlgorithm, retCode uint32, message string) {
 	if method == "InitNDID" {
-		publicKey = getPublicKeyInitNDID(param)
+		publicKey, algorithmStr := getPublicKeyInitNDID(param)
 		if publicKey == "" {
-			return publicKey, code.CannotGetPublicKeyFromParam, "Can not get public key from parameter"
+			return publicKey, "", code.CannotGetPublicKeyFromParam, "Can not get public key from parameter"
 		}
+		publicKeyPem = publicKey
+		algorithm = appTypes.SignatureAlgorithm(algorithmStr)
 	} else if method == "UpdateNode" {
-		publicKey = app.getMasterPublicKeyFromNodeID(nodeID, committedState)
-		if publicKey == "" {
-			return publicKey, code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID"
+		signingPublicKey := app.getSigningMasterPublicKeyFromNodeID(nodeID, committedState)
+		if signingPublicKey == nil {
+			return "", "", code.CannotGetMasterPublicKeyFromNodeID, "Can not get master public key from node ID"
 		}
+		publicKeyPem = signingPublicKey.PublicKey
+		algorithm = appTypes.SignatureAlgorithm(signingPublicKey.Algorithm)
 	} else {
-		publicKey = app.getPublicKeyFromNodeID(nodeID, committedState)
-		if publicKey == "" {
-			return publicKey, code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID"
+		signingPublicKey := app.getSigningPublicKeyFromNodeID(nodeID, committedState)
+		if signingPublicKey == nil {
+			return "", "", code.CannotGetPublicKeyFromNodeID, "Can not get public key from node ID"
 		}
+		publicKeyPem = signingPublicKey.PublicKey
+		algorithm = appTypes.SignatureAlgorithm(signingPublicKey.Algorithm)
 	}
-	return publicKey, code.OK, ""
+	return publicKeyPem, algorithm, code.OK, ""
 }
 
-func getPublicKeyInitNDID(param []byte) string {
+func getPublicKeyInitNDID(param []byte) (string, string) {
 	var funcParam InitNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ""
+		return "", ""
 	}
-	return funcParam.PublicKey
+	return funcParam.SigningPublicKey, funcParam.SigningAlgorithm
 }
 
-func (app *ABCIApplication) getMasterPublicKeyFromNodeID(nodeID string, committedState bool) string {
+func (app *ABCIApplication) getSigningMasterPublicKeyFromNodeID(nodeID string, committedState bool) *data.NodeKey {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		panic(err)
 	}
 	if value == nil {
-		return ""
+		return nil
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return ""
+		return nil
 	}
-	return nodeDetail.MasterPublicKey
+	return nodeDetail.SigningMasterPublicKey
 }
 
-func (app *ABCIApplication) getPublicKeyFromNodeID(nodeID string, committedState bool) string {
+func (app *ABCIApplication) getSigningPublicKeyFromNodeID(nodeID string, committedState bool) *data.NodeKey {
 	key := nodeIDKeyPrefix + keySeparator + nodeID
 	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		panic(err)
 	}
 	if value == nil {
-		return ""
+		return nil
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return ""
+		return nil
 	}
-	return nodeDetail.PublicKey
+	return nodeDetail.SigningPublicKey
 }
 
-func checkPubKey(key string) error {
+func checkPubKeyForSigning(key string, algorithm appTypes.SignatureAlgorithm) (err error) {
 	block, _ := pem.Decode([]byte(key))
 	if block == nil {
 		return &ApplicationError{
@@ -498,7 +577,110 @@ func checkPubKey(key string) error {
 			Message: "Invalid key format. Cannot decode PEM.",
 		}
 	}
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	var pub interface{}
+	if strings.Contains(key, "BEGIN RSA PUBLIC KEY") {
+		pub, err = x509.ParsePKCS1PublicKey(block.Bytes)
+	} else {
+		pub, err = x509.ParsePKIXPublicKey(block.Bytes)
+	}
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: err.Error(),
+		}
+	}
+
+	switch pubKey := pub.(type) {
+	case *rsa.PublicKey:
+		switch algorithm {
+		case appTypes.SignatureAlgorithmRSAPSSSHA256,
+			appTypes.SignatureAlgorithmRSAPSSSHA384,
+			appTypes.SignatureAlgorithmRSAPSSSHA512,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA256,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA384,
+			appTypes.SignatureAlgorithmRSAPKCS1V15SHA512:
+			break
+		default:
+			return &ApplicationError{
+				Code:    code.IncompatibleKeyAlgorithm,
+				Message: "Incompatible key algorithm",
+			}
+		}
+
+		if pubKey.N.BitLen() < 2048 {
+			return &ApplicationError{
+				Code:    code.RSAKeyLengthTooShort,
+				Message: "RSA key length is too short. Must be at least 2048-bit.",
+			}
+		}
+	case *ecdsa.PublicKey:
+		// TODO: support secp256k1 curve
+		switch algorithm {
+		case appTypes.SignatureAlgorithmECDSASHA256:
+			// secp256r1 / prime256v1
+			if pubKey.Curve != elliptic.P256() {
+				return &ApplicationError{
+					Code:    code.UnsupportedSigningAlgorithm,
+					Message: "unsupported signing algorithm",
+				}
+			}
+		case appTypes.SignatureAlgorithmECDSASHA384:
+			// secp384r1
+			if pubKey.Curve != elliptic.P384() {
+				return &ApplicationError{
+					Code:    code.UnsupportedSigningAlgorithm,
+					Message: "unsupported signing algorithm",
+				}
+			}
+		default:
+			return &ApplicationError{
+				Code:    code.IncompatibleKeyAlgorithm,
+				Message: "Incompatible key algorithm",
+			}
+		}
+
+		return nil
+	case ed25519.PublicKey:
+		switch algorithm {
+		case appTypes.SignatureAlgorithmEd25519:
+			break
+		default:
+			return &ApplicationError{
+				Code:    code.IncompatibleKeyAlgorithm,
+				Message: "Incompatible key algorithm",
+			}
+		}
+
+		return nil
+	case *dsa.PublicKey:
+		return &ApplicationError{
+			Code:    code.UnsupportedKeyType,
+			Message: "Unsupported key type",
+		}
+	default:
+		return &ApplicationError{
+			Code:    code.UnknownKeyType,
+			Message: "Unknown key type",
+		}
+	}
+
+	return nil
+}
+
+func checkPubKeyForEncryption(key string) (err error) {
+	block, _ := pem.Decode([]byte(key))
+	if block == nil {
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: "Invalid key format. Cannot decode PEM.",
+		}
+	}
+	var pub interface{}
+	if strings.Contains(key, "BEGIN RSA PUBLIC KEY") {
+		pub, err = x509.ParsePKCS1PublicKey(block.Bytes)
+	} else {
+		pub, err = x509.ParsePKIXPublicKey(block.Bytes)
+	}
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.InvalidKeyFormat,
@@ -514,15 +696,59 @@ func checkPubKey(key string) error {
 				Message: "RSA key length is too short. Must be at least 2048-bit.",
 			}
 		}
-	case *dsa.PublicKey, *ecdsa.PublicKey:
+	case *ecdsa.PublicKey, ed25519.PublicKey, *dsa.PublicKey:
 		return &ApplicationError{
 			Code:    code.UnsupportedKeyType,
-			Message: "Unsupported key type. Only RSA is allowed.",
+			Message: "Unsupported key type",
 		}
 	default:
 		return &ApplicationError{
 			Code:    code.UnknownKeyType,
-			Message: "Unknown key type. Only RSA is allowed.",
+			Message: "Unknown key type",
+		}
+	}
+
+	return nil
+}
+
+func checkAccessorPubKey(key string) (err error) {
+	block, _ := pem.Decode([]byte(key))
+	if block == nil {
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: "Invalid key format. Cannot decode PEM.",
+		}
+	}
+	var pub interface{}
+	if strings.Contains(key, "BEGIN RSA PUBLIC KEY") {
+		pub, err = x509.ParsePKCS1PublicKey(block.Bytes)
+	} else {
+		pub, err = x509.ParsePKIXPublicKey(block.Bytes)
+	}
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.InvalidKeyFormat,
+			Message: err.Error(),
+		}
+	}
+
+	switch pubKey := pub.(type) {
+	case *rsa.PublicKey:
+		if pubKey.N.BitLen() < 2048 {
+			return &ApplicationError{
+				Code:    code.RSAKeyLengthTooShort,
+				Message: "RSA key length is too short. Must be at least 2048-bit.",
+			}
+		}
+	case *ecdsa.PublicKey, ed25519.PublicKey, *dsa.PublicKey:
+		return &ApplicationError{
+			Code:    code.UnsupportedKeyType,
+			Message: "Unsupported key type",
+		}
+	default:
+		return &ApplicationError{
+			Code:    code.UnknownKeyType,
+			Message: "Unknown key type",
 		}
 	}
 

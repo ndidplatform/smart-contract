@@ -29,6 +29,7 @@ import (
 	"testing"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
+	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
 	"github.com/ndidplatform/smart-contract/v9/test/data"
 	"github.com/ndidplatform/smart-contract/v9/test/utils"
 )
@@ -304,7 +305,12 @@ func TestUpdateNode(t *testing.T, caseID int64, expected string, expectResultFro
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		param.PublicKey = string(idpPublicKeyBytes2)
+		param.SigningPublicKey = string(idpPublicKeyBytes2)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(idpPublicKeyBytes2)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(idpPublicKeyBytes2)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "text/plain")
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "application/pdf")
 		nodeID = data.IdP1
@@ -315,7 +321,12 @@ func TestUpdateNode(t *testing.T, caseID int64, expected string, expectResultFro
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		param.PublicKey = string(idpPublicKeyBytes1)
+		param.SigningPublicKey = string(idpPublicKeyBytes1)
+		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.SigningMasterPublicKey = string(idpPublicKeyBytes1)
+		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
+		param.EncryptionPublicKey = string(idpPublicKeyBytes1)
+		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "text/plain")
 		nodeID = data.IdP1
 		privK = data.AllMasterKey

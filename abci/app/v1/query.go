@@ -46,8 +46,10 @@ func (app *ABCIApplication) QueryRouter(method string, param []byte, height int6
 
 func (app *ABCIApplication) callQuery(name string, param []byte, height int64) types.ResponseQuery {
 	switch name {
-	case "GetNodePublicKey":
-		return app.getNodePublicKey(param)
+	case "GetNodeSigningPublicKey":
+		return app.getNodeSigningPublicKey(param)
+	case "GetNodeEncryptionPublicKey":
+		return app.getNodeEncryptionPublicKey(param)
 	case "GetIdpNodes":
 		return app.getIdpNodes(param)
 	case "GetRequest":
@@ -72,10 +74,12 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) t
 		return app.getAccessorKey(param)
 	case "GetServiceList":
 		return app.getServiceList(param)
-	case "GetNodeMasterPublicKey":
-		return app.getNodeMasterPublicKey(param)
+	case "GetNodeSigningMasterPublicKey":
+		return app.getNodeSigningMasterPublicKey(param)
 	case "GetNodeInfo":
 		return app.getNodeInfo(param)
+	case "GetNodePublicKeyList":
+		return app.getNodePublicKeyList(param)
 	case "CheckExistingAccessorID":
 		return app.checkExistingAccessorID(param)
 	case "GetIdentityInfo":
