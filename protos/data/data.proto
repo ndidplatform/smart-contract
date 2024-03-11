@@ -26,7 +26,7 @@ message NodeDetail {
   bool use_whitelist = 13;
   repeated string whitelist = 14;
   repeated string supported_request_message_data_url_type_list = 15;
-  bool on_the_fly_support = 16;
+  repeated string supported_feature_list = 16;
 }
 
 message NodeKey {
@@ -300,4 +300,8 @@ message RequestType {
 
 message SuppressedIdentityModificationNotificationNode {
   // string node_id = 1;
+}
+
+message NodeSupportedFeature {
+  // string name = 1;
 }

@@ -150,6 +150,8 @@ const (
 	ChainIsAlreadyInitialized                                     uint32 = 126
 	IncompatibleKeyAlgorithm                                      uint32 = 127
 	UnsupportedSigningAlgorithm                                   uint32 = 128
+	NodeSupportedFeatureAlreadyExists                             uint32 = 129
+	NodeSupportedFeatureDoesNotExist                              uint32 = 130
 
 	UnknownError uint32 = 999
 )

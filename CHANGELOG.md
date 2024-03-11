@@ -11,6 +11,8 @@ BREAKING CHANGES:
 - Accept ECDSA and Ed25519 key algorithms for node signing public key.
 - [Query] Remove `GetNodePublicKey` method.
 - [Query] Remove `GetNodeMasterPublicKey` method.
+- Remove `on_the_fly_support` flag from (IdP) node property
+- Add `supported_feature_list` to node property
 
 FEATURES:
 
@@ -19,6 +21,10 @@ FEATURES:
 - [Query] Add `GetNodeSigningMasterPublicKey` method.
 - [Query] Add `GetNodeEncryptionPublicKey` method.
 - [Query] Add `GetNodePublicKeyList` method.
+- Node supported feature
+  - Add `AddAllowedNodeSupportedFeature` method.
+  - Add `RemoveAllowedNodeSupportedFeature` method.
+  - [Query] Add `GetAllowedNodeSupportedFeatureList` method.
 
 ## 9.0.0 (TBD)
 

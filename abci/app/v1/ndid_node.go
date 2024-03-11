@@ -46,10 +46,10 @@ type RegisterNodeParam struct {
 	EncryptionAlgorithm    string   `json:"encryption_algorithm"`
 	NodeName               string   `json:"node_name"`
 	Role                   string   `json:"role"`
-	MaxIal                 float64  `json:"max_ial"`            // IdP only attribute
-	MaxAal                 float64  `json:"max_aal"`            // IdP only attribute
-	OnTheFlySupport        *bool    `json:"on_the_fly_support"` // IdP only attribute
-	IsIdPAgent             *bool    `json:"agent"`              // IdP only attribute
+	MaxIal                 float64  `json:"max_ial"` // IdP only attribute
+	MaxAal                 float64  `json:"max_aal"` // IdP only attribute
+	SupportedFeatureList   []string `json:"supported_feature_list"`
+	IsIdPAgent             *bool    `json:"agent"` // IdP only attribute
 	UseWhitelist           *bool    `json:"node_id_whitelist_active"`
 	Whitelist              []string `json:"node_id_whitelist"`
 }
@@ -114,6 +114,24 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 		return &ApplicationError{
 			Code:    code.InvalidNodeRole,
 			Message: "Invalid node role",
+		}
+	}
+
+	// check if supported feature are valid/allowed
+	for _, supportedFeature := range funcParam.SupportedFeatureList {
+		key := nodeSupportedFeatureKeyPrefix + keySeparator + supportedFeature
+		exists, err := app.state.Has([]byte(key), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !exists {
+			return &ApplicationError{
+				Code:    code.NodeSupportedFeatureDoesNotExist,
+				Message: "invalid node supported feature",
+			}
 		}
 	}
 
@@ -254,11 +272,13 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	}
 
 	nodeDetail.Active = true
+
+	nodeDetail.SupportedFeatureList = funcParam.SupportedFeatureList
+
 	// if node is IdP, set max_aal, min_ial, on_the_fly_support, is_idp_agent, and supported_request_message_type_list
 	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleIdp {
 		nodeDetail.MaxAal = funcParam.MaxAal
 		nodeDetail.MaxIal = funcParam.MaxIal
-		nodeDetail.OnTheFlySupport = funcParam.OnTheFlySupport != nil && *funcParam.OnTheFlySupport
 		nodeDetail.IsIdpAgent = funcParam.IsIdPAgent != nil && *funcParam.IsIdPAgent
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = make([]string, 0)
 	}
@@ -374,14 +394,14 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 }
 
 type UpdateNodeByNDIDParam struct {
-	NodeID          string   `json:"node_id"`
-	MaxIal          float64  `json:"max_ial"`
-	MaxAal          float64  `json:"max_aal"`
-	OnTheFlySupport *bool    `json:"on_the_fly_support"`
-	NodeName        string   `json:"node_name"`
-	IsIdPAgent      *bool    `json:"agent"`
-	UseWhitelist    *bool    `json:"node_id_whitelist_active"`
-	Whitelist       []string `json:"node_id_whitelist"`
+	NodeID               string   `json:"node_id"`
+	MaxIal               float64  `json:"max_ial"`
+	MaxAal               float64  `json:"max_aal"`
+	SupportedFeatureList []string `json:"supported_feature_list"`
+	NodeName             string   `json:"node_name"`
+	IsIdPAgent           *bool    `json:"agent"`
+	UseWhitelist         *bool    `json:"node_id_whitelist_active"`
+	Whitelist            []string `json:"node_id_whitelist"`
 }
 
 func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDParam, callerNodeID string, committedState bool) error {
@@ -417,6 +437,26 @@ func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDP
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
+		}
+	}
+
+	if funcParam.SupportedFeatureList != nil {
+		// check if supported feature are valid/allowed
+		for _, supportedFeature := range funcParam.SupportedFeatureList {
+			key := nodeSupportedFeatureKeyPrefix + keySeparator + supportedFeature
+			exists, err := app.state.Has([]byte(key), committedState)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
+			}
+			if !exists {
+				return &ApplicationError{
+					Code:    code.NodeSupportedFeatureDoesNotExist,
+					Message: "invalid node supported feature",
+				}
+			}
 		}
 	}
 
@@ -496,6 +536,9 @@ func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) 
 	if funcParam.NodeName != "" {
 		node.NodeName = funcParam.NodeName
 	}
+	if funcParam.SupportedFeatureList != nil {
+		node.SupportedFeatureList = funcParam.SupportedFeatureList
+	}
 	// If node is IdP then update max_ial, max_aal and is_idp_agent
 	if appTypes.NodeRole(node.Role) == appTypes.NodeRoleIdp {
 		if funcParam.MaxIal > 0 {
@@ -503,9 +546,6 @@ func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) 
 		}
 		if funcParam.MaxAal > 0 {
 			node.MaxAal = funcParam.MaxAal
-		}
-		if funcParam.OnTheFlySupport != nil {
-			node.OnTheFlySupport = *funcParam.OnTheFlySupport
 		}
 		if funcParam.IsIdPAgent != nil {
 			node.IsIdpAgent = *funcParam.IsIdPAgent

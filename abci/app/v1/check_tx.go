@@ -107,6 +107,8 @@ var IsMethod = map[string]bool{
 	"RemoveRequestType":                                    true,
 	"AddSuppressedIdentityModificationNotificationNode":    true,
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
+	"AddAllowedNodeSupportedFeature":                       true,
+	"RemoveAllowedNodeSupportedFeature":                    true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -974,6 +976,10 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.reduceNodeTokenCheckTx(param, nodeID)
 	case "SetNodeToken":
 		return app.setNodeTokenCheckTx(param, nodeID)
+	case "AddAllowedNodeSupportedFeature":
+		return app.addAllowedNodeSupportedFeatureCheckTx(param, nodeID)
+	case "RemoveAllowedNodeSupportedFeature":
+		return app.removeAllowedNodeSupportedFeatureCheckTx(param, nodeID)
 
 	case "AddNamespace":
 		return app.addNamespaceCheckTx(param, nodeID)
