@@ -30,10 +30,8 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/asn1"
 	"encoding/json"
 	"encoding/pem"
-	"math/big"
 	"strconv"
 	"strings"
 
@@ -402,10 +400,6 @@ func createHash(message []byte, algorithm crypto.Hash) (hashResult []byte) {
 	return hashed
 }
 
-type SignValues struct {
-	R, S *big.Int
-}
-
 func verifySignature(
 	method string,
 	param []byte,
@@ -446,13 +440,7 @@ func verifySignature(
 		}
 		hashed := createHash(message, hashAlgorithm)
 
-		var signVal SignValues
-		_, err = asn1.Unmarshal(signature, &signVal)
-		if err != nil {
-			return false, nil
-		}
-
-		return ecdsa.Verify(pubKey, hashed, signVal.R, signVal.S), nil
+		return ecdsa.VerifyASN1(pubKey, hashed, signature), nil
 	case *rsa.PublicKey:
 		// Hash the message
 		var hashAlgorithm crypto.Hash
