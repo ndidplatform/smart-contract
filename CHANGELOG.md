@@ -26,6 +26,10 @@ FEATURES:
   - Add `RemoveAllowedNodeSupportedFeature` method.
   - [Query] Add `GetAllowedNodeSupportedFeatureList` method.
 
+BUG FIXES:
+
+- Check duplicate accessor ID on `RegisterIdentity`
+
 ## 9.0.0 (TBD)
 
 BREAKING CHANGES:
