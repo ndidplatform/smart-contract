@@ -52,6 +52,8 @@ var regulatorMethod = map[string]bool{
 	"SetInitData":                      true,
 	"EndInit":                          true,
 	"SetLastBlock":                     true,
+	"SetAllowedIALList":                true,
+	"SetAllowedAALList":                true,
 	"SetAllowedModeList":               true,
 	"UpdateNamespace":                  true,
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp":        true,

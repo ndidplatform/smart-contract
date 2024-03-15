@@ -108,6 +108,10 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) t
 		return app.GetReferenceGroupCode(param)
 	case "GetReferenceGroupCodeByAccessorID":
 		return app.GetReferenceGroupCodeByAccessorID(param)
+	case "GetAllowedIALList":
+		return app.GetAllowedIALList(param, true)
+	case "GetAllowedAALList":
+		return app.GetAllowedAALList(param, true)
 	case "GetAllowedModeList":
 		return app.GetAllowedModeList(param)
 	case "GetAllowedMinIalForRegisterIdentityAtFirstIdp":

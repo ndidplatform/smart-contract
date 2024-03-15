@@ -25,6 +25,10 @@ FEATURES:
   - Add `AddAllowedNodeSupportedFeature` method.
   - Add `RemoveAllowedNodeSupportedFeature` method.
   - [Query] Add `GetAllowedNodeSupportedFeatureList` method.
+- Add `SetAllowedIALList` method.
+- Add `SetAllowedAALList` method.
+- [Query] Add `GetAllowedIALList` method.
+- [Query] Add `GetAllowedAALList` method.
 
 BUG FIXES:
 

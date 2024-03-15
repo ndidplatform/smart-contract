@@ -204,6 +204,10 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelay(param, nodeID)
 
+	case "SetAllowedIALList":
+		return app.setAllowedIALList(param, nodeID)
+	case "SetAllowedAALList":
+		return app.setAllowedAALList(param, nodeID)
 	case "SetAllowedModeList":
 		return app.setAllowedModeList(param, nodeID)
 	case "AddRequestType":

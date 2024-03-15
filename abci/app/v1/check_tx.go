@@ -93,6 +93,8 @@ var IsMethod = map[string]bool{
 	"RevokeIdentityAssociation":        true,
 	"UpdateIdentityModeList":           true,
 	"AddIdentity":                      true,
+	"SetAllowedIALList":                true,
+	"SetAllowedAALList":                true,
 	"SetAllowedModeList":               true,
 	"UpdateNamespace":                  true,
 	"SetAllowedMinIalForRegisterIdentityAtFirstIdp":        true,
@@ -1005,6 +1007,10 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
 
+	case "SetAllowedIALList":
+		return app.setAllowedIALListCheckTx(param, nodeID)
+	case "SetAllowedAALList":
+		return app.setAllowedAALListCheckTx(param, nodeID)
 	case "SetAllowedModeList":
 		return app.setAllowedModeListCheckTx(param, nodeID)
 	case "AddRequestType":

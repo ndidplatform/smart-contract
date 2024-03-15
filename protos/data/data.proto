@@ -245,6 +245,14 @@ message IdentityInRefGroup {
   bool active = 3;
 }
 
+message AllowedIALList {
+  repeated double ial_list = 1;
+}
+
+message AllowedAALList {
+  repeated double aal_list = 1;
+}
+
 message AllowedModeList {
   repeated int32 mode = 1;
 }
