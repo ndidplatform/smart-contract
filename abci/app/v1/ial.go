@@ -33,11 +33,11 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-type SetAllowedIALListParam struct {
-	AllowedIALList []float64 `json:"allowed_ial_list"`
+type SetSupportedIALListParam struct {
+	SupportedIALList []float64 `json:"supported_ial_list"`
 }
 
-func (app *ABCIApplication) validateSetAllowedIALList(funcParam SetAllowedIALListParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetSupportedIALList(funcParam SetSupportedIALListParam, callerNodeID string, committedState bool) error {
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -52,14 +52,14 @@ func (app *ABCIApplication) validateSetAllowedIALList(funcParam SetAllowedIALLis
 	return nil
 }
 
-func (app *ABCIApplication) setAllowedIALListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
-	var funcParam SetAllowedIALListParam
+func (app *ABCIApplication) setSupportedIALListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+	var funcParam SetSupportedIALListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return ReturnCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetAllowedIALList(funcParam, callerNodeID, true)
+	err = app.validateSetSupportedIALList(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return ReturnCheckTx(appErr.Code, appErr.Message)
@@ -70,15 +70,15 @@ func (app *ABCIApplication) setAllowedIALListCheckTx(param []byte, callerNodeID 
 	return ReturnCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setAllowedIALList(param []byte, callerNodeID string) types.ResponseDeliverTx {
-	app.logger.Infof("SetAllowedIALList, Parameter: %s", param)
-	var funcParam SetAllowedIALListParam
+func (app *ABCIApplication) setSupportedIALList(param []byte, callerNodeID string) types.ResponseDeliverTx {
+	app.logger.Infof("SetSupportedIALList, Parameter: %s", param)
+	var funcParam SetSupportedIALListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetAllowedIALList(funcParam, callerNodeID, false)
+	err = app.validateSetSupportedIALList(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
@@ -86,39 +86,39 @@ func (app *ABCIApplication) setAllowedIALList(param []byte, callerNodeID string)
 		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
 	}
 
-	var allowedIALList data.AllowedIALList
-	allowedIALList.IalList = funcParam.AllowedIALList
-	allowedIALListByte, err := utils.ProtoDeterministicMarshal(&allowedIALList)
+	var supportedIALList data.SupportedIALList
+	supportedIALList.IalList = funcParam.SupportedIALList
+	supportedIALListByte, err := utils.ProtoDeterministicMarshal(&supportedIALList)
 	if err != nil {
 		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(allowedIALListKeyBytes, allowedIALListByte)
+	app.state.Set(supportedIALListKeyBytes, supportedIALListByte)
 	return app.ReturnDeliverTxLog(code.OK, "success", "")
 }
 
-// type GetAllowedIALListParam struct {
+// type GetSupportedIALListParam struct {
 // }
 
-type GetAllowedIALListResult struct {
-	AllowedIALList []float64 `json:"allowed_ial_list"`
+type GetSupportedIALListResult struct {
+	SupportedIALList []float64 `json:"supported_ial_list"`
 }
 
-func (app *ABCIApplication) GetAllowedIALList(param []byte, committedState bool) types.ResponseQuery {
-	app.logger.Infof("GetAllowedIALList, Parameter: %s", param)
-	// var funcParam GetAllowedIALListParam
+func (app *ABCIApplication) GetSupportedIALList(param []byte, committedState bool) types.ResponseQuery {
+	app.logger.Infof("GetSupportedIALList, Parameter: %s", param)
+	// var funcParam GetSupportedIALListParam
 	// err := json.Unmarshal(param, &funcParam)
 	// if err != nil {
 	// 	return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	// }
 
-	var result GetAllowedIALListResult
-	result.AllowedIALList = make([]float64, 0)
+	var result GetSupportedIALListResult
+	result.SupportedIALList = make([]float64, 0)
 
-	allowedIALValue, err := app.state.Get(allowedIALListKeyBytes, committedState)
+	supportedIALValue, err := app.state.Get(supportedIALListKeyBytes, committedState)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
-	if allowedIALValue == nil {
+	if supportedIALValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
 			return app.ReturnQuery(nil, err.Error(), app.state.Height)
@@ -127,13 +127,13 @@ func (app *ABCIApplication) GetAllowedIALList(param []byte, committedState bool)
 		return app.ReturnQuery(resultJSON, "success", app.state.Height)
 	}
 
-	var allowedIALList data.AllowedIALList
-	err = proto.Unmarshal(allowedIALValue, &allowedIALList)
+	var supportedIALList data.SupportedIALList
+	err = proto.Unmarshal(supportedIALValue, &supportedIALList)
 	if err != nil {
 		return app.ReturnQuery(nil, err.Error(), app.state.Height)
 	}
 
-	result.AllowedIALList = allowedIALList.IalList
+	result.SupportedIALList = supportedIALList.IalList
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {

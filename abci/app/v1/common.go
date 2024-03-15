@@ -39,8 +39,8 @@ var (
 	idpListKeyBytes                               = []byte("IdPList")
 	allNamespaceKeyBytes                          = []byte("AllNamespace")
 	servicePriceMinEffectiveDatetimeDelayKeyBytes = []byte("ServicePriceMinEffectiveDatetimeDelay")
-	allowedIALListKeyBytes                        = []byte("AllowedIALList")
-	allowedAALListKeyBytes                        = []byte("AllowedAALList")
+	supportedIALListKeyBytes                      = []byte("SupportedIALList")
+	supportedAALListKeyBytes                      = []byte("SupportedAALList")
 )
 
 const (

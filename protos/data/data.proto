@@ -245,11 +245,11 @@ message IdentityInRefGroup {
   bool active = 3;
 }
 
-message AllowedIALList {
+message SupportedIALList {
   repeated double ial_list = 1;
 }
 
-message AllowedAALList {
+message SupportedAALList {
   repeated double aal_list = 1;
 }
 
