@@ -284,9 +284,46 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 		}
 	}
 	if refGroupCodeFromDB != nil {
-		return &ApplicationError{
-			Code:    code.DuplicateAccessorID,
-			Message: "Duplicate accessor ID",
+		// check if it is a case of reactivate accessor (with the same ref group code) at the same IdP
+		reactivateAccessor := false
+
+		refGroupKey := refGroupCodeKeyPrefix + keySeparator + funcParam.ReferenceGroupCode
+		refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+
+		if refGroupValue != nil {
+			var refGroup data.ReferenceGroup
+			err := proto.Unmarshal(refGroupValue, &refGroup)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.UnmarshalError,
+					Message: err.Error(),
+				}
+			}
+
+			for _, idp := range refGroup.Idps {
+				if idp.NodeId == callerNodeID {
+					for _, accessor := range idp.Accessors {
+						if accessor.AccessorId == funcParam.AccessorID {
+							if !accessor.Active {
+								reactivateAccessor = true
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if !reactivateAccessor {
+			return &ApplicationError{
+				Code:    code.DuplicateAccessorID,
+				Message: "Duplicate accessor ID",
+			}
 		}
 	}
 
