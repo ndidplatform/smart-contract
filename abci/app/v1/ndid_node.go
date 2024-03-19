@@ -276,15 +276,15 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	nodeDetail.SupportedFeatureList = funcParam.SupportedFeatureList
 
 	// if node is IdP, set max_aal, min_ial, on_the_fly_support, is_idp_agent, and supported_request_message_type_list
-	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleIdp {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		nodeDetail.MaxAal = funcParam.MaxAal
 		nodeDetail.MaxIal = funcParam.MaxIal
 		nodeDetail.IsIdpAgent = funcParam.IsIdPAgent != nil && *funcParam.IsIdPAgent
 		nodeDetail.SupportedRequestMessageDataUrlTypeList = make([]string, 0)
 	}
 	// if node is Idp or rp, set use_whitelist and whitelist
-	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleIdp ||
-		appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleRp {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp ||
+		appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleRp {
 		if funcParam.UseWhitelist != nil && *funcParam.UseWhitelist {
 			nodeDetail.UseWhitelist = true
 		} else {
@@ -298,7 +298,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	}
 
 	// if node is IdP, add node id to IdPList
-	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleIdp {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleIdp {
 		var idpsList data.IdPList
 		idpsKey := "IdPList"
 		idpsValue, err := app.state.Get([]byte(idpsKey), false)
@@ -320,7 +320,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	}
 
 	// if node is rp, add node id to rpList
-	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleRp {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleRp {
 		var rpsList data.RPList
 		rpsKey := "rpList"
 		rpsValue, err := app.state.Get([]byte(rpsKey), false)
@@ -342,7 +342,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	}
 
 	// if node is as, add node id to asList
-	if appTypes.NodeRole(funcParam.Role) == appTypes.NodeRoleAs {
+	if appTypes.NodeRole(nodeDetail.Role) == appTypes.NodeRoleAs {
 		var asList data.ASList
 		asKey := "asList"
 		asValue, err := app.state.Get([]byte(asKey), false)
