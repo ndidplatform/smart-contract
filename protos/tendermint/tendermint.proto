@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package = "./;ndid_tendermint_abci_interface_v8";
+option go_package = "./;ndid_tendermint_abci_interface_v9";
 
-package ndid_tendermint_abci_interface_v8;
+package ndid_tendermint_abci_interface_v9;
 
 message Tx {
   string method = 1;
