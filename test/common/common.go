@@ -307,8 +307,6 @@ func TestUpdateNode(t *testing.T, caseID int64, expected string, expectResultFro
 		}
 		param.SigningPublicKey = string(idpPublicKeyBytes2)
 		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
-		param.SigningMasterPublicKey = string(idpPublicKeyBytes2)
-		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
 		param.EncryptionPublicKey = string(idpPublicKeyBytes2)
 		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "text/plain")
@@ -323,8 +321,6 @@ func TestUpdateNode(t *testing.T, caseID int64, expected string, expectResultFro
 		}
 		param.SigningPublicKey = string(idpPublicKeyBytes1)
 		param.SigningAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
-		param.SigningMasterPublicKey = string(idpPublicKeyBytes1)
-		param.SigningMasterAlgorithm = string(appTypes.SignatureAlgorithmRSAPKCS1V15SHA256)
 		param.EncryptionPublicKey = string(idpPublicKeyBytes1)
 		param.EncryptionAlgorithm = "RSAES_PKCS1_V1_5"
 		param.SupportedRequestMessageDataUrlTypeList = append(param.SupportedRequestMessageDataUrlTypeList, "text/plain")

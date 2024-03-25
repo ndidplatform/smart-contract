@@ -64,7 +64,7 @@ func CreateSignatureAndNonce(fnName string, paramJSON []byte, privKey *rsa.Priva
 	tempPSSmessage := append([]byte(fnName), paramJSON...)
 	tempPSSmessage = append(tempPSSmessage, []byte(currentChainID)...)
 	tempPSSmessage = append(tempPSSmessage, []byte(nonce)...)
-	PSSmessage := []byte(base64.StdEncoding.EncodeToString(tempPSSmessage))
+	PSSmessage := tempPSSmessage
 	newhash := crypto.SHA256
 	pssh := newhash.New()
 	pssh.Write(PSSmessage)
