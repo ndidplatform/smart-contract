@@ -29,7 +29,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cometbft/cometbft/abci/types"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 
@@ -44,7 +43,7 @@ func isValidatorTx(tx []byte) bool {
 	return strings.HasPrefix(string(tx), ValidatorSetChangePrefix)
 }
 
-func (app *ABCIApplication) Validators() (validators []types.Validator) {
+func (app *ABCIApplication) Validators() (validators []abcitypes.Validator) {
 	app.logger.Infof("Validators")
 	itr, err := app.state.db.Iterator(nil, nil)
 	if err != nil {
@@ -53,8 +52,8 @@ func (app *ABCIApplication) Validators() (validators []types.Validator) {
 	defer itr.Close()
 	for ; itr.Valid(); itr.Next() {
 		key := itr.Key()
-		validator := new(types.Validator)
-		err := types.ReadMessage(bytes.NewBuffer(key), validator)
+		validator := new(abcitypes.Validator)
+		err := abcitypes.ReadMessage(bytes.NewBuffer(key), validator)
 		if err != nil {
 			panic(err)
 		}
@@ -64,7 +63,7 @@ func (app *ABCIApplication) Validators() (validators []types.Validator) {
 }
 
 // add, update, or remove a validator
-func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) *abcitypes.ExecTxResult {
+func (app *ABCIApplication) updateValidator(v abcitypes.ValidatorUpdate) *abcitypes.ExecTxResult {
 	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetEd25519())
 	key := []byte(validatorKeyPrefix + keySeparator + pubKeyBase64)
 
@@ -81,7 +80,7 @@ func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) *abcitypes.
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
-		if err := types.WriteMessage(&v, value); err != nil {
+		if err := abcitypes.WriteMessage(&v, value); err != nil {
 			return app.NewExecTxResult(code.EncodingError, fmt.Sprintf("Error encoding validator: %v", err), "")
 		}
 		app.state.Set(key, value.Bytes())
@@ -150,5 +149,5 @@ func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.DecodingError, err.Error(), "")
 	}
 
-	return app.updateValidator(types.UpdateValidator(pubKey, funcParam.Power, ed25519.KeyType))
+	return app.updateValidator(abcitypes.UpdateValidator(pubKey, funcParam.Power, ed25519.KeyType))
 }
