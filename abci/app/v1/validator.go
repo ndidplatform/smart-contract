@@ -27,21 +27,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 )
-
-const (
-	ValidatorSetChangePrefix string = "val:"
-)
-
-func isValidatorTx(tx []byte) bool {
-	return strings.HasPrefix(string(tx), ValidatorSetChangePrefix)
-}
 
 func (app *ABCIApplication) Validators() (validators []abcitypes.Validator) {
 	app.logger.Infof("Validators")
