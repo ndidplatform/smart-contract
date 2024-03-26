@@ -351,8 +351,7 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 		// ---- Check duplicate nonce ----
 		nonceDup := app.isDuplicateNonce(nonce, true)
 		if nonceDup {
-			res.Code = code.DuplicateNonce
-			res.Log = "Duplicate nonce"
+			res = NewResponseCheckTx(code.DuplicateNonce, "Duplicate nonce")
 			go recordCheckTxFailMetrics(method)
 			return res, nil
 		}
@@ -363,8 +362,7 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 		if !exist {
 			app.checkTxNonceState.Store(nonceStr, []byte(nil))
 		} else {
-			res.Code = code.DuplicateNonce
-			res.Log = "Duplicate nonce"
+			res = NewResponseCheckTx(code.DuplicateNonce, "Duplicate nonce")
 			go recordCheckTxFailMetrics(method)
 			return res, nil
 		}
@@ -373,15 +371,13 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 	app.logger.Infof("CheckTx: %s, NodeID: %s", method, nodeID)
 
 	if method == "" || param == nil || nodeID == "" {
-		res.Code = code.InvalidTransactionFormat
-		res.Log = "Invalid transaction format"
+		res = NewResponseCheckTx(code.InvalidTransactionFormat, "Invalid transaction format")
 		go recordCheckTxFailMetrics(method)
 		return res, nil
 	}
 	if mustCheckNodeSignature(method) {
 		if nonce == nil || signature == nil {
-			res.Code = code.InvalidTransactionFormat
-			res.Log = "Invalid transaction format"
+			res = NewResponseCheckTx(code.InvalidTransactionFormat, "Invalid transaction format")
 			go recordCheckTxFailMetrics(method)
 			return res, nil
 		}
@@ -389,8 +385,7 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 
 	// Check has function in system
 	if !IsMethod[method] {
-		res.Code = code.UnknownMethod
-		res.Log = "Unknown method name"
+		res = NewResponseCheckTx(code.UnknownMethod, "Unknown method name")
 		go recordCheckTxFailMetrics(method)
 		return res, nil
 	}
@@ -415,13 +410,13 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 		app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
 	}
 
-	result := app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
-	if result.Code != code.OK {
+	res = app.CheckTxRouter(method, param, nonce, signature, nodeID, true)
+	if res.Code != code.OK {
 		app.verifiedSignatures.Delete(verifiedSignatureKey)
 		go recordCheckTxFailMetrics(method)
 	}
 
-	return result, nil
+	return res, nil
 }
 
 func (app *ABCIApplication) Commit(commit *abcitypes.RequestCommit) (*abcitypes.ResponseCommit, error) {
