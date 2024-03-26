@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -75,38 +75,38 @@ func (app *ABCIApplication) validateSetServicePriceCeiling(funcParam SetServiceP
 	return nil
 }
 
-func (app *ABCIApplication) setServicePriceCeilingCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setServicePriceCeilingCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetServicePriceCeilingParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setServicePriceCeiling(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePriceCeiling(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetServicePriceCeiling, Parameter: %s", param)
 	var funcParam SetServicePriceCeilingParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// set/overwrite service's price ceiling list
@@ -125,12 +125,12 @@ func (app *ABCIApplication) setServicePriceCeiling(param []byte, callerNodeID st
 
 	servicePriceCeilingListBytes, err := utils.ProtoDeterministicMarshal(&servicePriceCeilingList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
 	app.state.Set([]byte(servicePriceCeilingKey), []byte(servicePriceCeilingListBytes))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetServicePriceCeilingParam struct {
@@ -141,27 +141,27 @@ type GetServicePriceCeilingResult struct {
 	PriceCeilingByCurrencyList []PriceCeilingByCurrency `json:"price_ceiling_by_currency_list"`
 }
 
-func (app *ABCIApplication) getServicePriceCeiling(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceCeiling(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServicePriceCeiling, Parameter: %s", param)
 	var funcParam GetServicePriceCeilingParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if !serviceExists {
-		return app.ReturnQuery(nil, "not found", app.state.Height)
+		return app.NewResponseQuery(nil, "not found", app.state.Height)
 	}
 
 	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
 	servicePriceCeilingBytes, err := app.state.Get([]byte(servicePriceCeilingKey), false)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if servicePriceCeilingBytes == nil {
@@ -169,16 +169,16 @@ func (app *ABCIApplication) getServicePriceCeiling(param []byte) types.ResponseQ
 		retVal.PriceCeilingByCurrencyList = make([]PriceCeilingByCurrency, 0)
 		retValJSON, err := json.Marshal(retVal)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
-		return app.ReturnQuery(retValJSON, "success", app.state.Height)
+		return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 	}
 
 	var servicePriceCelingList data.ServicePriceCeilingList
 	err = proto.Unmarshal([]byte(servicePriceCeilingBytes), &servicePriceCelingList)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var retVal GetServicePriceCeilingResult
@@ -193,10 +193,10 @@ func (app *ABCIApplication) getServicePriceCeiling(param []byte) types.ResponseQ
 	}
 	retValJSON, err := json.Marshal(retVal)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(retValJSON, "success", app.state.Height)
+	return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 }
 
 type SetServicePriceMinEffectiveDatetimeDelayParam struct {
@@ -237,38 +237,38 @@ func (app *ABCIApplication) validateSetServicePriceMinEffectiveDatetimeDelay(fun
 	return nil
 }
 
-func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelayCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelayCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam SetServicePriceMinEffectiveDatetimeDelayParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	servicePriceMinEffectiveDatetimeDelay := data.ServicePriceMinEffectiveDatetimeDelay{
@@ -276,7 +276,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byt
 	}
 	servicePriceMinEffectiveDatetimeDelayBytes, err := utils.ProtoDeterministicMarshal(&servicePriceMinEffectiveDatetimeDelay)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	if funcParam.ServiceID != "" {
@@ -287,7 +287,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byt
 		app.state.Set(servicePriceMinEffectiveDatetimeDelayKeyBytes, servicePriceMinEffectiveDatetimeDelayBytes)
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetServicePriceMinEffectiveDatetimeDelayParam struct {
@@ -298,12 +298,12 @@ type GetServicePriceMinEffectiveDatetimeDelayResult struct {
 	DurationSecond uint32 `json:"duration_second"`
 }
 
-func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServicePriceMinEffectiveDatetimeDelay, Parameter: %s", param)
 	var funcParam GetServicePriceMinEffectiveDatetimeDelayParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var servicePriceMinEffectiveDatetimeDelayBytes []byte
@@ -311,29 +311,29 @@ func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param []byt
 		serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 		serviceExists, err := app.state.Has([]byte(serviceKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if !serviceExists {
-			return app.ReturnQuery(nil, "not found", app.state.Height)
+			return app.NewResponseQuery(nil, "not found", app.state.Height)
 		}
 
 		key := servicePriceMinEffectiveDatetimeDelayKeyPrefix + keySeparator + funcParam.ServiceID
 		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get([]byte(key), false)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		// get global / fallback from specific service ID
 		if servicePriceMinEffectiveDatetimeDelayBytes == nil {
 			servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 		}
 	} else {
 		servicePriceMinEffectiveDatetimeDelayBytes, err = app.state.Get(servicePriceMinEffectiveDatetimeDelayKeyBytes, false)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 	}
 
@@ -342,24 +342,24 @@ func (app *ABCIApplication) getServicePriceMinEffectiveDatetimeDelay(param []byt
 		retVal.DurationSecond = uint32(12 * time.Hour / time.Second) // return default (12 hrs)
 		retValJSON, err := json.Marshal(retVal)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
-		return app.ReturnQuery(retValJSON, "success", app.state.Height)
+		return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 	}
 
 	var servicePriceMinEffectiveDatetimeDelay data.ServicePriceMinEffectiveDatetimeDelay
 	err = proto.Unmarshal([]byte(servicePriceMinEffectiveDatetimeDelayBytes), &servicePriceMinEffectiveDatetimeDelay)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var retVal GetServicePriceMinEffectiveDatetimeDelayResult
 	retVal.DurationSecond = servicePriceMinEffectiveDatetimeDelay.DurationSecond
 	retValJSON, err := json.Marshal(retVal)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(retValJSON, "success", app.state.Height)
+	return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 }

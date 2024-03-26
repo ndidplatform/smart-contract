@@ -25,16 +25,15 @@ package app
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
 	"time"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/sirupsen/logrus"
-	"github.com/tendermint/tendermint/abci/types"
-	dbm "github.com/tendermint/tm-db"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -44,7 +43,7 @@ import (
 )
 
 type ABCIApplication struct {
-	types.BaseApplication
+	abcitypes.BaseApplication
 	AppProtocolVersion  uint64
 	CurrentChain        string
 	Version             string
@@ -52,7 +51,7 @@ type ABCIApplication struct {
 	deliverTxNonceState map[string][]byte
 	logger              *logrus.Entry
 	state               AppState
-	valUpdates          map[string]types.ValidatorUpdate
+	valUpdates          map[string]abcitypes.ValidatorUpdate
 	verifiedSignatures  *utils.StringMap
 	lastBlockTime       time.Time
 	initialStateDir     string
@@ -84,7 +83,7 @@ func NewABCIApplication(logger *logrus.Entry, db dbm.DB, initialStateDir string,
 		deliverTxNonceState: make(map[string][]byte),
 		logger:              logger,
 		state:               *appState,
-		valUpdates:          make(map[string]types.ValidatorUpdate),
+		valUpdates:          make(map[string]abcitypes.ValidatorUpdate),
 		verifiedSignatures:  utils.NewStringMap(),
 		initialStateDir:     initialStateDir,
 		retainBlockCount:    retainBlockCount,
@@ -95,8 +94,8 @@ type InfoData struct {
 	InitialStateDataLoaded bool `json:"initial_state_data_loaded"`
 }
 
-func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseInfo) {
-	var res types.ResponseInfo
+func (app *ABCIApplication) Info(info *abcitypes.RequestInfo) (*abcitypes.ResponseInfo, error) {
+	var res *abcitypes.ResponseInfo = &abcitypes.ResponseInfo{}
 	res.Version = app.Version
 	res.LastBlockHeight = app.state.Height
 	res.LastBlockAppHash = app.state.AppHash
@@ -114,12 +113,12 @@ func (app *ABCIApplication) Info(req types.RequestInfo) (resInfo types.ResponseI
 
 	res.AppVersion = app.AppProtocolVersion
 
-	return res
+	return res, nil
 }
 
 // Save the validators in the merkle tree
-func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.ResponseInitChain {
-	app.logger.Infof("InitChain: %s", req.ChainId)
+func (app *ABCIApplication) InitChain(chain *abcitypes.RequestInitChain) (*abcitypes.ResponseInitChain, error) {
+	app.logger.Infof("InitChain: %s", chain.ChainId)
 
 	// load initial state data from file if provided
 	if app.initialStateDir != "" {
@@ -138,70 +137,103 @@ func (app *ABCIApplication) InitChain(req types.RequestInitChain) types.Response
 		app.logger.Infof("No initial state data provided")
 	}
 
-	app.CurrentChain = req.ChainId
-	app.state.ChainID = req.ChainId
+	app.CurrentChain = chain.ChainId
+	app.state.ChainID = chain.ChainId
 
-	for _, v := range req.Validators {
+	for _, v := range chain.Validators {
 		r := app.updateValidator(v)
 		if r.IsErr() {
 			app.logger.Error("Error updating validators", "r", r)
 		}
 	}
 
-	app.state.Save()
 	if app.state.HasHashData {
 		app.state.AppHash = app.state.HashDigest.Sum(nil)
 	}
 	// Save state
-	app.state.SaveMetadata()
+	app.state.Save()
 
-	return types.ResponseInitChain{
+	return &abcitypes.ResponseInitChain{
 		AppHash: app.state.AppHash,
-	}
+	}, nil
 }
 
-// Track the block hash and header information
-func (app *ABCIApplication) BeginBlock(req types.RequestBeginBlock) types.ResponseBeginBlock {
-	app.logger.Infof("BeginBlock: %d, Chain ID: %s", req.Header.Height, req.Header.ChainID)
-	app.state.CurrentBlockHeight = req.Header.Height
+func (app *ABCIApplication) FinalizeBlock(req *abcitypes.RequestFinalizeBlock) (*abcitypes.ResponseFinalizeBlock, error) {
+	app.logger.Infof("FinalizeBlock: %d, Txs count: %d", req.Height, len(req.Txs))
+
+	app.state.CurrentBlockHeight = req.Height
 
 	app.state.HasHashData = false
 	app.state.HashDigest = sha256.New()
 	app.state.HashDigest.Write(app.state.AppHash)
 
-	if app.state.ChainID != req.Header.ChainID {
-		panic(errors.New("chain ID mismatch (ABCI state != Tendermint)"))
+	// FIXME: other ways to get chain ID? or there's no need to check?
+	// if app.state.ChainID != req.Header.ChainID {
+	// 	panic(errors.New("chain ID mismatch (ABCI state != Tendermint)"))
+	// }
+
+	app.lastBlockTime = req.Time
+
+	/*
+	 * execute transactions
+	 */
+
+	var txs = make([]*abcitypes.ExecTxResult, len(req.Txs))
+
+	for i, tx := range req.Txs {
+		execTxResult, err := app.execTx(tx)
+		if err != nil {
+			app.logger.Errorf("execTx err: %+v", err)
+			execTxResult = app.NewExecTxResult(code.UnknownError, "Unknown error", "")
+		}
+
+		txs[i] = execTxResult
 	}
 
-	// reset valset changes
-	app.valUpdates = make(map[string]types.ValidatorUpdate, 0)
-	app.lastBlockTime = req.Header.Time
+	/*
+	 * app hash
+	 */
 
-	return types.ResponseBeginBlock{}
-}
+	appHashCalcStartTime := time.Now()
+	// Calculate app hash
+	if app.state.HasHashData {
+		app.state.AppHash = app.state.HashDigest.Sum(nil)
+	}
+	appHash := app.state.AppHash
+	appHashCalcDuration := time.Since(appHashCalcStartTime)
+	go recordAppHashDurationMetrics(appHashCalcDuration)
 
-// Update the validator set
-func (app *ABCIApplication) EndBlock(req types.RequestEndBlock) types.ResponseEndBlock {
-	app.logger.Infof("EndBlock: %d", req.Height)
-	valUpdates := make([]types.ValidatorUpdate, 0)
+	/*
+	 * validator updates
+	 */
+
+	valUpdates := make([]abcitypes.ValidatorUpdate, 0)
 	for _, newValidator := range app.valUpdates {
 		valUpdates = append(valUpdates, newValidator)
 	}
+	// reset valset changes
+	app.valUpdates = make(map[string]abcitypes.ValidatorUpdate, 0)
 
-	return types.ResponseEndBlock{ValidatorUpdates: valUpdates}
+	return &abcitypes.ResponseFinalizeBlock{
+		AppHash:          appHash,
+		TxResults:        txs,
+		ValidatorUpdates: valUpdates,
+	}, nil
 }
 
-func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.ResponseDeliverTx) {
+func (app *ABCIApplication) execTx(tx []byte) (*abcitypes.ExecTxResult, error) {
+	var res *abcitypes.ExecTxResult
+
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = app.ReturnDeliverTxLog(code.UnknownError, "Unknown error", "")
+			res = app.NewExecTxResult(code.UnknownError, "Unknown error", "")
 		}
 	}()
 
 	var txObj protoTm.Tx
-	err := proto.Unmarshal(req.Tx, &txObj)
+	err := proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -225,7 +257,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		nonceDup := app.isDuplicateNonce(nonce, false)
 		if nonceDup {
 			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(code.DuplicateNonce, "Duplicate nonce", "")
+			return app.NewExecTxResult(code.DuplicateNonce, "Duplicate nonce", ""), nil
 		}
 	}
 
@@ -233,7 +265,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 
 	if method == "" {
 		go recordDeliverTxFailMetrics(method)
-		return app.ReturnDeliverTxLog(code.MethodCanNotBeEmpty, "method can not be empty", "")
+		return app.NewExecTxResult(code.MethodCanNotBeEmpty, "method can not be empty", ""), nil
 	}
 
 	if mustCheckNodeSignature(method) {
@@ -241,7 +273,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 		publicKey, signingAlgorithm, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, false)
 		if retCode != code.OK {
 			go recordDeliverTxFailMetrics(method)
-			return app.ReturnDeliverTxLog(retCode, retLog, "")
+			return app.NewExecTxResult(retCode, retLog, ""), nil
 		}
 
 		verifiedSignatureKey := string(signature) + "|" + nodeID
@@ -253,7 +285,7 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 			if verifiedSigNodePubKey != publicKey {
 				app.logger.Debugf("Node key updated, cached verified Tx signature result is no longer valid")
 				go recordDeliverTxFailMetrics(method)
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+				return app.NewExecTxResult(code.VerifySignatureError, err.Error(), ""), nil
 			}
 		} else {
 			app.logger.Debugf("Cached verified Tx signature result could not be found")
@@ -261,40 +293,42 @@ func (app *ABCIApplication) DeliverTx(req types.RequestDeliverTx) (res types.Res
 			verifyResult, err := verifySignature(method, param, app.CurrentChain, nonce, signature, publicKey, signingAlgorithm)
 			if err != nil {
 				go recordDeliverTxFailMetrics(method)
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, err.Error(), "")
+				return app.NewExecTxResult(code.VerifySignatureError, err.Error(), ""), nil
 			}
 			if !verifyResult {
 				go recordDeliverTxFailMetrics(method)
-				return app.ReturnDeliverTxLog(code.VerifySignatureError, "Invalid Tx signature", "")
+				return app.NewExecTxResult(code.VerifySignatureError, "Invalid Tx signature", ""), nil
 			}
 		}
 	}
 
-	result := app.DeliverTxRouter(method, param, nonce, signature, nodeID)
+	res = app.DeliverTxRouter(method, param, nonce, signature, nodeID)
 	app.logger.Infof(
 		`DeliverTx response: {"code":%d,"log":"%s","attributes":[{"key":"%s","value":"%s"}]}`,
-		result.Code,
-		result.Log,
-		string(result.Events[0].Attributes[0].Key), string(result.Events[0].Attributes[0].Value),
+		res.Code,
+		res.Log,
+		string(res.Events[0].Attributes[0].Key), string(res.Events[0].Attributes[0].Value),
 	)
-	if result.Code != code.OK {
+	if res.Code != code.OK {
 		go recordDeliverTxFailMetrics(method)
 	}
 
-	return result
+	return res, nil
 }
 
-func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.ResponseCheckTx) {
+func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes.ResponseCheckTx, error) {
+	var res *abcitypes.ResponseCheckTx
+
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = ReturnCheckTx(code.UnknownError, "Unknown error")
+			res = NewResponseCheckTx(code.UnknownError, "Unknown error")
 		}
 	}()
 
 	var txObj protoTm.Tx
-	err := proto.Unmarshal(req.Tx, &txObj)
+	err := proto.Unmarshal(check.Tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -320,7 +354,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 			res.Code = code.DuplicateNonce
 			res.Log = "Duplicate nonce"
 			go recordCheckTxFailMetrics(method)
-			return res
+			return res, nil
 		}
 
 		// Check duplicate nonce in checkTx state
@@ -332,7 +366,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 			res.Code = code.DuplicateNonce
 			res.Log = "Duplicate nonce"
 			go recordCheckTxFailMetrics(method)
-			return res
+			return res, nil
 		}
 	}
 
@@ -342,14 +376,14 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		res.Code = code.InvalidTransactionFormat
 		res.Log = "Invalid transaction format"
 		go recordCheckTxFailMetrics(method)
-		return res
+		return res, nil
 	}
 	if mustCheckNodeSignature(method) {
 		if nonce == nil || signature == nil {
 			res.Code = code.InvalidTransactionFormat
 			res.Log = "Invalid transaction format"
 			go recordCheckTxFailMetrics(method)
-			return res
+			return res, nil
 		}
 	}
 
@@ -358,7 +392,7 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		res.Code = code.UnknownMethod
 		res.Log = "Unknown method name"
 		go recordCheckTxFailMetrics(method)
-		return res
+		return res, nil
 	}
 
 	verifiedSignatureKey := string(signature) + "|" + nodeID
@@ -366,17 +400,17 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		// Check signature
 		publicKey, signingAlgorithm, retCode, retLog := app.getNodePublicKeyForSignatureVerification(method, param, nodeID, true)
 		if retCode != code.OK {
-			return ReturnCheckTx(retCode, retLog)
+			return NewResponseCheckTx(retCode, retLog), nil
 		}
 
 		verifyResult, err := verifySignature(method, param, app.CurrentChain, nonce, signature, publicKey, signingAlgorithm)
 		if err != nil {
 			go recordCheckTxFailMetrics(method)
-			return ReturnCheckTx(code.VerifySignatureError, err.Error())
+			return NewResponseCheckTx(code.VerifySignatureError, err.Error()), nil
 		}
 		if !verifyResult {
 			go recordCheckTxFailMetrics(method)
-			return ReturnCheckTx(code.VerifySignatureError, "Invalid Tx signature")
+			return NewResponseCheckTx(code.VerifySignatureError, "Invalid Tx signature"), nil
 		}
 		app.verifiedSignatures.Store(verifiedSignatureKey, publicKey)
 	}
@@ -387,10 +421,10 @@ func (app *ABCIApplication) CheckTx(req types.RequestCheckTx) (res types.Respons
 		go recordCheckTxFailMetrics(method)
 	}
 
-	return result
+	return result, nil
 }
 
-func (app *ABCIApplication) Commit() types.ResponseCommit {
+func (app *ABCIApplication) Commit(commit *abcitypes.RequestCommit) (*abcitypes.ResponseCommit, error) {
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 
@@ -404,19 +438,6 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 	}
 	app.deliverTxNonceState = make(map[string][]byte)
 
-	appHashStartTime := time.Now()
-	// Calculate app hash
-
-	if app.state.HasHashData {
-		app.state.AppHash = app.state.HashDigest.Sum(nil)
-	}
-	appHash := app.state.AppHash
-	appHashDuration := time.Since(appHashStartTime)
-	go recordAppHashDurationMetrics(appHashDuration)
-
-	// Save state
-	app.state.SaveMetadata()
-
 	duration := time.Since(startTime)
 	go recordCommitDurationMetrics(duration)
 
@@ -425,23 +446,24 @@ func (app *ABCIApplication) Commit() types.ResponseCommit {
 		retainHeight = app.state.CurrentBlockHeight - app.retainBlockCount
 	}
 
-	return types.ResponseCommit{
-		Data:         appHash,
+	return &abcitypes.ResponseCommit{
 		RetainHeight: retainHeight,
-	}
+	}, nil
 }
 
-func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.ResponseQuery) {
+func (app *ABCIApplication) Query(req *abcitypes.RequestQuery) (*abcitypes.ResponseQuery, error) {
+	var res *abcitypes.ResponseQuery
+
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
 			app.logger.Errorf("Recovered in %s, %s", r, identifyPanic())
-			res = app.ReturnQuery(nil, "Unknown error", app.state.Height)
+			res = app.NewResponseQuery(nil, "Unknown error", app.state.Height)
 		}
 	}()
 
 	var query protoTm.Query
-	err := proto.Unmarshal(reqQuery.Data, &query)
+	err := proto.Unmarshal(req.Data, &query)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -458,16 +480,18 @@ func (app *ABCIApplication) Query(reqQuery types.RequestQuery) (res types.Respon
 
 	app.logger.Infof("Query: %s", method)
 
-	height := reqQuery.Height
+	height := req.Height
 	if height == 0 {
 		height = app.state.Height
 	}
 
 	if method == "" {
-		return app.ReturnQuery(nil, "method can't be empty", app.state.Height)
+		return app.NewResponseQuery(nil, "method can't be empty", app.state.Height), nil
 	}
 
-	return app.QueryRouter(method, param, height)
+	res = app.QueryRouter(method, param, height)
+
+	return res, nil
 }
 
 func mustCheckNodeSignature(method string) bool {

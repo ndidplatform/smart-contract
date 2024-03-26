@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -89,38 +89,38 @@ func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) addErrorCodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddErrorCode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddErrorCode, Parameter: %s", param)
 	var funcParam AddErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddErrorCode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// convert error type to lower case
@@ -134,7 +134,7 @@ func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) type
 	// add error code
 	errorCodeBytes, err := utils.ProtoDeterministicMarshal(&errorCode)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", errorCode.ErrorCode)
 	app.state.Set([]byte(errorKey), []byte(errorCodeBytes))
@@ -144,22 +144,22 @@ func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) type
 	errorsKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if errorCodeListBytes != nil {
 		err := proto.Unmarshal(errorCodeListBytes, &errorCodeList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	errorCodeList.ErrorCode = append(errorCodeList.ErrorCode, &errorCode)
 	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&errorCodeList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(errorsKey), []byte(errorCodeListBytes))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type RemoveErrorCodeParam struct {
@@ -197,45 +197,45 @@ func (app *ABCIApplication) validateRemoveErrorCode(funcParam RemoveErrorCodePar
 	return nil
 }
 
-func (app *ABCIApplication) removeErrorCodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) removeErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RemoveErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRemoveErrorCode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RemoveErrorCode, Parameter: %s", param)
 	var funcParam RemoveErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRemoveErrorCode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// remove error code from ErrorCode index
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	err = app.state.Delete([]byte(errorKey))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	// remove ErrorCode from ErrorCodeList
@@ -243,12 +243,12 @@ func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) t
 	errorsKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if errorCodeListBytes != nil {
 		err := proto.Unmarshal(errorCodeListBytes, &errorCodeList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	}
 
@@ -262,14 +262,14 @@ func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) t
 	}
 
 	if len(newErrorCodeList.ErrorCode) != len(errorCodeList.ErrorCode)-1 {
-		return app.ReturnDeliverTxLog(code.InvalidErrorCode, "ErrorCode does not exist", "")
+		return app.NewExecTxResult(code.InvalidErrorCode, "ErrorCode does not exist", "")
 	}
 
 	errorCodeListBytes, err = utils.ProtoDeterministicMarshal(&newErrorCodeList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(errorsKey), []byte(errorCodeListBytes))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

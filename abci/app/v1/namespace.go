@@ -25,21 +25,21 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-func (app *ABCIApplication) getNamespaceList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNamespaceList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNamespaceList, Parameter: %s", param)
 	value, err := app.state.Get(allNamespaceKeyBytes, true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		value = []byte("[]")
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 
 	result := make([]*data.Namespace, 0)
@@ -47,7 +47,7 @@ func (app *ABCIApplication) getNamespaceList(param []byte) types.ResponseQuery {
 	var namespaces data.NamespaceList
 	err = proto.Unmarshal([]byte(value), &namespaces)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, namespace := range namespaces.Namespaces {
 		if namespace.Active {
@@ -56,9 +56,9 @@ func (app *ABCIApplication) getNamespaceList(param []byte) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) GetNamespaceMap(committedState bool) (result map[string]bool) {

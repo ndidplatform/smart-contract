@@ -25,9 +25,9 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
@@ -43,55 +43,55 @@ type GetServiceDetailParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) getServiceDetail(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServiceDetail, Parameter: %s", param)
 	var funcParam GetServiceDetailParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		value = []byte("{}")
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal(value, &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	returnValue, err := json.Marshal(&service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) getServiceList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
 	key := "AllService"
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		result := make([]ServiceDetail, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	result := make([]*data.ServiceDetail, 0)
 	// filter flag==true
 	var services data.ServiceDetailList
 	err = proto.Unmarshal([]byte(value), &services)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, service := range services.Services {
 		if service.Active {
@@ -100,9 +100,9 @@ func (app *ABCIApplication) getServiceList(param []byte) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
@@ -139,54 +139,54 @@ type Service struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) getServicesByAsID(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServicesByAsID(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServicesByAsID, Parameter: %s", param)
 	var funcParam GetServicesByAsIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetServicesByAsIDResult
 	result.Services = make([]Service, 0)
 	provideServiceKey := providedServicesKeyPrefix + keySeparator + funcParam.AsID
 	provideServiceValue, err := app.state.Get([]byte(provideServiceKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if provideServiceValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
 	var services data.ServiceList
 	err = proto.Unmarshal([]byte(provideServiceValue), &services)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.AsID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if nodeDetailValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for index, provideService := range services.Services {
 		serviceKey := serviceKeyPrefix + keySeparator + provideService.ServiceId
 		serviceValue, err := app.state.Get([]byte(serviceKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if serviceValue == nil {
 			continue
@@ -194,14 +194,14 @@ func (app *ABCIApplication) getServicesByAsID(param []byte) types.ResponseQuery 
 		var service data.ServiceDetail
 		err = proto.Unmarshal([]byte(serviceValue), &service)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if nodeDetail.Active && service.Active {
 			// Set suspended from NDID
 			approveServiceKey := approvedServiceKeyPrefix + keySeparator + provideService.ServiceId + keySeparator + funcParam.AsID
 			approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), true)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			if approveServiceJSON == nil {
 				continue
@@ -223,10 +223,10 @@ func (app *ABCIApplication) getServicesByAsID(param []byte) types.ResponseQuery 
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Services) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

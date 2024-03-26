@@ -27,8 +27,8 @@ import (
 	"os"
 	"testing"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/stretchr/testify/assert"
-	dbm "github.com/tendermint/tm-db"
 )
 
 var testDb dbm.DB

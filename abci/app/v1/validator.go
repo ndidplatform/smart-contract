@@ -29,8 +29,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/crypto/ed25519"
+	"github.com/cometbft/cometbft/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/ed25519"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 )
@@ -63,7 +64,7 @@ func (app *ABCIApplication) Validators() (validators []types.Validator) {
 }
 
 // add, update, or remove a validator
-func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) *abcitypes.ExecTxResult {
 	pubKeyBase64 := base64.StdEncoding.EncodeToString(v.PubKey.GetEd25519())
 	key := []byte(validatorKeyPrefix + keySeparator + pubKeyBase64)
 
@@ -74,20 +75,20 @@ func (app *ABCIApplication) updateValidator(v types.ValidatorUpdate) types.Respo
 			panic(err)
 		}
 		if !hasKey {
-			return app.ReturnDeliverTxLog(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
+			return app.NewExecTxResult(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
 		}
 		app.state.Delete(key)
 	} else {
 		// add or update validator
 		value := bytes.NewBuffer(make([]byte, 0))
 		if err := types.WriteMessage(&v, value); err != nil {
-			return app.ReturnDeliverTxLog(code.EncodingError, fmt.Sprintf("Error encoding validator: %v", err), "")
+			return app.NewExecTxResult(code.EncodingError, fmt.Sprintf("Error encoding validator: %v", err), "")
 		}
 		app.state.Set(key, value.Bytes())
 	}
 
 	app.valUpdates[pubKeyBase64] = v
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type SetValidatorParam struct {
@@ -110,43 +111,43 @@ func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) setValidatorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setValidatorCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetValidatorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetValidator(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetValidator, Parameter: %s", param)
 	var funcParam SetValidatorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetValidator(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.DecodingError, err.Error(), "")
+		return app.NewExecTxResult(code.DecodingError, err.Error(), "")
 	}
 
 	return app.updateValidator(types.UpdateValidator(pubKey, funcParam.Power, ed25519.KeyType))

@@ -23,32 +23,32 @@
 package app
 
 import (
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 )
 
-// app.ReturnDeliverTxLog return types.ResponseDeliverTx
-func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraData string) types.ResponseDeliverTx {
-	var attributes []types.EventAttribute
+// app.NewExecTxResult return *abcitypes.ExecTxResult
+func (app *ABCIApplication) NewExecTxResult(code uint32, log string, extraData string) *abcitypes.ExecTxResult {
+	var attributes []abcitypes.EventAttribute
 	if code == 0 {
-		var attribute types.EventAttribute
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("true")
+		var attribute abcitypes.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "true"
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute types.EventAttribute
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("false")
+		var attribute abcitypes.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "false"
 		attributes = append(attributes, attribute)
 	}
-	var events []types.Event
-	event := types.Event{
+	var events []abcitypes.Event
+	event := abcitypes.Event{
 		Type:       "did.result",
 		Attributes: attributes,
 	}
 	events = append(events, event)
-	return types.ResponseDeliverTx{
+	return &abcitypes.ExecTxResult{
 		Code:   code,
 		Log:    log,
 		Data:   []byte(extraData),
@@ -56,27 +56,27 @@ func (app *ABCIApplication) ReturnDeliverTxLog(code uint32, log string, extraDat
 	}
 }
 
-func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log string, additionalAttributes []types.EventAttribute) types.ResponseDeliverTx {
-	var attributes []types.EventAttribute
+func (app *ABCIApplication) NewExecTxResultWithAttributes(code uint32, log string, additionalAttributes []abcitypes.EventAttribute) *abcitypes.ExecTxResult {
+	var attributes []abcitypes.EventAttribute
 	if code == 0 {
-		var attribute types.EventAttribute
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("true")
+		var attribute abcitypes.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "true"
 		attributes = append(attributes, attribute)
 	} else {
-		var attribute types.EventAttribute
-		attribute.Key = []byte("success")
-		attribute.Value = []byte("false")
+		var attribute abcitypes.EventAttribute
+		attribute.Key = "success"
+		attribute.Value = "false"
 		attributes = append(attributes, attribute)
 	}
 	attributes = append(attributes, additionalAttributes...)
-	var events []types.Event
-	event := types.Event{
+	var events []abcitypes.Event
+	event := abcitypes.Event{
 		Type:       "did.result",
 		Attributes: attributes,
 	}
 	events = append(events, event)
-	return types.ResponseDeliverTx{
+	return &abcitypes.ExecTxResult{
 		Code:   code,
 		Log:    log,
 		Data:   []byte(""),
@@ -85,13 +85,13 @@ func (app *ABCIApplication) ReturnDeliverTxLogWithAttributes(code uint32, log st
 }
 
 // DeliverTxRouter is Pointer to function
-func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string) *abcitypes.ExecTxResult {
 	err := app.commonValidate(method, param, nonce, signature, nodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	result := app.callDeliverTx(method, param, nodeID)
@@ -99,18 +99,18 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce [
 	ndidNode, err := app.isNDIDNodeByNodeID(nodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 	if !ndidNode && !regulatorMethod[method] {
 		needToken := app.getTokenPriceByFunc(method, false)
 		err := app.reduceToken(nodeID, needToken)
 		if err != nil {
 			if appErr, ok := err.(*ApplicationError); ok {
-				return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+				return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 			}
-			return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+			return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 		}
 	}
 
@@ -126,7 +126,7 @@ func (app *ABCIApplication) DeliverTxRouter(method string, param []byte, nonce [
 	return result
 }
 
-func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID string) *abcitypes.ExecTxResult {
 	switch name {
 	case "InitNDID":
 		return app.initNDID(param, nodeID)
@@ -270,6 +270,6 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.createMessage(param, nodeID)
 
 	default:
-		return types.ResponseDeliverTx{Code: code.UnknownMethod, Log: "Unknown method name"}
+		return &abcitypes.ExecTxResult{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }

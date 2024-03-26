@@ -29,7 +29,7 @@ import (
 	"hash"
 	"strconv"
 
-	dbm "github.com/tendermint/tm-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/utils"
@@ -94,15 +94,15 @@ func loadAppStateMetadata(db dbm.DB) (*AppStateMetadata, error) {
 	return appStateMetadata, nil
 }
 
-func (appState *AppState) SaveMetadata() error {
-	appStateMetadataBytes, err := json.Marshal(appState.AppStateMetadata)
-	if err != nil {
-		return err
-	}
-	appState.db.Set(appStateMetadataKey, appStateMetadataBytes)
+// func (appState *AppState) SaveMetadata() error {
+// 	appStateMetadataBytes, err := json.Marshal(appState.AppStateMetadata)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	appState.db.Set(appStateMetadataKey, appStateMetadataBytes)
 
-	return nil
-}
+// 	return nil
+// }
 
 // Set value `nil` equals Delete
 func (appState *AppState) Set(key, value []byte) {
@@ -411,6 +411,13 @@ func (appState *AppState) Save() error {
 		}
 		batch.Set([]byte(key), value)
 	}
+
+	// save metadata
+	appStateMetadataBytes, err := json.Marshal(appState.AppStateMetadata)
+	if err != nil {
+		return err
+	}
+	batch.Set(appStateMetadataKey, appStateMetadataBytes)
 
 	batch.WriteSync()
 

@@ -48,7 +48,7 @@ func RegisterIdentity(t *testing.T, nodeID, privK string, param app.RegisterIden
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -225,7 +225,7 @@ func CreateIdpResponse(t *testing.T, nodeID, privK string, param app.CreateIdpRe
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -298,7 +298,7 @@ func AddAccessor(t *testing.T, nodeID, privK string, param app.AddAccessorParam,
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -358,7 +358,7 @@ func UpdateIdentity(t *testing.T, nodeID, privK string, param app.UpdateIdentity
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -396,7 +396,7 @@ func RevokeIdentityAssociation(t *testing.T, nodeID, privK string, param app.Rev
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -433,7 +433,7 @@ func UpdateIdentityModeList(t *testing.T, nodeID, privK string, param app.Update
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -471,7 +471,7 @@ func AddIdentity(t *testing.T, nodeID, privK string, param app.AddIdentityParam,
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -515,7 +515,7 @@ func RevokeAndAddAccessor(t *testing.T, nodeID, privK string, param app.RevokeAn
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)

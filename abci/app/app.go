@@ -23,14 +23,15 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
 
+	dbm "github.com/cometbft/cometbft-db"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/sirupsen/logrus"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	dbm "github.com/tendermint/tm-db"
 
 	appV1 "github.com/ndidplatform/smart-contract/v9/abci/app/v1"
 	// appV2 "github.com/ndidplatform/smart-contract/v9/abci/app2/v2"
@@ -76,69 +77,73 @@ func NewABCIApplicationInterface() *ABCIApplicationInterface {
 	}
 }
 
-func (app *ABCIApplicationInterface) Info(req abcitypes.RequestInfo) abcitypes.ResponseInfo {
-	return app.appV1.Info(req)
+func (app *ABCIApplicationInterface) Info(_ context.Context, info *abcitypes.RequestInfo) (*abcitypes.ResponseInfo, error) {
+	return app.appV1.Info(info)
 }
 
-func (app *ABCIApplicationInterface) CheckTx(req abcitypes.RequestCheckTx) abcitypes.ResponseCheckTx {
+func (app *ABCIApplicationInterface) CheckTx(_ context.Context, check *abcitypes.RequestCheckTx) (*abcitypes.ResponseCheckTx, error) {
 	// IMPORTANT: Need to move app state load to this struct level if using multiple ABCI app versions
 	// otherwise app.CurrentBlockHeight will always be 0 on process start
 	switch {
 	case app.CurrentBlockHeight >= 0:
-		return app.appV1.CheckTx(req)
+		return app.appV1.CheckTx(check)
 	default:
-		return app.appV1.CheckTx(req)
+		return app.appV1.CheckTx(check)
 	}
 }
 
-func (app *ABCIApplicationInterface) DeliverTx(req abcitypes.RequestDeliverTx) abcitypes.ResponseDeliverTx {
+func (app *ABCIApplicationInterface) FinalizeBlock(_ context.Context, req *abcitypes.RequestFinalizeBlock) (*abcitypes.ResponseFinalizeBlock, error) {
+	app.CurrentBlockHeight = req.Height
 	switch {
 	case app.CurrentBlockHeight >= 0:
-		return app.appV1.DeliverTx(req)
+		return app.appV1.FinalizeBlock(req)
 	default:
-		return app.appV1.DeliverTx(req)
+		return app.appV1.FinalizeBlock(req)
 	}
 }
 
-func (app *ABCIApplicationInterface) Commit() abcitypes.ResponseCommit {
-	return app.appV1.Commit()
+func (app *ABCIApplicationInterface) Commit(_ context.Context, commit *abcitypes.RequestCommit) (*abcitypes.ResponseCommit, error) {
+	return app.appV1.Commit(commit)
 }
 
-func (app *ABCIApplicationInterface) Query(reqQuery abcitypes.RequestQuery) abcitypes.ResponseQuery {
-	return app.appV1.Query(reqQuery)
+func (app *ABCIApplicationInterface) Query(_ context.Context, req *abcitypes.RequestQuery) (*abcitypes.ResponseQuery, error) {
+	return app.appV1.Query(req)
 }
 
-func (app *ABCIApplicationInterface) InitChain(req abcitypes.RequestInitChain) abcitypes.ResponseInitChain {
-	return app.appV1.InitChain(req)
+func (app *ABCIApplicationInterface) InitChain(_ context.Context, chain *abcitypes.RequestInitChain) (*abcitypes.ResponseInitChain, error) {
+	return app.appV1.InitChain(chain)
 }
 
-func (app *ABCIApplicationInterface) BeginBlock(req abcitypes.RequestBeginBlock) abcitypes.ResponseBeginBlock {
-	app.CurrentBlockHeight = req.Header.Height
-	return app.appV1.BeginBlock(req)
+func (app *ABCIApplicationInterface) PrepareProposal(ctx context.Context, proposal *abcitypes.RequestPrepareProposal) (*abcitypes.ResponsePrepareProposal, error) {
+	return app.appV1.PrepareProposal(ctx, proposal)
 }
 
-func (app *ABCIApplicationInterface) EndBlock(req abcitypes.RequestEndBlock) abcitypes.ResponseEndBlock {
-	return app.appV1.EndBlock(req)
+func (app *ABCIApplicationInterface) ProcessProposal(ctx context.Context, proposal *abcitypes.RequestProcessProposal) (*abcitypes.ResponseProcessProposal, error) {
+	return app.appV1.ProcessProposal(ctx, proposal)
 }
 
-func (app *ABCIApplicationInterface) ListSnapshots(req abcitypes.RequestListSnapshots) abcitypes.ResponseListSnapshots {
-	return app.appV1.ListSnapshots(req)
+func (app *ABCIApplicationInterface) ListSnapshots(ctx context.Context, snapshots *abcitypes.RequestListSnapshots) (*abcitypes.ResponseListSnapshots, error) {
+	return app.appV1.ListSnapshots(ctx, snapshots)
 }
 
-func (app *ABCIApplicationInterface) OfferSnapshot(req abcitypes.RequestOfferSnapshot) abcitypes.ResponseOfferSnapshot {
-	return app.appV1.OfferSnapshot(req)
+func (app *ABCIApplicationInterface) OfferSnapshot(ctx context.Context, snapshot *abcitypes.RequestOfferSnapshot) (*abcitypes.ResponseOfferSnapshot, error) {
+	return app.appV1.OfferSnapshot(ctx, snapshot)
 }
 
-func (app *ABCIApplicationInterface) LoadSnapshotChunk(req abcitypes.RequestLoadSnapshotChunk) abcitypes.ResponseLoadSnapshotChunk {
-	return app.appV1.LoadSnapshotChunk(req)
+func (app *ABCIApplicationInterface) LoadSnapshotChunk(ctx context.Context, chunk *abcitypes.RequestLoadSnapshotChunk) (*abcitypes.ResponseLoadSnapshotChunk, error) {
+	return app.appV1.LoadSnapshotChunk(ctx, chunk)
 }
 
-func (app *ABCIApplicationInterface) ApplySnapshotChunk(req abcitypes.RequestApplySnapshotChunk) abcitypes.ResponseApplySnapshotChunk {
-	return app.appV1.ApplySnapshotChunk(req)
+func (app *ABCIApplicationInterface) ApplySnapshotChunk(ctx context.Context, chunk *abcitypes.RequestApplySnapshotChunk) (*abcitypes.ResponseApplySnapshotChunk, error) {
+	return app.appV1.ApplySnapshotChunk(ctx, chunk)
 }
 
-func (app *ABCIApplicationInterface) SetOption(req abcitypes.RequestSetOption) abcitypes.ResponseSetOption {
-	return app.appV1.SetOption(req)
+func (app ABCIApplicationInterface) ExtendVote(ctx context.Context, extend *abcitypes.RequestExtendVote) (*abcitypes.ResponseExtendVote, error) {
+	return app.appV1.ExtendVote(ctx, extend)
+}
+
+func (app *ABCIApplicationInterface) VerifyVoteExtension(ctx context.Context, verify *abcitypes.RequestVerifyVoteExtension) (*abcitypes.ResponseVerifyVoteExtension, error) {
+	return app.appV1.VerifyVoteExtension(ctx, verify)
 }
 
 func getEnv(key, defaultValue string) string {

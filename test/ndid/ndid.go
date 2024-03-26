@@ -83,7 +83,7 @@ func InitNDID(t *testing.T, nodeID, privK string, param app.InitNDIDParam) {
 		t.SkipNow()
 	}
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -101,7 +101,7 @@ func EndInit(t *testing.T, nodeID, privK string, param app.EndInitParam) {
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -140,7 +140,7 @@ func SetAllowedMinIalForRegisterIdentityAtFirstIdp(t *testing.T, nodeID, privK s
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -158,7 +158,7 @@ func AddNamespace(t *testing.T, nodeID, privK string, param app.AddNamespacePara
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -196,7 +196,7 @@ func UpdateNamespace(t *testing.T, nodeID, privK string, param app.UpdateNamespa
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -222,7 +222,7 @@ func RegisterNode(t *testing.T, nodeID, privK string, param app.RegisterNodePara
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -240,7 +240,7 @@ func SetNodeToken(t *testing.T, nodeID, privK string, param app.SetNodeTokenPara
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -370,7 +370,7 @@ func AddService(t *testing.T, nodeID, privK string, param app.AddServiceParam) {
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -403,7 +403,7 @@ func RegisterServiceDestinationByNDID(t *testing.T, nodeID, privK string, param 
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -445,7 +445,7 @@ func AddErrorCode(t *testing.T, nodeID, privK string, param app.AddErrorCodePara
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`param: %s`, paramJSON)
@@ -478,7 +478,7 @@ func RemoveErrorCode(t *testing.T, nodeID, privK string, param app.RemoveErrorCo
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`param: %s`, paramJSON)

@@ -27,7 +27,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -162,38 +162,38 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) registerNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) registerNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RegisterNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRegisterNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RegisterNode, Parameter: %s", param)
 	var funcParam RegisterNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRegisterNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// create node detail
@@ -214,7 +214,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 			strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
 	nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -234,7 +234,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 			strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
 	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -254,7 +254,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 			strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
 	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -303,18 +303,18 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 		idpsKey := "IdPList"
 		idpsValue, err := app.state.Get([]byte(idpsKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 			}
 		}
 		idpsList.NodeId = append(idpsList.NodeId, funcParam.NodeID)
 		idpsListByte, err := utils.ProtoDeterministicMarshal(&idpsList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set(idpListKeyBytes, []byte(idpsListByte))
 	}
@@ -325,18 +325,18 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 		rpsKey := "rpList"
 		rpsValue, err := app.state.Get([]byte(rpsKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 			}
 		}
 		rpsList.NodeId = append(rpsList.NodeId, funcParam.NodeID)
 		rpsListByte, err := utils.ProtoDeterministicMarshal(&rpsList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(rpsKey), []byte(rpsListByte))
 	}
@@ -347,18 +347,18 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 		asKey := "asList"
 		asValue, err := app.state.Get([]byte(asKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 			}
 		}
 		asList.NodeId = append(asList.NodeId, funcParam.NodeID)
 		asListByte, err := utils.ProtoDeterministicMarshal(&asList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(asKey), []byte(asListByte))
 	}
@@ -367,30 +367,30 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) type
 	allKey := "allList"
 	allValue, err := app.state.Get([]byte(allKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if allValue != nil {
 		err := proto.Unmarshal(allValue, &allList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	allList.NodeId = append(allList.NodeId, funcParam.NodeID)
 	allListByte, err := utils.ProtoDeterministicMarshal(&allList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(allKey), []byte(allListByte))
 
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.createTokenAccount(funcParam.NodeID)
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type UpdateNodeByNDIDParam struct {
@@ -487,50 +487,50 @@ func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDP
 	return nil
 }
 
-func (app *ABCIApplication) updateNodeByNDIDCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateNodeByNDIDCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateNodeByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateNodeByNDID, Parameter: %s", param)
 	var funcParam UpdateNodeByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var node data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &node)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	// Selective update
 	if funcParam.NodeName != "" {
@@ -563,11 +563,11 @@ func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) 
 	}
 	nodeDetailValue, err = utils.ProtoDeterministicMarshal(&node)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type DisableNodeParam struct {
@@ -604,58 +604,58 @@ func (app *ABCIApplication) validateDisableNode(funcParam DisableNodeParam, call
 	return nil
 }
 
-func (app *ABCIApplication) disableNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) disableNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam DisableNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateDisableNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("DisableNode, Parameter: %s", param)
 	var funcParam DisableNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateDisableNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetail.Active = false
 	nodeDetailValue, err = utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type EnableNodeParam struct {
@@ -692,58 +692,58 @@ func (app *ABCIApplication) validateEnableNode(funcParam EnableNodeParam, caller
 	return nil
 }
 
-func (app *ABCIApplication) enableNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) enableNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam EnableNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateEnableNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("EnableNode, Parameter: %s", param)
 	var funcParam EnableNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateEnableNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	nodeDetail.Active = true
 	nodeDetailValue, err = utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type AddNodeToProxyNodeParam struct {
@@ -828,63 +828,63 @@ func (app *ABCIApplication) validateAddNodeToProxyNode(funcParam AddNodeToProxyN
 	return nil
 }
 
-func (app *ABCIApplication) addNodeToProxyNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addNodeToProxyNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddNodeToProxyNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNodeToProxyNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToProxyNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddNodeToProxyNode, Parameter: %s", param)
 	var funcParam AddNodeToProxyNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Unmarshal node detail
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodes data.BehindNodeList
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	} else {
 		nodes.Nodes = make([]string, 0)
@@ -897,19 +897,19 @@ func (app *ABCIApplication) addNodeToProxyNode(param []byte, callerNodeID string
 	nodes.Nodes = append(nodes.Nodes, funcParam.NodeID)
 	behindProxyNodeValue, err = utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	// Delete mq address
 	msqAddres := make([]*data.MQ, 0)
 	nodeDetail.Mq = msqAddres
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.state.Set([]byte(behindProxyNodeKey), []byte(behindProxyNodeValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type UpdateNodeProxyNodeParam struct {
@@ -985,63 +985,63 @@ func (app *ABCIApplication) validateUpdateNodeProxyNode(funcParam UpdateNodeProx
 	return nil
 }
 
-func (app *ABCIApplication) updateNodeProxyNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateNodeProxyNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateNodeProxyNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateNodeProxyNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNodeProxyNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateNodeProxyNode, Parameter: %s", param)
 	var funcParam UpdateNodeProxyNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Unmarshal node detail
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodes data.BehindNodeList
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	} else {
 		nodes.Nodes = make([]string, 0)
@@ -1050,13 +1050,13 @@ func (app *ABCIApplication) updateNodeProxyNode(param []byte, callerNodeID strin
 	newBehindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + funcParam.ProxyNodeID
 	newBehindProxyNodeValue, err := app.state.Get([]byte(newBehindProxyNodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var newProxyNodes data.BehindNodeList
 	if newBehindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(newBehindProxyNodeValue), &newProxyNodes)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	} else {
 		newProxyNodes.Nodes = make([]string, 0)
@@ -1081,21 +1081,21 @@ func (app *ABCIApplication) updateNodeProxyNode(param []byte, callerNodeID strin
 	}
 	behindProxyNodeValue, err = utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	newBehindProxyNodeValue, err = utils.ProtoDeterministicMarshal(&newProxyNodes)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.state.Set([]byte(behindProxyNodeKey), []byte(behindProxyNodeValue))
 	app.state.Set([]byte(newBehindProxyNodeKey), []byte(newBehindProxyNodeValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type RemoveNodeFromProxyNode struct {
@@ -1161,63 +1161,63 @@ func (app *ABCIApplication) validateRemoveNodeFromProxyNode(funcParam RemoveNode
 	return nil
 }
 
-func (app *ABCIApplication) removeNodeFromProxyNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) removeNodeFromProxyNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RemoveNodeFromProxyNode
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeNodeFromProxyNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeNodeFromProxyNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RemoveNodeFromProxyNode, Parameter: %s", param)
 	var funcParam RemoveNodeFromProxyNode
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Unmarshal node detail
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	behindProxyNodeKey := behindProxyNodeKeyPrefix + keySeparator + nodeDetail.ProxyNodeId
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodes data.BehindNodeList
 	if behindProxyNodeValue != nil {
 		err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 		// Delete from old proxy list
 		for i, node := range nodes.Nodes {
@@ -1235,14 +1235,14 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param []byte, callerNodeID s
 	nodeDetail.ProxyConfig = ""
 	behindProxyNodeValue, err = utils.ProtoDeterministicMarshal(&nodes)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 	app.state.Set([]byte(behindProxyNodeKey), []byte(behindProxyNodeValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

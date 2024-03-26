@@ -31,15 +31,16 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	cmd "github.com/tendermint/tendermint/cmd/tendermint/commands"
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-	nm "github.com/tendermint/tendermint/node"
-	"github.com/tendermint/tendermint/p2p"
-	"github.com/tendermint/tendermint/privval"
-	"github.com/tendermint/tendermint/proxy"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	cmd "github.com/cometbft/cometbft/cmd/cometbft/commands"
+	"github.com/cometbft/cometbft/cmd/cometbft/commands/debug"
+	cfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/libs/cli"
+	cmtlog "github.com/cometbft/cometbft/libs/log"
+	nm "github.com/cometbft/cometbft/node"
+	"github.com/cometbft/cometbft/p2p"
+	"github.com/cometbft/cometbft/privval"
+	"github.com/cometbft/cometbft/proxy"
 
 	abciApp "github.com/ndidplatform/smart-contract/v9/abci/app"
 )
@@ -88,7 +89,7 @@ func init() {
 	// mainLogger = logrus.WithFields(logrus.Fields{"module": "abci-app"})
 }
 
-// Ref: github.com/tendermint/tendermint/cmd/tendermint/main.go
+// Ref: https://github.com/cometbft/cometbft/blob/main/cmd/cometbft/main.go
 func main() {
 
 	//prometheus
@@ -100,10 +101,7 @@ func main() {
 	rootCmd.AddCommand(
 		cmd.GenValidatorCmd,
 		cmd.InitFilesCmd,
-		cmd.ProbeUpnpCmd,
 		cmd.LightCmd,
-		cmd.ReplayCmd,
-		cmd.ReplayConsoleCmd,
 		cmd.ResetAllCmd,
 		cmd.ResetPrivValidatorCmd,
 		cmd.ResetStateCmd,
@@ -113,6 +111,10 @@ func main() {
 		cmd.GenNodeKeyCmd,
 		cmd.VersionCmd,
 		cmd.RollbackStateCmd,
+		cmd.CompactGoLevelDBCmd,
+		cmd.InspectCmd,
+		debug.DebugCmd,
+		cli.NewCompletionCmd(rootCmd, true),
 		// custom commands
 		abciVersionCmd,
 	)
@@ -124,19 +126,19 @@ func main() {
 	//	* Supply a genesis doc file from another source
 	//	* Provide their own DB implementation
 	// can copy this file and use something other than the
-	// DefaultNewNode function
+
 	nodeFunc := newNode
 
 	// Create & start node
 	rootCmd.AddCommand(cmd.NewRunNodeCmd(nodeFunc))
 
-	cmd := cli.PrepareBaseCmd(rootCmd, "TM", os.ExpandEnv(filepath.Join("$HOME", cfg.DefaultTendermintDir)))
+	cmd := cli.PrepareBaseCmd(rootCmd, "CMT", os.ExpandEnv(filepath.Join("$HOME", cfg.DefaultTendermintDir)))
 	if err := cmd.Execute(); err != nil {
 		panic(err)
 	}
 }
 
-func newNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
+func newNode(config *cfg.Config, logger cmtlog.Logger) (*nm.Node, error) {
 	var app abcitypes.Application = abciApp.NewABCIApplicationInterface()
 
 	// read private validator
@@ -158,7 +160,7 @@ func newNode(config *cfg.Config, logger log.Logger) (*nm.Node, error) {
 		nodeKey,
 		proxy.NewLocalClientCreator(app),
 		nm.DefaultGenesisDocProviderFunc(config),
-		nm.DefaultDBProvider,
+		cfg.DefaultDBProvider,
 		nm.DefaultMetricsProvider(config.Instrumentation),
 		logger,
 	)

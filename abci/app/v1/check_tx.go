@@ -35,7 +35,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -479,9 +479,9 @@ func verifySignature(
 	return false, nil
 }
 
-// ReturnCheckTx return types.ResponseDeliverTx
-func ReturnCheckTx(code uint32, log string) types.ResponseCheckTx {
-	return types.ResponseCheckTx{
+// NewResponseCheckTx return *abcitypes.ResponseCheckTx
+func NewResponseCheckTx(code uint32, log string) *abcitypes.ResponseCheckTx {
+	return &abcitypes.ResponseCheckTx{
 		Code: code,
 		Log:  log,
 	}
@@ -917,19 +917,19 @@ func (app *ABCIApplication) commonValidate(method string, param []byte, nonce []
 
 // CheckTxRouter check if Tx is valid
 // CheckTx must get committed state while DeliverTx must get uncommitted state
-func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) types.ResponseCheckTx {
+func (app *ABCIApplication) CheckTxRouter(method string, param []byte, nonce []byte, signature []byte, nodeID string, committedState bool) *abcitypes.ResponseCheckTx {
 	err := app.commonValidate(method, param, nonce, signature, nodeID, committedState)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
 	return app.callCheckTx(method, param, nodeID)
 }
 
-func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string) *abcitypes.ResponseCheckTx {
 	switch name {
 	case "InitNDID":
 		return app.initNDIDCheckTx(param, nodeID)
@@ -1073,7 +1073,7 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.createMessageCheckTx(param, nodeID)
 
 	default:
-		return types.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
+		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
 

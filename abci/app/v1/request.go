@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -350,50 +350,50 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 	return nil
 }
 
-func (app *ABCIApplication) createRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) createRequestCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam CreateRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateCreateRequest(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("CreateRequest, Parameter: %s", param)
 	var funcParam CreateRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateCreateRequest(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// get requester node detail
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var requesterNodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetaiValue), &requesterNodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	app.logger.Infof("CreateRequest, Chain ID: %s", app.CurrentChain)
@@ -451,15 +451,15 @@ func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) typ
 
 	value, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	key := requestKeyPrefix + keySeparator + request.RequestId
 	err = app.state.SetVersioned([]byte(key), []byte(value))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", request.RequestId)
+	return app.NewExecTxResult(code.OK, "success", request.RequestId)
 }
 
 type ResponseValid struct {
@@ -523,50 +523,50 @@ func (app *ABCIApplication) validateCloseRequest(funcParam CloseRequestParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) closeRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) closeRequestCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam CloseRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateCloseRequest(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) closeRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) closeRequest(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("CloseRequest, Parameter: %s", param)
 	var funcParam CloseRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateCloseRequest(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	for _, valid := range funcParam.ResponseValidList {
@@ -592,13 +592,13 @@ func (app *ABCIApplication) closeRequest(param []byte, callerNodeID string) type
 	request.Closed = true
 	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.NewExecTxResult(code.OK, "success", funcParam.RequestID)
 }
 
 type TimeOutRequestParam struct {
@@ -656,50 +656,50 @@ func (app *ABCIApplication) validateTimeOutRequest(funcParam TimeOutRequestParam
 	return nil
 }
 
-func (app *ABCIApplication) timeOutRequestCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) timeOutRequestCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateTimeOutRequest(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) timeOutRequest(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) timeOutRequest(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("TimeOutRequest, Parameter: %s", param)
 	var funcParam TimeOutRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateTimeOutRequest(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	for _, valid := range funcParam.ResponseValidList {
@@ -725,13 +725,13 @@ func (app *ABCIApplication) timeOutRequest(param []byte, callerNodeID string) ty
 	request.TimedOut = true
 	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.NewExecTxResult(code.OK, "success", funcParam.RequestID)
 }
 
 type SetDataReceivedParam struct {
@@ -790,50 +790,50 @@ func (app *ABCIApplication) validateSetDataReceived(funcParam SetDataReceivedPar
 	return nil
 }
 
-func (app *ABCIApplication) setDataReceivedCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setDataReceivedCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetDataReceived(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setDataReceived(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setDataReceived(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetDataReceived, Parameter: %s", param)
 	var funcParam SetDataReceivedParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetDataReceived(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	var targetAsResponse *data.ASResponse
@@ -849,24 +849,24 @@ func (app *ABCIApplication) setDataReceived(param []byte, callerNodeID string) t
 	}
 	// Check if as_id exists in as_id_list
 	if targetAsResponse == nil {
-		return app.ReturnDeliverTxLog(code.AsIDDoesNotExistInASList, "AS ID does not exist in answered AS list", "")
+		return app.NewExecTxResult(code.AsIDDoesNotExistInASList, "AS ID does not exist in answered AS list", "")
 	}
 	// Check Duplicate
 	if targetAsResponse.ReceivedData {
-		return app.ReturnDeliverTxLog(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
+		return app.NewExecTxResult(code.DuplicateASInDataRequest, "Duplicate AS ID in data request", "")
 	}
 	// Update targetAsResponse status
 	targetAsResponse.ReceivedData = true
 
 	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.NewExecTxResult(code.OK, "success", funcParam.RequestID)
 }
 
 type GetRequestParam struct {
@@ -880,27 +880,27 @@ type GetRequestResult struct {
 	Mode        int32  `json:"mode"`
 }
 
-func (app *ABCIApplication) getRequest(param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getRequest(param []byte, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetRequest, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	value, err := app.state.GetVersioned([]byte(key), height, true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var res GetRequestResult
@@ -911,9 +911,9 @@ func (app *ABCIApplication) getRequest(param []byte, height int64) types.Respons
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 type GetRequestDetailResult struct {
@@ -936,24 +936,24 @@ type GetRequestDetailResult struct {
 	CreationChainID     string        `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getRequestDetail(param []byte, height int64, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getRequestDetail(param []byte, height int64, committedState bool) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetRequestDetail, Parameter: %s", param)
 	var funcParam GetRequestParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	key := requestKeyPrefix + keySeparator + funcParam.RequestID
 	var value []byte
 	value, err = app.state.GetVersioned([]byte(key), height, committedState)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 
 	var result GetRequestDetailResult
@@ -961,7 +961,7 @@ func (app *ABCIApplication) getRequestDetail(param []byte, height int64, committ
 	err = proto.Unmarshal([]byte(value), &request)
 	if err != nil {
 		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.state.Height)
+		return app.NewResponseQuery(value, err.Error(), app.state.Height)
 	}
 
 	result.RequestID = request.RequestId
@@ -1057,9 +1057,9 @@ func (app *ABCIApplication) getRequestDetail(param []byte, height int64, committ
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.state.Height)
+		return app.NewResponseQuery(value, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type GetDataSignatureParam struct {
@@ -1072,28 +1072,28 @@ type GetDataSignatureResult struct {
 	Signature string `json:"signature"`
 }
 
-func (app *ABCIApplication) getDataSignature(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getDataSignature(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetDataSignature, Parameter: %s", param)
 	var funcParam GetDataSignatureParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	signDataKey := dataSignatureKeyPrefix + keySeparator + funcParam.NodeID + keySeparator + funcParam.ServiceID + keySeparator + funcParam.RequestID
 	signDataValue, err := app.state.Get([]byte(signDataKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if signDataValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var result GetDataSignatureResult
 	result.Signature = string(signDataValue)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetAllowedModeListParam struct {
@@ -1104,20 +1104,20 @@ type GetAllowedModeListResult struct {
 	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
-func (app *ABCIApplication) GetAllowedModeList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedModeList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAllowedModeList, Parameter: %s", param)
 	var funcParam GetAllowedModeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAllowedModeListResult
 	result.AllowedModeList = app.GetAllowedModeFromStateDB(funcParam.Purpose, true)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) GetAllowedModeFromStateDB(purpose string, committedState bool) (result []int32) {

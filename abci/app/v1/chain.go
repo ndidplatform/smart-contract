@@ -25,37 +25,37 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 )
 
 type IsInitEndedResult struct {
 	InitEnded bool `json:"init_ended"`
 }
 
-func (app *ABCIApplication) isInitEnded(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) isInitEnded(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("IsInitEnded, Parameter: %s", param)
 	var result IsInitEndedResult
 	result.InitEnded = false
 	value, err := app.state.Get(initStateKeyBytes, true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if string(value) == "false" {
 		result.InitEnded = true
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) getChainHistory(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getChainHistory(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetChainHistory, Parameter: %s", param)
 	chainHistoryInfoKey := "ChainHistoryInfo"
 	value, err := app.state.Get([]byte(chainHistoryInfoKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }

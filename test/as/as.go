@@ -46,7 +46,7 @@ func RegisterServiceDestination(t *testing.T, nodeID, privK string, param app.Re
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
@@ -92,7 +92,7 @@ func UpdateServiceDestination(t *testing.T, nodeID, privK string, param app.Upda
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)

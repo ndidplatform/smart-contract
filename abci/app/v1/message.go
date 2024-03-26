@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -54,38 +54,38 @@ func (app *ABCIApplication) validateCreateMessage(funcParam CreateMessageParam, 
 	return nil
 }
 
-func (app *ABCIApplication) createMessageCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) createMessageCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam CreateMessageParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateCreateMessage(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("CreateMessage, Parameter: %s", param)
 	var funcParam CreateMessageParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateCreateMessage(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// log chain ID
@@ -97,10 +97,10 @@ func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) typ
 	key := messageKeyPrefix + keySeparator + message.MessageId
 	messageIDExist, err := app.state.Has([]byte(key), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if messageIDExist {
-		return app.ReturnDeliverTxLog(code.DuplicateMessageID, "Duplicate message ID", "")
+		return app.NewExecTxResult(code.DuplicateMessageID, "Duplicate message ID", "")
 	}
 
 	message.Message = funcParam.Message
@@ -115,13 +115,13 @@ func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) typ
 
 	value, err := utils.ProtoDeterministicMarshal(&message)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(key), []byte(value))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", message.MessageId)
+	return app.NewExecTxResult(code.OK, "success", message.MessageId)
 }
 
 type GetMessageParam struct {
@@ -132,27 +132,27 @@ type GetMessageResult struct {
 	Message string `json:"message"`
 }
 
-func (app *ABCIApplication) getMessage(param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getMessage(param []byte, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetMessage, Parameter: %s", param)
 	var funcParam GetMessageParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := messageKeyPrefix + keySeparator + funcParam.MessageID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 	var message data.Message
 	err = proto.Unmarshal([]byte(value), &message)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var res GetMessageResult
@@ -160,9 +160,9 @@ func (app *ABCIApplication) getMessage(param []byte, height int64) types.Respons
 
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 type GetMessageDetailResult struct {
@@ -174,31 +174,31 @@ type GetMessageDetailResult struct {
 	CreationChainID     string `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getMessageDetail(param []byte, height int64, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getMessageDetail(param []byte, height int64, committedState bool) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetMessageDetail, Parameter: %s", param)
 	var funcParam GetMessageParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	key := messageKeyPrefix + keySeparator + funcParam.MessageID
 	var value []byte
 	value, err = app.state.Get([]byte(key), committedState)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if value == nil {
 		valueJSON := []byte("{}")
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 
 	var result GetMessageDetailResult
 	var message data.Message
 	err = proto.Unmarshal([]byte(value), &message)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result.MessageID = message.MessageId
@@ -219,7 +219,7 @@ func (app *ABCIApplication) getMessageDetail(param []byte, height int64, committ
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		value = []byte("")
-		return app.ReturnQuery(value, err.Error(), app.state.Height)
+		return app.NewResponseQuery(value, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

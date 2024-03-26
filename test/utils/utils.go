@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"log"
 	mathRand "math/rand"
 	"net/http"
@@ -18,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmRand "github.com/tendermint/tendermint/libs/rand"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmRand "github.com/cometbft/cometbft/libs/rand"
 	"google.golang.org/protobuf/proto"
 
 	protoTm "github.com/ndidplatform/smart-contract/v9/protos/tendermint"
@@ -101,7 +102,10 @@ func Status() (*ResponseStatus, error) {
 	}
 	defer resp.Body.Close()
 	var body *ResponseStatus
-	json.NewDecoder(resp.Body).Decode(&body)
+	err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		return nil, err
+	}
 	return body, nil
 }
 
@@ -143,8 +147,22 @@ func CreateTxn(fnName []byte, param []byte, nonce []byte, signature []byte, node
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// bodyString := string(bodyBytes)
+	// fmt.Println(">>>", bodyString)
+
 	var body ResponseTx
-	json.NewDecoder(resp.Body).Decode(&body)
+
+	err = json.Unmarshal(bodyBytes, &body)
+	// err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		panic(err)
+		// return nil, err
+	}
 	return body, nil
 }
 
@@ -183,8 +201,21 @@ func Query(fnName []byte, param []byte) (interface{}, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// bodyString := string(bodyBytes)
+	// fmt.Println(">>>", bodyString)
+
 	var body ResponseQuery
-	json.NewDecoder(resp.Body).Decode(&body)
+	err = json.Unmarshal(bodyBytes, &body)
+	// err = json.NewDecoder(resp.Body).Decode(&body)
+	if err != nil {
+		panic(err)
+		// return nil, err
+	}
 	return body, nil
 }
 
@@ -208,27 +239,26 @@ func RandStringRunes(n int) string {
 }
 
 type ResponseTx struct {
-	Result struct {
-		Height  int `json:"height"`
-		CheckTx struct {
-			Code int      `json:"code"`
-			Log  string   `json:"log"`
-			Fee  struct{} `json:"fee"`
-		} `json:"check_tx"`
-		DeliverTx struct {
-			Log  string   `json:"log"`
-			Fee  struct{} `json:"fee"`
-			Tags []abcitypes.EventAttribute
-		} `json:"deliver_tx"`
-		Hash string `json:"hash"`
-	} `json:"result"`
 	Jsonrpc string `json:"jsonrpc"`
-	ID      string `json:"id"`
+	ID      int    `json:"id"`
+	Result  struct {
+		CheckTx struct {
+			Code int    `json:"code"`
+			Log  string `json:"log"`
+		} `json:"check_tx"`
+		TxResult struct {
+			Code   int               `json:"code"`
+			Log    string            `json:"log"`
+			Events []abcitypes.Event `json:"events"`
+		} `json:"tx_result"`
+		Hash   string `json:"hash"`
+		Height string `json:"height"`
+	} `json:"result"`
 }
 
 type ResponseQuery struct {
 	Jsonrpc string `json:"jsonrpc"`
-	ID      string `json:"id"`
+	ID      int    `json:"id"`
 	Result  struct {
 		Response struct {
 			Log    string `json:"log"`

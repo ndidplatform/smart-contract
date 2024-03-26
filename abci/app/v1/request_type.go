@@ -25,8 +25,8 @@ package app
 import (
 	"encoding/json"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/tendermint/tendermint/abci/types"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 	"github.com/ndidplatform/smart-contract/v9/abci/utils"
@@ -67,39 +67,39 @@ func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam
 	return nil
 }
 
-func (app *ABCIApplication) addRequestTypeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addRequestTypeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddRequestType(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
 // regulator only
-func (app *ABCIApplication) addRequestType(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addRequestType(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddRequestType, Parameter: %s", param)
 	var funcParam AddRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddRequestType(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
@@ -107,12 +107,12 @@ func (app *ABCIApplication) addRequestType(param []byte, callerNodeID string) ty
 	var requestType data.RequestType
 	value, err := utils.ProtoDeterministicMarshal(&requestType)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	app.state.Set([]byte(key), value)
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type RemoveRequestTypeParam struct {
@@ -149,58 +149,58 @@ func (app *ABCIApplication) validateRemoveRequestType(funcParam RemoveRequestTyp
 	return nil
 }
 
-func (app *ABCIApplication) removeRequestTypeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) removeRequestTypeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RemoveRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRemoveRequestType(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
 // regulator only
-func (app *ABCIApplication) removeRequestType(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeRequestType(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RemoveRequestType, Parameter: %s", param)
 	var funcParam RemoveRequestTypeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRemoveRequestType(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
 
 	app.state.Delete([]byte(key))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetRequestTypeListParam struct {
 	Prefix string `json:"prefix"`
 }
 
-func (app *ABCIApplication) getRequestTypeList(param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getRequestTypeList(param []byte, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetRequestTypeList, Parameter: %s", param)
 	var funcParam GetRequestTypeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result := make([]string, 0)
@@ -210,7 +210,7 @@ func (app *ABCIApplication) getRequestTypeList(param []byte, height int64) types
 	r := goleveldbutil.BytesPrefix([]byte(requestTypeKeyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for ; iter.Valid(); iter.Next() {
 		key := iter.Key()
@@ -224,8 +224,8 @@ func (app *ABCIApplication) getRequestTypeList(param []byte, height int64) types
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

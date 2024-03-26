@@ -25,8 +25,8 @@ package app
 import (
 	"encoding/json"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -93,39 +93,39 @@ func (app *ABCIApplication) validateAddSuppressedIdentityModificationNotificatio
 	return nil
 }
 
-func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
 // regulator only
-func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam AddSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
@@ -133,12 +133,12 @@ func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(pa
 	var suppressedIdentityModificationNotificationNode data.SuppressedIdentityModificationNotificationNode
 	value, err := utils.ProtoDeterministicMarshal(&suppressedIdentityModificationNotificationNode)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	app.state.Set([]byte(key), value)
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type RemoveSuppressedIdentityModificationNotificationNodeParam struct {
@@ -175,58 +175,58 @@ func (app *ABCIApplication) validateRemoveSuppressedIdentityModificationNotifica
 	return nil
 }
 
-func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RemoveSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
 // regulator only
-func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RemoveSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam RemoveSuppressedIdentityModificationNotificationNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
 
 	app.state.Delete([]byte(key))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetSuppressedIdentityModificationNotificationNodeListParam struct {
 	Prefix string `json:"prefix"`
 }
 
-func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeList(param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeList(param []byte, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetSuppressedIdentityModificationNotificationNodeList, Parameter: %s", param)
 	var funcParam GetSuppressedIdentityModificationNotificationNodeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result := make([]string, 0)
@@ -236,7 +236,7 @@ func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeLis
 	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for ; iter.Valid(); iter.Next() {
 		key := iter.Key()
@@ -250,10 +250,10 @@ func (app *ABCIApplication) getSuppressedIdentityModificationNotificationNodeLis
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type IsSuppressedIdentityModificationNotificationNodeParams struct {
@@ -264,12 +264,12 @@ type IsSuppressedIdentityModificationNotificationNodeResult struct {
 	Suppressed bool `json:"suppressed"`
 }
 
-func (app *ABCIApplication) isSuppressedIdentityModificationNotificationNode(param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) isSuppressedIdentityModificationNotificationNode(param []byte, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("IsSuppressedIdentityModificationNotificationNode, Parameter: %s", param)
 	var funcParam IsSuppressedIdentityModificationNotificationNodeParams
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var result IsSuppressedIdentityModificationNotificationNodeResult
@@ -277,15 +277,15 @@ func (app *ABCIApplication) isSuppressedIdentityModificationNotificationNode(par
 	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result.Suppressed = exists
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

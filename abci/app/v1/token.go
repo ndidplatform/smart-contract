@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -137,49 +137,49 @@ func (app *ABCIApplication) validateSetPriceFunc(funcParam SetPriceFuncParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) setPriceFuncCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setPriceFuncCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetPriceFunc(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setPriceFunc(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setPriceFunc(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetPriceFunc, Parameter: %s", param)
 	var funcParam SetPriceFuncParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetPriceFunc(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	err = app.setTokenPriceByFunc(funcParam.Func, funcParam.Price)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetPriceFuncParam struct {
@@ -190,12 +190,12 @@ type GetPriceFuncResult struct {
 	Price float64 `json:"price"`
 }
 
-func (app *ABCIApplication) getPriceFunc(param []byte, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getPriceFunc(param []byte, committedState bool) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetPriceFunc, Parameter: %s", param)
 	var funcParam GetPriceFuncParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	price := app.getTokenPriceByFunc(funcParam.Func, committedState)
 	var res = GetPriceFuncResult{
@@ -203,9 +203,9 @@ func (app *ABCIApplication) getPriceFunc(param []byte, committedState bool) type
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) addToken(nodeID string, amount float64) error {
@@ -367,46 +367,46 @@ func (app *ABCIApplication) validateSetNodeToken(funcParam SetNodeTokenParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) setNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setNodeTokenCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetNodeToken(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setNodeToken(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetNodeToken, Parameter: %s", param)
 	var funcParam SetNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetNodeToken(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	err = app.setToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.TokenAccountNotFound, err.Error(), "")
+		return app.NewExecTxResult(code.TokenAccountNotFound, err.Error(), "")
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type AddNodeTokenParam struct {
@@ -449,49 +449,49 @@ func (app *ABCIApplication) validateAddNodeToken(funcParam AddNodeTokenParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) addNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addNodeTokenCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddNodeToken(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNodeToken(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddNodeToken, Parameter: %s", param)
 	var funcParam AddNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddNodeToken(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	err = app.addToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type ReduceNodeTokenParam struct {
@@ -534,49 +534,49 @@ func (app *ABCIApplication) validateReduceNodeToken(funcParam ReduceNodeTokenPar
 	return nil
 }
 
-func (app *ABCIApplication) reduceNodeTokenCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) reduceNodeTokenCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateReduceNodeToken(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) reduceNodeToken(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) reduceNodeToken(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("ReduceNodeToken, Parameter: %s", param)
 	var funcParam ReduceNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateReduceNodeToken(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	err = app.reduceToken(funcParam.NodeID, funcParam.Amount)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetNodeTokenParam struct {
@@ -587,23 +587,23 @@ type GetNodeTokenResult struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) getNodeToken(param []byte, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) getNodeToken(param []byte, committedState bool) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeToken, Parameter: %s", param)
 	var funcParam GetNodeTokenParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), err.Error(), app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), err.Error(), app.state.Height)
 	}
 	tokenAmount, err := app.getToken(funcParam.NodeID, committedState)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var res = GetNodeTokenResult{
 		tokenAmount,
 	}
 	value, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }

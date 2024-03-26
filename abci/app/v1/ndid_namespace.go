@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -85,49 +85,49 @@ func (app *ABCIApplication) validateAddNamespace(funcParam AddNamespaceParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) addNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addNamespaceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddNamespace(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addNamespace(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddNamespace, Parameter: %s", param)
 	var funcParam AddNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddNamespace(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
 	if allNamespacesValue != nil {
 		err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 	}
 	var newNamespace data.Namespace
@@ -144,11 +144,11 @@ func (app *ABCIApplication) addNamespace(param []byte, callerNodeID string) type
 	namespaces.Namespaces = append(namespaces.Namespaces, &newNamespace)
 	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type EnableNamespaceParam struct {
@@ -207,48 +207,48 @@ func (app *ABCIApplication) validateEnableNamespace(funcParam EnableNamespacePar
 	return nil
 }
 
-func (app *ABCIApplication) enableNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) enableNamespaceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam EnableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateEnableNamespace(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableNamespace(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("EnableNamespace, Parameter: %s", param)
 	var funcParam EnableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateEnableNamespace(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
 	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	for index, namespace := range namespaces.Namespaces {
 		if namespace.Namespace == funcParam.Namespace {
@@ -258,10 +258,10 @@ func (app *ABCIApplication) enableNamespace(param []byte, callerNodeID string) t
 	}
 	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type DisableNamespaceParam struct {
@@ -320,48 +320,48 @@ func (app *ABCIApplication) validateDisableNamespace(funcParam DisableNamespaceP
 	return nil
 }
 
-func (app *ABCIApplication) disableNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) disableNamespaceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateDisableNamespace(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableNamespace(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("DisableNamespace, Parameter: %s", param)
 	var funcParam DisableNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateDisableNamespace(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
 	err = proto.Unmarshal([]byte(allNamespacesValue), &namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	for index, namespace := range namespaces.Namespaces {
 		if namespace.Namespace == funcParam.Namespace {
@@ -371,11 +371,11 @@ func (app *ABCIApplication) disableNamespace(param []byte, callerNodeID string) 
 	}
 	value, err := utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(allNamespaceKeyBytes, []byte(value))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type UpdateNamespaceParam struct {
@@ -437,48 +437,48 @@ func (app *ABCIApplication) validateUpdateNamespace(funcParam UpdateNamespacePar
 	return nil
 }
 
-func (app *ABCIApplication) updateNamespaceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateNamespaceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateNamespace(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateNamespace(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNamespace(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateNamespace, Parameter: %s", param)
 	var funcParam UpdateNamespaceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateNamespace(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	allNamespaceValue, err := app.state.Get(allNamespaceKeyBytes, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var namespaces data.NamespaceList
 	err = proto.Unmarshal([]byte(allNamespaceValue), &namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	for index, namespace := range namespaces.Namespaces {
 		if namespace.Namespace == funcParam.Namespace {
@@ -496,10 +496,10 @@ func (app *ABCIApplication) updateNamespace(param []byte, callerNodeID string) t
 	}
 	allNamespaceValue, err = utils.ProtoDeterministicMarshal(&namespaces)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	app.state.Set(allNamespaceKeyBytes, []byte(allNamespaceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

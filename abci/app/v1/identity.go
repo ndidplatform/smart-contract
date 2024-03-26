@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
@@ -330,38 +330,38 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 	return nil
 }
 
-func (app *ABCIApplication) registerIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) registerIdentityCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RegisterIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRegisterIdentity(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RegisterIdentity, Parameter: %s", param)
 	var funcParam RegisterIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRegisterIdentity(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	user := funcParam
@@ -382,7 +382,7 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	var refGroup data.ReferenceGroup
@@ -398,22 +398,22 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 	if refGroupValue != nil {
 		err := proto.Unmarshal(refGroupValue, &refGroup)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 		// If there's at least one node active
 		for _, idp := range refGroup.Idps {
 			nodeDetailKey := nodeIDKeyPrefix + keySeparator + idp.NodeId
 			nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), false)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+				return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 			}
 			if nodeDetailValue == nil {
-				return app.ReturnDeliverTxLog(code.NodeIDNotFound, "Node ID not found", "")
+				return app.NewExecTxResult(code.NodeIDNotFound, "Node ID not found", "")
 			}
 			var nodeDetail data.NodeDetail
 			err = proto.Unmarshal(nodeDetailValue, &nodeDetail)
 			if err != nil {
-				return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+				return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 			}
 			if nodeDetail.Active && idp.Active {
 				minIdp = 1
@@ -482,7 +482,7 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 	}
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	if mode3 && minIdp > 0 {
@@ -502,13 +502,13 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(user.ReferenceGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = user.ReferenceGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type UpdateIdentityParam struct {
@@ -637,38 +637,38 @@ func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam
 	return nil
 }
 
-func (app *ABCIApplication) updateIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateIdentityCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateIdentity(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateIdentity, Parameter: %s", param)
 	var funcParam UpdateIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateIdentity(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	refGroupCode := ""
@@ -678,25 +678,25 @@ func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) ty
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeBytes, err := app.state.Get([]byte(identityToRefCodeKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if refGroupCodeBytes == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+			return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeBytes)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	nodeIDToUpdateIndex := -1
 	for index, idp := range refGroup.Idps {
@@ -720,18 +720,18 @@ func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) ty
 
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type UpdateIdentityModeListParam struct {
@@ -851,38 +851,38 @@ func (app *ABCIApplication) validateUpdateIdentityModeList(funcParam UpdateIdent
 	return nil
 }
 
-func (app *ABCIApplication) updateIdentityModeListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateIdentityModeListCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateIdentityModeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateIdentityModeList, Parameter: %s", param)
 	var funcParam UpdateIdentityModeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	refGroupCode := ""
@@ -892,10 +892,10 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID st
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+			return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
@@ -903,15 +903,15 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID st
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	// remove duplicates
@@ -935,17 +935,17 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID st
 	}
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type AddIdentityParam struct {
@@ -1115,38 +1115,38 @@ func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, call
 	return nil
 }
 
-func (app *ABCIApplication) addIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addIdentityCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddIdentity(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddIdentity, Parameter: %s", param)
 	var funcParam AddIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddIdentity(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	user := funcParam
@@ -1154,12 +1154,12 @@ func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) types
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + user.ReferenceGroupCode
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	mode3 := false
@@ -1184,7 +1184,7 @@ func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) types
 
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	if mode3 {
@@ -1201,13 +1201,13 @@ func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) types
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(user.ReferenceGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = user.ReferenceGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type RevokeIdentityAssociationParam struct {
@@ -1310,38 +1310,38 @@ func (app *ABCIApplication) validateRevokeIdentityAssociation(funcParam RevokeId
 	return nil
 }
 
-func (app *ABCIApplication) revokeIdentityAssociationCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) revokeIdentityAssociationCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RevokeIdentityAssociationParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RevokeIdentityAssociation, Parameter: %s", param)
 	var funcParam RevokeIdentityAssociationParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	refGroupCode := ""
@@ -1351,19 +1351,19 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	mode3 := false
@@ -1391,7 +1391,7 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID
 
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	if mode3 {
 		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
@@ -1401,13 +1401,13 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type AddAccessorParam struct {
@@ -1534,38 +1534,38 @@ func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, call
 	return nil
 }
 
-func (app *ABCIApplication) addAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addAccessorCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddAccessor(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddAccessor, Parameter: %s", param)
 	var funcParam AddAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddAccessor(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	refGroupCode := ""
@@ -1575,25 +1575,25 @@ func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) types
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), false)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+			return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 		}
 		if refGroupCodeFromDB == nil {
-			return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+			return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if refGroupValue == nil {
-		return app.ReturnDeliverTxLog(code.RefGroupNotFound, "Reference group not found", "")
+		return app.NewExecTxResult(code.RefGroupNotFound, "Reference group not found", "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	mode3 := false
@@ -1623,7 +1623,7 @@ func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) types
 	}
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	if mode3 {
@@ -1638,13 +1638,13 @@ func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) types
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type RevokeAccessorParam struct {
@@ -1765,38 +1765,38 @@ func (app *ABCIApplication) validateRevokeAccessor(funcParam RevokeAccessorParam
 	return nil
 }
 
-func (app *ABCIApplication) revokeAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) revokeAccessorCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RevokeAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRevokeAccessor(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RevokeAccessor, Parameter: %s", param)
 	var funcParam RevokeAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRevokeAccessor(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// get ref group code
@@ -1804,19 +1804,19 @@ func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) ty
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorIDList[0]
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	refGroupCode = string(refGroupCodeFromDB)
 
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	mode3 := false
@@ -1848,7 +1848,7 @@ func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) ty
 
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	if mode3 {
 		increaseRequestUseCountResult := app.increaseRequestUseCount(funcParam.RequestID)
@@ -1858,13 +1858,13 @@ func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) ty
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = []byte(refGroupCode)
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = refGroupCode
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type RevokeAndAddAccessorParam struct {
@@ -1993,55 +1993,55 @@ func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddA
 	return nil
 }
 
-func (app *ABCIApplication) revokeAndAddAccessorCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) revokeAndAddAccessorCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RevokeAndAddAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RevokeAndAddAccessor, Parameter: %s", param)
 	var funcParam RevokeAndAddAccessorParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get ref group code from revoking accessor ID
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.RevokingAccessorID
 	refGroupCode, err := app.state.Get([]byte(accessorToRefCodeKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	mode3 := false
@@ -2090,7 +2090,7 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID stri
 	}
 	refGroupValue, err = utils.ProtoDeterministicMarshal(&refGroup)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 	accessorToRefCodeKey = accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
@@ -2098,13 +2098,13 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID stri
 	app.state.Set([]byte(accessorToRefCodeKey), []byte(accessorToRefCodeValue))
 	app.state.Set([]byte(refGroupKey), []byte(refGroupValue))
 
-	var attributes []types.EventAttribute
-	var attribute types.EventAttribute
-	attribute.Key = []byte("reference_group_code")
-	attribute.Value = refGroupCode
+	var attributes []abcitypes.EventAttribute
+	var attribute abcitypes.EventAttribute
+	attribute.Key = "reference_group_code"
+	attribute.Value = string(refGroupCode)
 	attributes = append(attributes, attribute)
 
-	return app.ReturnDeliverTxLogWithAttributes(code.OK, "success", attributes)
+	return app.NewExecTxResultWithAttributes(code.OK, "success", attributes)
 }
 
 type CheckExistingIdentityParam struct {
@@ -2117,20 +2117,20 @@ type CheckExistingIdentityResult struct {
 	Exist bool `json:"exist"`
 }
 
-func (app *ABCIApplication) checkExistingIdentity(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingIdentity(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("CheckExistingIdentity, Parameter: %s", param)
 	var funcParam CheckExistingIdentityParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingIdentityResult
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
+		return app.NewResponseQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
 	}
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
@@ -2139,44 +2139,44 @@ func (app *ABCIApplication) checkExistingIdentity(param []byte) types.ResponseQu
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if refGroupCodeFromDB == nil {
 			returnValue, err := json.Marshal(result)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(returnValue, "success", app.state.Height)
+			return app.NewResponseQuery(returnValue, "success", app.state.Height)
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
+		return app.NewResponseQuery(returnValue, "success", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "success", app.state.Height)
+		return app.NewResponseQuery(returnValue, "success", app.state.Height)
 	}
 	result.Exist = true
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetAccessorKeyParam struct {
@@ -2188,35 +2188,35 @@ type GetAccessorKeyResult struct {
 	Active            bool   `json:"active"`
 }
 
-func (app *ABCIApplication) getAccessorKey(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorKey(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAccessorKey, Parameter: %s", param)
 	var funcParam GetAccessorKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorKeyResult
 	result.AccessorPublicKey = ""
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupCodeFromDB == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	for _, idp := range refGroup.Idps {
 		for _, accessor := range idp.Accessors {
@@ -2229,9 +2229,9 @@ func (app *ABCIApplication) getAccessorKey(param []byte) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type CheckExistingAccessorIDParam struct {
@@ -2242,35 +2242,35 @@ type CheckExistingResult struct {
 	Exist bool `json:"exist"`
 }
 
-func (app *ABCIApplication) checkExistingAccessorID(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) checkExistingAccessorID(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("CheckExistingAccessorID, Parameter: %s", param)
 	var funcParam CheckExistingAccessorIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result CheckExistingResult
 	result.Exist = false
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupCodeFromDB == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	for _, idp := range refGroup.Idps {
 		for _, accessor := range idp.Accessors {
@@ -2282,9 +2282,9 @@ func (app *ABCIApplication) checkExistingAccessorID(param []byte) types.Response
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetIdentityInfoParam struct {
@@ -2301,20 +2301,20 @@ type GetIdentityInfoResult struct {
 	ModeList []int32 `json:"mode_list"`
 }
 
-func (app *ABCIApplication) getIdentityInfo(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getIdentityInfo(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetIdentityInfo, Parameter: %s", param)
 	var funcParam GetIdentityInfoParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetIdentityInfoResult
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
+		return app.NewResponseQuery(returnValue, "Found reference group code and identity detail in parameter", app.state.Height)
 	}
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
@@ -2323,37 +2323,37 @@ func (app *ABCIApplication) getIdentityInfo(param []byte) types.ResponseQuery {
 		identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 		refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if refGroupCodeFromDB == nil {
 			returnValue, err := json.Marshal(result)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
-			return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+			return app.NewResponseQuery(returnValue, "Reference group not found", app.state.Height)
 		}
 		refGroupCode = string(refGroupCodeFromDB)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupValue == nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+		return app.NewResponseQuery(returnValue, "Reference group not found", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
 		returnValue, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(returnValue, "Reference group not found", app.state.Height)
+		return app.NewResponseQuery(returnValue, "Reference group not found", app.state.Height)
 	}
 	for _, idp := range refGroup.Idps {
 		if funcParam.NodeID == idp.NodeId && idp.Active {
@@ -2370,12 +2370,12 @@ func (app *ABCIApplication) getIdentityInfo(param []byte) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if result.Ial <= 0.0 {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetAccessorOwnerParam struct {
@@ -2386,35 +2386,35 @@ type GetAccessorOwnerResult struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) getAccessorOwner(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getAccessorOwner(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAccessorOwner, Parameter: %s", param)
 	var funcParam GetAccessorOwnerParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetAccessorOwnerResult
 	result.NodeID = ""
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupCodeFromDB == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCodeFromDB)
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var refGroup data.ReferenceGroup
 	err = proto.Unmarshal(refGroupValue, &refGroup)
 	if err != nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	for _, idp := range refGroup.Idps {
 		for _, accessor := range idp.Accessors {
@@ -2426,9 +2426,9 @@ func (app *ABCIApplication) getAccessorOwner(param []byte) types.ResponseQuery {
 	}
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetReferenceGroupCodeParam struct {
@@ -2440,17 +2440,17 @@ type GetReferenceGroupCodeResult struct {
 	ReferenceGroupCode string `json:"reference_group_code"`
 }
 
-func (app *ABCIApplication) GetReferenceGroupCode(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCode(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCode, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 	refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupCodeFromDB == nil {
 		refGroupCodeFromDB = []byte("")
@@ -2459,29 +2459,29 @@ func (app *ABCIApplication) GetReferenceGroupCode(param []byte) types.ResponseQu
 	result.ReferenceGroupCode = string(refGroupCodeFromDB)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if string(refGroupCodeFromDB) == "" {
-		return app.ReturnQuery(returnValue, "not found", app.state.Height)
+		return app.NewResponseQuery(returnValue, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetReferenceGroupCodeByAccessorIDParam struct {
 	AccessorID string `json:"accessor_id"`
 }
 
-func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetReferenceGroupCodeByAccessorID, Parameter: %s", param)
 	var funcParam GetReferenceGroupCodeByAccessorIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
 	refGroupCodeFromDB, err := app.state.Get([]byte(accessorToRefCodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if refGroupCodeFromDB == nil {
 		refGroupCodeFromDB = []byte("")
@@ -2490,37 +2490,37 @@ func (app *ABCIApplication) GetReferenceGroupCodeByAccessorID(param []byte) type
 	result.ReferenceGroupCode = string(refGroupCodeFromDB)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 //
 // Identity related request operations
 //
 
-func (app *ABCIApplication) checkRequest(requestID string, purpose string, minIdp int) types.ResponseDeliverTx {
+func (app *ABCIApplication) checkRequest(requestID string, purpose string, minIdp int) *abcitypes.ExecTxResult {
 	requestKey := requestKeyPrefix + keySeparator + requestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if requestValue == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.NewExecTxResult(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	if request.Purpose != purpose {
-		return app.ReturnDeliverTxLog(code.InvalidPurpose, "Request has a invalid purpose", "")
+		return app.NewExecTxResult(code.InvalidPurpose, "Request has a invalid purpose", "")
 	}
 	if request.UseCount > 0 {
-		return app.ReturnDeliverTxLog(code.RequestIsAlreadyUsed, "Request is already used", "")
+		return app.NewExecTxResult(code.RequestIsAlreadyUsed, "Request is already used", "")
 	}
 	if !request.Closed {
-		return app.ReturnDeliverTxLog(code.RequestIsNotClosed, "Request is not closed", "")
+		return app.NewExecTxResult(code.RequestIsNotClosed, "Request is not closed", "")
 	}
 	var acceptCount int = 0
 	for _, response := range request.ResponseList {
@@ -2535,9 +2535,9 @@ func (app *ABCIApplication) checkRequest(requestID string, purpose string, minId
 		}
 	}
 	if acceptCount >= minIdp {
-		return app.ReturnDeliverTxLog(code.OK, "Request is completed", "")
+		return app.NewExecTxResult(code.OK, "Request is completed", "")
 	}
-	return app.ReturnDeliverTxLog(code.RequestIsNotCompleted, "Request is not completed", "")
+	return app.NewExecTxResult(code.RequestIsNotCompleted, "Request is not completed", "")
 }
 
 func (app *ABCIApplication) checkRequestUsable(requestID string, purpose string, minIdp int, committedState bool) error {
@@ -2602,45 +2602,45 @@ func (app *ABCIApplication) checkRequestUsable(requestID string, purpose string,
 	return nil
 }
 
-func (app *ABCIApplication) increaseRequestUseCount(requestID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) increaseRequestUseCount(requestID string) *abcitypes.ExecTxResult {
 	requestKey := requestKeyPrefix + keySeparator + requestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), app.state.Height, true)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if requestValue == nil {
-		return app.ReturnDeliverTxLog(code.RequestIDNotFound, "Request ID not found", "")
+		return app.NewExecTxResult(code.RequestIDNotFound, "Request ID not found", "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	request.UseCount = request.UseCount + 1
 	requestProtobuf, err := utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	err = app.state.SetVersioned([]byte(requestKey), []byte(requestProtobuf))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetAllowedMinIalForRegisterIdentityAtFirstIdpResult struct {
 	MinIal float64 `json:"min_ial"`
 }
 
-func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var result GetAllowedMinIalForRegisterIdentityAtFirstIdpResult
 	result.MinIal = app.GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(true)
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) GetAllowedMinIalForRegisterIdentityAtFirstIdpFromStateDB(committedState bool) float64 {

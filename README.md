@@ -2,18 +2,18 @@
 
 # NDID Smart Contract
 
-Tendermint bundled with ABCI app
+CometBFT (Tendermint) bundled with ABCI app
 
 ## Prerequisites
 
-- Go version >= 1.18.0
+- Go version >= 1.22.0
 
-  - [Install Go](https://golang.org/dl/) by following [installation instructions.](https://golang.org/doc/install)
-  - Set GOPATH environment variable (https://github.com/golang/go/wiki/SettingGOPATH)
+  - [Install Go](https://go.dev/dl/) by following [installation instructions.](https://go.dev/doc/install)
+  - Set GOPATH environment variable (https://go.dev/wiki/SettingGOPATH)
 
 - (Optional) LevelDB version >= 1.7 and snappy
 
-  - Ubuntu (Ref: https://tendermint.com/docs/introduction/install.html#compile-with-cleveldb-support)
+  - Ubuntu (Ref: https://docs.cometbft.com/v0.38/guides/install#compile-with-cleveldb-support)
 
     ```sh
     sudo apt-get update
@@ -21,15 +21,15 @@ Tendermint bundled with ABCI app
 
     sudo apt-get install libsnappy-dev
 
-    wget https://github.com/google/leveldb/archive/v1.20.tar.gz && \
-      tar -zxvf v1.20.tar.gz && \
-      cd leveldb-1.20/ && \
+    wget https://github.com/google/leveldb/archive/v1.23.tar.gz && \
+      tar -zxvf v1.23.tar.gz && \
+      cd leveldb-1.23/ && \
       make && \
       sudo cp -r out-static/lib* out-shared/lib* /usr/local/lib/ && \
       cd include/ && \
       sudo cp -r leveldb /usr/local/include/ && \
       sudo ldconfig && \
-      rm -f v1.20.tar.gz
+      rm -f v1.23.tar.gz
     ```
 
   - macOS (Homebrew)

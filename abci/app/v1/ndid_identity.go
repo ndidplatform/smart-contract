@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 	"github.com/ndidplatform/smart-contract/v9/abci/utils"
@@ -51,38 +51,38 @@ func (app *ABCIApplication) validateSetTimeOutBlockRegisterIdentity(funcParam Ti
 	return nil
 }
 
-func (app *ABCIApplication) setTimeOutBlockRegisterIdentityCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentityCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam TimeOutBlockRegisterIdentity
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetTimeOutBlockRegisterIdentity, Parameter: %s", param)
 	var funcParam TimeOutBlockRegisterIdentity
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := "TimeOutBlockRegisterIdentity"
@@ -90,14 +90,14 @@ func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, caller
 	timeOut.TimeOutBlock = funcParam.TimeOutBlock
 	// Check time out block > 0
 	if timeOut.TimeOutBlock <= 0 {
-		return app.ReturnDeliverTxLog(code.TimeOutBlockIsMustGreaterThanZero, "Time out block is must greater than 0", "")
+		return app.NewExecTxResult(code.TimeOutBlockIsMustGreaterThanZero, "Time out block is must greater than 0", "")
 	}
 	value, err := utils.ProtoDeterministicMarshal(&timeOut)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(key), []byte(value))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
@@ -119,38 +119,38 @@ func (app *ABCIApplication) validateSetAllowedMinIalForRegisterIdentityAtFirstId
 	return nil
 }
 
-func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdpCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdpCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdp(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetAllowedMinIalForRegisterIdentityAtFirstIdp, Parameter: %s", param)
 	var funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	allowedMinIalKey := "AllowedMinIalForRegisterIdentityAtFirstIdp"
@@ -158,8 +158,8 @@ func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdp(param 
 	allowedMinIal.MinIal = funcParam.MinIal
 	allowedMinIalByte, err := utils.ProtoDeterministicMarshal(&allowedMinIal)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(allowedMinIalKey), allowedMinIalByte)
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

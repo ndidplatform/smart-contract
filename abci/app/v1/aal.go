@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -52,48 +52,48 @@ func (app *ABCIApplication) validateSetSupportedAALList(funcParam SetSupportedAA
 	return nil
 }
 
-func (app *ABCIApplication) setSupportedAALListCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setSupportedAALListCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetSupportedAALListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetSupportedAALList(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setSupportedAALList(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setSupportedAALList(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetSupportedAALList, Parameter: %s", param)
 	var funcParam SetSupportedAALListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetSupportedAALList(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	var supportedAALList data.SupportedAALList
 	supportedAALList.AalList = funcParam.SupportedAALList
 	supportedAALListByte, err := utils.ProtoDeterministicMarshal(&supportedAALList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set(supportedAALListKeyBytes, supportedAALListByte)
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 // type GetSupportedAALListParam struct {
@@ -103,12 +103,12 @@ type GetSupportedAALListResult struct {
 	SupportedAALList []float64 `json:"supported_aal_list"`
 }
 
-func (app *ABCIApplication) GetSupportedAALList(param []byte, committedState bool) types.ResponseQuery {
+func (app *ABCIApplication) GetSupportedAALList(param []byte, committedState bool) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetSupportedAALList, Parameter: %s", param)
 	// var funcParam GetSupportedAALListParam
 	// err := json.Unmarshal(param, &funcParam)
 	// if err != nil {
-	// 	return app.ReturnQuery(nil, err.Error(), app.state.Height)
+	// 	return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	// }
 
 	var result GetSupportedAALListResult
@@ -116,29 +116,29 @@ func (app *ABCIApplication) GetSupportedAALList(param []byte, committedState boo
 
 	supportedAALValue, err := app.state.Get(supportedAALListKeyBytes, committedState)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if supportedAALValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
-		return app.ReturnQuery(resultJSON, "success", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 	}
 
 	var supportedAALList data.SupportedAALList
 	err = proto.Unmarshal(supportedAALValue, &supportedAALList)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result.SupportedAALList = supportedAALList.AalList
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

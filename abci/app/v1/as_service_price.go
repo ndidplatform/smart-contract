@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -132,50 +132,50 @@ priceToSetLoop:
 	return nil
 }
 
-func (app *ABCIApplication) setServicePriceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setServicePriceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetServicePriceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetServicePrice(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setServicePrice(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setServicePrice(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetServicePrice, Parameter: %s", param)
 	var funcParam SetServicePriceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetServicePrice(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Get service's price ceiling
 	servicePriceCeilingKey := servicePriceCeilingKeyPrefix + keySeparator + funcParam.ServiceID
 	servicePriceCeilingListBytes, err := app.state.Get([]byte(servicePriceCeilingKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var servicePriceCeilingList data.ServicePriceCeilingList
 	err = proto.Unmarshal([]byte(servicePriceCeilingListBytes), &servicePriceCeilingList)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	var servicePriceByCurrencyListToSet []*data.ServicePriceByCurrency = make([]*data.ServicePriceByCurrency, 0)
@@ -207,14 +207,14 @@ priceToSetLoop:
 	servicePriceListKey := servicePriceListKeyPrefix + keySeparator + callerNodeID + keySeparator + funcParam.ServiceID
 	currentServicePriceListBytes, err := app.state.Get([]byte(servicePriceListKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 
 	if currentServicePriceListBytes != nil {
 		var currentServicePriceList data.ServicePriceList
 		err = proto.Unmarshal([]byte(currentServicePriceListBytes), &currentServicePriceList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 
 		// prepend new service price to list
@@ -222,7 +222,7 @@ priceToSetLoop:
 
 		newCurrentServicePriceListBytes, err := utils.ProtoDeterministicMarshal(&currentServicePriceList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(servicePriceListKey), []byte(newCurrentServicePriceListBytes))
 	} else {
@@ -233,12 +233,12 @@ priceToSetLoop:
 
 		newCurrentServicePriceListBytes, err := utils.ProtoDeterministicMarshal(&newServicePriceList)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(servicePriceListKey), []byte(newCurrentServicePriceListBytes))
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetServicePriceListParam struct {
@@ -264,26 +264,26 @@ type ServicePrice struct {
 	CreationChainID     string                   `json:"creation_chain_id"`
 }
 
-func (app *ABCIApplication) getServicePriceList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getServicePriceList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServicePriceList, Parameter: %s", param)
 	var funcParam GetServicePriceListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if serviceValue == nil {
-		return app.ReturnQuery(nil, "not found", app.state.Height)
+		return app.NewResponseQuery(nil, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	getServicePriceListByNode := func(nodeID string) (*ServicePriceListByNode, error) {
@@ -342,38 +342,38 @@ func (app *ABCIApplication) getServicePriceList(param []byte) types.ResponseQuer
 	if funcParam.NodeID != "" {
 		servicePriceListByNode, err := getServicePriceListByNode(funcParam.NodeID)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
 	} else {
 		if !service.Active {
 			retValJSON, err := json.Marshal(retVal)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 
-			return app.ReturnQuery(retValJSON, "service is not active", app.state.Height)
+			return app.NewResponseQuery(retValJSON, "service is not active", app.state.Height)
 		}
 
 		// Get all AS nodes providing service
 		serviceDestinationListKey := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 		serviceDestinationListValue, err := app.state.Get([]byte(serviceDestinationListKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if serviceDestinationListValue == nil {
 			retValJSON, err := json.Marshal(retVal)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 
-			return app.ReturnQuery(retValJSON, "success", app.state.Height)
+			return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 		}
 
 		var serviceDestinationList data.ServiceDesList
 		err = proto.Unmarshal([]byte(serviceDestinationListValue), &serviceDestinationList)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		for _, serviceDestination := range serviceDestinationList.Node {
@@ -421,7 +421,7 @@ func (app *ABCIApplication) getServicePriceList(param []byte) types.ResponseQuer
 
 			servicePriceListByNode, err := getServicePriceListByNode(serviceDestination.NodeId)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			retVal.ServicePriceListByNode = append(retVal.ServicePriceListByNode, *servicePriceListByNode)
 		}
@@ -429,8 +429,8 @@ func (app *ABCIApplication) getServicePriceList(param []byte) types.ResponseQuer
 
 	retValJSON, err := json.Marshal(retVal)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(retValJSON, "success", app.state.Height)
+	return app.NewResponseQuery(retValJSON, "success", app.state.Height)
 }

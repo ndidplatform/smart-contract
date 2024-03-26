@@ -30,6 +30,10 @@ FEATURES:
 - [Query] Add `GetSupportedIALList` method.
 - [Query] Add `GetSupportedAALList` method.
 
+IMPROVEMENTS:
+
+- CometBFT v0.38.6.
+
 BUG FIXES:
 
 - Check duplicate accessor ID on `RegisterIdentity`

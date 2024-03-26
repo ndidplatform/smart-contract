@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -90,38 +90,38 @@ func (app *ABCIApplication) validateInitNDID(funcParam InitNDIDParam, callerNode
 	return nil
 }
 
-func (app *ABCIApplication) initNDIDCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) initNDIDCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam InitNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateInitNDID(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("InitNDID, Parameter: %s", param)
 	var funcParam InitNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateInitNDID(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	var nodeDetail data.NodeDetail
@@ -141,7 +141,7 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 			strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
 	nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -161,7 +161,7 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 			strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
 	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -181,7 +181,7 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 			strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
 	nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -190,7 +190,7 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 	nodeDetail.Active = true
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -200,7 +200,7 @@ func (app *ABCIApplication) initNDID(param []byte, callerNodeID string) types.Re
 	app.state.Set(initStateKeyBytes, []byte("true"))
 	app.state.Set([]byte(chainHistoryInfoKey), []byte(funcParam.ChainHistoryInfo))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 func (app *ABCIApplication) checkCanSetInitData(committedState bool) error {
@@ -250,45 +250,45 @@ func (app *ABCIApplication) validateSetInitData(funcParam SetInitDataParam, call
 	return nil
 }
 
-func (app *ABCIApplication) setInitDataCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setInitDataCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetInitDataParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetInitData(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setInitData(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setInitData(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetInitData, Parameter: %s", param)
 	var funcParam SetInitDataParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetInitData(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	for _, kv := range funcParam.KVList {
 		app.state.Set(kv.Key, kv.Value)
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 func (app *ABCIApplication) validateSetInitData_pb(funcParam protoParam.SetInitDataParam, callerNodeID string, committedState bool) error {
@@ -311,45 +311,45 @@ func (app *ABCIApplication) validateSetInitData_pb(funcParam protoParam.SetInitD
 	return nil
 }
 
-func (app *ABCIApplication) setInitData_pbCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setInitData_pbCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam protoParam.SetInitDataParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetInitData_pb(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setInitData_pb(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setInitData_pb(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetInitData_pb, Parameter: %s", param)
 	var funcParam protoParam.SetInitDataParam
 	err := proto.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetInitData_pb(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	for _, kv := range funcParam.KvList {
 		app.state.Set(kv.Key, kv.Value)
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type EndInitParam struct{}
@@ -369,42 +369,42 @@ func (app *ABCIApplication) validateEndInit(funcParam EndInitParam, callerNodeID
 	return nil
 }
 
-func (app *ABCIApplication) endInitCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) endInitCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam EndInitParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateEndInit(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) endInit(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) endInit(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("EndInit, Parameter: %s", param)
 	var funcParam EndInitParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateEndInit(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	app.state.Set(initStateKeyBytes, []byte("false"))
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type SetLastBlockParam struct {
@@ -426,38 +426,38 @@ func (app *ABCIApplication) validateSetLastBlock(funcParam SetLastBlockParam, ca
 	return nil
 }
 
-func (app *ABCIApplication) setLastBlockCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setLastBlockCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetLastBlockParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetLastBlock(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setLastBlock(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setLastBlock(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetLastBlock, Parameter: %s", param)
 	var funcParam SetLastBlockParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetLastBlock(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	lastBlockValue := funcParam.BlockHeight
@@ -472,5 +472,5 @@ func (app *ABCIApplication) setLastBlock(param []byte, callerNodeID string) type
 	}
 	app.state.Set(lastBlockKeyBytes, []byte(strconv.FormatInt(lastBlockValue, 10)))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

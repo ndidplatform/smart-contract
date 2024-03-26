@@ -45,7 +45,7 @@ func SetMqAddresses(t *testing.T, nodeID, privK string, param app.SetMqAddresses
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -73,7 +73,7 @@ func CreateRequest(t *testing.T, nodeID, privK string, param app.CreateRequestPa
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -91,7 +91,7 @@ func CloseRequest(t *testing.T, nodeID, privK string, param app.CloseRequestPara
 	result, _ := utils.CreateTxn([]byte(fnName), paramJSON, []byte(nonce), signature, []byte(nodeID))
 	resultObj, _ := result.(utils.ResponseTx)
 	expected := "success"
-	if actual := resultObj.Result.DeliverTx.Log; actual != expected {
+	if actual := resultObj.Result.TxResult.Log; actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)
 		t.Fatalf("FAIL: %s\nExpected: %#v\nActual: %#v", fnName, expected, actual)
 	}
@@ -285,7 +285,7 @@ func UpdateNode(t *testing.T, nodeID, privK string, param app.UpdateNodeParam, e
 	if expectResultFrom == "CheckTx" {
 		actual = resultObj.Result.CheckTx.Log
 	} else {
-		actual = resultObj.Result.DeliverTx.Log
+		actual = resultObj.Result.TxResult.Log
 	}
 	if actual != expected {
 		t.Errorf("\n"+`CheckTx log: "%s"`, resultObj.Result.CheckTx.Log)

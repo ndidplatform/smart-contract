@@ -26,9 +26,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
@@ -41,11 +41,11 @@ type GetErrorCodeListResult struct {
 	Description string `json:"description"`
 }
 
-func (app *ABCIApplication) getErrorCodeList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getErrorCodeList(param []byte) *abcitypes.ResponseQuery {
 	var funcParam GetErrorCodeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// convert funcParam to lowercase and fetch the code list
@@ -53,13 +53,13 @@ func (app *ABCIApplication) getErrorCodeList(param []byte) types.ResponseQuery {
 	errorCodeListKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorCodeListKey), false)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var errorCodeList data.ErrorCodeList
 	err = proto.Unmarshal(errorCodeListBytes, &errorCodeList)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// parse result into response format
@@ -73,7 +73,7 @@ func (app *ABCIApplication) getErrorCodeList(param []byte) types.ResponseQuery {
 
 	returnValue, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(returnValue, "success", app.state.Height)
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }

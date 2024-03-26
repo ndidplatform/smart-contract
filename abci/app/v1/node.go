@@ -27,8 +27,8 @@ import (
 	"strconv"
 	"strings"
 
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
-	"github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -76,49 +76,49 @@ func (app *ABCIApplication) validateSetMqAddresses(funcParam SetMqAddressesParam
 	return nil
 }
 
-func (app *ABCIApplication) setMqAddressesCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) setMqAddressesCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam SetMqAddressesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateSetMqAddresses(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("SetMqAddresses, Parameter: %s", param)
 	var funcParam SetMqAddressesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateSetMqAddresses(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	var msqAddress []*data.MQ
 	for _, address := range funcParam.Addresses {
@@ -131,11 +131,11 @@ func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) ty
 
 	nodeDetailByte, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(nodeDetailKey), []byte(nodeDetailByte))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetNodeSigningMasterPublicKeyParam struct {
@@ -145,30 +145,30 @@ type GetNodeSigningMasterPublicKeyParam struct {
 
 type GetNodeSigningMasterPublicKeyResult NodeKey
 
-func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeSigningMasterPublicKey, Parameter: %s", param)
 	var funcParam GetNodeSigningMasterPublicKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var res NodeKey
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	res = NodeKey{
 		PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
@@ -180,9 +180,9 @@ func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) types.Re
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 type GetNodeSigningPublicKeyParam struct {
@@ -192,30 +192,30 @@ type GetNodeSigningPublicKeyParam struct {
 
 type GetNodeSigningPublicKeyResult NodeKey
 
-func (app *ABCIApplication) getNodeSigningPublicKey(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodeSigningPublicKey(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeSigningPublicKey, Parameter: %s", param)
 	var funcParam GetNodeSigningPublicKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var res NodeKey
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	res = NodeKey{
 		PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
@@ -227,9 +227,9 @@ func (app *ABCIApplication) getNodeSigningPublicKey(param []byte) types.Response
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 type GetNodeEncryptionPublicKeyParam struct {
@@ -239,30 +239,30 @@ type GetNodeEncryptionPublicKeyParam struct {
 
 type GetNodeEncryptionPublicKeyResult NodeKey
 
-func (app *ABCIApplication) getNodeEncryptionPublicKey(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodeEncryptionPublicKey(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeEncryptionPublicKey, Parameter: %s", param)
 	var funcParam GetNodeEncryptionPublicKeyParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var res NodeKey
 	if value == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(valueJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	res = NodeKey{
 		PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
@@ -274,9 +274,9 @@ func (app *ABCIApplication) getNodeEncryptionPublicKey(param []byte) types.Respo
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(valueJSON, "success", app.state.Height)
+	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 func (app *ABCIApplication) getNodeNameByNodeID(nodeID string) string {
@@ -328,12 +328,12 @@ type MsqDestinationNode struct {
 	IsIdpAgent                             bool     `json:"agent"`
 }
 
-func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodes(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetIdpNodes, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// fetch Filter RP node detail
@@ -342,14 +342,14 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForNodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if nodeDetailValue == nil {
-			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+			return app.NewResponseQuery(nil, "Filter RP does not exists", app.state.Height)
 		}
 		nodeToFilterForDetail = &data.NodeDetail{}
 		if err := proto.Unmarshal(nodeDetailValue, nodeToFilterForDetail); err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 	}
 
@@ -436,13 +436,13 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 		// fetch every idp nodes from IdPList
 		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if idpsValue != nil {
 			var idpsList data.IdPList
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			returnNodes.Node = make([]MsqDestinationNode, 0, len(idpsList.NodeId))
 			for _, idp := range idpsList.NodeId {
@@ -460,25 +460,25 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 			refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			if refGroupCodeFromDB == nil {
-				return app.ReturnQuery(nil, "not found", app.state.Height)
+				return app.NewResponseQuery(nil, "not found", app.state.Height)
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
 		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 		refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if refGroupValue == nil {
-			return app.ReturnQuery(nil, "not found", app.state.Height)
+			return app.NewResponseQuery(nil, "not found", app.state.Height)
 		}
 		var refGroup data.ReferenceGroup
 		err = proto.Unmarshal(refGroupValue, &refGroup)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		returnNodes.Node = make([]MsqDestinationNode, 0, len(refGroup.Idps))
 		for _, idp := range refGroup.Idps {
@@ -524,12 +524,12 @@ func (app *ABCIApplication) getIdpNodes(param []byte) types.ResponseQuery {
 
 	value, err := json.Marshal(returnNodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(returnNodes.Node) == 0 {
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }
 
 type GetAsNodesByServiceIdParam struct {
@@ -562,17 +562,17 @@ type ASNodeResult struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) getAsNodesByServiceId(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesByServiceId(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAsNodesByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	if value == nil {
@@ -580,45 +580,45 @@ func (app *ABCIApplication) getAsNodesByServiceId(param []byte) types.ResponseQu
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 
 	// filter serive is active
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if service.Active == false {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "service is not active", app.state.Height)
+		return app.NewResponseQuery(value, "service is not active", app.state.Height)
 	}
 
 	var storedData data.ServiceDesList
 	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	var result GetAsNodesByServiceIdWithNameResult
@@ -677,12 +677,12 @@ func (app *ABCIApplication) getAsNodesByServiceId(param []byte) types.ResponseQu
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Node) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type GetMqAddressesParam struct {
@@ -691,26 +691,26 @@ type GetMqAddressesParam struct {
 
 type GetMqAddressesResult []MsqAddress
 
-func (app *ABCIApplication) getMqAddresses(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getMqAddresses(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetMqAddresses, Parameter: %s", param)
 	var funcParam GetMqAddressesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal(value, &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		value = []byte("[]")
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	var result GetMqAddressesResult
 	for _, msq := range nodeDetail.Mq {
@@ -721,12 +721,12 @@ func (app *ABCIApplication) getMqAddresses(param []byte) types.ResponseQuery {
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type UpdateNodeParam struct {
@@ -788,49 +788,49 @@ func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, caller
 	return nil
 }
 
-func (app *ABCIApplication) updateNodeCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateNodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateNode(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateNode, Parameter: %s", param)
 	var funcParam UpdateNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateNode(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	key := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(value), &nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	// update MasterPublicKey
 	if funcParam.SigningMasterPublicKey != "" {
@@ -843,7 +843,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 		nodeDetail.SigningMasterPublicKey.Active = false
 		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -864,7 +864,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 				strconv.FormatInt(nodeDetail.SigningMasterPublicKey.Version, 10)
 		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningMasterPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 	}
@@ -879,7 +879,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 		nodeDetail.SigningPublicKey.Active = false
 		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -900,7 +900,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 				strconv.FormatInt(nodeDetail.SigningPublicKey.Version, 10)
 		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.SigningPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 	}
@@ -915,7 +915,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 		nodeDetail.EncryptionPublicKey.Active = false
 		nodeKeyValue, err := utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 
@@ -936,7 +936,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 				strconv.FormatInt(nodeDetail.EncryptionPublicKey.Version, 10)
 		nodeKeyValue, err = utils.ProtoDeterministicMarshal(nodeDetail.EncryptionPublicKey)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 		}
 		app.state.Set([]byte(nodeKeyKey), []byte(nodeKeyValue))
 	}
@@ -946,11 +946,11 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) types.
 	}
 	nodeDetailValue, err := utils.ProtoDeterministicMarshal(&nodeDetail)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(key), []byte(nodeDetailValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type GetNodeInfoParam struct {
@@ -998,26 +998,26 @@ type ProxyNodeInfo struct {
 	Config                 string       `json:"config"`
 }
 
-func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodeInfo(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeInfo, Parameter: %s", param)
 	var funcParam GetNodeInfoParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if nodeDetailValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 	var nodeDetail data.NodeDetail
 	err = proto.Unmarshal([]byte(nodeDetailValue), &nodeDetail)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	result := GetNodeInfoResult{
@@ -1063,15 +1063,15 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 		proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 		proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if proxyNodeDetailValue == nil {
-			return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+			return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 		}
 		var proxyNode data.NodeDetail
 		err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		proxy := ProxyNodeInfo{
@@ -1134,9 +1134,9 @@ func (app *ABCIApplication) getNodeInfo(param []byte) types.ResponseQuery {
 
 	value, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }
 
 type GetIdpNodesInfoResult struct {
@@ -1169,12 +1169,12 @@ type IdpNodeProxy struct {
 	Config              string       `json:"config"`
 }
 
-func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getIdpNodesInfo(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetIdpNodesInfo, Parameter: %s", param)
 	var funcParam GetIdpNodesParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// fetch Filter RP node detail
@@ -1183,14 +1183,14 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + *funcParam.FilterForNodeID
 		nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if nodeDetailValue == nil {
-			return app.ReturnQuery(nil, "Filter RP does not exists", app.state.Height)
+			return app.NewResponseQuery(nil, "Filter RP does not exists", app.state.Height)
 		}
 		nodeToFilterForDetail = &data.NodeDetail{}
 		if err := proto.Unmarshal(nodeDetailValue, nodeToFilterForDetail); err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 	}
 
@@ -1359,11 +1359,11 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 		var idpsList data.IdPList
 		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if idpsValue != nil {
 			if err := proto.Unmarshal(idpsValue, &idpsList); err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			returnNodes.Node = make([]IdpNode, 0, len(idpsList.NodeId))
 			for _, idp := range idpsList.NodeId {
@@ -1380,25 +1380,25 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 			identityToRefCodeKey := identityToRefCodeKeyPrefix + keySeparator + funcParam.IdentityNamespace + keySeparator + funcParam.IdentityIdentifierHash
 			refGroupCodeFromDB, err := app.state.Get([]byte(identityToRefCodeKey), true)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			if refGroupCodeFromDB == nil {
-				return app.ReturnQuery(nil, "not found", app.state.Height)
+				return app.NewResponseQuery(nil, "not found", app.state.Height)
 			}
 			refGroupCode = string(refGroupCodeFromDB)
 		}
 		refGroupKey := refGroupCodeKeyPrefix + keySeparator + string(refGroupCode)
 		refGroupValue, err := app.state.Get([]byte(refGroupKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if refGroupValue == nil {
-			return app.ReturnQuery(nil, "not found", app.state.Height)
+			return app.NewResponseQuery(nil, "not found", app.state.Height)
 		}
 		var refGroup data.ReferenceGroup
 		err = proto.Unmarshal(refGroupValue, &refGroup)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		for _, idp := range refGroup.Idps {
 			// check IdP has Association with Identity
@@ -1436,12 +1436,12 @@ func (app *ABCIApplication) getIdpNodesInfo(param []byte) types.ResponseQuery {
 	}
 	value, err := json.Marshal(returnNodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(returnNodes.Node) == 0 {
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(value, "success", app.state.Height)
+	return app.NewResponseQuery(value, "success", app.state.Height)
 }
 
 type GetAsNodesInfoByServiceIdResult struct {
@@ -1476,60 +1476,60 @@ type ASWithMqNodeBehindProxy struct {
 	} `json:"proxy"`
 }
 
-func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetAsNodesInfoByServiceId, Parameter: %s", param)
 	var funcParam GetAsNodesByServiceIdParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	key := serviceDestinationKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if value == nil {
 		var result GetAsNodesInfoByServiceIdResult
 		result.Node = make([]interface{}, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	// filter serive is active
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if serviceValue == nil {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "not found", app.state.Height)
+		return app.NewResponseQuery(value, "not found", app.state.Height)
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if service.Active == false {
 		var result GetAsNodesByServiceIdResult
 		result.Node = make([]ASNode, 0)
 		value, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(value, "service is not active", app.state.Height)
+		return app.NewResponseQuery(value, "service is not active", app.state.Height)
 	}
 	var storedData data.ServiceDesList
 	err = proto.Unmarshal([]byte(value), &storedData)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	// Make mapping
 	mapNodeIDList := map[string]bool{}
@@ -1590,15 +1590,15 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.Respon
 			proxyNodeDetailKey := nodeIDKeyPrefix + keySeparator + string(proxyNodeID)
 			proxyNodeDetailValue, err := app.state.Get([]byte(proxyNodeDetailKey), true)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			if proxyNodeDetailValue == nil {
-				return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+				return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 			}
 			var proxyNode data.NodeDetail
 			err = proto.Unmarshal([]byte(proxyNodeDetailValue), &proxyNode)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			// Check proxy node is active
 			if !proxyNode.Active {
@@ -1690,9 +1690,9 @@ func (app *ABCIApplication) getAsNodesInfoByServiceId(param []byte) types.Respon
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type GetNodesBehindProxyNodeParam struct {
@@ -1729,32 +1729,32 @@ type ASorRPBehindProxy struct {
 	Config                 string   `json:"config"`
 }
 
-func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodesBehindProxyNode, Parameter: %s", param)
 	var funcParam GetNodesBehindProxyNodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetNodesBehindProxyNodeResult
 	result.Nodes = make([]interface{}, 0)
 	behindProxyNodeKey := "BehindProxyNode" + keySeparator + funcParam.ProxyNodeID
 	behindProxyNodeValue, err := app.state.Get([]byte(behindProxyNodeKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if behindProxyNodeValue == nil {
 		resultJSON, err := json.Marshal(result)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
 	var nodes data.BehindNodeList
 	nodes.Nodes = make([]string, 0)
 	err = proto.Unmarshal([]byte(behindProxyNodeValue), &nodes)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for _, node := range nodes.Nodes {
 		nodeDetailKey := nodeIDKeyPrefix + keySeparator + node
@@ -1849,12 +1849,12 @@ func (app *ABCIApplication) getNodesBehindProxyNode(param []byte) types.Response
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.Nodes) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type GetNodeIDListParam struct {
@@ -1865,12 +1865,12 @@ type GetNodeIDListResult struct {
 	NodeIDList []string `json:"node_id_list"`
 }
 
-func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodeIDList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodeIDList, Parameter: %s", param)
 	var funcParam GetNodeIDListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	var result GetNodeIDListResult
 	result.NodeIDList = make([]string, 0)
@@ -1879,18 +1879,18 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 		rpsKey := "rpList"
 		rpsValue, err := app.state.Get([]byte(rpsKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if rpsValue != nil {
 			err := proto.Unmarshal(rpsValue, &rpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range rpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
+					return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 				}
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
@@ -1908,18 +1908,18 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 		var idpsList data.IdPList
 		idpsValue, err := app.state.Get(idpListKeyBytes, true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if idpsValue != nil {
 			err := proto.Unmarshal(idpsValue, &idpsList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range idpsList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
+					return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 				}
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
@@ -1938,18 +1938,18 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 		asKey := "asList"
 		asValue, err := app.state.Get([]byte(asKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if asValue != nil {
 			err := proto.Unmarshal(asValue, &asList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range asList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
+					return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 				}
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
@@ -1968,18 +1968,18 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 		allKey := "allList"
 		allValue, err := app.state.Get([]byte(allKey), true)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		if allValue != nil {
 			err := proto.Unmarshal(allValue, &allList)
 			if err != nil {
-				return app.ReturnQuery(nil, err.Error(), app.state.Height)
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 			}
 			for _, nodeID := range allList.NodeId {
 				nodeDetailKey := nodeIDKeyPrefix + keySeparator + nodeID
 				nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 				if err != nil {
-					return app.ReturnQuery(nil, err.Error(), app.state.Height)
+					return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 				}
 				if nodeDetailValue != nil {
 					var nodeDetail data.NodeDetail
@@ -1996,12 +1996,12 @@ func (app *ABCIApplication) getNodeIDList(param []byte) types.ResponseQuery {
 	}
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if len(result.NodeIDList) == 0 {
-		return app.ReturnQuery(resultJSON, "not found", app.state.Height)
+		return app.NewResponseQuery(resultJSON, "not found", app.state.Height)
 	}
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }
 
 type getNodePublicKeyListParam struct {
@@ -2014,22 +2014,22 @@ type getNodePublicKeyListResult struct {
 	EncryptionPublicKeyList    []NodeKey `json:"encryption_public_key_list"`
 }
 
-func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQuery {
+func (app *ABCIApplication) getNodePublicKeyList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetNodePublicKeyList, Parameter: %s", param)
 	var funcParam getNodePublicKeyListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	// check node ID exists
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), true)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	if nodeDetailValue == nil {
-		return app.ReturnQuery([]byte("{}"), "not found", app.state.Height)
+		return app.NewResponseQuery([]byte("{}"), "not found", app.state.Height)
 	}
 
 	// signing public keys
@@ -2042,7 +2042,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 	r := goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for ; iter.Valid(); iter.Next() {
 		value := iter.Value()
@@ -2050,7 +2050,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 		var nodeKey data.NodeKey
 		err = proto.Unmarshal(value, &nodeKey)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		retValNodeKey := NodeKey{
@@ -2076,7 +2076,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 	r = goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
 	iter, err = app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for ; iter.Valid(); iter.Next() {
 		value := iter.Value()
@@ -2084,7 +2084,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 		var nodeKey data.NodeKey
 		err = proto.Unmarshal(value, &nodeKey)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		retValNodeKey := NodeKey{
@@ -2110,7 +2110,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 	r = goleveldbutil.BytesPrefix([]byte(nodeKeyKeyIteratorPrefix))
 	iter, err = app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 	for ; iter.Valid(); iter.Next() {
 		value := iter.Value()
@@ -2118,7 +2118,7 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 		var nodeKey data.NodeKey
 		err = proto.Unmarshal(value, &nodeKey)
 		if err != nil {
-			return app.ReturnQuery(nil, err.Error(), app.state.Height)
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		retValNodeKey := NodeKey{
@@ -2142,8 +2142,8 @@ func (app *ABCIApplication) getNodePublicKeyList(param []byte) types.ResponseQue
 
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		return app.ReturnQuery(nil, err.Error(), app.state.Height)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	return app.ReturnQuery(resultJSON, "success", app.state.Height)
+	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
 }

@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
@@ -273,49 +273,49 @@ func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseP
 	return nil
 }
 
-func (app *ABCIApplication) createAsResponseCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) createAsResponseCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam CreateAsResponseParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateCreateAsResponse(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) createAsResponse(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) createAsResponse(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("CreateAsResponse, Parameter: %s", param)
 	var funcParam CreateAsResponseParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateCreateAsResponse(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var request data.Request
 	err = proto.Unmarshal([]byte(requestValue), &request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	var signDataKey string
@@ -347,16 +347,16 @@ func (app *ABCIApplication) createAsResponse(param []byte, callerNodeID string) 
 
 	requestValue, err = utils.ProtoDeterministicMarshal(&request)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	err = app.state.SetVersioned([]byte(requestKey), []byte(requestValue))
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	if funcParam.ErrorCode == nil {
 		app.state.Set([]byte(signDataKey), []byte(signDataValue))
 	}
 
-	return app.ReturnDeliverTxLog(code.OK, "success", funcParam.RequestID)
+	return app.NewExecTxResult(code.OK, "success", funcParam.RequestID)
 }

@@ -25,7 +25,7 @@ package app
 import (
 	"encoding/json"
 
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
 	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
@@ -71,38 +71,38 @@ func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, caller
 	return nil
 }
 
-func (app *ABCIApplication) addServiceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) addServiceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam AddServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateAddService(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addService(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) addService(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("AddService, Parameter: %s", param)
 	var funcParam AddServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateAddService(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -115,24 +115,24 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) types.
 	service.DataSchemaVersion = funcParam.DataSchemaVersion
 	serviceValue, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	// Add detail to service directory
 	allServiceKey := "AllService"
 	allServiceValue, err := app.state.Get([]byte(allServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 		// Check duplicate service
 		for _, service := range services.Services {
 			if service.ServiceId == funcParam.ServiceID {
-				return app.ReturnDeliverTxLog(code.DuplicateServiceID, "Duplicate service ID", "")
+				return app.NewExecTxResult(code.DuplicateServiceID, "Duplicate service ID", "")
 			}
 		}
 	}
@@ -143,13 +143,13 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) types.
 	services.Services = append(services.Services, &newService)
 	allServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	app.state.Set([]byte(allServiceKey), []byte(allServiceValue))
 	app.state.Set([]byte(serviceKey), []byte(serviceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type EnableServiceParam struct {
@@ -186,55 +186,55 @@ func (app *ABCIApplication) validateEnableService(funcParam EnableServiceParam, 
 	return nil
 }
 
-func (app *ABCIApplication) enableServiceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) enableServiceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam EnableServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateEnableService(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableService(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableService(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("EnableService, Parameter: %s", param)
 	var funcParam EnableServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateEnableService(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
 	allServiceValue, err := app.state.Get([]byte(allServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var services data.ServiceDetailList
 	err = proto.Unmarshal([]byte(allServiceValue), &services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	for index, service := range services.Services {
 		if service.ServiceId == funcParam.ServiceID {
@@ -245,21 +245,21 @@ func (app *ABCIApplication) enableService(param []byte, callerNodeID string) typ
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	service.Active = true
 	allServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	serviceValue, err = utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(serviceKey), []byte(serviceValue))
 	app.state.Set([]byte(allServiceKey), []byte(allServiceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type DisableServiceParam struct {
@@ -296,58 +296,58 @@ func (app *ABCIApplication) validateDisableService(funcParam DisableServiceParam
 	return nil
 }
 
-func (app *ABCIApplication) disableServiceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) disableServiceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam DisableServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateDisableService(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableService(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableService(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("DisableService, Parameter: %s", param)
 	var funcParam DisableServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateDisableService(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Delete detail in service directory
 	allServiceKey := "AllService"
 	allServiceValue, err := app.state.Get([]byte(allServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var services data.ServiceDetailList
 	if allServiceValue == nil {
-		return app.ReturnDeliverTxLog(code.ServiceIDNotFound, "List of Service not found", "")
+		return app.NewExecTxResult(code.ServiceIDNotFound, "List of Service not found", "")
 	}
 	err = proto.Unmarshal([]byte(allServiceValue), &services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	for index, service := range services.Services {
 		if service.ServiceId == funcParam.ServiceID {
@@ -358,21 +358,21 @@ func (app *ABCIApplication) disableService(param []byte, callerNodeID string) ty
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	service.Active = false
 	allServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	serviceValue, err = utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(serviceKey), []byte(serviceValue))
 	app.state.Set([]byte(allServiceKey), []byte(allServiceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type UpdateServiceParam struct {
@@ -412,50 +412,50 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 	return nil
 }
 
-func (app *ABCIApplication) updateServiceCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) updateServiceCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam UpdateServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateUpdateService(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) updateService(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) updateService(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("UpdateService, Parameter: %s", param)
 	var funcParam UpdateServiceParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateUpdateService(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	// Update service
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	if funcParam.ServiceName != "" {
 		service.ServiceName = funcParam.ServiceName
@@ -470,13 +470,13 @@ func (app *ABCIApplication) updateService(param []byte, callerNodeID string) typ
 	allServiceKey := "AllService"
 	allServiceValue, err := app.state.Get([]byte(allServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var services data.ServiceDetailList
 	if allServiceValue != nil {
 		err = proto.Unmarshal([]byte(allServiceValue), &services)
 		if err != nil {
-			return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+			return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 		}
 		// Update service
 		for index, service := range services.Services {
@@ -489,17 +489,17 @@ func (app *ABCIApplication) updateService(param []byte, callerNodeID string) typ
 	}
 	serviceValue, err = utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 
 	allServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(allServiceKey), []byte(allServiceValue))
 	app.state.Set([]byte(serviceKey), []byte(serviceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type RegisterServiceDestinationByNDIDParam struct {
@@ -568,61 +568,61 @@ func (app *ABCIApplication) validateRegisterServiceDestinationByNDID(funcParam R
 	return nil
 }
 
-func (app *ABCIApplication) registerServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) registerServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam RegisterServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) registerServiceDestinationByNDID(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) registerServiceDestinationByNDID(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("RegisterServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam RegisterServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var service data.ServiceDetail
 	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	var approveService data.ApproveService
 	approveService.Active = true
 	approveServiceValue, err := utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(approveServiceKey), []byte(approveServiceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type DisableServiceDestinationByNDIDParam struct {
@@ -706,58 +706,58 @@ func (app *ABCIApplication) validateDisableServiceDestinationByNDID(funcParam Di
 	return nil
 }
 
-func (app *ABCIApplication) disableServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) disableServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableServiceDestinationByNDID(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) disableServiceDestinationByNDID(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("DisableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam DisableServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	approveServiceJSON, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var approveService data.ApproveService
 	err = proto.Unmarshal([]byte(approveServiceJSON), &approveService)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = false
 	approveServiceJSON, err = utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(approveServiceKey), []byte(approveServiceJSON))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }
 
 type EnableServiceDestinationByNDIDParam struct {
@@ -841,56 +841,56 @@ func (app *ABCIApplication) validateEnableServiceDestinationByNDID(funcParam Ena
 	return nil
 }
 
-func (app *ABCIApplication) enableServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) types.ResponseCheckTx {
+func (app *ABCIApplication) enableServiceDestinationByNDIDCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
 	var funcParam EnableServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return ReturnCheckTx(code.UnmarshalError, err.Error())
+		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
 	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return ReturnCheckTx(appErr.Code, appErr.Message)
+			return NewResponseCheckTx(appErr.Code, appErr.Message)
 		}
-		return ReturnCheckTx(code.UnknownError, err.Error())
+		return NewResponseCheckTx(code.UnknownError, err.Error())
 	}
 
-	return ReturnCheckTx(code.OK, "")
+	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableServiceDestinationByNDID(param []byte, callerNodeID string) types.ResponseDeliverTx {
+func (app *ABCIApplication) enableServiceDestinationByNDID(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
 	app.logger.Infof("EnableServiceDestinationByNDID, Parameter: %s", param)
 	var funcParam EnableServiceDestinationByNDIDParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
 	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
-			return app.ReturnDeliverTxLog(appErr.Code, appErr.Message, "")
+			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
 		}
-		return app.ReturnDeliverTxLog(code.UnknownError, err.Error(), "")
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
 	approveServiceKey := approvedServiceKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	approveServiceValue, err := app.state.Get([]byte(approveServiceKey), false)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.AppStateError, err.Error(), "")
+		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
 	var approveService data.ApproveService
 	err = proto.Unmarshal([]byte(approveServiceValue), &approveService)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.UnmarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 	approveService.Active = true
 	approveServiceValue, err = utils.ProtoDeterministicMarshal(&approveService)
 	if err != nil {
-		return app.ReturnDeliverTxLog(code.MarshalError, err.Error(), "")
+		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
 	app.state.Set([]byte(approveServiceKey), []byte(approveServiceValue))
 
-	return app.ReturnDeliverTxLog(code.OK, "success", "")
+	return app.NewExecTxResult(code.OK, "success", "")
 }

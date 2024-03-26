@@ -23,15 +23,15 @@
 package app
 
 import (
-	"github.com/tendermint/tendermint/abci/types"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/ndidplatform/smart-contract/v9/abci/code"
 )
 
-// ReturnQuery return types.ResponseQuery
-func (app *ABCIApplication) ReturnQuery(value []byte, log string, height int64) types.ResponseQuery {
+// NewResponseQuery returns *abcitypes.ResponseQuery
+func (app *ABCIApplication) NewResponseQuery(value []byte, log string, height int64) *abcitypes.ResponseQuery {
 	app.logger.Infof("Query result: %s", string(value))
-	var res types.ResponseQuery
+	var res *abcitypes.ResponseQuery = &abcitypes.ResponseQuery{}
 	res.Value = value
 	res.Log = log
 	res.Height = height
@@ -39,12 +39,12 @@ func (app *ABCIApplication) ReturnQuery(value []byte, log string, height int64) 
 }
 
 // QueryRouter is Pointer to function
-func (app *ABCIApplication) QueryRouter(method string, param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) QueryRouter(method string, param []byte, height int64) *abcitypes.ResponseQuery {
 	result := app.callQuery(method, param, height)
 	return result
 }
 
-func (app *ABCIApplication) callQuery(name string, param []byte, height int64) types.ResponseQuery {
+func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *abcitypes.ResponseQuery {
 	switch name {
 	case "GetNodeSigningPublicKey":
 		return app.getNodeSigningPublicKey(param)
@@ -135,6 +135,6 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) t
 	case "GetAllowedNodeSupportedFeatureList":
 		return app.getAllowedNodeSupportedFeatureList(param, height)
 	default:
-		return types.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
+		return &abcitypes.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
 }
