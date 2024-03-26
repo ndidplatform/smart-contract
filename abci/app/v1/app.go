@@ -428,8 +428,8 @@ func (app *ABCIApplication) Commit(commit *abcitypes.RequestCommit) (*abcitypes.
 	startTime := time.Now()
 	app.logger.Infof("Commit")
 
-	app.state.Save()
 	app.state.Height = app.state.Height + 1
+	app.state.Save()
 	dbSaveDuration := time.Since(startTime)
 	go recordDBSaveDurationMetrics(dbSaveDuration)
 
