@@ -99,7 +99,7 @@ func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, ca
 	}
 
 	// validate ed25519 public key
-	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
+	pubKey, err := base64.StdEncoding.DecodeString(funcParam.PublicKey)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.DecodingError,
@@ -158,7 +158,7 @@ func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
+	pubKey, err := base64.StdEncoding.DecodeString(funcParam.PublicKey)
 	if err != nil {
 		return app.NewExecTxResult(code.DecodingError, err.Error(), "")
 	}
