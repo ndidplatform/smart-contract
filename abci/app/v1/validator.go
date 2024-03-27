@@ -98,6 +98,29 @@ func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, ca
 		}
 	}
 
+	// validate ed25519 public key
+	pubKey, err := base64.StdEncoding.DecodeString(string(funcParam.PublicKey))
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.DecodingError,
+			Message: err.Error(),
+		}
+	}
+	if len(pubKey) != ed25519.PubKeySize {
+		err = fmt.Errorf("invalid Ed25519 public key size. Got %d, expected %d", len(pubKey), ed25519.PubKeySize)
+		return &ApplicationError{
+			Code:    code.InvalidValidatorPublicKey,
+			Message: err.Error(),
+		}
+	}
+
+	if funcParam.Power < 0 {
+		return &ApplicationError{
+			Code:    code.InvalidValidatorVotingPower,
+			Message: "voting power can't be negative",
+		}
+	}
+
 	return nil
 }
 

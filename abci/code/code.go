@@ -152,6 +152,8 @@ const (
 	UnsupportedSigningAlgorithm                                   uint32 = 128
 	NodeSupportedFeatureAlreadyExists                             uint32 = 129
 	NodeSupportedFeatureDoesNotExist                              uint32 = 130
+	InvalidValidatorVotingPower                                   uint32 = 131
+	InvalidValidatorPublicKey                                     uint32 = 132
 
 	UnknownError uint32 = 999
 )
