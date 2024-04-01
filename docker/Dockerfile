@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine3.18 as builder
+FROM golang:1.22-alpine3.19 as builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
@@ -33,14 +33,14 @@ RUN go build \
     ./abci
 
 
-FROM alpine:3.18
+FROM alpine:3.19
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 
 # Data directory for ABCI to store state.
 ENV ABCI_DB_DIR_PATH=/DID
 
-# The /tendermint/data dir is used by tendermint to store state.
-ENV TMHOME /tendermint
+# The /tendermint/data dir is used by CometBFT/Tendermint to store state.
+ENV CMTHOME /tendermint
 
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
