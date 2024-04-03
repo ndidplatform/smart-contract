@@ -1,9 +1,11 @@
 # Changelog
 
-## TBD
+## 9.0.0 (TBD)
 
 BREAKING CHANGES:
 
+- Add and refactor all function/method validations on CheckTx
+  - Prevent transactions with invalid input/parameters/state to be included in blocks
 - Change transaction data format for signature.
 - Change node detail public key data type. Store key version and other metadata.
 - Save all node public key versions.
@@ -33,22 +35,11 @@ FEATURES:
 IMPROVEMENTS:
 
 - CometBFT v0.38.6.
+- Support Tendermint block pruning by setting environment variable `TENDERMINT_RETAIN_BLOCK_COUNT` which indicates number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
 
 BUG FIXES:
 
 - Check duplicate accessor ID on `RegisterIdentity`
-
-## 9.0.0 (TBD)
-
-BREAKING CHANGES:
-
-- Add and refactor all function/method validations on CheckTx
-  - Prevent transactions with invalid input/parameters/state to be included in blocks
-
-IMPROVEMENTS:
-
-- Tendermint v0.34.24.
-- Support Tendermint block pruning by setting environment variable `TENDERMINT_RETAIN_BLOCK_COUNT` which indicates number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
 
 ## 8.0.0 (August 11, 2022)
 
