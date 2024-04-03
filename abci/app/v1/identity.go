@@ -428,6 +428,8 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 	accessor.AccessorPublicKey = user.AccessorPublicKey
 	accessor.Active = true
 	accessor.Owner = callerNodeID
+	accessor.CreationBlockHeight = app.state.CurrentBlockHeight
+	accessor.CreationChainId = app.CurrentChain
 	var idp data.IdPInRefGroup
 	idp.NodeId = callerNodeID
 	idp.Mode = append(idp.Mode, user.ModeList...)
@@ -1615,6 +1617,8 @@ func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) *abci
 	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
 	accessor.Active = true
 	accessor.Owner = callerNodeID
+	accessor.CreationBlockHeight = app.state.CurrentBlockHeight
+	accessor.CreationChainId = app.CurrentChain
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == callerNodeID {
 			idp.Accessors = append(idp.Accessors, &accessor)
@@ -2076,6 +2080,8 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID stri
 	accessor.AccessorPublicKey = funcParam.AccessorPublicKey
 	accessor.Active = true
 	accessor.Owner = callerNodeID
+	accessor.CreationBlockHeight = app.state.CurrentBlockHeight
+	accessor.CreationChainId = app.CurrentChain
 	for _, idp := range refGroup.Idps {
 		if idp.NodeId == callerNodeID {
 			idp.Accessors = append(idp.Accessors, &accessor)
@@ -2184,8 +2190,12 @@ type GetAccessorKeyParam struct {
 }
 
 type GetAccessorKeyResult struct {
-	AccessorPublicKey string `json:"accessor_public_key"`
-	Active            bool   `json:"active"`
+	AccessorPublicKey   string `json:"accessor_public_key"`
+	AccessorType        string `json:"accessor_type"`
+	Active              bool   `json:"active"`
+	OwnerNodeID         string `json:"owner_node_id"`
+	CreationBlockHeight int64  `json:"creation_block_height"`
+	CreationChainID     string `json:"creation_chain_id"`
 }
 
 func (app *ABCIApplication) getAccessorKey(param []byte) *abcitypes.ResponseQuery {
@@ -2222,7 +2232,11 @@ func (app *ABCIApplication) getAccessorKey(param []byte) *abcitypes.ResponseQuer
 		for _, accessor := range idp.Accessors {
 			if accessor.AccessorId == funcParam.AccessorID {
 				result.AccessorPublicKey = accessor.AccessorPublicKey
+				result.AccessorType = accessor.AccessorType
 				result.Active = accessor.Active
+				result.OwnerNodeID = accessor.Owner
+				result.CreationBlockHeight = accessor.CreationBlockHeight
+				result.CreationChainID = accessor.CreationChainId
 				break
 			}
 		}

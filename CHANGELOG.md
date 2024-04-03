@@ -15,6 +15,7 @@ BREAKING CHANGES:
 - [Query] Remove `GetNodeMasterPublicKey` method.
 - Remove `on_the_fly_support` flag from (IdP) node property
 - Add `supported_feature_list` to node property
+- Add creation block height and creation chain ID to accessor state data
 
 FEATURES:
 
@@ -36,6 +37,7 @@ IMPROVEMENTS:
 
 - CometBFT v0.38.6.
 - Support Tendermint block pruning by setting environment variable `TENDERMINT_RETAIN_BLOCK_COUNT` which indicates number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
+- [Query] Add `accessor_type`, `owner_node_id`, `creation_block_height`, and `creation_chain_id` properties to result of `GetAccessorKey`.
 
 BUG FIXES:
 

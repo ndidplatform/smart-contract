@@ -154,12 +154,14 @@ message Report {
   string data = 3;
 }
 
-message Accessor  {
+message Accessor {
   string accessor_id = 1;
   string accessor_type = 2;
   string accessor_public_key = 3;
   bool active = 4;
   string owner = 5;
+  int64 creation_block_height = 6;
+  string creation_chain_id = 7;
 }
 
 message MsqDesList {
