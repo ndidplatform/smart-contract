@@ -2,7 +2,7 @@ version: '3'
 services:
 
   # genesis node
-  tm-ndid:
+  tm-1:
     image: ndidplatform/did-tendermint:latest
     environment:
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
@@ -22,10 +22,10 @@ services:
       - ndidplatform
 
   # secondary nodes
-  tm-idp:
+  tm-2:
     image: ndidplatform/did-tendermint:latest
     environment:
-      - SEED_HOSTNAME=tm-ndid
+      - SEED_HOSTNAME=tm-1
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
     entrypoint: /usr/bin/start-node.sh
     command: 
@@ -42,11 +42,11 @@ services:
     networks:
       - ndidplatform
     depends_on:
-      - tm-ndid
-  tm-rp:
+      - tm-1
+  tm-3:
     image: ndidplatform/did-tendermint:latest
     environment:
-      - SEED_HOSTNAME=tm-ndid
+      - SEED_HOSTNAME=tm-1
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
     entrypoint: /usr/bin/start-node.sh
     command: 
@@ -63,11 +63,11 @@ services:
     networks:
       - ndidplatform
     depends_on:
-      - tm-ndid
-  tm-as:
+      - tm-1
+  tm-4:
     image: ndidplatform/did-tendermint:latest
     environment:
-      - SEED_HOSTNAME=tm-ndid
+      - SEED_HOSTNAME=tm-1
       - TM_RPC_PORT=${TM_RPC_PORT:-45000}
     entrypoint: /usr/bin/start-node.sh
     command: 
@@ -84,7 +84,7 @@ services:
     networks:
       - ndidplatform
     depends_on:
-      - tm-ndid
+      - tm-1
 
 networks:
   ndidplatform:

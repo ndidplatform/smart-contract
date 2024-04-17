@@ -8,7 +8,7 @@ if ! which jq || ! which curl; then
   rm -rf /var/cache/apk
 fi
 
-TMHOME=${TMHOME:-/tendermint}
+CMTHOME=${CMTHOME:-/tendermint}
 TM_RPC_PORT=${TM_RPC_PORT:-45000}
 TM_P2P_PORT=${TM_P2P_PORT:-47000}
 ABCI_PORT=${ABCI_PORT:-46000}
@@ -32,23 +32,23 @@ usage() {
 
 tendermint_init() {
   echo "Initializing tendermint..."
-  did-tendermint --home=${TMHOME} init validator
+  did-tendermint --home=${CMTHOME} init validator
 }
 
 tendermint_reset() {
   echo "Resetting tendermint..."
-  did-tendermint --home=${TMHOME} unsafe-reset-all
+  did-tendermint --home=${CMTHOME} unsafe-reset-all
 }
 
 tendermint_get_genesis_from_seed() {
-  curl -s http://${SEED_HOSTNAME}:${SEED_RPC_PORT}/genesis | jq -r .result.genesis > ${TMHOME}/config/genesis.json
+  curl -s http://${SEED_HOSTNAME}:${SEED_RPC_PORT}/genesis | jq -r .result.genesis > ${CMTHOME}/config/genesis.json
 }
 
 tendermint_get_id_from_seed() {
-  if [ ! -f ${TMHOME}/config/seed.host ]; then
-    curl -s http://${SEED_HOSTNAME}:${SEED_RPC_PORT}/status | jq -r .result.node_info.id | tee ${TMHOME}/config/seed.host
+  if [ ! -f ${CMTHOME}/config/seed.host ]; then
+    curl -s http://${SEED_HOSTNAME}:${SEED_RPC_PORT}/status | jq -r .result.node_info.id | tee ${CMTHOME}/config/seed.host
   else
-    cat ${TMHOME}/config/seed.host
+    cat ${CMTHOME}/config/seed.host
   fi
 }
 
@@ -61,44 +61,44 @@ tendermint_wait_for_sync_complete() {
 }
 
 tendermint_set_db_backend_cleveldb() {
-  sed -i -E "s/db_backend = .*$/db_backend = \\\"cleveldb\\\"/" ${TMHOME}/config/config.toml
+  sed -i -E "s/db_backend = .*$/db_backend = \\\"cleveldb\\\"/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_addr_book_strict() {
-  sed -i -E "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/addr_book_strict = (true|false)/addr_book_strict = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_create_empty_block() {
-  sed -i -E "s/create_empty_blocks = (true|false)/create_empty_blocks = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/create_empty_blocks = (true|false)/create_empty_blocks = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_create_empty_block_interval() {
-  sed -i -E "s/create_empty_blocks_interval = .*$/create_empty_blocks_interval = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/create_empty_blocks_interval = .*$/create_empty_blocks_interval = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_mempool_recheck() {
-  sed -i -E "s/recheck = (true|false)/recheck = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/recheck = (true|false)/recheck = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_config_for_prod() {
-  sed -i -E "s/flush_throttle_timeout = .*$/flush_throttle_timeout = \\\"10ms\\\"/" ${TMHOME}/config/config.toml
-  sed -i -E "s/max_packet_msg_payload_size = .*$/max_packet_msg_payload_size = 10240/" ${TMHOME}/config/config.toml # 10KB
-  sed -i -E "s/send_rate = .*$/send_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
-  sed -i -E "s/recv_rate = .*$/recv_rate = 20971520/" ${TMHOME}/config/config.toml # 20MB/s
+  sed -i -E "s/flush_throttle_timeout = .*$/flush_throttle_timeout = \\\"10ms\\\"/" ${CMTHOME}/config/config.toml
+  sed -i -E "s/max_packet_msg_payload_size = .*$/max_packet_msg_payload_size = 10240/" ${CMTHOME}/config/config.toml # 10KB
+  sed -i -E "s/send_rate = .*$/send_rate = 20971520/" ${CMTHOME}/config/config.toml # 20MB/s
+  sed -i -E "s/recv_rate = .*$/recv_rate = 20971520/" ${CMTHOME}/config/config.toml # 20MB/s
 }
 
 tendermint_set_skip_timeout_commit() {
-  sed -i -E "s/skip_timeout_commit = (true|false)/skip_timeout_commit = ${1}/" ${TMHOME}/config/config.toml
+  sed -i -E "s/skip_timeout_commit = (true|false)/skip_timeout_commit = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_seeds() {
-  sed -i -E "s/seeds = .*$/seeds = \\\"${1}\\\"/" ${TMHOME}/config/config.toml
+  sed -i -E "s/seeds = .*$/seeds = \\\"${1}\\\"/" ${CMTHOME}/config/config.toml
 }
 
 TYPE=${1}
 shift
 
-if [ ! -f ${TMHOME}/config/genesis.json ]; then
+if [ ! -f ${CMTHOME}/config/genesis.json ]; then
   case ${TYPE} in
     genesis) 
       tendermint_init
