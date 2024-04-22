@@ -36,7 +36,8 @@ type TimeOutBlockRegisterIdentity struct {
 	TimeOutBlock int64 `json:"time_out_block"`
 }
 
-func (app *ABCIApplication) validateSetTimeOutBlockRegisterIdentity(funcParam TimeOutBlockRegisterIdentity, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetTimeOutBlockRegisterIdentity(funcParam TimeOutBlockRegisterIdentity, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -58,7 +59,7 @@ func (app *ABCIApplication) setTimeOutBlockRegisterIdentityCheckTx(param []byte,
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, true)
+	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -77,7 +78,7 @@ func (app *ABCIApplication) setTimeOutBlockRegisterIdentity(param []byte, caller
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, false)
+	err = app.validateSetTimeOutBlockRegisterIdentity(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -104,7 +105,8 @@ type SetAllowedMinIalForRegisterIdentityAtFirstIdpParam struct {
 	MinIal float64 `json:"min_ial"`
 }
 
-func (app *ABCIApplication) validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam SetAllowedMinIalForRegisterIdentityAtFirstIdpParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -126,7 +128,7 @@ func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdpCheckTx
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, true)
+	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -145,7 +147,7 @@ func (app *ABCIApplication) setAllowedMinIalForRegisterIdentityAtFirstIdp(param 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, false)
+	err = app.validateSetAllowedMinIalForRegisterIdentityAtFirstIdp(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

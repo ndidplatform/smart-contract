@@ -43,8 +43,8 @@ type CreateIdpResponseParam struct {
 	ErrorCode *int32  `json:"error_code"`
 }
 
-func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpResponseParam, callerNodeID string, committedState bool) error {
-	// Check IAL and AAL with response node's MaxIal and MaxAal
+func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpResponseParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -75,6 +75,12 @@ func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpRespons
 			Message: "This node does not have permission to call IdP or IdP agent method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// get request
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
@@ -115,7 +121,7 @@ func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpRespons
 		}
 	}
 
-	// Check nodeID is exist in idp_id_list
+	// Check nodeID exists in idp_id_list
 	exist := false
 	for _, idpID := range request.IdpIdList {
 		if idpID == callerNodeID {
@@ -177,6 +183,7 @@ func (app *ABCIApplication) validateCreateIdpResponse(funcParam CreateIdpRespons
 			}
 		}
 
+		// Check IAL and AAL with response node's MaxIal and MaxAal
 		if funcParam.Aal > nodeDetail.MaxAal {
 			return &ApplicationError{
 				Code:    code.AALError,
@@ -217,7 +224,7 @@ func (app *ABCIApplication) createIdpResponseCheckTx(param []byte, callerNodeID 
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateCreateIdpResponse(funcParam, callerNodeID, true)
+	err = app.validateCreateIdpResponse(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -236,7 +243,7 @@ func (app *ABCIApplication) createIdpResponse(param []byte, callerNodeID string)
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateCreateIdpResponse(funcParam, callerNodeID, false)
+	err = app.validateCreateIdpResponse(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

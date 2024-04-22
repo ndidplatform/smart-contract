@@ -37,7 +37,8 @@ type SetSupportedIALListParam struct {
 	SupportedIALList []float64 `json:"supported_ial_list"`
 }
 
-func (app *ABCIApplication) validateSetSupportedIALList(funcParam SetSupportedIALListParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetSupportedIALList(funcParam SetSupportedIALListParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -59,7 +60,7 @@ func (app *ABCIApplication) setSupportedIALListCheckTx(param []byte, callerNodeI
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetSupportedIALList(funcParam, callerNodeID, true)
+	err = app.validateSetSupportedIALList(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -78,7 +79,7 @@ func (app *ABCIApplication) setSupportedIALList(param []byte, callerNodeID strin
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetSupportedIALList(funcParam, callerNodeID, false)
+	err = app.validateSetSupportedIALList(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

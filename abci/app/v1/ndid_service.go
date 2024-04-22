@@ -41,7 +41,8 @@ type AddServiceParam struct {
 	DataSchemaVersion string `json:"data_schema_version"`
 }
 
-func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -52,6 +53,12 @@ func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, caller
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -78,7 +85,7 @@ func (app *ABCIApplication) addServiceCheckTx(param []byte, callerNodeID string)
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddService(funcParam, callerNodeID, true)
+	err = app.validateAddService(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -97,7 +104,7 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) *abcit
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddService(funcParam, callerNodeID, false)
+	err = app.validateAddService(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -156,7 +163,8 @@ type EnableServiceParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateEnableService(funcParam EnableServiceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateEnableService(funcParam EnableServiceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -167,6 +175,12 @@ func (app *ABCIApplication) validateEnableService(funcParam EnableServiceParam, 
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -193,7 +207,7 @@ func (app *ABCIApplication) enableServiceCheckTx(param []byte, callerNodeID stri
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableService(funcParam, callerNodeID, true)
+	err = app.validateEnableService(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -212,7 +226,7 @@ func (app *ABCIApplication) enableService(param []byte, callerNodeID string) *ab
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableService(funcParam, callerNodeID, false)
+	err = app.validateEnableService(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -266,7 +280,8 @@ type DisableServiceParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateDisableService(funcParam DisableServiceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateDisableService(funcParam DisableServiceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -277,6 +292,12 @@ func (app *ABCIApplication) validateDisableService(funcParam DisableServiceParam
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -303,7 +324,7 @@ func (app *ABCIApplication) disableServiceCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableService(funcParam, callerNodeID, true)
+	err = app.validateDisableService(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -322,7 +343,7 @@ func (app *ABCIApplication) disableService(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableService(funcParam, callerNodeID, false)
+	err = app.validateDisableService(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -382,7 +403,8 @@ type UpdateServiceParam struct {
 	DataSchemaVersion string `json:"data_schema_version"`
 }
 
-func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -393,6 +415,12 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -419,7 +447,7 @@ func (app *ABCIApplication) updateServiceCheckTx(param []byte, callerNodeID stri
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateService(funcParam, callerNodeID, true)
+	err = app.validateUpdateService(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -438,7 +466,7 @@ func (app *ABCIApplication) updateService(param []byte, callerNodeID string) *ab
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateService(funcParam, callerNodeID, false)
+	err = app.validateUpdateService(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -507,7 +535,8 @@ type RegisterServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateRegisterServiceDestinationByNDID(funcParam RegisterServiceDestinationByNDIDParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRegisterServiceDestinationByNDID(funcParam RegisterServiceDestinationByNDIDParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -518,6 +547,12 @@ func (app *ABCIApplication) validateRegisterServiceDestinationByNDID(funcParam R
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -575,7 +610,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDIDCheckTx(param []byte
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, true)
+	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -594,7 +629,7 @@ func (app *ABCIApplication) registerServiceDestinationByNDID(param []byte, calle
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, false)
+	err = app.validateRegisterServiceDestinationByNDID(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -630,7 +665,8 @@ type DisableServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateDisableServiceDestinationByNDID(funcParam DisableServiceDestinationByNDIDParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateDisableServiceDestinationByNDID(funcParam DisableServiceDestinationByNDIDParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -641,6 +677,12 @@ func (app *ABCIApplication) validateDisableServiceDestinationByNDID(funcParam Di
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -713,7 +755,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDIDCheckTx(param []byte,
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, true)
+	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -732,7 +774,7 @@ func (app *ABCIApplication) disableServiceDestinationByNDID(param []byte, caller
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, false)
+	err = app.validateDisableServiceDestinationByNDID(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -765,7 +807,8 @@ type EnableServiceDestinationByNDIDParam struct {
 	NodeID    string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateEnableServiceDestinationByNDID(funcParam EnableServiceDestinationByNDIDParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateEnableServiceDestinationByNDID(funcParam EnableServiceDestinationByNDIDParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -776,6 +819,12 @@ func (app *ABCIApplication) validateEnableServiceDestinationByNDID(funcParam Ena
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
@@ -848,7 +897,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDIDCheckTx(param []byte, 
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, true)
+	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -867,7 +916,7 @@ func (app *ABCIApplication) enableServiceDestinationByNDID(param []byte, callerN
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, false)
+	err = app.validateEnableServiceDestinationByNDID(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

@@ -37,7 +37,8 @@ type AddRequestTypeParam struct {
 	Name string `json:"name"`
 }
 
-func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -48,6 +49,12 @@ func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
 	exists, err := app.state.Has([]byte(key), committedState)
@@ -74,7 +81,7 @@ func (app *ABCIApplication) addRequestTypeCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddRequestType(funcParam, callerNodeID, true)
+	err = app.validateAddRequestType(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -94,7 +101,7 @@ func (app *ABCIApplication) addRequestType(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddRequestType(funcParam, callerNodeID, false)
+	err = app.validateAddRequestType(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -119,7 +126,8 @@ type RemoveRequestTypeParam struct {
 	Name string `json:"name"`
 }
 
-func (app *ABCIApplication) validateRemoveRequestType(funcParam RemoveRequestTypeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRemoveRequestType(funcParam RemoveRequestTypeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -130,6 +138,12 @@ func (app *ABCIApplication) validateRemoveRequestType(funcParam RemoveRequestTyp
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
 	exists, err := app.state.Has([]byte(key), committedState)
@@ -156,7 +170,7 @@ func (app *ABCIApplication) removeRequestTypeCheckTx(param []byte, callerNodeID 
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveRequestType(funcParam, callerNodeID, true)
+	err = app.validateRemoveRequestType(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -176,7 +190,7 @@ func (app *ABCIApplication) removeRequestType(param []byte, callerNodeID string)
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveRequestType(funcParam, callerNodeID, false)
+	err = app.validateRemoveRequestType(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

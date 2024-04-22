@@ -122,7 +122,8 @@ type SetPriceFuncParam struct {
 	Price float64 `json:"price"`
 }
 
-func (app *ABCIApplication) validateSetPriceFunc(funcParam SetPriceFuncParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetPriceFunc(funcParam SetPriceFuncParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -144,7 +145,7 @@ func (app *ABCIApplication) setPriceFuncCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetPriceFunc(funcParam, callerNodeID, true)
+	err = app.validateSetPriceFunc(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -163,7 +164,7 @@ func (app *ABCIApplication) setPriceFunc(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetPriceFunc(funcParam, callerNodeID, false)
+	err = app.validateSetPriceFunc(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -332,7 +333,8 @@ type SetNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) validateSetNodeToken(funcParam SetNodeTokenParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetNodeToken(funcParam SetNodeTokenParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -344,13 +346,28 @@ func (app *ABCIApplication) validateSetNodeToken(funcParam SetNodeTokenParam, ca
 		}
 	}
 
-	// Validate parameter
+	// stateless
+
+	// Validate parameters
+	if funcParam.NodeID == "" {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID cannot be empty",
+		}
+	}
+
 	if funcParam.Amount < 0 {
 		return &ApplicationError{
 			Code:    code.AmountMustBeGreaterOrEqualToZero,
 			Message: "Amount must be greater than or equal to zero",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check token account
 	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
@@ -374,7 +391,7 @@ func (app *ABCIApplication) setNodeTokenCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetNodeToken(funcParam, callerNodeID, true)
+	err = app.validateSetNodeToken(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -393,7 +410,7 @@ func (app *ABCIApplication) setNodeToken(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetNodeToken(funcParam, callerNodeID, false)
+	err = app.validateSetNodeToken(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -414,7 +431,8 @@ type AddNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) validateAddNodeToken(funcParam AddNodeTokenParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddNodeToken(funcParam AddNodeTokenParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -426,13 +444,28 @@ func (app *ABCIApplication) validateAddNodeToken(funcParam AddNodeTokenParam, ca
 		}
 	}
 
-	// Validate parameter
+	// stateless
+
+	// Validate parameters
+	if funcParam.NodeID == "" {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID cannot be empty",
+		}
+	}
+
 	if funcParam.Amount < 0 {
 		return &ApplicationError{
 			Code:    code.AmountMustBeGreaterOrEqualToZero,
 			Message: "Amount must be greater than or equal to zero",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check token account
 	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
@@ -456,7 +489,7 @@ func (app *ABCIApplication) addNodeTokenCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNodeToken(funcParam, callerNodeID, true)
+	err = app.validateAddNodeToken(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -475,7 +508,7 @@ func (app *ABCIApplication) addNodeToken(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNodeToken(funcParam, callerNodeID, false)
+	err = app.validateAddNodeToken(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -499,7 +532,8 @@ type ReduceNodeTokenParam struct {
 	Amount float64 `json:"amount"`
 }
 
-func (app *ABCIApplication) validateReduceNodeToken(funcParam ReduceNodeTokenParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateReduceNodeToken(funcParam ReduceNodeTokenParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -511,13 +545,28 @@ func (app *ABCIApplication) validateReduceNodeToken(funcParam ReduceNodeTokenPar
 		}
 	}
 
-	// Validate parameter
+	// stateless
+
+	// Validate parameters
+	if funcParam.NodeID == "" {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID cannot be empty",
+		}
+	}
+
 	if funcParam.Amount < 0 {
 		return &ApplicationError{
 			Code:    code.AmountMustBeGreaterOrEqualToZero,
 			Message: "Amount must be greater than or equal to zero",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check token account
 	tokenAccountFound, err := app.checkTokenAccount(funcParam.NodeID, committedState)
@@ -541,7 +590,7 @@ func (app *ABCIApplication) reduceNodeTokenCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateReduceNodeToken(funcParam, callerNodeID, true)
+	err = app.validateReduceNodeToken(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -560,7 +609,7 @@ func (app *ABCIApplication) reduceNodeToken(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateReduceNodeToken(funcParam, callerNodeID, false)
+	err = app.validateReduceNodeToken(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

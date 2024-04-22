@@ -48,7 +48,8 @@ type ServicePriceByCurrency struct {
 	MaxPrice float64 `json:"max_price"`
 }
 
-func (app *ABCIApplication) validateSetServicePrice(funcParam SetServicePriceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetServicePrice(funcParam SetServicePriceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -59,6 +60,23 @@ func (app *ABCIApplication) validateSetServicePrice(funcParam SetServicePricePar
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	// stateless
+
+	for _, priceToSet := range funcParam.PriceByCurrencyList {
+		if priceToSet.MinPrice > priceToSet.MaxPrice {
+			return &ApplicationError{
+				Code:    code.ServicePriceMinCannotBeGreaterThanMax,
+				Message: "Service minimum price cannot be greater than maximum price",
+			}
+		}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// check if service ID exists
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -139,7 +157,7 @@ func (app *ABCIApplication) setServicePriceCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetServicePrice(funcParam, callerNodeID, true)
+	err = app.validateSetServicePrice(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -158,7 +176,7 @@ func (app *ABCIApplication) setServicePrice(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetServicePrice(funcParam, callerNodeID, false)
+	err = app.validateSetServicePrice(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

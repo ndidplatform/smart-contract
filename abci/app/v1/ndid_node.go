@@ -54,7 +54,8 @@ type RegisterNodeParam struct {
 	Whitelist              []string `json:"node_id_whitelist"`
 }
 
-func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -65,6 +66,8 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	// stateless
 
 	// Validate master public key format
 	err = checkPubKeyForSigning(
@@ -90,6 +93,23 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 		return err
 	}
 
+	// check role is valid
+	if !(strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleRp)) ||
+		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleIdp)) ||
+		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleAs)) ||
+		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleProxy))) {
+		return &ApplicationError{
+			Code:    code.InvalidNodeRole,
+			Message: "Invalid node role",
+		}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	// check Duplicate Node ID
 	chkExists, err := app.state.Get([]byte(key), committedState)
@@ -103,17 +123,6 @@ func (app *ABCIApplication) validateRegisterNode(funcParam RegisterNodeParam, ca
 		return &ApplicationError{
 			Code:    code.DuplicateNodeID,
 			Message: "Duplicate Node ID",
-		}
-	}
-
-	// check role is valid
-	if !(strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleRp)) ||
-		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleIdp)) ||
-		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleAs)) ||
-		strings.EqualFold(funcParam.Role, string(appTypes.NodeRoleProxy))) {
-		return &ApplicationError{
-			Code:    code.InvalidNodeRole,
-			Message: "Invalid node role",
 		}
 	}
 
@@ -169,7 +178,7 @@ func (app *ABCIApplication) registerNodeCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRegisterNode(funcParam, callerNodeID, true)
+	err = app.validateRegisterNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -188,7 +197,7 @@ func (app *ABCIApplication) registerNode(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRegisterNode(funcParam, callerNodeID, false)
+	err = app.validateRegisterNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -404,7 +413,8 @@ type UpdateNodeByNDIDParam struct {
 	Whitelist            []string `json:"node_id_whitelist"`
 }
 
-func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -415,6 +425,12 @@ func (app *ABCIApplication) validateUpdateNodeByNDID(funcParam UpdateNodeByNDIDP
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -494,7 +510,7 @@ func (app *ABCIApplication) updateNodeByNDIDCheckTx(param []byte, callerNodeID s
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, true)
+	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -513,7 +529,7 @@ func (app *ABCIApplication) updateNodeByNDID(param []byte, callerNodeID string) 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, false)
+	err = app.validateUpdateNodeByNDID(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -574,7 +590,8 @@ type DisableNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateDisableNode(funcParam DisableNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateDisableNode(funcParam DisableNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -585,6 +602,12 @@ func (app *ABCIApplication) validateDisableNode(funcParam DisableNodeParam, call
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
@@ -611,7 +634,7 @@ func (app *ABCIApplication) disableNodeCheckTx(param []byte, callerNodeID string
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableNode(funcParam, callerNodeID, true)
+	err = app.validateDisableNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -630,7 +653,7 @@ func (app *ABCIApplication) disableNode(param []byte, callerNodeID string) *abci
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableNode(funcParam, callerNodeID, false)
+	err = app.validateDisableNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -662,7 +685,8 @@ type EnableNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateEnableNode(funcParam EnableNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateEnableNode(funcParam EnableNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -673,6 +697,12 @@ func (app *ABCIApplication) validateEnableNode(funcParam EnableNodeParam, caller
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
@@ -699,7 +729,7 @@ func (app *ABCIApplication) enableNodeCheckTx(param []byte, callerNodeID string)
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableNode(funcParam, callerNodeID, true)
+	err = app.validateEnableNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -718,7 +748,7 @@ func (app *ABCIApplication) enableNode(param []byte, callerNodeID string) *abcit
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableNode(funcParam, callerNodeID, false)
+	err = app.validateEnableNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -752,7 +782,8 @@ type AddNodeToProxyNodeParam struct {
 	Config      string `json:"config"`
 }
 
-func (app *ABCIApplication) validateAddNodeToProxyNode(funcParam AddNodeToProxyNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddNodeToProxyNode(funcParam AddNodeToProxyNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -763,6 +794,12 @@ func (app *ABCIApplication) validateAddNodeToProxyNode(funcParam AddNodeToProxyN
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -835,7 +872,7 @@ func (app *ABCIApplication) addNodeToProxyNodeCheckTx(param []byte, callerNodeID
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, true)
+	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -854,7 +891,7 @@ func (app *ABCIApplication) addNodeToProxyNode(param []byte, callerNodeID string
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, false)
+	err = app.validateAddNodeToProxyNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -918,7 +955,8 @@ type UpdateNodeProxyNodeParam struct {
 	Config      string `json:"config"`
 }
 
-func (app *ABCIApplication) validateUpdateNodeProxyNode(funcParam UpdateNodeProxyNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateNodeProxyNode(funcParam UpdateNodeProxyNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -929,6 +967,12 @@ func (app *ABCIApplication) validateUpdateNodeProxyNode(funcParam UpdateNodeProx
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -992,7 +1036,7 @@ func (app *ABCIApplication) updateNodeProxyNodeCheckTx(param []byte, callerNodeI
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, true)
+	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1011,7 +1055,7 @@ func (app *ABCIApplication) updateNodeProxyNode(param []byte, callerNodeID strin
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, false)
+	err = app.validateUpdateNodeProxyNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -1102,7 +1146,8 @@ type RemoveNodeFromProxyNode struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateRemoveNodeFromProxyNode(funcParam RemoveNodeFromProxyNode, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRemoveNodeFromProxyNode(funcParam RemoveNodeFromProxyNode, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -1113,6 +1158,12 @@ func (app *ABCIApplication) validateRemoveNodeFromProxyNode(funcParam RemoveNode
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Get node detail by NodeID
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -1168,7 +1219,7 @@ func (app *ABCIApplication) removeNodeFromProxyNodeCheckTx(param []byte, callerN
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, true)
+	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1187,7 +1238,7 @@ func (app *ABCIApplication) removeNodeFromProxyNode(param []byte, callerNodeID s
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, false)
+	err = app.validateRemoveNodeFromProxyNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

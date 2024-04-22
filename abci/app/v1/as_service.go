@@ -40,7 +40,8 @@ type RegisterServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) validateRegisterServiceDestination(funcParam RegisterServiceDestinationParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRegisterServiceDestination(funcParam RegisterServiceDestinationParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -51,6 +52,12 @@ func (app *ABCIApplication) validateRegisterServiceDestination(funcParam Registe
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -184,7 +191,7 @@ func (app *ABCIApplication) registerServiceDestinationCheckTx(param []byte, call
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, true)
+	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -203,7 +210,7 @@ func (app *ABCIApplication) registerServiceDestination(param []byte, callerNodeI
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, false)
+	err = app.validateRegisterServiceDestination(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -293,7 +300,8 @@ type UpdateServiceDestinationParam struct {
 	SupportedNamespaceList []string `json:"supported_namespace_list"`
 }
 
-func (app *ABCIApplication) validateUpdateServiceDestination(funcParam UpdateServiceDestinationParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateServiceDestination(funcParam UpdateServiceDestinationParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -304,6 +312,12 @@ func (app *ABCIApplication) validateUpdateServiceDestination(funcParam UpdateSer
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -346,7 +360,7 @@ func (app *ABCIApplication) updateServiceDestinationCheckTx(param []byte, caller
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, true)
+	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -365,7 +379,7 @@ func (app *ABCIApplication) updateServiceDestination(param []byte, callerNodeID 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, false)
+	err = app.validateUpdateServiceDestination(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -447,7 +461,8 @@ type DisableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateDisableServiceDestination(funcParam DisableServiceDestinationParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateDisableServiceDestination(funcParam DisableServiceDestinationParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -458,6 +473,12 @@ func (app *ABCIApplication) validateDisableServiceDestination(funcParam DisableS
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -500,7 +521,7 @@ func (app *ABCIApplication) disableServiceDestinationCheckTx(param []byte, calle
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableServiceDestination(funcParam, callerNodeID, true)
+	err = app.validateDisableServiceDestination(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -519,7 +540,7 @@ func (app *ABCIApplication) disableServiceDestination(param []byte, callerNodeID
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableServiceDestination(funcParam, callerNodeID, false)
+	err = app.validateDisableServiceDestination(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -585,7 +606,8 @@ type EnableServiceDestinationParam struct {
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateEnableServiceDestination(funcParam EnableServiceDestinationParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateEnableServiceDestination(funcParam EnableServiceDestinationParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -596,6 +618,12 @@ func (app *ABCIApplication) validateEnableServiceDestination(funcParam EnableSer
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check Service ID
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -638,7 +666,7 @@ func (app *ABCIApplication) enableServiceDestinationCheckTx(param []byte, caller
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableServiceDestination(funcParam, callerNodeID, true)
+	err = app.validateEnableServiceDestination(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -657,7 +685,7 @@ func (app *ABCIApplication) enableServiceDestination(param []byte, callerNodeID 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableServiceDestination(funcParam, callerNodeID, false)
+	err = app.validateEnableServiceDestination(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

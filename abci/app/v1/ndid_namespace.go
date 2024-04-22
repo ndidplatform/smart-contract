@@ -41,7 +41,8 @@ type AddNamespaceParam struct {
 	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
-func (app *ABCIApplication) validateAddNamespace(funcParam AddNamespaceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddNamespace(funcParam AddNamespaceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -52,6 +53,12 @@ func (app *ABCIApplication) validateAddNamespace(funcParam AddNamespaceParam, ca
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
@@ -92,7 +99,7 @@ func (app *ABCIApplication) addNamespaceCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNamespace(funcParam, callerNodeID, true)
+	err = app.validateAddNamespace(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -111,7 +118,7 @@ func (app *ABCIApplication) addNamespace(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNamespace(funcParam, callerNodeID, false)
+	err = app.validateAddNamespace(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -155,7 +162,8 @@ type EnableNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 
-func (app *ABCIApplication) validateEnableNamespace(funcParam EnableNamespaceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateEnableNamespace(funcParam EnableNamespaceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -166,6 +174,12 @@ func (app *ABCIApplication) validateEnableNamespace(funcParam EnableNamespacePar
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
@@ -214,7 +228,7 @@ func (app *ABCIApplication) enableNamespaceCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableNamespace(funcParam, callerNodeID, true)
+	err = app.validateEnableNamespace(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -233,7 +247,7 @@ func (app *ABCIApplication) enableNamespace(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableNamespace(funcParam, callerNodeID, false)
+	err = app.validateEnableNamespace(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -268,7 +282,8 @@ type DisableNamespaceParam struct {
 	Namespace string `json:"namespace"`
 }
 
-func (app *ABCIApplication) validateDisableNamespace(funcParam DisableNamespaceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateDisableNamespace(funcParam DisableNamespaceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -279,6 +294,12 @@ func (app *ABCIApplication) validateDisableNamespace(funcParam DisableNamespaceP
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
@@ -327,7 +348,7 @@ func (app *ABCIApplication) disableNamespaceCheckTx(param []byte, callerNodeID s
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableNamespace(funcParam, callerNodeID, true)
+	err = app.validateDisableNamespace(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -346,7 +367,7 @@ func (app *ABCIApplication) disableNamespace(param []byte, callerNodeID string) 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableNamespace(funcParam, callerNodeID, false)
+	err = app.validateDisableNamespace(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -385,7 +406,8 @@ type UpdateNamespaceParam struct {
 	AllowedActiveIdentifierCountInReferenceGroup int32  `json:"allowed_active_identifier_count_in_reference_group"`
 }
 
-func (app *ABCIApplication) validateUpdateNamespace(funcParam UpdateNamespaceParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateNamespace(funcParam UpdateNamespaceParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -396,6 +418,12 @@ func (app *ABCIApplication) validateUpdateNamespace(funcParam UpdateNamespacePar
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	allNamespacesValue, err := app.state.Get(allNamespaceKeyBytes, committedState)
 	if err != nil {
@@ -444,7 +472,7 @@ func (app *ABCIApplication) updateNamespaceCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateNamespace(funcParam, callerNodeID, true)
+	err = app.validateUpdateNamespace(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -463,7 +491,7 @@ func (app *ABCIApplication) updateNamespace(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateNamespace(funcParam, callerNodeID, false)
+	err = app.validateUpdateNamespace(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

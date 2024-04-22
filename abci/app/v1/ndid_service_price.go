@@ -44,7 +44,8 @@ type PriceCeilingByCurrency struct {
 	Price    float64 `json:"price"`
 }
 
-func (app *ABCIApplication) validateSetServicePriceCeiling(funcParam SetServicePriceCeilingParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetServicePriceCeiling(funcParam SetServicePriceCeilingParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -55,6 +56,12 @@ func (app *ABCIApplication) validateSetServicePriceCeiling(funcParam SetServiceP
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// check if service ID exists
 	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
@@ -82,7 +89,7 @@ func (app *ABCIApplication) setServicePriceCeilingCheckTx(param []byte, callerNo
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, true)
+	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -101,7 +108,7 @@ func (app *ABCIApplication) setServicePriceCeiling(param []byte, callerNodeID st
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, false)
+	err = app.validateSetServicePriceCeiling(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -204,7 +211,8 @@ type SetServicePriceMinEffectiveDatetimeDelayParam struct {
 	DurationSecond uint32 `json:"duration_second"`
 }
 
-func (app *ABCIApplication) validateSetServicePriceMinEffectiveDatetimeDelay(funcParam SetServicePriceMinEffectiveDatetimeDelayParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetServicePriceMinEffectiveDatetimeDelay(funcParam SetServicePriceMinEffectiveDatetimeDelayParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -215,6 +223,12 @@ func (app *ABCIApplication) validateSetServicePriceMinEffectiveDatetimeDelay(fun
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	if funcParam.ServiceID != "" {
 		// check if service ID exists
@@ -244,7 +258,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelayCheckTx(para
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, true)
+	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -263,7 +277,7 @@ func (app *ABCIApplication) setServicePriceMinEffectiveDatetimeDelay(param []byt
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, false)
+	err = app.validateSetServicePriceMinEffectiveDatetimeDelay(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

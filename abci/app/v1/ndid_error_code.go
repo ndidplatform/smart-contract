@@ -45,7 +45,8 @@ type AddErrorCodeParam struct {
 	Type        string `json:"type"`
 }
 
-func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -56,6 +57,8 @@ func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, ca
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	// stateless
 
 	funcParam.Type = strings.ToLower(funcParam.Type)
 	if !app.checkErrorCodeType(funcParam.Type) {
@@ -70,6 +73,12 @@ func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, ca
 			Message: "ErrorCode cannot be 0",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
@@ -96,7 +105,7 @@ func (app *ABCIApplication) addErrorCodeCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddErrorCode(funcParam, callerNodeID, true)
+	err = app.validateAddErrorCode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -115,7 +124,7 @@ func (app *ABCIApplication) addErrorCode(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddErrorCode(funcParam, callerNodeID, false)
+	err = app.validateAddErrorCode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -167,7 +176,8 @@ type RemoveErrorCodeParam struct {
 	Type      string `json:"type"`
 }
 
-func (app *ABCIApplication) validateRemoveErrorCode(funcParam RemoveErrorCodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRemoveErrorCode(funcParam RemoveErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -178,6 +188,12 @@ func (app *ABCIApplication) validateRemoveErrorCode(funcParam RemoveErrorCodePar
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
@@ -204,7 +220,7 @@ func (app *ABCIApplication) removeErrorCodeCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveErrorCode(funcParam, callerNodeID, true)
+	err = app.validateRemoveErrorCode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -223,7 +239,7 @@ func (app *ABCIApplication) removeErrorCode(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveErrorCode(funcParam, callerNodeID, false)
+	err = app.validateRemoveErrorCode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

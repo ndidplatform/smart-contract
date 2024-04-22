@@ -39,7 +39,8 @@ type CreateMessageParam struct {
 	Purpose   string `json:"purpose"`
 }
 
-func (app *ABCIApplication) validateCreateMessage(funcParam CreateMessageParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateCreateMessage(funcParam CreateMessageParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isRPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -61,7 +62,7 @@ func (app *ABCIApplication) createMessageCheckTx(param []byte, callerNodeID stri
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateCreateMessage(funcParam, callerNodeID, true)
+	err = app.validateCreateMessage(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -80,7 +81,7 @@ func (app *ABCIApplication) createMessage(param []byte, callerNodeID string) *ab
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateCreateMessage(funcParam, callerNodeID, false)
+	err = app.validateCreateMessage(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

@@ -53,7 +53,8 @@ type RegisterIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -85,20 +86,8 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 		}
 	}
 
-	// Valid Mode
-	var validMode = map[int32]bool{}
-	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", committedState)
-	for _, mode := range allowedMode {
-		validMode[mode] = true
-	}
+	// stateless
 
-	// Validate user's ial is <= node's max_ial
-	if funcParam.Ial > nodeDetail.MaxIal {
-		return &ApplicationError{
-			Code:    code.IALError,
-			Message: "IAL must be less than or equals to registered node's max IAL",
-		}
-	}
 	// Check for identity_namespace and identity_identifier_hash. If exist, error.
 	if funcParam.ReferenceGroupCode == "" {
 		return &ApplicationError{
@@ -125,6 +114,53 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 			Message: "Accessor type is required",
 		}
 	}
+
+	var newIdentityNamespaceAndHash = map[string]bool{}
+	for _, identity := range funcParam.NewIdentityList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return &ApplicationError{
+				Code:    code.IdentityCannotBeEmpty,
+				Message: "Identity detail is required",
+			}
+		}
+
+		// Check for duplicates
+		if _, ok := newIdentityNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash]; ok {
+			return &ApplicationError{
+				Code:    code.DuplicateIdentifier,
+				Message: "Duplicate identifiers",
+			}
+		}
+
+		newIdentityNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = true
+	}
+
+	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
+	if err != nil {
+		return err
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
+	// Validate user's ial is <= node's max_ial
+	if funcParam.Ial > nodeDetail.MaxIal {
+		return &ApplicationError{
+			Code:    code.IALError,
+			Message: "IAL must be less than or equals to registered node's max IAL",
+		}
+	}
+
+	// Valid Mode
+	var validMode = map[int32]bool{}
+	allowedMode := app.GetAllowedModeFromStateDB("RegisterIdentity", committedState)
+	for _, mode := range allowedMode {
+		validMode[mode] = true
+	}
+
 	for _, mode := range funcParam.ModeList {
 		if !validMode[mode] {
 			return &ApplicationError{
@@ -214,7 +250,6 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
-	var checkDuplicateNamespaceAndHash = map[string]int{}
 	validNamespace := app.GetNamespaceMap(false)
 	for _, identity := range funcParam.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
@@ -245,16 +280,6 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 			}
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
-		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
-	}
-	// Check duplicate count
-	for _, count := range checkDuplicateNamespaceAndHash {
-		if count > 1 {
-			return &ApplicationError{
-				Code:    code.DuplicateIdentifier,
-				Message: "Duplicate identifiers",
-			}
-		}
 	}
 	for _, identity := range refGroup.Identities {
 		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
@@ -267,11 +292,6 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 				Message: "Identifier count is greater than allowed identifier count",
 			}
 		}
-	}
-
-	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
-	if err != nil {
-		return err
 	}
 
 	// Check duplicate accessor ID
@@ -337,7 +357,7 @@ func (app *ABCIApplication) registerIdentityCheckTx(param []byte, callerNodeID s
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRegisterIdentity(funcParam, callerNodeID, true)
+	err = app.validateRegisterIdentity(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -356,7 +376,7 @@ func (app *ABCIApplication) registerIdentity(param []byte, callerNodeID string) 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRegisterIdentity(funcParam, callerNodeID, false)
+	err = app.validateRegisterIdentity(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -522,7 +542,8 @@ type UpdateIdentityParam struct {
 	Laal                   *bool    `json:"laal"`
 }
 
-func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -533,6 +554,8 @@ func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam
 			Message: "This node does not have permission to call IdP method",
 		}
 	}
+
+	// stateless
 
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return &ApplicationError{
@@ -547,6 +570,12 @@ func (app *ABCIApplication) validateUpdateIdentity(funcParam UpdateIdentityParam
 			Message: "Nothing to update",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	if funcParam.Ial != nil {
 		// Check IAL must less than Max IAL
@@ -646,7 +675,7 @@ func (app *ABCIApplication) updateIdentityCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateIdentity(funcParam, callerNodeID, true)
+	err = app.validateUpdateIdentity(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -665,7 +694,7 @@ func (app *ABCIApplication) updateIdentity(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateIdentity(funcParam, callerNodeID, false)
+	err = app.validateUpdateIdentity(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -744,7 +773,8 @@ type UpdateIdentityModeListParam struct {
 	RequestID              string  `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateUpdateIdentityModeList(funcParam UpdateIdentityModeListParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateIdentityModeList(funcParam UpdateIdentityModeListParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -756,12 +786,20 @@ func (app *ABCIApplication) validateUpdateIdentityModeList(funcParam UpdateIdent
 		}
 	}
 
+	// stateless
+
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return &ApplicationError{
 			Code:    code.GotRefGroupCodeAndIdentity,
 			Message: "Found reference group code and identity detail in parameter",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
@@ -860,7 +898,7 @@ func (app *ABCIApplication) updateIdentityModeListCheckTx(param []byte, callerNo
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, true)
+	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -879,7 +917,7 @@ func (app *ABCIApplication) updateIdentityModeList(param []byte, callerNodeID st
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, false)
+	err = app.validateUpdateIdentityModeList(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -956,7 +994,8 @@ type AddIdentityParam struct {
 	RequestID          string     `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -968,12 +1007,41 @@ func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, call
 		}
 	}
 
+	// stateless
+
 	if funcParam.ReferenceGroupCode == "" {
 		return &ApplicationError{
 			Code:    code.RefGroupCodeCannotBeEmpty,
-			Message: "Please input reference group code",
+			Message: "Reference group code cannot be empty",
 		}
 	}
+
+	var newIdentityNamespaceAndHash = map[string]bool{}
+	for _, identity := range funcParam.NewIdentityList {
+		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
+			return &ApplicationError{
+				Code:    code.IdentityCannotBeEmpty,
+				Message: "Please input identity detail",
+			}
+		}
+
+		// Check for duplicates
+		if _, ok := newIdentityNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash]; ok {
+			return &ApplicationError{
+				Code:    code.DuplicateIdentifier,
+				Message: "Duplicate identifiers",
+			}
+		}
+
+		newIdentityNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = true
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	refGroupKey := refGroupCodeKeyPrefix + keySeparator + funcParam.ReferenceGroupCode
 	refGroupValue, err := app.state.Get([]byte(refGroupKey), committedState)
 	if err != nil {
@@ -1030,7 +1098,6 @@ func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, call
 
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
-	var checkDuplicateNamespaceAndHash = map[string]int{}
 	validNamespace := app.GetNamespaceMap(committedState)
 	for _, identity := range funcParam.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
@@ -1061,17 +1128,6 @@ func (app *ABCIApplication) validateAddIdentity(funcParam AddIdentityParam, call
 			}
 		}
 		namespaceCount[identity.IdentityNamespace] = namespaceCount[identity.IdentityNamespace] + 1
-		checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] = checkDuplicateNamespaceAndHash[identity.IdentityNamespace+identity.IdentityIdentifierHash] + 1
-	}
-
-	// Check duplicate count
-	for _, count := range checkDuplicateNamespaceAndHash {
-		if count > 1 {
-			return &ApplicationError{
-				Code:    code.DuplicateIdentifier,
-				Message: "Duplicate identifiers",
-			}
-		}
 	}
 	for _, identity := range refGroup.Identities {
 		namespaceCount[identity.Namespace] = namespaceCount[identity.Namespace] + 1
@@ -1124,7 +1180,7 @@ func (app *ABCIApplication) addIdentityCheckTx(param []byte, callerNodeID string
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddIdentity(funcParam, callerNodeID, true)
+	err = app.validateAddIdentity(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1143,7 +1199,7 @@ func (app *ABCIApplication) addIdentity(param []byte, callerNodeID string) *abci
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddIdentity(funcParam, callerNodeID, false)
+	err = app.validateAddIdentity(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -1219,7 +1275,8 @@ type RevokeIdentityAssociationParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateRevokeIdentityAssociation(funcParam RevokeIdentityAssociationParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRevokeIdentityAssociation(funcParam RevokeIdentityAssociationParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -1231,12 +1288,20 @@ func (app *ABCIApplication) validateRevokeIdentityAssociation(funcParam RevokeId
 		}
 	}
 
+	// stateless
+
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return &ApplicationError{
 			Code:    code.GotRefGroupCodeAndIdentity,
 			Message: "Found reference group code and identity detail in parameter",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	refGroupCode := ""
 	if funcParam.ReferenceGroupCode != "" {
@@ -1319,7 +1384,7 @@ func (app *ABCIApplication) revokeIdentityAssociationCheckTx(param []byte, calle
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, true)
+	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1338,7 +1403,7 @@ func (app *ABCIApplication) revokeIdentityAssociation(param []byte, callerNodeID
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, false)
+	err = app.validateRevokeIdentityAssociation(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -1422,7 +1487,8 @@ type AddAccessorParam struct {
 	RequestID              string `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -1433,6 +1499,8 @@ func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, call
 			Message: "This node does not have permission to call IdP method",
 		}
 	}
+
+	// stateless
 
 	if funcParam.ReferenceGroupCode != "" && funcParam.IdentityNamespace != "" && funcParam.IdentityIdentifierHash != "" {
 		return &ApplicationError{
@@ -1445,6 +1513,12 @@ func (app *ABCIApplication) validateAddAccessor(funcParam AddAccessorParam, call
 	if err != nil {
 		return err
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// Check duplicate accessor ID
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.AccessorID
@@ -1543,7 +1617,7 @@ func (app *ABCIApplication) addAccessorCheckTx(param []byte, callerNodeID string
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddAccessor(funcParam, callerNodeID, true)
+	err = app.validateAddAccessor(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1562,7 +1636,7 @@ func (app *ABCIApplication) addAccessor(param []byte, callerNodeID string) *abci
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddAccessor(funcParam, callerNodeID, false)
+	err = app.validateAddAccessor(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -1656,7 +1730,8 @@ type RevokeAccessorParam struct {
 	RequestID      string   `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateRevokeAccessor(funcParam RevokeAccessorParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRevokeAccessor(funcParam RevokeAccessorParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -1668,9 +1743,17 @@ func (app *ABCIApplication) validateRevokeAccessor(funcParam RevokeAccessorParam
 		}
 	}
 
+	// stateless
+
 	// if len(funcParam.AccessorIDList) == 0 {
 	// TODO: err
 	// }
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// check if all accessor IDs have the same ref group code
 	var refGroupCode string
@@ -1776,7 +1859,7 @@ func (app *ABCIApplication) revokeAccessorCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRevokeAccessor(funcParam, callerNodeID, true)
+	err = app.validateRevokeAccessor(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -1795,7 +1878,7 @@ func (app *ABCIApplication) revokeAccessor(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRevokeAccessor(funcParam, callerNodeID, false)
+	err = app.validateRevokeAccessor(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -1879,7 +1962,8 @@ type RevokeAndAddAccessorParam struct {
 	RequestID          string `json:"request_id"`
 }
 
-func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddAccessorParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddAccessorParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isIDPNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -1890,6 +1974,19 @@ func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddA
 			Message: "This node does not have permission to call IdP method",
 		}
 	}
+
+	// stateless
+
+	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
+	if err != nil {
+		return err
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	accessorToRefCodeKey := accessorToRefCodeKeyPrefix + keySeparator + funcParam.RevokingAccessorID
 	refGroupCode, err := app.state.Get([]byte(accessorToRefCodeKey), committedState)
@@ -1989,11 +2086,6 @@ func (app *ABCIApplication) validateRevokeAndAddAccessor(funcParam RevokeAndAddA
 		}
 	}
 
-	err = checkAccessorPubKey(funcParam.AccessorPublicKey)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -2004,7 +2096,7 @@ func (app *ABCIApplication) revokeAndAddAccessorCheckTx(param []byte, callerNode
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, true)
+	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -2023,7 +2115,7 @@ func (app *ABCIApplication) revokeAndAddAccessor(param []byte, callerNodeID stri
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, false)
+	err = app.validateRevokeAndAddAccessor(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

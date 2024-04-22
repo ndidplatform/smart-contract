@@ -74,7 +74,8 @@ type CreateRequestParam struct {
 	RequestType     *string       `json:"request_type"`
 }
 
-func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -123,6 +124,26 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 			}
 		}
 	}
+
+	// stateless
+
+	serviceIDInDataRequestList := make(map[string]struct{})
+	for index := range funcParam.DataRequestList {
+		// Check for duplicate service IDs in data request list
+		if _, exist := serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID]; exist {
+			return &ApplicationError{
+				Code:    code.DuplicateServiceIDInDataRequest,
+				Message: "Duplicate Service ID In Data Request",
+			}
+		}
+		serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID] = struct{}{}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestIDExist, err := app.state.HasVersioned([]byte(requestKey), committedState)
@@ -240,18 +261,8 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
-	serviceIDInDataRequestList := make(map[string]struct{})
 	nodeDetailMap := make(map[string]*data.NodeDetail)
 	for index := range funcParam.DataRequestList {
-		// Check for duplicate service ID in data request list
-		if _, exist := serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID]; exist {
-			return &ApplicationError{
-				Code:    code.DuplicateServiceIDInDataRequest,
-				Message: "Duplicate Service ID In Data Request",
-			}
-		}
-		serviceIDInDataRequestList[funcParam.DataRequestList[index].ServiceID] = struct{}{}
-
 		// Check all AS in as_list is active
 		for _, as := range funcParam.DataRequestList[index].As {
 			var node data.NodeDetail
@@ -357,7 +368,7 @@ func (app *ABCIApplication) createRequestCheckTx(param []byte, callerNodeID stri
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateCreateRequest(funcParam, callerNodeID, true)
+	err = app.validateCreateRequest(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -376,7 +387,7 @@ func (app *ABCIApplication) createRequest(param []byte, callerNodeID string) *ab
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateCreateRequest(funcParam, callerNodeID, false)
+	err = app.validateCreateRequest(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -473,7 +484,22 @@ type CloseRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) validateCloseRequest(funcParam CloseRequestParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateCloseRequest(funcParam CloseRequestParam, callerNodeID string, committedState bool, checktx bool) error {
+	// stateless
+
+	if funcParam.RequestID == "" {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID cannot be empty",
+		}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if err != nil {
@@ -530,7 +556,7 @@ func (app *ABCIApplication) closeRequestCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateCloseRequest(funcParam, callerNodeID, true)
+	err = app.validateCloseRequest(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -549,7 +575,7 @@ func (app *ABCIApplication) closeRequest(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateCloseRequest(funcParam, callerNodeID, false)
+	err = app.validateCloseRequest(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -606,7 +632,22 @@ type TimeOutRequestParam struct {
 	ResponseValidList []ResponseValid `json:"response_valid_list"`
 }
 
-func (app *ABCIApplication) validateTimeOutRequest(funcParam TimeOutRequestParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateTimeOutRequest(funcParam TimeOutRequestParam, callerNodeID string, committedState bool, checktx bool) error {
+	// stateless
+
+	if funcParam.RequestID == "" {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID cannot be empty",
+		}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if err != nil {
@@ -663,7 +704,7 @@ func (app *ABCIApplication) timeOutRequestCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateTimeOutRequest(funcParam, callerNodeID, true)
+	err = app.validateTimeOutRequest(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -682,7 +723,7 @@ func (app *ABCIApplication) timeOutRequest(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateTimeOutRequest(funcParam, callerNodeID, false)
+	err = app.validateTimeOutRequest(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -740,7 +781,22 @@ type SetDataReceivedParam struct {
 	AsID      string `json:"as_id"`
 }
 
-func (app *ABCIApplication) validateSetDataReceived(funcParam SetDataReceivedParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetDataReceived(funcParam SetDataReceivedParam, callerNodeID string, committedState bool, checktx bool) error {
+	// stateless
+
+	if funcParam.RequestID == "" {
+		return &ApplicationError{
+			Code:    code.RequestIDNotFound,
+			Message: "Request ID cannot be empty",
+		}
+	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
 	if err != nil {
@@ -797,7 +853,7 @@ func (app *ABCIApplication) setDataReceivedCheckTx(param []byte, callerNodeID st
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetDataReceived(funcParam, callerNodeID, true)
+	err = app.validateSetDataReceived(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -816,7 +872,7 @@ func (app *ABCIApplication) setDataReceived(param []byte, callerNodeID string) *
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetDataReceived(funcParam, callerNodeID, false)
+	err = app.validateSetDataReceived(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

@@ -37,7 +37,8 @@ type AddAllowedNodeSupportedFeatureParam struct {
 	Name string `json:"name"`
 }
 
-func (app *ABCIApplication) validateAddAllowedNodeSupportedFeature(funcParam AddAllowedNodeSupportedFeatureParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddAllowedNodeSupportedFeature(funcParam AddAllowedNodeSupportedFeatureParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -48,6 +49,12 @@ func (app *ABCIApplication) validateAddAllowedNodeSupportedFeature(funcParam Add
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	key := nodeSupportedFeatureKeyPrefix + keySeparator + funcParam.Name
 	exists, err := app.state.Has([]byte(key), committedState)
@@ -74,7 +81,7 @@ func (app *ABCIApplication) addAllowedNodeSupportedFeatureCheckTx(param []byte, 
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddAllowedNodeSupportedFeature(funcParam, callerNodeID, true)
+	err = app.validateAddAllowedNodeSupportedFeature(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -94,7 +101,7 @@ func (app *ABCIApplication) addAllowedNodeSupportedFeature(param []byte, callerN
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddAllowedNodeSupportedFeature(funcParam, callerNodeID, false)
+	err = app.validateAddAllowedNodeSupportedFeature(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -119,7 +126,8 @@ type RemoveAllowedNodeSupportedFeatureParam struct {
 	Name string `json:"name"`
 }
 
-func (app *ABCIApplication) validateRemoveAllowedNodeSupportedFeature(funcParam RemoveAllowedNodeSupportedFeatureParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRemoveAllowedNodeSupportedFeature(funcParam RemoveAllowedNodeSupportedFeatureParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -130,6 +138,12 @@ func (app *ABCIApplication) validateRemoveAllowedNodeSupportedFeature(funcParam 
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	key := nodeSupportedFeatureKeyPrefix + keySeparator + funcParam.Name
 	exists, err := app.state.Has([]byte(key), committedState)
@@ -156,7 +170,7 @@ func (app *ABCIApplication) removeAllowedNodeSupportedFeatureCheckTx(param []byt
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveAllowedNodeSupportedFeature(funcParam, callerNodeID, true)
+	err = app.validateRemoveAllowedNodeSupportedFeature(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -176,7 +190,7 @@ func (app *ABCIApplication) removeAllowedNodeSupportedFeature(param []byte, call
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveAllowedNodeSupportedFeature(funcParam, callerNodeID, false)
+	err = app.validateRemoveAllowedNodeSupportedFeature(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

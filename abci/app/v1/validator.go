@@ -86,7 +86,8 @@ type SetValidatorParam struct {
 	Power     int64  `json:"power"`
 }
 
-func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -97,6 +98,8 @@ func (app *ABCIApplication) validateSetValidator(funcParam SetValidatorParam, ca
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	// stateless
 
 	// validate ed25519 public key
 	pubKey, err := base64.StdEncoding.DecodeString(funcParam.PublicKey)
@@ -131,7 +134,7 @@ func (app *ABCIApplication) setValidatorCheckTx(param []byte, callerNodeID strin
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetValidator(funcParam, callerNodeID, true)
+	err = app.validateSetValidator(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -150,7 +153,7 @@ func (app *ABCIApplication) setValidator(param []byte, callerNodeID string) *abc
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetValidator(funcParam, callerNodeID, false)
+	err = app.validateSetValidator(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

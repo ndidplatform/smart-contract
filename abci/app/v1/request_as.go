@@ -41,7 +41,8 @@ type CreateAsResponseParam struct {
 	ErrorCode *int32 `json:"error_code"`
 }
 
-func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isASNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -52,6 +53,12 @@ func (app *ABCIApplication) validateCreateAsResponse(funcParam CreateAsResponseP
 			Message: "This node does not have permission to call AS method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	requestKey := requestKeyPrefix + keySeparator + funcParam.RequestID
 	requestValue, err := app.state.GetVersioned([]byte(requestKey), 0, committedState)
@@ -280,7 +287,7 @@ func (app *ABCIApplication) createAsResponseCheckTx(param []byte, callerNodeID s
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateCreateAsResponse(funcParam, callerNodeID, true)
+	err = app.validateCreateAsResponse(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -299,7 +306,7 @@ func (app *ABCIApplication) createAsResponse(param []byte, callerNodeID string) 
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateCreateAsResponse(funcParam, callerNodeID, false)
+	err = app.validateCreateAsResponse(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

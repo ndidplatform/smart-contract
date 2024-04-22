@@ -37,7 +37,8 @@ type SetAllowedModeListParam struct {
 	AllowedModeList []int32 `json:"allowed_mode_list"`
 }
 
-func (app *ABCIApplication) validateSetAllowedModeList(funcParam SetAllowedModeListParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetAllowedModeList(funcParam SetAllowedModeListParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -59,7 +60,7 @@ func (app *ABCIApplication) setAllowedModeListCheckTx(param []byte, callerNodeID
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetAllowedModeList(funcParam, callerNodeID, true)
+	err = app.validateSetAllowedModeList(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -78,7 +79,7 @@ func (app *ABCIApplication) setAllowedModeList(param []byte, callerNodeID string
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetAllowedModeList(funcParam, callerNodeID, false)
+	err = app.validateSetAllowedModeList(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

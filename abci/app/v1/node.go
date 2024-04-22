@@ -46,7 +46,8 @@ type SetMqAddressesParam struct {
 	Addresses []MsqAddress `json:"addresses"`
 }
 
-func (app *ABCIApplication) validateSetMqAddresses(funcParam SetMqAddressesParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateSetMqAddresses(funcParam SetMqAddressesParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(nodeDetailKey), committedState)
 	if err != nil {
@@ -83,7 +84,7 @@ func (app *ABCIApplication) setMqAddressesCheckTx(param []byte, callerNodeID str
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateSetMqAddresses(funcParam, callerNodeID, true)
+	err = app.validateSetMqAddresses(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -102,7 +103,7 @@ func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) *a
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateSetMqAddresses(funcParam, callerNodeID, false)
+	err = app.validateSetMqAddresses(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -739,7 +740,9 @@ type UpdateNodeParam struct {
 	SupportedRequestMessageDataUrlTypeList []string `json:"supported_request_message_data_url_type_list"`
 }
 
-func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// stateless
+
 	// Validate master public key format
 	if funcParam.SigningMasterPublicKey != "" {
 		err := checkPubKeyForSigning(
@@ -770,6 +773,12 @@ func (app *ABCIApplication) validateUpdateNode(funcParam UpdateNodeParam, caller
 		}
 	}
 
+	if checktx {
+		return nil
+	}
+
+	// stateful
+
 	key := nodeIDKeyPrefix + keySeparator + callerNodeID
 	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
@@ -795,7 +804,7 @@ func (app *ABCIApplication) updateNodeCheckTx(param []byte, callerNodeID string)
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateUpdateNode(funcParam, callerNodeID, true)
+	err = app.validateUpdateNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -814,7 +823,7 @@ func (app *ABCIApplication) updateNode(param []byte, callerNodeID string) *abcit
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateUpdateNode(funcParam, callerNodeID, false)
+	err = app.validateUpdateNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")

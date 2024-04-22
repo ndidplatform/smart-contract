@@ -39,7 +39,8 @@ type AddSuppressedIdentityModificationNotificationNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateAddSuppressedIdentityModificationNotificationNode(funcParam AddSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateAddSuppressedIdentityModificationNotificationNode(funcParam AddSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -50,6 +51,12 @@ func (app *ABCIApplication) validateAddSuppressedIdentityModificationNotificatio
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	// check if node ID exists and is an IdP
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
@@ -100,7 +107,7 @@ func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNodeChe
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
+	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -120,7 +127,7 @@ func (app *ABCIApplication) addSuppressedIdentityModificationNotificationNode(pa
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
+	err = app.validateAddSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -145,7 +152,8 @@ type RemoveSuppressedIdentityModificationNotificationNodeParam struct {
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateRemoveSuppressedIdentityModificationNotificationNode(funcParam RemoveSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool) error {
+func (app *ABCIApplication) validateRemoveSuppressedIdentityModificationNotificationNode(funcParam RemoveSuppressedIdentityModificationNotificationNodeParam, callerNodeID string, committedState bool, checktx bool) error {
+	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
 		return err
@@ -156,6 +164,12 @@ func (app *ABCIApplication) validateRemoveSuppressedIdentityModificationNotifica
 			Message: "This node does not have permission to call NDID method",
 		}
 	}
+
+	if checktx {
+		return nil
+	}
+
+	// stateful
 
 	key := suppressedIdentityModificationNotificationNodePrefix + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
@@ -182,7 +196,7 @@ func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true)
+	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -202,7 +216,7 @@ func (app *ABCIApplication) removeSuppressedIdentityModificationNotificationNode
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false)
+	err = app.validateRemoveSuppressedIdentityModificationNotificationNode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
