@@ -221,9 +221,7 @@ func (app *ABCIApplication) FinalizeBlock(req *abcitypes.RequestFinalizeBlock) (
 	}, nil
 }
 
-func (app *ABCIApplication) execTx(tx []byte) (*abcitypes.ExecTxResult, error) {
-	var res *abcitypes.ExecTxResult
-
+func (app *ABCIApplication) execTx(tx []byte) (res *abcitypes.ExecTxResult, err error) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -233,7 +231,7 @@ func (app *ABCIApplication) execTx(tx []byte) (*abcitypes.ExecTxResult, error) {
 	}()
 
 	var txObj protoTm.Tx
-	err := proto.Unmarshal(tx, &txObj)
+	err = proto.Unmarshal(tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -316,9 +314,7 @@ func (app *ABCIApplication) execTx(tx []byte) (*abcitypes.ExecTxResult, error) {
 	return res, nil
 }
 
-func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes.ResponseCheckTx, error) {
-	var res *abcitypes.ResponseCheckTx
-
+func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (res *abcitypes.ResponseCheckTx, err error) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -328,7 +324,7 @@ func (app *ABCIApplication) CheckTx(check *abcitypes.RequestCheckTx) (*abcitypes
 	}()
 
 	var txObj protoTm.Tx
-	err := proto.Unmarshal(check.Tx, &txObj)
+	err = proto.Unmarshal(check.Tx, &txObj)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
@@ -446,9 +442,7 @@ func (app *ABCIApplication) Commit(commit *abcitypes.RequestCommit) (*abcitypes.
 	}, nil
 }
 
-func (app *ABCIApplication) Query(req *abcitypes.RequestQuery) (*abcitypes.ResponseQuery, error) {
-	var res *abcitypes.ResponseQuery
-
+func (app *ABCIApplication) Query(req *abcitypes.RequestQuery) (res *abcitypes.ResponseQuery, err error) {
 	// Recover when panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -458,7 +452,7 @@ func (app *ABCIApplication) Query(req *abcitypes.RequestQuery) (*abcitypes.Respo
 	}()
 
 	var query protoTm.Query
-	err := proto.Unmarshal(req.Data, &query)
+	err = proto.Unmarshal(req.Data, &query)
 	if err != nil {
 		app.logger.Error(err.Error())
 	}
