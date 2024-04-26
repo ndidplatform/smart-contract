@@ -250,7 +250,7 @@ func (app *ABCIApplication) validateRegisterIdentity(funcParam RegisterIdentityP
 
 	// Check number of Identifier in new list and old list in stateDB
 	var namespaceCount = map[string]int{}
-	validNamespace := app.GetNamespaceMap(false)
+	validNamespace := app.GetNamespaceMap(committedState)
 	for _, identity := range funcParam.NewIdentityList {
 		if identity.IdentityNamespace == "" || identity.IdentityIdentifierHash == "" {
 			return &ApplicationError{
