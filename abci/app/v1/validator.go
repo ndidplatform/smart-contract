@@ -65,7 +65,7 @@ func (app *ABCIApplication) updateValidator(v abcitypes.ValidatorUpdate) *abcity
 			panic(err)
 		}
 		if !hasKey {
-			return app.NewExecTxResult(code.Unauthorized, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
+			return app.NewExecTxResult(code.NotExistValidator, fmt.Sprintf("Cannot remove non-existent validator %X", key), "")
 		}
 		app.state.Delete(key)
 	} else {
