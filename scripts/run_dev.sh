@@ -26,6 +26,7 @@ reset_all_and_run_node_in_background() {
   go run ./abci --home $1 unsafe-reset-all && \
   CGO_ENABLED=1 \
   CGO_LDFLAGS="-lsnappy" \
+  ABCI_INITIAL_STATE_DIR_PATH=$ABCI_INITIAL_STATE_DIR_PATH \
   ABCI_DB_DIR_PATH=$2 \
   TENDERMINT_RETAIN_BLOCK_COUNT=$3 \
   go run -tags "cleveldb" ./abci --home $1 node &
