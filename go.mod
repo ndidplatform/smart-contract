@@ -3,15 +3,15 @@ module github.com/ndidplatform/smart-contract/v9
 go 1.22.2
 
 require (
-	github.com/cometbft/cometbft v0.38.6
+	github.com/cometbft/cometbft v0.38.9
 	github.com/cometbft/cometbft-db v0.12.0
-	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/client_golang v1.19.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (
@@ -45,6 +45,7 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/orderedcode v0.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
@@ -80,9 +81,9 @@ require (
 	go.etcd.io/bbolt v1.4.0-alpha.0.0.20240404170359-43604f3112c5 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
-	golang.org/x/net v0.20.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
