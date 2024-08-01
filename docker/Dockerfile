@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.19 as builder
+FROM golang:1.22-alpine3.20 AS builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
@@ -33,7 +33,7 @@ RUN go build \
     ./abci
 
 
-FROM alpine:3.19
+FROM alpine:3.20
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 
 # Data directory for ABCI to store state.
