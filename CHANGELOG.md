@@ -1,6 +1,6 @@
 # Changelog
 
-## 9.0.0 (TBD)
+## 9.0.0 (August 1, 2024)
 
 BREAKING CHANGES:
 
