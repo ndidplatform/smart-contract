@@ -137,7 +137,7 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
       # tendermint_set_mempool_cache_size 0
       # if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       tendermint_set_config_for_prod
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
@@ -160,7 +160,7 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
       tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
       tendermint_reset
@@ -174,12 +174,12 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
 else
   case ${TYPE} in
     genesis) 
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary)
       until SEED_ID=$(tendermint_get_id_from_seed); do sleep 1; done
       tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
       tendermint_reset
