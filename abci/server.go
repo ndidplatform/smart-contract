@@ -43,6 +43,9 @@ import (
 	"github.com/cometbft/cometbft/proxy"
 
 	abciApp "github.com/ndidplatform/smart-contract/v9/abci/app"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 const (
@@ -91,6 +94,14 @@ func init() {
 
 // Ref: https://github.com/cometbft/cometbft/blob/main/cmd/cometbft/main.go
 func main() {
+
+	//
+	// pprof
+	//
+	var pprofHttpPort = getEnv("PPROF_HTTP_PORT", "6060")
+	go func() {
+		fmt.Println(http.ListenAndServe(fmt.Sprintf(":%s", pprofHttpPort), nil))
+	}()
 
 	//prometheus
 	// var prometheusPort = getEnv("PROMETHEUS_PORT", "2112")
