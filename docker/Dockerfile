@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine3.20 AS builder
+FROM golang:1.24-alpine3.21 AS builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
@@ -28,12 +28,12 @@ ENV CGO_ENABLED=1
 ENV CGO_LDFLAGS="-lsnappy"
 RUN go build \
     -ldflags "-X github.com/ndidplatform/smart-contract/v9/abci/version.GitCommit=`git rev-parse --short=8 HEAD`" \
-    -tags "cleveldb" \
+    -tags "cleveldb,pebbledb" \
     -o ./did-tendermint \
     ./abci
 
 
-FROM alpine:3.20
+FROM alpine:3.21
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 
 # Data directory for ABCI to store state.
