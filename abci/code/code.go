@@ -155,5 +155,7 @@ const (
 	InvalidValidatorVotingPower                                   uint32 = 131
 	InvalidValidatorPublicKey                                     uint32 = 132
 
+	InvalidStateChange uint32 = 133
+
 	UnknownError uint32 = 999
 )

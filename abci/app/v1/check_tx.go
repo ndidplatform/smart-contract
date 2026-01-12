@@ -109,6 +109,15 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 	"AddAllowedNodeSupportedFeature":                       true,
 	"RemoveAllowedNodeSupportedFeature":                    true,
+	// YourData
+	"AddNodeToYourDataRPNodeWhitelist":      true,
+	"RemoveNodeFromYourDataRPNodeWhitelist": true,
+	"EnableYourDataRPNodeWhitelist":         true,
+	"DisableYourDataRPNodeWhitelist":        true,
+	"AddNodeToYourDataASNodeWhitelist":      true,
+	"RemoveNodeFromYourDataASNodeWhitelist": true,
+	"EnableYourDataASNodeWhitelist":         true,
+	"DisableYourDataASNodeWhitelist":        true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1071,6 +1080,25 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 
 	case "CreateMessage":
 		return app.createMessageCheckTx(param, nodeID)
+
+	// YourData
+
+	case "AddNodeToYourDataRPNodeWhitelist":
+		return app.addNodeToYourDataRPNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromYourDataRPNodeWhitelist":
+		return app.removeNodeFromYourDataRPNodeWhitelistCheckTx(param, nodeID)
+	case "EnableYourDataRPNodeWhitelist":
+		return app.enableYourDataRPNodeWhitelistCheckTx(param, nodeID)
+	case "DisableYourDataRPNodeWhitelist":
+		return app.disableYourDataRPNodeWhitelistCheckTx(param, nodeID)
+	case "AddNodeToYourDataASNodeWhitelist":
+		return app.addNodeToYourDataASNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromYourDataASNodeWhitelist":
+		return app.removeNodeFromYourDataASNodeWhitelistCheckTx(param, nodeID)
+	case "EnableYourDataASNodeWhitelist":
+		return app.enableYourDataASNodeWhitelistCheckTx(param, nodeID)
+	case "DisableYourDataASNodeWhitelist":
+		return app.disableYourDataASNodeWhitelistCheckTx(param, nodeID)
 
 	default:
 		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}

@@ -41,6 +41,9 @@ var (
 	servicePriceMinEffectiveDatetimeDelayKeyBytes = []byte("ServicePriceMinEffectiveDatetimeDelay")
 	supportedIALListKeyBytes                      = []byte("SupportedIALList")
 	supportedAALListKeyBytes                      = []byte("SupportedAALList")
+
+	yourDataRPNodeWhitelistMetadataKey = []byte("YourDataRPNodeWhitelistMetadata")
+	yourDataASNodeWhitelistMetadataKey = []byte("YourDataASNodeWhitelistMetadata")
 )
 
 const (
@@ -71,4 +74,8 @@ const (
 	suppressedIdentityModificationNotificationNodePrefix = "SuppressedIdentityModificationNotificationNode"
 	nodeSupportedFeatureKeyPrefix                        = "NodeSupportedFeature"
 	validatorKeyPrefix                                   = "Validator"
+
+	yourDataServiceKeyPrefix         = "YourDataService"
+	yourDataRPNodeWhitelistKeyPrefix = "YourDataRPNodeWhitelist"
+	yourDataASNodeWhitelistKeyPrefix = "YourDataASNodeWhitelist"
 )

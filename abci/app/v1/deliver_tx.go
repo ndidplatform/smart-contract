@@ -269,6 +269,25 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 	case "CreateMessage":
 		return app.createMessage(param, nodeID)
 
+	// YourData
+
+	case "AddNodeToYourDataRPNodeWhitelist":
+		return app.addNodeToYourDataRPNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromYourDataRPNodeWhitelist":
+		return app.removeNodeFromYourDataRPNodeWhitelist(param, nodeID)
+	case "EnableYourDataRPNodeWhitelist":
+		return app.enableYourDataRPNodeWhitelist(param, nodeID)
+	case "DisableYourDataRPNodeWhitelist":
+		return app.disableYourDataRPNodeWhitelist(param, nodeID)
+	case "AddNodeToYourDataASNodeWhitelist":
+		return app.addNodeToYourDataASNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromYourDataASNodeWhitelist":
+		return app.removeNodeFromYourDataASNodeWhitelist(param, nodeID)
+	case "EnableYourDataASNodeWhitelist":
+		return app.enableYourDataASNodeWhitelist(param, nodeID)
+	case "DisableYourDataASNodeWhitelist":
+		return app.disableYourDataASNodeWhitelist(param, nodeID)
+
 	default:
 		return &abcitypes.ExecTxResult{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}
