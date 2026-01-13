@@ -143,6 +143,8 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.getYourDataASNodeWhitelist(param)
 	case "GetYourDataASPermissionStatus":
 		return app.getYourDataASPermissionStatus(param)
+	case "GetYourDataErrorCodeList":
+		return app.getYourDataErrorCodeList(param)
 	default:
 		return &abcitypes.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

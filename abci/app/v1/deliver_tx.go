@@ -288,6 +288,11 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 	case "DisableYourDataASNodeWhitelist":
 		return app.disableYourDataASNodeWhitelist(param, nodeID)
 
+	case "AddYourDataErrorCode":
+		return app.addYourDataErrorCode(param, nodeID)
+	case "RemoveYourDataErrorCode":
+		return app.removeYourDataErrorCode(param, nodeID)
+
 	default:
 		return &abcitypes.ExecTxResult{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

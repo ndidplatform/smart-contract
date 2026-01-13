@@ -75,7 +75,8 @@ const (
 	nodeSupportedFeatureKeyPrefix                        = "NodeSupportedFeature"
 	validatorKeyPrefix                                   = "Validator"
 
-	yourDataServiceKeyPrefix         = "YourDataService"
-	yourDataRPNodeWhitelistKeyPrefix = "YourDataRPNodeWhitelist"
-	yourDataASNodeWhitelistKeyPrefix = "YourDataASNodeWhitelist"
+	yourDataServiceKeyPrefix         = "YourData_Service"
+	yourDataRPNodeWhitelistKeyPrefix = "YourData_RPNodeWhitelist"
+	yourDataASNodeWhitelistKeyPrefix = "YourData_ASNodeWhitelist"
+	yourDataErrorCodeListKeyPrefix   = "YourData_ErrorCodeList"
 )

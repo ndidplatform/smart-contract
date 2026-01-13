@@ -118,6 +118,8 @@ var IsMethod = map[string]bool{
 	"RemoveNodeFromYourDataASNodeWhitelist": true,
 	"EnableYourDataASNodeWhitelist":         true,
 	"DisableYourDataASNodeWhitelist":        true,
+	"AddYourDataErrorCode":                  true,
+	"RemoveYourDataErrorCode":               true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1099,6 +1101,11 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.enableYourDataASNodeWhitelistCheckTx(param, nodeID)
 	case "DisableYourDataASNodeWhitelist":
 		return app.disableYourDataASNodeWhitelistCheckTx(param, nodeID)
+
+	case "AddYourDataErrorCode":
+		return app.addYourDataErrorCodeCheckTx(param, nodeID)
+	case "RemoveYourDataErrorCode":
+		return app.removeYourDataErrorCodeCheckTx(param, nodeID)
 
 	default:
 		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
