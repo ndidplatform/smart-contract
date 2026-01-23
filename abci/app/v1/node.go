@@ -141,7 +141,7 @@ func (app *ABCIApplication) setMqAddresses(param []byte, callerNodeID string) *a
 
 type GetNodeSigningMasterPublicKeyParam struct {
 	NodeID  string `json:"node_id"`
-	Version int64  `json:"version"` // TODO
+	Version int64  `json:"version"`
 }
 
 type GetNodeSigningMasterPublicKeyResult NodeKey
@@ -153,31 +153,61 @@ func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) *abcityp
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	value, err := app.state.Get([]byte(key), true)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+
+	var nodeKey *data.NodeKey
+	if funcParam.Version > 0 {
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"signing_master" + keySeparator +
+				funcParam.NodeID + keySeparator +
+				strconv.FormatInt(funcParam.Version, 10)
+
+		value, err := app.state.Get([]byte(nodeKeyKey), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			err = proto.Unmarshal(value, nodeKey)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+		}
+	} else {
+		key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+		value, err := app.state.Get([]byte(key), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			var nodeDetail data.NodeDetail
+			err = proto.Unmarshal(value, &nodeDetail)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+
+			nodeKey = nodeDetail.SigningMasterPublicKey
+		}
 	}
+
 	var res NodeKey
-	if value == nil {
+
+	if nodeKey == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal(value, &nodeDetail)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
+
 	res = NodeKey{
-		PublicKey:           nodeDetail.SigningMasterPublicKey.PublicKey,
-		Algorithm:           nodeDetail.SigningMasterPublicKey.Algorithm,
-		Version:             nodeDetail.SigningMasterPublicKey.Version,
-		CreationBlockHeight: nodeDetail.SigningMasterPublicKey.CreationBlockHeight,
-		CreationChainID:     nodeDetail.SigningMasterPublicKey.CreationChainId,
-		Active:              nodeDetail.SigningMasterPublicKey.Active,
+		PublicKey:           nodeKey.PublicKey,
+		Algorithm:           nodeKey.Algorithm,
+		Version:             nodeKey.Version,
+		CreationBlockHeight: nodeKey.CreationBlockHeight,
+		CreationChainID:     nodeKey.CreationChainId,
+		Active:              nodeKey.Active,
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
@@ -188,7 +218,7 @@ func (app *ABCIApplication) getNodeSigningMasterPublicKey(param []byte) *abcityp
 
 type GetNodeSigningPublicKeyParam struct {
 	NodeID  string `json:"node_id"`
-	Version int64  `json:"version"` // TODO
+	Version int64  `json:"version"`
 }
 
 type GetNodeSigningPublicKeyResult NodeKey
@@ -200,42 +230,73 @@ func (app *ABCIApplication) getNodeSigningPublicKey(param []byte) *abcitypes.Res
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	value, err := app.state.Get([]byte(key), true)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+
+	var nodeKey *data.NodeKey
+	if funcParam.Version > 0 {
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"signing" + keySeparator +
+				funcParam.NodeID + keySeparator +
+				strconv.FormatInt(funcParam.Version, 10)
+
+		value, err := app.state.Get([]byte(nodeKeyKey), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			err = proto.Unmarshal(value, nodeKey)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+		}
+	} else {
+		key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+		value, err := app.state.Get([]byte(key), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			var nodeDetail data.NodeDetail
+			err = proto.Unmarshal(value, &nodeDetail)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+
+			nodeKey = nodeDetail.SigningPublicKey
+		}
 	}
+
 	var res NodeKey
-	if value == nil {
+
+	if nodeKey == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal(value, &nodeDetail)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
+
 	res = NodeKey{
-		PublicKey:           nodeDetail.SigningPublicKey.PublicKey,
-		Algorithm:           nodeDetail.SigningPublicKey.Algorithm,
-		Version:             nodeDetail.SigningPublicKey.Version,
-		CreationBlockHeight: nodeDetail.SigningPublicKey.CreationBlockHeight,
-		CreationChainID:     nodeDetail.SigningPublicKey.CreationChainId,
-		Active:              nodeDetail.SigningPublicKey.Active,
+		PublicKey:           nodeKey.PublicKey,
+		Algorithm:           nodeKey.Algorithm,
+		Version:             nodeKey.Version,
+		CreationBlockHeight: nodeKey.CreationBlockHeight,
+		CreationChainID:     nodeKey.CreationChainId,
+		Active:              nodeKey.Active,
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
+
 	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
 type GetNodeEncryptionPublicKeyParam struct {
 	NodeID  string `json:"node_id"`
-	Version int64  `json:"version"` // TODO
+	Version int64  `json:"version"`
 }
 
 type GetNodeEncryptionPublicKeyResult NodeKey
@@ -247,36 +308,67 @@ func (app *ABCIApplication) getNodeEncryptionPublicKey(param []byte) *abcitypes.
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
-	value, err := app.state.Get([]byte(key), true)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+
+	var nodeKey *data.NodeKey
+	if funcParam.Version > 0 {
+		nodeKeyKey :=
+			nodeKeyKeyPrefix + keySeparator +
+				"encryption" + keySeparator +
+				funcParam.NodeID + keySeparator +
+				strconv.FormatInt(funcParam.Version, 10)
+
+		value, err := app.state.Get([]byte(nodeKeyKey), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			err = proto.Unmarshal(value, nodeKey)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+		}
+	} else {
+		key := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+		value, err := app.state.Get([]byte(key), true)
+		if err != nil {
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		if value != nil {
+			var nodeDetail data.NodeDetail
+			err = proto.Unmarshal(value, &nodeDetail)
+			if err != nil {
+				return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+			}
+
+			nodeKey = nodeDetail.EncryptionPublicKey
+		}
 	}
+
 	var res NodeKey
-	if value == nil {
+
+	if nodeKey == nil {
 		valueJSON, err := json.Marshal(res)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 		return app.NewResponseQuery(valueJSON, "not found", app.state.Height)
 	}
-	var nodeDetail data.NodeDetail
-	err = proto.Unmarshal(value, &nodeDetail)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
+
 	res = NodeKey{
-		PublicKey:           nodeDetail.EncryptionPublicKey.PublicKey,
-		Algorithm:           nodeDetail.EncryptionPublicKey.Algorithm,
-		Version:             nodeDetail.EncryptionPublicKey.Version,
-		CreationBlockHeight: nodeDetail.EncryptionPublicKey.CreationBlockHeight,
-		CreationChainID:     nodeDetail.EncryptionPublicKey.CreationChainId,
-		Active:              nodeDetail.EncryptionPublicKey.Active,
+		PublicKey:           nodeKey.PublicKey,
+		Algorithm:           nodeKey.Algorithm,
+		Version:             nodeKey.Version,
+		CreationBlockHeight: nodeKey.CreationBlockHeight,
+		CreationChainID:     nodeKey.CreationChainId,
+		Active:              nodeKey.Active,
 	}
 	valueJSON, err := json.Marshal(res)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
+
 	return app.NewResponseQuery(valueJSON, "success", app.state.Height)
 }
 
