@@ -38,6 +38,7 @@ var (
 	lastBlockKeyBytes                             = []byte("lastBlock")
 	idpListKeyBytes                               = []byte("IdPList")
 	allNamespaceKeyBytes                          = []byte("AllNamespace")
+	serviceRequestNodeWhitelistMetadataKey        = []byte("ServiceRequestNodeWhitelistMetadata")
 	servicePriceMinEffectiveDatetimeDelayKeyBytes = []byte("ServicePriceMinEffectiveDatetimeDelay")
 	supportedIALListKeyBytes                      = []byte("SupportedIALList")
 	supportedAALListKeyBytes                      = []byte("SupportedAALList")
@@ -56,6 +57,7 @@ const (
 	tokenPriceFuncKeyPrefix                              = "TokenPriceFunc"
 	serviceKeyPrefix                                     = "Service"
 	serviceDestinationKeyPrefix                          = "ServiceDestination"
+	serviceRequestNodeWhitelistKeyPrefix                 = "ServiceRequestPermission"
 	approvedServiceKeyPrefix                             = "ApproveKey"
 	providedServicesKeyPrefix                            = "ProvideService"
 	refGroupCodeKeyPrefix                                = "RefGroupCode"

@@ -154,8 +154,10 @@ const (
 	NodeSupportedFeatureDoesNotExist                              uint32 = 130
 	InvalidValidatorVotingPower                                   uint32 = 131
 	InvalidValidatorPublicKey                                     uint32 = 132
-
-	InvalidStateChange uint32 = 133
+	InvalidStateChange                                            uint32 = 133
+	ServiceRequestNotAllowed                                      uint32 = 134
+	DuplicateEntry                                                uint32 = 135
+	NotFound                                                      uint32 = 136
 
 	UnknownError uint32 = 999
 )

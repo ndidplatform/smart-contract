@@ -3239,6 +3239,91 @@ func (*NodeSupportedFeature) Descriptor() ([]byte, []int) {
 	return file_data_proto_rawDescGZIP(), []int{50}
 }
 
+type ServiceRequestNodeWhitelist struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Active bool `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty"`
+}
+
+func (x *ServiceRequestNodeWhitelist) Reset() {
+	*x = ServiceRequestNodeWhitelist{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[51]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServiceRequestNodeWhitelist) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServiceRequestNodeWhitelist) ProtoMessage() {}
+
+func (x *ServiceRequestNodeWhitelist) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[51]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServiceRequestNodeWhitelist.ProtoReflect.Descriptor instead.
+func (*ServiceRequestNodeWhitelist) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ServiceRequestNodeWhitelist) GetActive() bool {
+	if x != nil {
+		return x.Active
+	}
+	return false
+}
+
+type ServiceRequestNodePermission struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *ServiceRequestNodePermission) Reset() {
+	*x = ServiceRequestNodePermission{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[52]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ServiceRequestNodePermission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ServiceRequestNodePermission) ProtoMessage() {}
+
+func (x *ServiceRequestNodePermission) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[52]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ServiceRequestNodePermission.ProtoReflect.Descriptor instead.
+func (*ServiceRequestNodePermission) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{52}
+}
+
 type YourDataServiceDetail struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3252,7 +3337,7 @@ type YourDataServiceDetail struct {
 func (x *YourDataServiceDetail) Reset() {
 	*x = YourDataServiceDetail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_proto_msgTypes[51]
+		mi := &file_data_proto_msgTypes[53]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3265,7 +3350,7 @@ func (x *YourDataServiceDetail) String() string {
 func (*YourDataServiceDetail) ProtoMessage() {}
 
 func (x *YourDataServiceDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_data_proto_msgTypes[51]
+	mi := &file_data_proto_msgTypes[53]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3278,7 +3363,7 @@ func (x *YourDataServiceDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YourDataServiceDetail.ProtoReflect.Descriptor instead.
 func (*YourDataServiceDetail) Descriptor() ([]byte, []int) {
-	return file_data_proto_rawDescGZIP(), []int{51}
+	return file_data_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *YourDataServiceDetail) GetServiceId() string {
@@ -3313,7 +3398,7 @@ type YourDataRPNodeWhitelist struct {
 func (x *YourDataRPNodeWhitelist) Reset() {
 	*x = YourDataRPNodeWhitelist{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_proto_msgTypes[52]
+		mi := &file_data_proto_msgTypes[54]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3326,7 +3411,7 @@ func (x *YourDataRPNodeWhitelist) String() string {
 func (*YourDataRPNodeWhitelist) ProtoMessage() {}
 
 func (x *YourDataRPNodeWhitelist) ProtoReflect() protoreflect.Message {
-	mi := &file_data_proto_msgTypes[52]
+	mi := &file_data_proto_msgTypes[54]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3339,7 +3424,7 @@ func (x *YourDataRPNodeWhitelist) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YourDataRPNodeWhitelist.ProtoReflect.Descriptor instead.
 func (*YourDataRPNodeWhitelist) Descriptor() ([]byte, []int) {
-	return file_data_proto_rawDescGZIP(), []int{52}
+	return file_data_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *YourDataRPNodeWhitelist) GetActive() bool {
@@ -3358,7 +3443,7 @@ type YourDataRPNodePermission struct {
 func (x *YourDataRPNodePermission) Reset() {
 	*x = YourDataRPNodePermission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_proto_msgTypes[53]
+		mi := &file_data_proto_msgTypes[55]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3371,7 +3456,7 @@ func (x *YourDataRPNodePermission) String() string {
 func (*YourDataRPNodePermission) ProtoMessage() {}
 
 func (x *YourDataRPNodePermission) ProtoReflect() protoreflect.Message {
-	mi := &file_data_proto_msgTypes[53]
+	mi := &file_data_proto_msgTypes[55]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3384,7 +3469,7 @@ func (x *YourDataRPNodePermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YourDataRPNodePermission.ProtoReflect.Descriptor instead.
 func (*YourDataRPNodePermission) Descriptor() ([]byte, []int) {
-	return file_data_proto_rawDescGZIP(), []int{53}
+	return file_data_proto_rawDescGZIP(), []int{55}
 }
 
 type YourDataASNodeWhitelist struct {
@@ -3398,7 +3483,7 @@ type YourDataASNodeWhitelist struct {
 func (x *YourDataASNodeWhitelist) Reset() {
 	*x = YourDataASNodeWhitelist{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_proto_msgTypes[54]
+		mi := &file_data_proto_msgTypes[56]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3411,7 +3496,7 @@ func (x *YourDataASNodeWhitelist) String() string {
 func (*YourDataASNodeWhitelist) ProtoMessage() {}
 
 func (x *YourDataASNodeWhitelist) ProtoReflect() protoreflect.Message {
-	mi := &file_data_proto_msgTypes[54]
+	mi := &file_data_proto_msgTypes[56]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3424,7 +3509,7 @@ func (x *YourDataASNodeWhitelist) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YourDataASNodeWhitelist.ProtoReflect.Descriptor instead.
 func (*YourDataASNodeWhitelist) Descriptor() ([]byte, []int) {
-	return file_data_proto_rawDescGZIP(), []int{54}
+	return file_data_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *YourDataASNodeWhitelist) GetActive() bool {
@@ -3443,7 +3528,7 @@ type YourDataASNodePermission struct {
 func (x *YourDataASNodePermission) Reset() {
 	*x = YourDataASNodePermission{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_proto_msgTypes[55]
+		mi := &file_data_proto_msgTypes[57]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3456,7 +3541,7 @@ func (x *YourDataASNodePermission) String() string {
 func (*YourDataASNodePermission) ProtoMessage() {}
 
 func (x *YourDataASNodePermission) ProtoReflect() protoreflect.Message {
-	mi := &file_data_proto_msgTypes[55]
+	mi := &file_data_proto_msgTypes[57]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3469,7 +3554,7 @@ func (x *YourDataASNodePermission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use YourDataASNodePermission.ProtoReflect.Descriptor instead.
 func (*YourDataASNodePermission) Descriptor() ([]byte, []int) {
-	return file_data_proto_rawDescGZIP(), []int{55}
+	return file_data_proto_rawDescGZIP(), []int{57}
 }
 
 var File_data_proto protoreflect.FileDescriptor
@@ -3889,26 +3974,31 @@ var file_data_proto_rawDesc = []byte{
 	0x74, 0x79, 0x4d, 0x6f, 0x64, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f,
 	0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4e, 0x6f, 0x64, 0x65, 0x22, 0x16,
 	0x0a, 0x14, 0x4e, 0x6f, 0x64, 0x65, 0x53, 0x75, 0x70, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x64, 0x46,
-	0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x22, 0x71, 0x0a, 0x15, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61,
-	0x74, 0x61, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x12,
-	0x1d, 0x0a, 0x0a, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x49, 0x64, 0x12, 0x21,
-	0x0a, 0x0c, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d,
-	0x65, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x22, 0x31, 0x0a, 0x17, 0x59, 0x6f, 0x75,
-	0x72, 0x44, 0x61, 0x74, 0x61, 0x52, 0x50, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x68, 0x69, 0x74, 0x65,
-	0x6c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x22, 0x1a, 0x0a, 0x18,
-	0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x52, 0x50, 0x4e, 0x6f, 0x64, 0x65, 0x50, 0x65,
-	0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x31, 0x0a, 0x17, 0x59, 0x6f, 0x75, 0x72,
-	0x44, 0x61, 0x74, 0x61, 0x41, 0x53, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x68, 0x69, 0x74, 0x65, 0x6c,
-	0x69, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x22, 0x1a, 0x0a, 0x18, 0x59,
-	0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x41, 0x53, 0x4e, 0x6f, 0x64, 0x65, 0x50, 0x65, 0x72,
-	0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64,
-	0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x39,
-	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x22, 0x35, 0x0a, 0x1b, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e, 0x6f, 0x64, 0x65, 0x57, 0x68, 0x69, 0x74,
+	0x65, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x22, 0x1e, 0x0a,
+	0x1c, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x4e,
+	0x6f, 0x64, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x71, 0x0a,
+	0x15, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x49, 0x64, 0x12, 0x21, 0x0a, 0x0c, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63, 0x74, 0x69,
+	0x76, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69, 0x76, 0x65,
+	0x22, 0x31, 0x0a, 0x17, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x52, 0x50, 0x4e, 0x6f,
+	0x64, 0x65, 0x57, 0x68, 0x69, 0x74, 0x65, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61,
+	0x63, 0x74, 0x69, 0x76, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74,
+	0x69, 0x76, 0x65, 0x22, 0x1a, 0x0a, 0x18, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x52,
+	0x50, 0x4e, 0x6f, 0x64, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x22,
+	0x31, 0x0a, 0x17, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x41, 0x53, 0x4e, 0x6f, 0x64,
+	0x65, 0x57, 0x68, 0x69, 0x74, 0x65, 0x6c, 0x69, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x63,
+	0x74, 0x69, 0x76, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63, 0x74, 0x69,
+	0x76, 0x65, 0x22, 0x1a, 0x0a, 0x18, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x41, 0x53,
+	0x4e, 0x6f, 0x64, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x42, 0x17,
+	0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73,
+	0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x39, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3923,7 +4013,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 56)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v9.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v9.NodeDetail
@@ -3976,12 +4066,14 @@ var file_data_proto_goTypes = []interface{}{
 	(*RequestType)(nil),                                    // 48: ndid_abci_state_v9.RequestType
 	(*SuppressedIdentityModificationNotificationNode)(nil), // 49: ndid_abci_state_v9.SuppressedIdentityModificationNotificationNode
 	(*NodeSupportedFeature)(nil),                           // 50: ndid_abci_state_v9.NodeSupportedFeature
-	(*YourDataServiceDetail)(nil),                          // 51: ndid_abci_state_v9.YourDataServiceDetail
-	(*YourDataRPNodeWhitelist)(nil),                        // 52: ndid_abci_state_v9.YourDataRPNodeWhitelist
-	(*YourDataRPNodePermission)(nil),                       // 53: ndid_abci_state_v9.YourDataRPNodePermission
-	(*YourDataASNodeWhitelist)(nil),                        // 54: ndid_abci_state_v9.YourDataASNodeWhitelist
-	(*YourDataASNodePermission)(nil),                       // 55: ndid_abci_state_v9.YourDataASNodePermission
-	(*wrapperspb.BoolValue)(nil),                           // 56: google.protobuf.BoolValue
+	(*ServiceRequestNodeWhitelist)(nil),                    // 51: ndid_abci_state_v9.ServiceRequestNodeWhitelist
+	(*ServiceRequestNodePermission)(nil),                   // 52: ndid_abci_state_v9.ServiceRequestNodePermission
+	(*YourDataServiceDetail)(nil),                          // 53: ndid_abci_state_v9.YourDataServiceDetail
+	(*YourDataRPNodeWhitelist)(nil),                        // 54: ndid_abci_state_v9.YourDataRPNodeWhitelist
+	(*YourDataRPNodePermission)(nil),                       // 55: ndid_abci_state_v9.YourDataRPNodePermission
+	(*YourDataASNodeWhitelist)(nil),                        // 56: ndid_abci_state_v9.YourDataASNodeWhitelist
+	(*YourDataASNodePermission)(nil),                       // 57: ndid_abci_state_v9.YourDataASNodePermission
+	(*wrapperspb.BoolValue)(nil),                           // 58: google.protobuf.BoolValue
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v9.NodeDetail.signing_public_key:type_name -> ndid_abci_state_v9.NodeKey
@@ -4000,8 +4092,8 @@ var file_data_proto_depIdxs = []int32{
 	35, // 13: ndid_abci_state_v9.ReferenceGroup.identities:type_name -> ndid_abci_state_v9.IdentityInRefGroup
 	34, // 14: ndid_abci_state_v9.ReferenceGroup.idps:type_name -> ndid_abci_state_v9.IdPInRefGroup
 	20, // 15: ndid_abci_state_v9.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v9.Accessor
-	56, // 16: ndid_abci_state_v9.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
-	56, // 17: ndid_abci_state_v9.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
+	58, // 16: ndid_abci_state_v9.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
+	58, // 17: ndid_abci_state_v9.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
 	40, // 18: ndid_abci_state_v9.ErrorCodeList.error_code:type_name -> ndid_abci_state_v9.ErrorCode
 	43, // 19: ndid_abci_state_v9.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v9.ServicePriceCeilingByCurency
 	46, // 20: ndid_abci_state_v9.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v9.ServicePrice
@@ -4632,7 +4724,7 @@ func file_data_proto_init() {
 			}
 		}
 		file_data_proto_msgTypes[51].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*YourDataServiceDetail); i {
+			switch v := v.(*ServiceRequestNodeWhitelist); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4644,7 +4736,7 @@ func file_data_proto_init() {
 			}
 		}
 		file_data_proto_msgTypes[52].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*YourDataRPNodeWhitelist); i {
+			switch v := v.(*ServiceRequestNodePermission); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4656,7 +4748,7 @@ func file_data_proto_init() {
 			}
 		}
 		file_data_proto_msgTypes[53].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*YourDataRPNodePermission); i {
+			switch v := v.(*YourDataServiceDetail); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4668,7 +4760,7 @@ func file_data_proto_init() {
 			}
 		}
 		file_data_proto_msgTypes[54].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*YourDataASNodeWhitelist); i {
+			switch v := v.(*YourDataRPNodeWhitelist); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4680,6 +4772,30 @@ func file_data_proto_init() {
 			}
 		}
 		file_data_proto_msgTypes[55].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*YourDataRPNodePermission); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[56].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*YourDataASNodeWhitelist); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_proto_msgTypes[57].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*YourDataASNodePermission); i {
 			case 0:
 				return &v.state
@@ -4698,7 +4814,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   56,
+			NumMessages:   58,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

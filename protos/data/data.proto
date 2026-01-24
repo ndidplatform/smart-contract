@@ -316,6 +316,15 @@ message NodeSupportedFeature {
   // string name = 1;
 }
 
+message ServiceRequestNodeWhitelist {
+  bool active = 1;
+}
+
+message ServiceRequestNodePermission {
+  // string service_id = 1;
+  // string node_id = 2;
+}
+
 message YourDataServiceDetail {
   string service_id = 1;
   string service_name = 2;

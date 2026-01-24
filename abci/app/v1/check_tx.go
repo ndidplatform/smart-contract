@@ -109,6 +109,10 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 	"AddAllowedNodeSupportedFeature":                       true,
 	"RemoveAllowedNodeSupportedFeature":                    true,
+	"AddNodeToServiceRequestNodeWhitelist":                 true,
+	"RemoveNodeFromServiceRequestNodeWhitelist":            true,
+	"EnableServiceRequestNodeWhitelist":                    true,
+	"DisableServiceRequestNodeWhitelist":                   true,
 	// YourData
 	"AddNodeToYourDataRPNodeWhitelist":      true,
 	"RemoveNodeFromYourDataRPNodeWhitelist": true,
@@ -1017,6 +1021,14 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.setServicePriceCeilingCheckTx(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
+	case "AddNodeToServiceRequestNodeWhitelist":
+		return app.addNodeToServiceRequestNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromServiceRequestNodeWhitelist":
+		return app.removeNodeFromServiceRequestNodeWhitelistCheckTx(param, nodeID)
+	case "EnableServiceRequestNodeWhitelist":
+		return app.enableServiceRequestNodeWhitelistCheckTx(param, nodeID)
+	case "DisableServiceRequestNodeWhitelist":
+		return app.disableServiceRequestNodeWhitelistCheckTx(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALListCheckTx(param, nodeID)
