@@ -80,8 +80,8 @@ func (app *ABCIApplication) getService(serviceID string) (*ServiceDetail, error)
 type ServiceDetail struct {
 	ServiceID                     string  `json:"service_id"`
 	ServiceName                   string  `json:"service_name"`
-	DataSchema                    string  `json:"data_schema"`
-	DataSchemaVersion             string  `json:"data_schema_version"`
+	DataSchema                    string  `json:"data_schema,omitempty"`
+	DataSchemaVersion             string  `json:"data_schema_version,omitempty"`
 	Active                        bool    `json:"active"`
 	Domain                        *string `json:"domain,omitempty"`
 	RequesterNodeWhitelistEnabled bool    `json:"requester_node_whitelist_enabled"`
