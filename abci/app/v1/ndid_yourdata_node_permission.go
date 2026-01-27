@@ -33,11 +33,11 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-type AddNodeToYourDataASNodeWhitelistParam struct {
-	ASNodeID string `json:"as_node_id"`
+type AddNodeToYourDataNodeWhitelistParam struct {
+	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateAddNodeToYourDataASNodeWhitelist(funcParam AddNodeToYourDataASNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateAddNodeToYourDataNodeWhitelist(funcParam AddNodeToYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -56,7 +56,22 @@ func (app *ABCIApplication) validateAddNodeToYourDataASNodeWhitelist(funcParam A
 
 	// stateful
 
-	key := yourDataASNodeWhitelistKeyPrefix + keySeparator + funcParam.ASNodeID
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if nodeDetailValue == nil {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+
+	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -74,14 +89,14 @@ func (app *ABCIApplication) validateAddNodeToYourDataASNodeWhitelist(funcParam A
 	return nil
 }
 
-func (app *ABCIApplication) addNodeToYourDataASNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam AddNodeToYourDataASNodeWhitelistParam
+func (app *ABCIApplication) addNodeToYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam AddNodeToYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNodeToYourDataASNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateAddNodeToYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -92,15 +107,15 @@ func (app *ABCIApplication) addNodeToYourDataASNodeWhitelistCheckTx(param []byte
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNodeToYourDataASNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("AddNodeToYourDataASNodeWhitelist, Parameter: %s", param)
-	var funcParam AddNodeToYourDataASNodeWhitelistParam
+func (app *ABCIApplication) addNodeToYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("AddNodeToYourDataNodeWhitelist, Parameter: %s", param)
+	var funcParam AddNodeToYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNodeToYourDataASNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateAddNodeToYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -108,9 +123,9 @@ func (app *ABCIApplication) addNodeToYourDataASNodeWhitelist(param []byte, calle
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := yourDataASNodeWhitelistKeyPrefix + keySeparator + funcParam.ASNodeID
+	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
 
-	var nodePermission data.YourDataASNodePermission
+	var nodePermission data.YourDataNodePermission
 
 	value, err := utils.ProtoDeterministicMarshal(&nodePermission)
 	if err != nil {
@@ -122,11 +137,11 @@ func (app *ABCIApplication) addNodeToYourDataASNodeWhitelist(param []byte, calle
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type RemoveNodeFromYourDataASNodeWhitelistParam struct {
-	ASNodeID string `json:"as_node_id"`
+type RemoveNodeFromYourDataNodeWhitelistParam struct {
+	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateRemoveNodeFromYourDataASNodeWhitelist(funcParam RemoveNodeFromYourDataASNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateRemoveNodeFromYourDataNodeWhitelist(funcParam RemoveNodeFromYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -145,7 +160,7 @@ func (app *ABCIApplication) validateRemoveNodeFromYourDataASNodeWhitelist(funcPa
 
 	// stateful
 
-	key := yourDataASNodeWhitelistKeyPrefix + keySeparator + funcParam.ASNodeID
+	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -163,14 +178,14 @@ func (app *ABCIApplication) validateRemoveNodeFromYourDataASNodeWhitelist(funcPa
 	return nil
 }
 
-func (app *ABCIApplication) removeNodeFromYourDataASNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam RemoveNodeFromYourDataASNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam RemoveNodeFromYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveNodeFromYourDataASNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateRemoveNodeFromYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -181,15 +196,15 @@ func (app *ABCIApplication) removeNodeFromYourDataASNodeWhitelistCheckTx(param [
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeNodeFromYourDataASNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("RemoveNodeFromYourDataASNodeWhitelist, Parameter: %s", param)
-	var funcParam RemoveNodeFromYourDataASNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("RemoveNodeFromYourDataNodeWhitelist, Parameter: %s", param)
+	var funcParam RemoveNodeFromYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveNodeFromYourDataASNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateRemoveNodeFromYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -197,7 +212,7 @@ func (app *ABCIApplication) removeNodeFromYourDataASNodeWhitelist(param []byte, 
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := yourDataASNodeWhitelistKeyPrefix + keySeparator + funcParam.ASNodeID
+	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
 
 	app.state.Delete([]byte(key))
 
@@ -206,10 +221,10 @@ func (app *ABCIApplication) removeNodeFromYourDataASNodeWhitelist(param []byte, 
 
 //
 
-type EnableYourDataASNodeWhitelistParam struct {
+type EnableYourDataNodeWhitelistParam struct {
 }
 
-func (app *ABCIApplication) validateEnableYourDataASNodeWhitelist(funcParam EnableYourDataASNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateEnableYourDataNodeWhitelist(funcParam EnableYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -228,22 +243,22 @@ func (app *ABCIApplication) validateEnableYourDataASNodeWhitelist(funcParam Enab
 
 	// stateful
 
-	value, err := app.state.Get(yourDataASNodeWhitelistMetadataKey, committedState)
+	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var yourDataASNodeWhitelist data.YourDataASNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataASNodeWhitelist)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if yourDataASNodeWhitelist.Active {
+	if yourDataNodeWhitelist.Active {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
 			Message: "Already active/enabled",
@@ -253,14 +268,14 @@ func (app *ABCIApplication) validateEnableYourDataASNodeWhitelist(funcParam Enab
 	return nil
 }
 
-func (app *ABCIApplication) enableYourDataASNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam EnableYourDataASNodeWhitelistParam
+func (app *ABCIApplication) enableYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam EnableYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableYourDataASNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateEnableYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -271,15 +286,15 @@ func (app *ABCIApplication) enableYourDataASNodeWhitelistCheckTx(param []byte, c
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableYourDataASNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("EnableYourDataASNodeWhitelist, Parameter: %s", param)
-	var funcParam EnableYourDataASNodeWhitelistParam
+func (app *ABCIApplication) enableYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("EnableYourDataNodeWhitelist, Parameter: %s", param)
+	var funcParam EnableYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableYourDataASNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateEnableYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -287,31 +302,31 @@ func (app *ABCIApplication) enableYourDataASNodeWhitelist(param []byte, callerNo
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(yourDataASNodeWhitelistMetadataKey, false)
+	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var yourDataASNodeWhitelist data.YourDataASNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataASNodeWhitelist)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	yourDataASNodeWhitelist.Active = true
+	yourDataNodeWhitelist.Active = true
 
-	value, err = utils.ProtoDeterministicMarshal(&yourDataASNodeWhitelist)
+	value, err = utils.ProtoDeterministicMarshal(&yourDataNodeWhitelist)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(yourDataASNodeWhitelistMetadataKey, value)
+	app.state.Set(yourDataNodeWhitelistMetadataKey, value)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type DisableYourDataASNodeWhitelistParam struct {
+type DisableYourDataNodeWhitelistParam struct {
 }
 
-func (app *ABCIApplication) validateDisableYourDataASNodeWhitelist(funcParam DisableYourDataASNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateDisableYourDataNodeWhitelist(funcParam DisableYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -330,22 +345,22 @@ func (app *ABCIApplication) validateDisableYourDataASNodeWhitelist(funcParam Dis
 
 	// stateful
 
-	value, err := app.state.Get(yourDataASNodeWhitelistMetadataKey, committedState)
+	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var yourDataASNodeWhitelist data.YourDataASNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataASNodeWhitelist)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if !yourDataASNodeWhitelist.Active {
+	if !yourDataNodeWhitelist.Active {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
 			Message: "Already inactive/disabled",
@@ -355,14 +370,14 @@ func (app *ABCIApplication) validateDisableYourDataASNodeWhitelist(funcParam Dis
 	return nil
 }
 
-func (app *ABCIApplication) disableYourDataASNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam DisableYourDataASNodeWhitelistParam
+func (app *ABCIApplication) disableYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam DisableYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableYourDataASNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateDisableYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -373,15 +388,15 @@ func (app *ABCIApplication) disableYourDataASNodeWhitelistCheckTx(param []byte, 
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableYourDataASNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("DisableYourDataASNodeWhitelist, Parameter: %s", param)
-	var funcParam DisableYourDataASNodeWhitelistParam
+func (app *ABCIApplication) disableYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("DisableYourDataNodeWhitelist, Parameter: %s", param)
+	var funcParam DisableYourDataNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableYourDataASNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateDisableYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -389,23 +404,23 @@ func (app *ABCIApplication) disableYourDataASNodeWhitelist(param []byte, callerN
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(yourDataASNodeWhitelistMetadataKey, false)
+	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var yourDataASNodeWhitelist data.YourDataASNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataASNodeWhitelist)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	yourDataASNodeWhitelist.Active = false
+	yourDataNodeWhitelist.Active = false
 
-	value, err = utils.ProtoDeterministicMarshal(&yourDataASNodeWhitelist)
+	value, err = utils.ProtoDeterministicMarshal(&yourDataNodeWhitelist)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(yourDataASNodeWhitelistMetadataKey, value)
+	app.state.Set(yourDataNodeWhitelistMetadataKey, value)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }

@@ -69,6 +69,8 @@ message ServiceDetail {
   string data_schema = 3;
   string data_schema_version = 4;
   bool active = 5;
+  string domain = 6;
+  bool requester_node_whitelist_enabled = 7;
 }
 
 message ApproveService {
@@ -316,19 +318,18 @@ message NodeSupportedFeature {
   // string name = 1;
 }
 
-message ServiceRequestNodeWhitelist {
-  bool active = 1;
-}
 
 message ServiceRequestNodePermission {
   // string service_id = 1;
   // string node_id = 2;
 }
 
-message YourDataServiceDetail {
-  string service_id = 1;
-  string service_name = 2;
-  bool active = 3;
+message YourDataNodeWhitelist {
+  bool active = 1;
+}
+
+message YourDataNodePermission {
+  // string node_id = 1;
 }
 
 message YourDataRPNodeWhitelist {

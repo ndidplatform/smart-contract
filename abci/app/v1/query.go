@@ -74,12 +74,12 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.getAccessorKey(param)
 	case "GetServiceList":
 		return app.getServiceList(param)
-	case "GetServiceRequestNodeWhitelist":
-		return app.getServiceRequestNodeWhitelist(param)
-	case "GetServiceRequestNodeWhitelistByServiceID":
-		return app.getServiceRequestNodeWhitelistByServiceID(param)
-	case "GetAllowedServiceRequestList":
-		return app.getAllowedServiceRequestList(param)
+	case "GetServiceRequesterNodeWhitelist":
+		return app.getServiceRequesterNodeWhitelist(param)
+	case "GetServiceRequesterNodeWhitelistByServiceID":
+		return app.getServiceRequesterNodeWhitelistByServiceID(param)
+	case "GetServiceRequesterNodePermission":
+		return app.getServiceRequesterNodePermission(param)
 	case "GetNodeSigningMasterPublicKey":
 		return app.getNodeSigningMasterPublicKey(param)
 	case "GetNodeInfo":
@@ -141,14 +141,10 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 	case "GetAllowedNodeSupportedFeatureList":
 		return app.getAllowedNodeSupportedFeatureList(param, height)
 	// YourData
-	case "GetYourDataRPNodeWhitelist":
-		return app.getYourDataRPNodeWhitelist(param)
-	case "GetYourDataRPPermissionStatus":
-		return app.getYourDataRPPermissionStatus(param)
-	case "GetYourDataASNodeWhitelist":
-		return app.getYourDataASNodeWhitelist(param)
-	case "GetYourDataASPermissionStatus":
-		return app.getYourDataASPermissionStatus(param)
+	case "GetYourDataNodeWhitelist":
+		return app.getYourDataNodeWhitelist(param)
+	case "GetYourDataPermissionStatus":
+		return app.getYourDataPermissionStatus(param)
 	case "GetYourDataErrorCodeList":
 		return app.getYourDataErrorCodeList(param)
 	default:

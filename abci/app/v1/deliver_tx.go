@@ -203,14 +203,14 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.setServicePriceCeiling(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelay(param, nodeID)
-	case "AddNodeToServiceRequestNodeWhitelist":
-		return app.addNodeToServiceRequestNodeWhitelist(param, nodeID)
-	case "RemoveNodeFromServiceRequestNodeWhitelist":
-		return app.removeNodeFromServiceRequestNodeWhitelist(param, nodeID)
-	case "EnableServiceRequestNodeWhitelist":
-		return app.enableServiceRequestNodeWhitelist(param, nodeID)
-	case "DisableServiceRequestNodeWhitelist":
-		return app.disableServiceRequestNodeWhitelist(param, nodeID)
+	case "AddNodeToServiceRequesterNodeWhitelist":
+		return app.addNodeToServiceRequesterNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromServiceRequesterNodeWhitelist":
+		return app.removeNodeFromServiceRequesterNodeWhitelist(param, nodeID)
+	case "EnableServiceRequesterNodeWhitelist":
+		return app.enableServiceRequesterNodeWhitelist(param, nodeID)
+	case "DisableServiceRequesterNodeWhitelist":
+		return app.disableServiceRequesterNodeWhitelist(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALList(param, nodeID)
@@ -279,22 +279,14 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 
 	// YourData
 
-	case "AddNodeToYourDataRPNodeWhitelist":
-		return app.addNodeToYourDataRPNodeWhitelist(param, nodeID)
-	case "RemoveNodeFromYourDataRPNodeWhitelist":
-		return app.removeNodeFromYourDataRPNodeWhitelist(param, nodeID)
-	case "EnableYourDataRPNodeWhitelist":
-		return app.enableYourDataRPNodeWhitelist(param, nodeID)
-	case "DisableYourDataRPNodeWhitelist":
-		return app.disableYourDataRPNodeWhitelist(param, nodeID)
-	case "AddNodeToYourDataASNodeWhitelist":
-		return app.addNodeToYourDataASNodeWhitelist(param, nodeID)
-	case "RemoveNodeFromYourDataASNodeWhitelist":
-		return app.removeNodeFromYourDataASNodeWhitelist(param, nodeID)
-	case "EnableYourDataASNodeWhitelist":
-		return app.enableYourDataASNodeWhitelist(param, nodeID)
-	case "DisableYourDataASNodeWhitelist":
-		return app.disableYourDataASNodeWhitelist(param, nodeID)
+	case "AddNodeToYourDataNodeWhitelist":
+		return app.addNodeToYourDataNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromYourDataNodeWhitelist":
+		return app.removeNodeFromYourDataNodeWhitelist(param, nodeID)
+	case "EnableYourDataNodeWhitelist":
+		return app.enableYourDataNodeWhitelist(param, nodeID)
+	case "DisableYourDataNodeWhitelist":
+		return app.disableYourDataNodeWhitelist(param, nodeID)
 
 	case "AddYourDataErrorCode":
 		return app.addYourDataErrorCode(param, nodeID)

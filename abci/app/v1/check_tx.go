@@ -109,21 +109,17 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 	"AddAllowedNodeSupportedFeature":                       true,
 	"RemoveAllowedNodeSupportedFeature":                    true,
-	"AddNodeToServiceRequestNodeWhitelist":                 true,
-	"RemoveNodeFromServiceRequestNodeWhitelist":            true,
-	"EnableServiceRequestNodeWhitelist":                    true,
-	"DisableServiceRequestNodeWhitelist":                   true,
+	"AddNodeToServiceRequesterNodeWhitelist":               true,
+	"RemoveNodeFromServiceRequesterNodeWhitelist":          true,
+	"EnableServiceRequesterNodeWhitelist":                  true,
+	"DisableServiceRequesterNodeWhitelist":                 true,
 	// YourData
-	"AddNodeToYourDataRPNodeWhitelist":      true,
-	"RemoveNodeFromYourDataRPNodeWhitelist": true,
-	"EnableYourDataRPNodeWhitelist":         true,
-	"DisableYourDataRPNodeWhitelist":        true,
-	"AddNodeToYourDataASNodeWhitelist":      true,
-	"RemoveNodeFromYourDataASNodeWhitelist": true,
-	"EnableYourDataASNodeWhitelist":         true,
-	"DisableYourDataASNodeWhitelist":        true,
-	"AddYourDataErrorCode":                  true,
-	"RemoveYourDataErrorCode":               true,
+	"AddNodeToYourDataNodeWhitelist":      true,
+	"RemoveNodeFromYourDataNodeWhitelist": true,
+	"EnableYourDataNodeWhitelist":         true,
+	"DisableYourDataNodeWhitelist":        true,
+	"AddYourDataErrorCode":                true,
+	"RemoveYourDataErrorCode":             true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1021,14 +1017,14 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.setServicePriceCeilingCheckTx(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
-	case "AddNodeToServiceRequestNodeWhitelist":
-		return app.addNodeToServiceRequestNodeWhitelistCheckTx(param, nodeID)
-	case "RemoveNodeFromServiceRequestNodeWhitelist":
-		return app.removeNodeFromServiceRequestNodeWhitelistCheckTx(param, nodeID)
-	case "EnableServiceRequestNodeWhitelist":
-		return app.enableServiceRequestNodeWhitelistCheckTx(param, nodeID)
-	case "DisableServiceRequestNodeWhitelist":
-		return app.disableServiceRequestNodeWhitelistCheckTx(param, nodeID)
+	case "AddNodeToServiceRequesterNodeWhitelist":
+		return app.addNodeToServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromServiceRequesterNodeWhitelist":
+		return app.removeNodeFromServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "EnableServiceRequesterNodeWhitelist":
+		return app.enableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "DisableServiceRequesterNodeWhitelist":
+		return app.disableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALListCheckTx(param, nodeID)
@@ -1097,22 +1093,14 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 
 	// YourData
 
-	case "AddNodeToYourDataRPNodeWhitelist":
-		return app.addNodeToYourDataRPNodeWhitelistCheckTx(param, nodeID)
-	case "RemoveNodeFromYourDataRPNodeWhitelist":
-		return app.removeNodeFromYourDataRPNodeWhitelistCheckTx(param, nodeID)
-	case "EnableYourDataRPNodeWhitelist":
-		return app.enableYourDataRPNodeWhitelistCheckTx(param, nodeID)
-	case "DisableYourDataRPNodeWhitelist":
-		return app.disableYourDataRPNodeWhitelistCheckTx(param, nodeID)
-	case "AddNodeToYourDataASNodeWhitelist":
-		return app.addNodeToYourDataASNodeWhitelistCheckTx(param, nodeID)
-	case "RemoveNodeFromYourDataASNodeWhitelist":
-		return app.removeNodeFromYourDataASNodeWhitelistCheckTx(param, nodeID)
-	case "EnableYourDataASNodeWhitelist":
-		return app.enableYourDataASNodeWhitelistCheckTx(param, nodeID)
-	case "DisableYourDataASNodeWhitelist":
-		return app.disableYourDataASNodeWhitelistCheckTx(param, nodeID)
+	case "AddNodeToYourDataNodeWhitelist":
+		return app.addNodeToYourDataNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromYourDataNodeWhitelist":
+		return app.removeNodeFromYourDataNodeWhitelistCheckTx(param, nodeID)
+	case "EnableYourDataNodeWhitelist":
+		return app.enableYourDataNodeWhitelistCheckTx(param, nodeID)
+	case "DisableYourDataNodeWhitelist":
+		return app.disableYourDataNodeWhitelistCheckTx(param, nodeID)
 
 	case "AddYourDataErrorCode":
 		return app.addYourDataErrorCodeCheckTx(param, nodeID)

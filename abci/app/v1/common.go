@@ -38,13 +38,11 @@ var (
 	lastBlockKeyBytes                             = []byte("lastBlock")
 	idpListKeyBytes                               = []byte("IdPList")
 	allNamespaceKeyBytes                          = []byte("AllNamespace")
-	serviceRequestNodeWhitelistMetadataKey        = []byte("ServiceRequestNodeWhitelistMetadata")
 	servicePriceMinEffectiveDatetimeDelayKeyBytes = []byte("ServicePriceMinEffectiveDatetimeDelay")
 	supportedIALListKeyBytes                      = []byte("SupportedIALList")
 	supportedAALListKeyBytes                      = []byte("SupportedAALList")
 
-	yourDataRPNodeWhitelistMetadataKey = []byte("YourDataRPNodeWhitelistMetadata")
-	yourDataASNodeWhitelistMetadataKey = []byte("YourDataASNodeWhitelistMetadata")
+	yourDataNodeWhitelistMetadataKey = []byte("YourDataNodeWhitelistMetadata")
 )
 
 const (
@@ -57,7 +55,7 @@ const (
 	tokenPriceFuncKeyPrefix                              = "TokenPriceFunc"
 	serviceKeyPrefix                                     = "Service"
 	serviceDestinationKeyPrefix                          = "ServiceDestination"
-	serviceRequestNodeWhitelistKeyPrefix                 = "ServiceRequestPermission"
+	serviceRequesterNodeWhitelistKeyPrefix               = "ServiceRequesterPermission"
 	approvedServiceKeyPrefix                             = "ApproveKey"
 	providedServicesKeyPrefix                            = "ProvideService"
 	refGroupCodeKeyPrefix                                = "RefGroupCode"
@@ -77,8 +75,6 @@ const (
 	nodeSupportedFeatureKeyPrefix                        = "NodeSupportedFeature"
 	validatorKeyPrefix                                   = "Validator"
 
-	yourDataServiceKeyPrefix         = "YourData_Service"
-	yourDataRPNodeWhitelistKeyPrefix = "YourData_RPNodeWhitelist"
-	yourDataASNodeWhitelistKeyPrefix = "YourData_ASNodeWhitelist"
-	yourDataErrorCodeListKeyPrefix   = "YourData_ErrorCodeList"
+	yourDataNodeWhitelistKeyPrefix = "YourData_NodeWhitelist"
+	yourDataErrorCodeListKeyPrefix = "YourData_ErrorCodeList"
 )

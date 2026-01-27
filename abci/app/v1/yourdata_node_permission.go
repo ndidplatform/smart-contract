@@ -32,19 +32,17 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-// RP
-
-type GetYourDataRPNodeWhitelistResult struct {
-	RPNodeIDs []string `json:"rp_node_id_list"`
-	Enabled   bool     `json:"enabled"`
+type GetYourDataNodeWhitelistResult struct {
+	NodeIDs []string `json:"node_id_list"`
+	Enabled bool     `json:"enabled"`
 }
 
-func (app *ABCIApplication) getYourDataRPNodeWhitelist(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetYourDataRPNodeWhitelist, Parameter: %s", param)
+func (app *ABCIApplication) getYourDataNodeWhitelist(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetYourDataNodeWhitelist, Parameter: %s", param)
 
-	rpNodeIDs := make([]string, 0)
+	nodeIDs := make([]string, 0)
 
-	keyIteratorPrefix := yourDataRPNodeWhitelistKeyPrefix + keySeparator
+	keyIteratorPrefix := yourDataNodeWhitelistKeyPrefix + keySeparator
 	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
@@ -56,23 +54,23 @@ func (app *ABCIApplication) getYourDataRPNodeWhitelist(param []byte) *abcitypes.
 		runes := []rune(string(key))
 		nodeID := string(runes[len(keyIteratorPrefix):])
 
-		rpNodeIDs = append(rpNodeIDs, nodeID)
+		nodeIDs = append(nodeIDs, nodeID)
 	}
 	iter.Close()
 
-	metadataValue, err := app.state.Get(yourDataRPNodeWhitelistMetadataKey, true)
+	metadataValue, err := app.state.Get(yourDataNodeWhitelistMetadataKey, true)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	var yourDataRPNodeWhitelist data.YourDataRPNodeWhitelist
-	err = proto.Unmarshal(metadataValue, &yourDataRPNodeWhitelist)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(metadataValue, &yourDataNodeWhitelist)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	result := &GetYourDataRPNodeWhitelistResult{
-		RPNodeIDs: rpNodeIDs,
-		Enabled:   yourDataRPNodeWhitelist.Active,
+	result := &GetYourDataNodeWhitelistResult{
+		NodeIDs: nodeIDs,
+		Enabled: yourDataNodeWhitelist.Active,
 	}
 
 	returnValue, err := json.Marshal(result)
@@ -83,30 +81,29 @@ func (app *ABCIApplication) getYourDataRPNodeWhitelist(param []byte) *abcitypes.
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-type GetYourDataRPPermissionStatusParam struct {
-	RPNodeID string `json:"rp_node_id"`
+type GetYourDataPermissionStatusParam struct {
+	NodeID string `json:"node_id"`
 }
 
-type GetYourDataRPPermissionStatusReturn struct {
+type GetYourDataPermissionStatusReturn struct {
 	Allowed bool `json:"allowed"`
 }
 
-func (app *ABCIApplication) getYourDataRPPermissionStatus(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetYourDataRPPermissionStatus, Parameter: %s", param)
+func (app *ABCIApplication) getYourDataPermissionStatus(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetYourDataPermissionStatus, Parameter: %s", param)
 
-	var funcParam GetYourDataRPPermissionStatusParam
+	var funcParam GetYourDataPermissionStatusParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	key := yourDataRPNodeWhitelistKeyPrefix + keySeparator + funcParam.RPNodeID
-	allowed, err := app.state.Has([]byte(key), true)
+	allowed, err := app.hasYourDataPermission(funcParam.NodeID)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	result := &GetYourDataRPPermissionStatusReturn{
+	result := &GetYourDataPermissionStatusReturn{
 		Allowed: allowed,
 	}
 
@@ -118,88 +115,31 @@ func (app *ABCIApplication) getYourDataRPPermissionStatus(param []byte) *abcityp
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-// AS
-
-type GetYourDataASNodeWhitelistResult struct {
-	ASNodeIDs []string `json:"as_node_id_list"`
-	Enabled   bool     `json:"enabled"`
-}
-
-func (app *ABCIApplication) getYourDataASNodeWhitelist(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetYourDataASNodeWhitelist, Parameter: %s", param)
-
-	asNodeIDs := make([]string, 0)
-
-	keyIteratorPrefix := yourDataASNodeWhitelistKeyPrefix + keySeparator
-	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
-	iter, err := app.state.db.Iterator(r.Start, r.Limit)
+func (app *ABCIApplication) hasYourDataPermission(nodeID string) (allowed bool, err error) {
+	// check if whitelist is active
+	metadataValue, err := app.state.Get(yourDataNodeWhitelistMetadataKey, true)
 	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		return false, err
 	}
-	for ; iter.Valid(); iter.Next() {
-		key := iter.Key()
-
-		runes := []rune(string(key))
-		nodeID := string(runes[len(keyIteratorPrefix):])
-
-		asNodeIDs = append(asNodeIDs, nodeID)
+	if metadataValue == nil {
+		return true, nil
 	}
-	iter.Close()
 
-	metadataValue, err := app.state.Get(yourDataASNodeWhitelistMetadataKey, true)
+	var yourDataNodeWhitelist data.YourDataNodeWhitelist
+	err = proto.Unmarshal(metadataValue, &yourDataNodeWhitelist)
 	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		return false, err
 	}
-	var yourDataASNodeWhitelist data.YourDataASNodeWhitelist
-	err = proto.Unmarshal(metadataValue, &yourDataASNodeWhitelist)
+
+	if !yourDataNodeWhitelist.Active {
+		return true, nil
+	}
+
+	key := yourDataNodeWhitelistKeyPrefix + keySeparator + nodeID
+	allowed, err = app.state.Has([]byte(key), true)
 	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		return false, err
 	}
 
-	result := &GetYourDataASNodeWhitelistResult{
-		ASNodeIDs: asNodeIDs,
-		Enabled:   yourDataASNodeWhitelist.Active,
-	}
-
-	returnValue, err := json.Marshal(result)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-
-	return app.NewResponseQuery(returnValue, "success", app.state.Height)
-}
-
-type GetYourDataASPermissionStatusParam struct {
-	ASNodeID string `json:"as_node_id"`
-}
-
-type GetYourDataASPermissionStatusReturn struct {
-	Allowed bool `json:"allowed"`
-}
-
-func (app *ABCIApplication) getYourDataASPermissionStatus(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetYourDataASPermissionStatus, Parameter: %s", param)
-
-	var funcParam GetYourDataASPermissionStatusParam
-	err := json.Unmarshal(param, &funcParam)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-
-	key := yourDataASNodeWhitelistKeyPrefix + keySeparator + funcParam.ASNodeID
-	allowed, err := app.state.Has([]byte(key), true)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-
-	result := &GetYourDataASPermissionStatusReturn{
-		Allowed: allowed,
-	}
-
-	returnValue, err := json.Marshal(result)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-
-	return app.NewResponseQuery(returnValue, "success", app.state.Height)
+	return allowed, nil
 }

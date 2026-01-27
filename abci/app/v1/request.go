@@ -262,11 +262,33 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
+	// for node domain permission check (e.g. YourData)
+	containsServiceDomains := make(map[string]struct{})
+
 	nodeDetailMap := make(map[string]*data.NodeDetail)
 	for index := range funcParam.DataRequestList {
-		// check if requester node ID is allowed to create request with this service ID
 		serviceID := funcParam.DataRequestList[index].ServiceID
-		allowed, err := app.hasServiceRequestPermission(serviceID, callerNodeID)
+
+		service, err := app.getService(serviceID)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if service == nil {
+			return &ApplicationError{
+				Code:    code.ServiceIDNotFound,
+				Message: "Service ID not found",
+			}
+		}
+
+		if service.Domain != nil {
+			containsServiceDomains[*service.Domain] = struct{}{}
+		}
+
+		// check if requester node ID is allowed to create request with this service ID
+		allowed, err := app.hasServiceRequestPermission(*service, callerNodeID)
 		if err != nil {
 			return &ApplicationError{
 				Code:    code.AppStateError,
@@ -279,9 +301,6 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 				Message: fmt.Sprintf("Node is not allowed to request service ID: %s", serviceID),
 			}
 		}
-
-		// TODO: check if this request contains YourData service IDs
-		// If it is then, check if caller node ID is allowed to use YourData
 
 		// Check all AS in as_list is active
 		for _, as := range funcParam.DataRequestList[index].As {
@@ -357,6 +376,32 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 						Message: "Node ID in AS list is not active",
 					}
 				}
+			}
+		}
+	}
+
+	// If service IDs in data request list are in a domain (e.g. YourData),
+	// check if caller node ID is allowed to use that domain
+	for domain := range containsServiceDomains {
+		switch ServiceDomain(domain) {
+		case ServiceDomainYourData:
+			allowed, err := app.hasYourDataPermission(callerNodeID)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
+			}
+			if !allowed {
+				return &ApplicationError{
+					Code:    code.ServiceRequestNotAllowed,
+					Message: fmt.Sprintf("Node is not allowed to request service with domain: %s", domain),
+				}
+			}
+		default:
+			return &ApplicationError{
+				Code:    code.ServiceRequestNotAllowed,
+				Message: fmt.Sprintf("Node is not allowed to request service with domain: %s", domain),
 			}
 		}
 	}

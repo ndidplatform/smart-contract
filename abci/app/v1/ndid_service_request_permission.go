@@ -33,12 +33,12 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-type AddNodeToServiceRequestNodeWhitelistParam struct {
+type AddNodeToServiceRequesterNodeWhitelistParam struct {
 	NodeID    string `json:"node_id"`
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateAddNodeToServiceRequestNodeWhitelist(funcParam AddNodeToServiceRequestNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateAddNodeToServiceRequesterNodeWhitelist(funcParam AddNodeToServiceRequesterNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -57,7 +57,37 @@ func (app *ABCIApplication) validateAddNodeToServiceRequestNodeWhitelist(funcPar
 
 	// stateful
 
-	key := serviceRequestNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceExists, err := app.state.Has([]byte(serviceKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !serviceExists {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
+	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if nodeDetailValue == nil {
+		return &ApplicationError{
+			Code:    code.NodeIDNotFound,
+			Message: "Node ID not found",
+		}
+	}
+
+	key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -75,14 +105,14 @@ func (app *ABCIApplication) validateAddNodeToServiceRequestNodeWhitelist(funcPar
 	return nil
 }
 
-func (app *ABCIApplication) addNodeToServiceRequestNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam AddNodeToServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) addNodeToServiceRequesterNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam AddNodeToServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNodeToServiceRequestNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateAddNodeToServiceRequesterNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -93,15 +123,15 @@ func (app *ABCIApplication) addNodeToServiceRequestNodeWhitelistCheckTx(param []
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNodeToServiceRequestNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("AddNodeToServiceRequestNodeWhitelist, Parameter: %s", param)
-	var funcParam AddNodeToServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) addNodeToServiceRequesterNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("AddNodeToServiceRequesterNodeWhitelist, Parameter: %s", param)
+	var funcParam AddNodeToServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNodeToServiceRequestNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateAddNodeToServiceRequesterNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -109,7 +139,7 @@ func (app *ABCIApplication) addNodeToServiceRequestNodeWhitelist(param []byte, c
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := serviceRequestNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
+	key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 
 	var nodePermission data.ServiceRequestNodePermission
 
@@ -123,12 +153,12 @@ func (app *ABCIApplication) addNodeToServiceRequestNodeWhitelist(param []byte, c
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type RemoveNodeFromServiceRequestNodeWhitelistParam struct {
+type RemoveNodeFromServiceRequesterNodeWhitelistParam struct {
 	NodeID    string `json:"node_id"`
 	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateRemoveNodeFromServiceRequestNodeWhitelist(funcParam RemoveNodeFromServiceRequestNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateRemoveNodeFromServiceRequesterNodeWhitelist(funcParam RemoveNodeFromServiceRequesterNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -147,7 +177,7 @@ func (app *ABCIApplication) validateRemoveNodeFromServiceRequestNodeWhitelist(fu
 
 	// stateful
 
-	key := serviceRequestNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
+	key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -165,14 +195,14 @@ func (app *ABCIApplication) validateRemoveNodeFromServiceRequestNodeWhitelist(fu
 	return nil
 }
 
-func (app *ABCIApplication) removeNodeFromServiceRequestNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam RemoveNodeFromServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromServiceRequesterNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam RemoveNodeFromServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveNodeFromServiceRequestNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateRemoveNodeFromServiceRequesterNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -183,15 +213,15 @@ func (app *ABCIApplication) removeNodeFromServiceRequestNodeWhitelistCheckTx(par
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeNodeFromServiceRequestNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("RemoveNodeFromServiceRequestNodeWhitelist, Parameter: %s", param)
-	var funcParam RemoveNodeFromServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromServiceRequesterNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("RemoveNodeFromServiceRequesterNodeWhitelist, Parameter: %s", param)
+	var funcParam RemoveNodeFromServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveNodeFromServiceRequestNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateRemoveNodeFromServiceRequesterNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -199,7 +229,7 @@ func (app *ABCIApplication) removeNodeFromServiceRequestNodeWhitelist(param []by
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := serviceRequestNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
+	key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
 
 	app.state.Delete([]byte(key))
 
@@ -208,10 +238,11 @@ func (app *ABCIApplication) removeNodeFromServiceRequestNodeWhitelist(param []by
 
 //
 
-type EnableServiceRequestNodeWhitelistParam struct {
+type EnableServiceRequesterNodeWhitelistParam struct {
+	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateEnableServiceRequestNodeWhitelist(funcParam EnableServiceRequestNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateEnableServiceRequesterNodeWhitelist(funcParam EnableServiceRequesterNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -230,39 +261,48 @@ func (app *ABCIApplication) validateEnableServiceRequestNodeWhitelist(funcParam 
 
 	// stateful
 
-	value, err := app.state.Get(serviceRequestNodeWhitelistMetadataKey, committedState)
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var serviceRequestNodeWhitelist data.ServiceRequestNodeWhitelist
-	err = proto.Unmarshal(value, &serviceRequestNodeWhitelist)
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if serviceRequestNodeWhitelist.Active {
+
+	if service.RequesterNodeWhitelistEnabled {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
-			Message: "Already active/enabled",
+			Message: "Already enabled",
 		}
 	}
 
 	return nil
 }
 
-func (app *ABCIApplication) enableServiceRequestNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam EnableServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) enableServiceRequesterNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam EnableServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableServiceRequestNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateEnableServiceRequesterNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -273,15 +313,15 @@ func (app *ABCIApplication) enableServiceRequestNodeWhitelistCheckTx(param []byt
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableServiceRequestNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("EnableServiceRequestNodeWhitelist, Parameter: %s", param)
-	var funcParam EnableServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) enableServiceRequesterNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("EnableServiceRequesterNodeWhitelist, Parameter: %s", param)
+	var funcParam EnableServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableServiceRequestNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateEnableServiceRequesterNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -289,31 +329,34 @@ func (app *ABCIApplication) enableServiceRequestNodeWhitelist(param []byte, call
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(serviceRequestNodeWhitelistMetadataKey, false)
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var serviceRequestNodeWhitelist data.ServiceRequestNodeWhitelist
-	err = proto.Unmarshal(value, &serviceRequestNodeWhitelist)
+
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	serviceRequestNodeWhitelist.Active = true
+	service.RequesterNodeWhitelistEnabled = true
 
-	value, err = utils.ProtoDeterministicMarshal(&serviceRequestNodeWhitelist)
+	newValue, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(serviceRequestNodeWhitelistMetadataKey, value)
+	app.state.Set([]byte(serviceKey), newValue)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type DisableServiceRequestNodeWhitelistParam struct {
+type DisableServiceRequesterNodeWhitelistParam struct {
+	ServiceID string `json:"service_id"`
 }
 
-func (app *ABCIApplication) validateDisableServiceRequestNodeWhitelist(funcParam DisableServiceRequestNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateDisableServiceRequesterNodeWhitelist(funcParam DisableServiceRequesterNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -332,39 +375,48 @@ func (app *ABCIApplication) validateDisableServiceRequestNodeWhitelist(funcParam
 
 	// stateful
 
-	value, err := app.state.Get(serviceRequestNodeWhitelistMetadataKey, committedState)
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var serviceRequestNodeWhitelist data.ServiceRequestNodeWhitelist
-	err = proto.Unmarshal(value, &serviceRequestNodeWhitelist)
+	if serviceValue == nil {
+		return &ApplicationError{
+			Code:    code.ServiceIDNotFound,
+			Message: "Service ID not found",
+		}
+	}
+
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if !serviceRequestNodeWhitelist.Active {
+
+	if !service.RequesterNodeWhitelistEnabled {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
-			Message: "Already inactive/disabled",
+			Message: "Already disabled",
 		}
 	}
 
 	return nil
 }
 
-func (app *ABCIApplication) disableServiceRequestNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam DisableServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) disableServiceRequesterNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam DisableServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableServiceRequestNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateDisableServiceRequesterNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -375,15 +427,15 @@ func (app *ABCIApplication) disableServiceRequestNodeWhitelistCheckTx(param []by
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableServiceRequestNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("DisableServiceRequestNodeWhitelist, Parameter: %s", param)
-	var funcParam DisableServiceRequestNodeWhitelistParam
+func (app *ABCIApplication) disableServiceRequesterNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("DisableServiceRequesterNodeWhitelist, Parameter: %s", param)
+	var funcParam DisableServiceRequesterNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableServiceRequestNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateDisableServiceRequesterNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -391,23 +443,25 @@ func (app *ABCIApplication) disableServiceRequestNodeWhitelist(param []byte, cal
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(serviceRequestNodeWhitelistMetadataKey, false)
+	serviceKey := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	serviceValue, err := app.state.Get([]byte(serviceKey), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var serviceRequestNodeWhitelist data.ServiceRequestNodeWhitelist
-	err = proto.Unmarshal(value, &serviceRequestNodeWhitelist)
+
+	var service data.ServiceDetail
+	err = proto.Unmarshal([]byte(serviceValue), &service)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	serviceRequestNodeWhitelist.Active = false
+	service.RequesterNodeWhitelistEnabled = false
 
-	value, err = utils.ProtoDeterministicMarshal(&serviceRequestNodeWhitelist)
+	newValue, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(serviceRequestNodeWhitelistMetadataKey, value)
+	app.state.Set([]byte(serviceKey), newValue)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }
