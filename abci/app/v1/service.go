@@ -134,8 +134,18 @@ func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQu
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
+type GetServiceListParam struct {
+	Domain *string `json:"domain"`
+}
+
 func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
+
+	var funcParam GetServiceListParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+	}
 
 	services := make([]ServiceDetail, 0)
 
@@ -152,6 +162,11 @@ func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuer
 		err = proto.Unmarshal(value, &service)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		// filter by domain
+		if funcParam.Domain != nil && *funcParam.Domain != service.Domain {
+			continue
 		}
 
 		serviceDetail := ServiceDetail{
