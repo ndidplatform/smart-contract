@@ -265,6 +265,10 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 	// for node domain permission check (e.g. YourData)
 	containsServiceDomains := make(map[string]struct{})
 
+	// for destination (AS) node domain permission check (e.g. YourData)
+	// key: AS node ID, value: domain
+	asServiceDomains := make(map[string]map[string]struct{})
+
 	nodeDetailMap := make(map[string]*data.NodeDetail)
 	for index := range funcParam.DataRequestList {
 		serviceID := funcParam.DataRequestList[index].ServiceID
@@ -303,11 +307,11 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 
 		// Check all AS in as_list is active
-		for _, as := range funcParam.DataRequestList[index].As {
+		for _, asNodeID := range funcParam.DataRequestList[index].As {
 			var node data.NodeDetail
-			if _, ok := nodeDetailMap[as]; !ok {
+			if _, ok := nodeDetailMap[asNodeID]; !ok {
 				// Get node detail
-				nodeDetailKey := nodeIDKeyPrefix + keySeparator + as
+				nodeDetailKey := nodeIDKeyPrefix + keySeparator + asNodeID
 				nodeDetaiValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
 				if err != nil {
 					return &ApplicationError{
@@ -329,10 +333,10 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 					}
 				}
 				// Save node detail to mapping
-				nodeDetailMap[as] = &node
+				nodeDetailMap[asNodeID] = &node
 			} else {
 				// Get node detail from mapping
-				node = *nodeDetailMap[as]
+				node = *nodeDetailMap[asNodeID]
 			}
 
 			// Check node is active
@@ -377,11 +381,20 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 					}
 				}
 			}
+
+			// for checking if destination AS node ID is allowed to use this service domain
+			if service.Domain != nil {
+				_, ok := asServiceDomains[asNodeID]
+				if !ok {
+					asServiceDomains[asNodeID] = make(map[string]struct{})
+				}
+				asServiceDomains[asNodeID][*service.Domain] = struct{}{}
+			}
 		}
 	}
 
 	// If service IDs in data request list are in a domain (e.g. YourData),
-	// check if caller node ID is allowed to use that domain
+	// check if caller node ID is allowed to use domains in request
 	for domain := range containsServiceDomains {
 		switch ServiceDomain(domain) {
 		case ServiceDomainYourData:
@@ -402,6 +415,33 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 			return &ApplicationError{
 				Code:    code.ServiceRequestNotAllowed,
 				Message: fmt.Sprintf("Node is not allowed to request service with domain: %s", domain),
+			}
+		}
+	}
+
+	// check if destination (AS) node ID is allowed to use domains in request
+	for asNodeID, domains := range asServiceDomains {
+		for domain := range domains {
+			switch ServiceDomain(domain) {
+			case ServiceDomainYourData:
+				allowed, err := app.hasYourDataPermission(asNodeID)
+				if err != nil {
+					return &ApplicationError{
+						Code:    code.AppStateError,
+						Message: err.Error(),
+					}
+				}
+				if !allowed {
+					return &ApplicationError{
+						Code:    code.ServiceRequestNotAllowed,
+						Message: fmt.Sprintf("AS node: %s is not allowed to serve service with domain: %s", asNodeID, domain),
+					}
+				}
+			default:
+				return &ApplicationError{
+					Code:    code.ServiceRequestNotAllowed,
+					Message: fmt.Sprintf("AS node: %s is not allowed to serve service with domain: %s", asNodeID, domain),
+				}
 			}
 		}
 	}
