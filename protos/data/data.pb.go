@@ -3548,6 +3548,53 @@ func (*YourDataASNodePermission) Descriptor() ([]byte, []int) {
 	return file_data_proto_rawDescGZIP(), []int{57}
 }
 
+type YourDataServiceMixedInRequestPermission struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Allowed bool `protobuf:"varint,1,opt,name=allowed,proto3" json:"allowed,omitempty"`
+}
+
+func (x *YourDataServiceMixedInRequestPermission) Reset() {
+	*x = YourDataServiceMixedInRequestPermission{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_proto_msgTypes[58]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *YourDataServiceMixedInRequestPermission) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*YourDataServiceMixedInRequestPermission) ProtoMessage() {}
+
+func (x *YourDataServiceMixedInRequestPermission) ProtoReflect() protoreflect.Message {
+	mi := &file_data_proto_msgTypes[58]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use YourDataServiceMixedInRequestPermission.ProtoReflect.Descriptor instead.
+func (*YourDataServiceMixedInRequestPermission) Descriptor() ([]byte, []int) {
+	return file_data_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *YourDataServiceMixedInRequestPermission) GetAllowed() bool {
+	if x != nil {
+		return x.Allowed
+	}
+	return false
+}
+
 var File_data_proto protoreflect.FileDescriptor
 
 var file_data_proto_rawDesc = []byte{
@@ -3988,9 +4035,13 @@ var file_data_proto_rawDesc = []byte{
 	0x61, 0x63, 0x74, 0x69, 0x76, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x61, 0x63,
 	0x74, 0x69, 0x76, 0x65, 0x22, 0x1a, 0x0a, 0x18, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61,
 	0x41, 0x53, 0x4e, 0x6f, 0x64, 0x65, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e,
-	0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64, 0x5f, 0x61, 0x62, 0x63, 0x69,
-	0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x39, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x22, 0x43, 0x0a, 0x27, 0x59, 0x6f, 0x75, 0x72, 0x44, 0x61, 0x74, 0x61, 0x53, 0x65, 0x72, 0x76,
+	0x69, 0x63, 0x65, 0x4d, 0x69, 0x78, 0x65, 0x64, 0x49, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x50, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x07, 0x61,
+	0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x61, 0x6c,
+	0x6c, 0x6f, 0x77, 0x65, 0x64, 0x42, 0x17, 0x5a, 0x15, 0x2e, 0x2f, 0x3b, 0x6e, 0x64, 0x69, 0x64,
+	0x5f, 0x61, 0x62, 0x63, 0x69, 0x5f, 0x73, 0x74, 0x61, 0x74, 0x65, 0x5f, 0x76, 0x39, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -4005,7 +4056,7 @@ func file_data_proto_rawDescGZIP() []byte {
 	return file_data_proto_rawDescData
 }
 
-var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
+var file_data_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
 var file_data_proto_goTypes = []interface{}{
 	(*KeyVersions)(nil),                  // 0: ndid_abci_state_v9.KeyVersions
 	(*NodeDetail)(nil),                   // 1: ndid_abci_state_v9.NodeDetail
@@ -4065,7 +4116,8 @@ var file_data_proto_goTypes = []interface{}{
 	(*YourDataRPNodePermission)(nil),                       // 55: ndid_abci_state_v9.YourDataRPNodePermission
 	(*YourDataASNodeWhitelist)(nil),                        // 56: ndid_abci_state_v9.YourDataASNodeWhitelist
 	(*YourDataASNodePermission)(nil),                       // 57: ndid_abci_state_v9.YourDataASNodePermission
-	(*wrapperspb.BoolValue)(nil),                           // 58: google.protobuf.BoolValue
+	(*YourDataServiceMixedInRequestPermission)(nil),        // 58: ndid_abci_state_v9.YourDataServiceMixedInRequestPermission
+	(*wrapperspb.BoolValue)(nil),                           // 59: google.protobuf.BoolValue
 }
 var file_data_proto_depIdxs = []int32{
 	2,  // 0: ndid_abci_state_v9.NodeDetail.signing_public_key:type_name -> ndid_abci_state_v9.NodeKey
@@ -4084,8 +4136,8 @@ var file_data_proto_depIdxs = []int32{
 	35, // 13: ndid_abci_state_v9.ReferenceGroup.identities:type_name -> ndid_abci_state_v9.IdentityInRefGroup
 	34, // 14: ndid_abci_state_v9.ReferenceGroup.idps:type_name -> ndid_abci_state_v9.IdPInRefGroup
 	20, // 15: ndid_abci_state_v9.IdPInRefGroup.accessors:type_name -> ndid_abci_state_v9.Accessor
-	58, // 16: ndid_abci_state_v9.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
-	58, // 17: ndid_abci_state_v9.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
+	59, // 16: ndid_abci_state_v9.IdPInRefGroup.lial:type_name -> google.protobuf.BoolValue
+	59, // 17: ndid_abci_state_v9.IdPInRefGroup.laal:type_name -> google.protobuf.BoolValue
 	40, // 18: ndid_abci_state_v9.ErrorCodeList.error_code:type_name -> ndid_abci_state_v9.ErrorCode
 	43, // 19: ndid_abci_state_v9.ServicePriceCeilingList.price_ceiling_by_currency_list:type_name -> ndid_abci_state_v9.ServicePriceCeilingByCurency
 	46, // 20: ndid_abci_state_v9.ServicePriceList.service_price_list:type_name -> ndid_abci_state_v9.ServicePrice
@@ -4799,6 +4851,18 @@ func file_data_proto_init() {
 				return nil
 			}
 		}
+		file_data_proto_msgTypes[58].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*YourDataServiceMixedInRequestPermission); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -4806,7 +4870,7 @@ func file_data_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   58,
+			NumMessages:   59,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

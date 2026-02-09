@@ -347,3 +347,7 @@ message YourDataASNodeWhitelist {
 message YourDataASNodePermission {
   // string node_id = 1;
 }
+
+message YourDataServiceMixedInRequestPermission {
+  bool allowed = 1;
+}

@@ -42,7 +42,8 @@ var (
 	supportedIALListKeyBytes                      = []byte("SupportedIALList")
 	supportedAALListKeyBytes                      = []byte("SupportedAALList")
 
-	yourDataNodeWhitelistMetadataKey = []byte("YourDataNodeWhitelistMetadata")
+	yourDataNodeWhitelistMetadataKey           = []byte("YourDataNodeWhitelistMetadata")
+	yourDataServiceMixedInRequestPermissionKey = []byte("YourDataServiceMixedInRequestPermission")
 )
 
 const (

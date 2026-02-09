@@ -147,6 +147,8 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.getYourDataPermissionStatus(param)
 	case "GetYourDataErrorCodeList":
 		return app.getYourDataErrorCodeList(param)
+	case "GetYourDataServiceMixedInRequestPermission":
+		return app.getYourDataServiceMixedInRequestPermission(param)
 	default:
 		return &abcitypes.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

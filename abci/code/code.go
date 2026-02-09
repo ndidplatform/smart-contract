@@ -159,6 +159,7 @@ const (
 	DuplicateEntry                                                uint32 = 135
 	NotFound                                                      uint32 = 136
 	InvalidServiceDomain                                          uint32 = 137
+	MixedServiceDomainsNotAllowed                                 uint32 = 138
 
 	UnknownError uint32 = 999
 )
