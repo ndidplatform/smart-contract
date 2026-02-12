@@ -70,12 +70,10 @@ var regulatorMethod = map[string]bool{
 	"EnableServiceRequestNodeWhitelist":                    true,
 	"DisableServiceRequestNodeWhitelist":                   true,
 	// YourData
-	"AddNodeToYourDataNodeWhitelist":            true,
-	"RemoveNodeFromYourDataNodeWhitelist":       true,
-	"EnableYourDataNodeWhitelist":               true,
-	"DisableYourDataNodeWhitelist":              true,
-	"AddYourDataErrorCode":                      true,
-	"RemoveYourDataErrorCode":                   true,
-	"AllowYourDataServiceToBeMixedInRequest":    true,
-	"DisallowYourDataServiceToBeMixedInRequest": true,
+	"AddNodeToYourDataNodeWhitelist":      true,
+	"RemoveNodeFromYourDataNodeWhitelist": true,
+	"EnableYourDataNodeWhitelist":         true,
+	"DisableYourDataNodeWhitelist":        true,
+	"AddYourDataErrorCode":                true,
+	"RemoveYourDataErrorCode":             true,
 }

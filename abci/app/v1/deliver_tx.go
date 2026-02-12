@@ -293,11 +293,6 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 	case "RemoveYourDataErrorCode":
 		return app.removeYourDataErrorCode(param, nodeID)
 
-	case "AllowYourDataServiceToBeMixedInRequest":
-		return app.allowYourDataServiceToBeMixedInRequest(param, nodeID)
-	case "DisallowYourDataServiceToBeMixedInRequest":
-		return app.disallowYourDataServiceToBeMixedInRequest(param, nodeID)
-
 	default:
 		return &abcitypes.ExecTxResult{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

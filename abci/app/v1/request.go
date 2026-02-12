@@ -262,8 +262,6 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
-	containsNoDomainService := false
-
 	// for node domain permission check (e.g. YourData)
 	containsServiceDomains := make(map[string]struct{})
 
@@ -291,8 +289,6 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 
 		if service.Domain != nil {
 			containsServiceDomains[*service.Domain] = struct{}{}
-		} else {
-			containsNoDomainService = true
 		}
 
 		// check if requester node ID is allowed to create request with this service ID
@@ -402,24 +398,6 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 	for domain := range containsServiceDomains {
 		switch ServiceDomain(domain) {
 		case ServiceDomainYourData:
-
-			// check if mixed service domains (including service with no domain) is allowed
-			if containsNoDomainService {
-				allowed, err := app.isYourDataServiceMixedInRequestAllowed()
-				if err != nil {
-					return &ApplicationError{
-						Code:    code.AppStateError,
-						Message: err.Error(),
-					}
-				}
-				if !allowed {
-					return &ApplicationError{
-						Code:    code.MixedServiceDomainsNotAllowed,
-						Message: "YourData domain service is not allowed to be mixed with other domains (including service with no domain)",
-					}
-				}
-			}
-
 			allowed, err := app.hasYourDataPermission(callerNodeID)
 			if err != nil {
 				return &ApplicationError{

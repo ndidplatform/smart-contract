@@ -114,14 +114,12 @@ var IsMethod = map[string]bool{
 	"EnableServiceRequesterNodeWhitelist":                  true,
 	"DisableServiceRequesterNodeWhitelist":                 true,
 	// YourData
-	"AddNodeToYourDataNodeWhitelist":            true,
-	"RemoveNodeFromYourDataNodeWhitelist":       true,
-	"EnableYourDataNodeWhitelist":               true,
-	"DisableYourDataNodeWhitelist":              true,
-	"AddYourDataErrorCode":                      true,
-	"RemoveYourDataErrorCode":                   true,
-	"AllowYourDataServiceToBeMixedInRequest":    true,
-	"DisallowYourDataServiceToBeMixedInRequest": true,
+	"AddNodeToYourDataNodeWhitelist":      true,
+	"RemoveNodeFromYourDataNodeWhitelist": true,
+	"EnableYourDataNodeWhitelist":         true,
+	"DisableYourDataNodeWhitelist":        true,
+	"AddYourDataErrorCode":                true,
+	"RemoveYourDataErrorCode":             true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1108,11 +1106,6 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.addYourDataErrorCodeCheckTx(param, nodeID)
 	case "RemoveYourDataErrorCode":
 		return app.removeYourDataErrorCodeCheckTx(param, nodeID)
-
-	case "AllowYourDataServiceToBeMixedInRequest":
-		return app.allowYourDataServiceToBeMixedInRequestCheckTx(param, nodeID)
-	case "DisallowYourDataServiceToBeMixedInRequest":
-		return app.disallowYourDataServiceToBeMixedInRequestCheckTx(param, nodeID)
 
 	default:
 		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}
