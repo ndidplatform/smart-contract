@@ -113,13 +113,15 @@ var IsMethod = map[string]bool{
 	"RemoveNodeFromServiceRequesterNodeWhitelist":          true,
 	"EnableServiceRequesterNodeWhitelist":                  true,
 	"DisableServiceRequesterNodeWhitelist":                 true,
-	// YourData
-	"AddNodeToYourDataNodeWhitelist":      true,
-	"RemoveNodeFromYourDataNodeWhitelist": true,
-	"EnableYourDataNodeWhitelist":         true,
-	"DisableYourDataNodeWhitelist":        true,
-	"AddYourDataErrorCode":                true,
-	"RemoveYourDataErrorCode":             true,
+	"AddDomain":                                            true,
+	"EnableDomain":                                         true,
+	"DisableDomain":                                        true,
+	"AddNodeToDomainNodeWhitelist":                         true,
+	"RemoveNodeFromDomainNodeWhitelist":                    true,
+	"EnableDomainNodeWhitelist":                            true,
+	"DisableDomainNodeWhitelist":                           true,
+	"AddDomainErrorCode":                                   true,
+	"RemoveDomainErrorCode":                                true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1091,21 +1093,24 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 	case "CreateMessage":
 		return app.createMessageCheckTx(param, nodeID)
 
-	// YourData
-
-	case "AddNodeToYourDataNodeWhitelist":
-		return app.addNodeToYourDataNodeWhitelistCheckTx(param, nodeID)
-	case "RemoveNodeFromYourDataNodeWhitelist":
-		return app.removeNodeFromYourDataNodeWhitelistCheckTx(param, nodeID)
-	case "EnableYourDataNodeWhitelist":
-		return app.enableYourDataNodeWhitelistCheckTx(param, nodeID)
-	case "DisableYourDataNodeWhitelist":
-		return app.disableYourDataNodeWhitelistCheckTx(param, nodeID)
-
-	case "AddYourDataErrorCode":
-		return app.addYourDataErrorCodeCheckTx(param, nodeID)
-	case "RemoveYourDataErrorCode":
-		return app.removeYourDataErrorCodeCheckTx(param, nodeID)
+	case "AddDomain":
+		return app.addDomainCheckTx(param, nodeID)
+	case "EnableDomain":
+		return app.enableDomainCheckTx(param, nodeID)
+	case "DisableDomain":
+		return app.disableDomainCheckTx(param, nodeID)
+	case "AddNodeToDomainNodeWhitelist":
+		return app.addNodeToDomainNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromDomainNodeWhitelist":
+		return app.removeNodeFromDomainNodeWhitelistCheckTx(param, nodeID)
+	case "EnableDomainNodeWhitelist":
+		return app.enableDomainNodeWhitelistCheckTx(param, nodeID)
+	case "DisableDomainNodeWhitelist":
+		return app.disableDomainNodeWhitelistCheckTx(param, nodeID)
+	case "AddDomainErrorCode":
+		return app.addDomainErrorCodeCheckTx(param, nodeID)
+	case "RemoveDomainErrorCode":
+		return app.removeDomainErrorCodeCheckTx(param, nodeID)
 
 	default:
 		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}

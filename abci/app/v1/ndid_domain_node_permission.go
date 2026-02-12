@@ -33,11 +33,12 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-type AddNodeToYourDataNodeWhitelistParam struct {
+type AddNodeToDomainNodeWhitelistParam struct {
+	Domain string `json:"domain"`
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateAddNodeToYourDataNodeWhitelist(funcParam AddNodeToYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateAddNodeToDomainNodeWhitelist(funcParam AddNodeToDomainNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -55,6 +56,21 @@ func (app *ABCIApplication) validateAddNodeToYourDataNodeWhitelist(funcParam Add
 	}
 
 	// stateful
+
+	domainKey := domainKeyPrefix + keySeparator + funcParam.Domain
+	exists, err := app.state.Has([]byte(domainKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !exists {
+		return &ApplicationError{
+			Code:    code.DomainDoesNotExist,
+			Message: "Domain does not exist",
+		}
+	}
 
 	nodeDetailKey := nodeIDKeyPrefix + keySeparator + funcParam.NodeID
 	nodeDetailValue, err := app.state.Get([]byte(nodeDetailKey), committedState)
@@ -71,8 +87,8 @@ func (app *ABCIApplication) validateAddNodeToYourDataNodeWhitelist(funcParam Add
 		}
 	}
 
-	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
-	exists, err := app.state.Has([]byte(key), committedState)
+	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.NodeID
+	exists, err = app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
@@ -81,22 +97,22 @@ func (app *ABCIApplication) validateAddNodeToYourDataNodeWhitelist(funcParam Add
 	}
 	if exists {
 		return &ApplicationError{
-			Code:    code.DuplicateNodeID,
-			Message: "Duplicate node ID",
+			Code:    code.DuplicateEntry,
+			Message: "Duplicate entry",
 		}
 	}
 
 	return nil
 }
 
-func (app *ABCIApplication) addNodeToYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam AddNodeToYourDataNodeWhitelistParam
+func (app *ABCIApplication) addNodeToDomainNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam AddNodeToDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddNodeToYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateAddNodeToDomainNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -107,15 +123,15 @@ func (app *ABCIApplication) addNodeToYourDataNodeWhitelistCheckTx(param []byte, 
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addNodeToYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("AddNodeToYourDataNodeWhitelist, Parameter: %s", param)
-	var funcParam AddNodeToYourDataNodeWhitelistParam
+func (app *ABCIApplication) addNodeToDomainNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("AddNodeToDomainNodeWhitelist, Parameter: %s", param)
+	var funcParam AddNodeToDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddNodeToYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateAddNodeToDomainNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -123,9 +139,9 @@ func (app *ABCIApplication) addNodeToYourDataNodeWhitelist(param []byte, callerN
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
+	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.NodeID
 
-	var nodePermission data.YourDataNodePermission
+	var nodePermission data.DomainNodePermission
 
 	value, err := utils.ProtoDeterministicMarshal(&nodePermission)
 	if err != nil {
@@ -137,11 +153,12 @@ func (app *ABCIApplication) addNodeToYourDataNodeWhitelist(param []byte, callerN
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type RemoveNodeFromYourDataNodeWhitelistParam struct {
+type RemoveNodeFromDomainNodeWhitelistParam struct {
+	Domain string `json:"domain"`
 	NodeID string `json:"node_id"`
 }
 
-func (app *ABCIApplication) validateRemoveNodeFromYourDataNodeWhitelist(funcParam RemoveNodeFromYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateRemoveNodeFromDomainNodeWhitelist(funcParam RemoveNodeFromDomainNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -160,7 +177,7 @@ func (app *ABCIApplication) validateRemoveNodeFromYourDataNodeWhitelist(funcPara
 
 	// stateful
 
-	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
+	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -170,22 +187,22 @@ func (app *ABCIApplication) validateRemoveNodeFromYourDataNodeWhitelist(funcPara
 	}
 	if !exists {
 		return &ApplicationError{
-			Code:    code.NodeIDNotFound,
-			Message: "node ID not found",
+			Code:    code.NotFound,
+			Message: "not found",
 		}
 	}
 
 	return nil
 }
 
-func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam RemoveNodeFromYourDataNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromDomainNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam RemoveNodeFromDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveNodeFromYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateRemoveNodeFromDomainNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -196,15 +213,15 @@ func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelistCheckTx(param []b
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("RemoveNodeFromYourDataNodeWhitelist, Parameter: %s", param)
-	var funcParam RemoveNodeFromYourDataNodeWhitelistParam
+func (app *ABCIApplication) removeNodeFromDomainNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("RemoveNodeFromDomainNodeWhitelist, Parameter: %s", param)
+	var funcParam RemoveNodeFromDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveNodeFromYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateRemoveNodeFromDomainNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -212,7 +229,7 @@ func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelist(param []byte, ca
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := yourDataNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
+	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.NodeID
 
 	app.state.Delete([]byte(key))
 
@@ -221,10 +238,11 @@ func (app *ABCIApplication) removeNodeFromYourDataNodeWhitelist(param []byte, ca
 
 //
 
-type EnableYourDataNodeWhitelistParam struct {
+type EnableDomainNodeWhitelistParam struct {
+	Domain string `json:"domain"`
 }
 
-func (app *ABCIApplication) validateEnableYourDataNodeWhitelist(funcParam EnableYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateEnableDomainNodeWhitelist(funcParam EnableDomainNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -243,39 +261,47 @@ func (app *ABCIApplication) validateEnableYourDataNodeWhitelist(funcParam Enable
 
 	// stateful
 
-	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, committedState)
+	key := domainKeyPrefix + keySeparator + funcParam.Domain
+	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var yourDataNodeWhitelist data.YourDataNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
+	if value == nil {
+		return &ApplicationError{
+			Code:    code.DomainDoesNotExist,
+			Message: "Domain does not exist",
+		}
+	}
+
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if yourDataNodeWhitelist.Active {
+	if domain.NodeWhitelistEnabled {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
-			Message: "Already active/enabled",
+			Message: "Already enabled",
 		}
 	}
 
 	return nil
 }
 
-func (app *ABCIApplication) enableYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam EnableYourDataNodeWhitelistParam
+func (app *ABCIApplication) enableDomainNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam EnableDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateEnableYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateEnableDomainNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -286,15 +312,15 @@ func (app *ABCIApplication) enableYourDataNodeWhitelistCheckTx(param []byte, cal
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) enableYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("EnableYourDataNodeWhitelist, Parameter: %s", param)
-	var funcParam EnableYourDataNodeWhitelistParam
+func (app *ABCIApplication) enableDomainNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("EnableDomainNodeWhitelist, Parameter: %s", param)
+	var funcParam EnableDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateEnableYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateEnableDomainNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -302,31 +328,34 @@ func (app *ABCIApplication) enableYourDataNodeWhitelist(param []byte, callerNode
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, false)
+	key := domainKeyPrefix + keySeparator + funcParam.Domain
+
+	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var yourDataNodeWhitelist data.YourDataNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	yourDataNodeWhitelist.Active = true
+	domain.NodeWhitelistEnabled = true
 
-	value, err = utils.ProtoDeterministicMarshal(&yourDataNodeWhitelist)
+	value, err = utils.ProtoDeterministicMarshal(&domain)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(yourDataNodeWhitelistMetadataKey, value)
+	app.state.Set([]byte(key), value)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type DisableYourDataNodeWhitelistParam struct {
+type DisableDomainNodeWhitelistParam struct {
+	Domain string `json:"domain"`
 }
 
-func (app *ABCIApplication) validateDisableYourDataNodeWhitelist(funcParam DisableYourDataNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateDisableDomainNodeWhitelist(funcParam DisableDomainNodeWhitelistParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -345,22 +374,30 @@ func (app *ABCIApplication) validateDisableYourDataNodeWhitelist(funcParam Disab
 
 	// stateful
 
-	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, committedState)
+	key := domainKeyPrefix + keySeparator + funcParam.Domain
+	value, err := app.state.Get([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.AppStateError,
 			Message: err.Error(),
 		}
 	}
-	var yourDataNodeWhitelist data.YourDataNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
+	if value == nil {
+		return &ApplicationError{
+			Code:    code.DomainDoesNotExist,
+			Message: "Domain does not exist",
+		}
+	}
+
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
 	if err != nil {
 		return &ApplicationError{
 			Code:    code.UnmarshalError,
 			Message: err.Error(),
 		}
 	}
-	if !yourDataNodeWhitelist.Active {
+	if !domain.NodeWhitelistEnabled {
 		return &ApplicationError{
 			Code:    code.InvalidStateChange,
 			Message: "Already inactive/disabled",
@@ -370,14 +407,14 @@ func (app *ABCIApplication) validateDisableYourDataNodeWhitelist(funcParam Disab
 	return nil
 }
 
-func (app *ABCIApplication) disableYourDataNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam DisableYourDataNodeWhitelistParam
+func (app *ABCIApplication) disableDomainNodeWhitelistCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam DisableDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateDisableYourDataNodeWhitelist(funcParam, callerNodeID, true, true)
+	err = app.validateDisableDomainNodeWhitelist(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -388,15 +425,15 @@ func (app *ABCIApplication) disableYourDataNodeWhitelistCheckTx(param []byte, ca
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) disableYourDataNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("DisableYourDataNodeWhitelist, Parameter: %s", param)
-	var funcParam DisableYourDataNodeWhitelistParam
+func (app *ABCIApplication) disableDomainNodeWhitelist(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("DisableDomainNodeWhitelist, Parameter: %s", param)
+	var funcParam DisableDomainNodeWhitelistParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateDisableYourDataNodeWhitelist(funcParam, callerNodeID, false, false)
+	err = app.validateDisableDomainNodeWhitelist(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -404,23 +441,25 @@ func (app *ABCIApplication) disableYourDataNodeWhitelist(param []byte, callerNod
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	value, err := app.state.Get(yourDataNodeWhitelistMetadataKey, false)
+	key := domainKeyPrefix + keySeparator + funcParam.Domain
+
+	value, err := app.state.Get([]byte(key), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
 	}
-	var yourDataNodeWhitelist data.YourDataNodeWhitelist
-	err = proto.Unmarshal(value, &yourDataNodeWhitelist)
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	yourDataNodeWhitelist.Active = false
+	domain.NodeWhitelistEnabled = false
 
-	value, err = utils.ProtoDeterministicMarshal(&yourDataNodeWhitelist)
+	value, err = utils.ProtoDeterministicMarshal(&domain)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	app.state.Set(yourDataNodeWhitelistMetadataKey, value)
+	app.state.Set([]byte(key), value)
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }

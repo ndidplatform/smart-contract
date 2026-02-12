@@ -32,21 +32,6 @@ import (
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
-type ServiceDomain string
-
-const (
-	ServiceDomainYourData ServiceDomain = "YourData"
-)
-
-func isValidServiceDomain(domain ServiceDomain) bool {
-	switch domain {
-	case ServiceDomainYourData:
-		return true
-	default:
-		return false
-	}
-}
-
 func (app *ABCIApplication) getService(serviceID string) (*ServiceDetail, error) {
 	key := serviceKeyPrefix + keySeparator + serviceID
 	value, err := app.state.Get([]byte(key), true)

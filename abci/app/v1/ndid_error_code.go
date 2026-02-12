@@ -35,7 +35,7 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-func (*ABCIApplication) checkErrorCodeType(errorCodeType string) bool {
+func (*ABCIApplication) isValidErrorCodeType(errorCodeType string) bool {
 	return contains(errorCodeType, []string{"idp", "as"})
 }
 
@@ -61,7 +61,7 @@ func (app *ABCIApplication) validateAddErrorCode(funcParam AddErrorCodeParam, ca
 	// stateless
 
 	funcParam.Type = strings.ToLower(funcParam.Type)
-	if !app.checkErrorCodeType(funcParam.Type) {
+	if !app.isValidErrorCodeType(funcParam.Type) {
 		return &ApplicationError{
 			Code:    code.InvalidErrorCode,
 			Message: "Invalid error code type",

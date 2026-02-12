@@ -32,22 +32,23 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-type ServiceRequestPermission struct {
-	ServiceID      string   `json:"service_id"`
+type DomainNodePermission struct {
+	Domain         string   `json:"domain"`
 	Enabled        bool     `json:"enabled"`
 	AllowedNodeIDs []string `json:"allowed_node_id_list"`
 }
 
-type GetServiceRequesterNodeWhitelistResult struct {
-	ServiceRequestPermissionList []ServiceRequestPermission `json:"service_request_permission_list"`
+type GetDomainNodeWhitelistResult struct {
+	DomainNodePermissionList []DomainNodePermission `json:"domain_node_permission_list"`
 }
 
-func (app *ABCIApplication) getServiceRequesterNodeWhitelist(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetServiceRequesterNodeWhitelist, Parameter: %s", param)
+func (app *ABCIApplication) getDomainNodeWhitelist(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetDomainNodeWhitelist, Parameter: %s", param)
 
-	serviceRequestPermissionList := make([]ServiceRequestPermission, 0)
+	domainNodePermissionList := make([]DomainNodePermission, 0)
 
-	keyIteratorPrefix := serviceKeyPrefix + keySeparator
+	// get all domains
+	keyIteratorPrefix := domainKeyPrefix + keySeparator
 	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
@@ -57,27 +58,27 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelist(param []byte) *abci
 		key := iter.Key()
 		value := iter.Value()
 
-		var service data.ServiceDetail
-		err = proto.Unmarshal(value, &service)
+		var domain data.Domain
+		err = proto.Unmarshal(value, &domain)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
 		runes := []rune(string(key))
-		serviceID := string(runes[len(keyIteratorPrefix):])
+		domainName := string(runes[len(keyIteratorPrefix):])
 
-		serviceRequestPermissionList = append(serviceRequestPermissionList, ServiceRequestPermission{
-			ServiceID: serviceID,
-			Enabled:   service.RequesterNodeWhitelistEnabled,
+		domainNodePermissionList = append(domainNodePermissionList, DomainNodePermission{
+			Domain:  domainName,
+			Enabled: domain.NodeWhitelistEnabled,
 		})
 	}
 	iter.Close()
 
-	// get allowed node IDs for each service
-	for idx, serviceRequestPermission := range serviceRequestPermissionList {
+	// get allowed node IDs for each domain
+	for idx, domainNodePermission := range domainNodePermissionList {
 		allowedNodeIDs := make([]string, 0)
 
-		keyIteratorPrefix := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + serviceRequestPermission.ServiceID + keySeparator
+		keyIteratorPrefix := domainNodeWhitelistKeyPrefix + keySeparator + domainNodePermission.Domain + keySeparator
 		r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
 		iter, err := app.state.db.Iterator(r.Start, r.Limit)
 		if err != nil {
@@ -93,11 +94,11 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelist(param []byte) *abci
 		}
 		iter.Close()
 
-		serviceRequestPermissionList[idx].AllowedNodeIDs = allowedNodeIDs
+		domainNodePermissionList[idx].AllowedNodeIDs = allowedNodeIDs
 	}
 
-	result := &GetServiceRequesterNodeWhitelistResult{
-		ServiceRequestPermissionList: serviceRequestPermissionList,
+	result := &GetDomainNodeWhitelistResult{
+		DomainNodePermissionList: domainNodePermissionList,
 	}
 
 	returnValue, err := json.Marshal(result)
@@ -108,25 +109,25 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelist(param []byte) *abci
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-type GetServiceRequesterNodeWhitelistByServiceIDParam struct {
-	ServiceID string `json:"service_id"`
+type GetDomainNodeWhitelistByDomainParam struct {
+	Domain string `json:"domain"`
 }
 
-type GetServiceRequesterNodeWhitelistByServiceIDResult struct {
+type GetDomainNodeWhitelistByDomainResult struct {
 	NodeIDs []string `json:"node_id_list"`
 	Enabled bool     `json:"enabled"`
 }
 
-func (app *ABCIApplication) getServiceRequesterNodeWhitelistByServiceID(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetServiceRequesterNodeWhitelistByServiceID, Parameter: %s", param)
+func (app *ABCIApplication) getDomainNodeWhitelistByDomain(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetDomainNodeWhitelistByDomain, Parameter: %s", param)
 
-	var funcParam GetServiceRequesterNodeWhitelistByServiceIDParam
+	var funcParam GetDomainNodeWhitelistByDomainParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
+	key := domainKeyPrefix + keySeparator + funcParam.Domain
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
@@ -134,15 +135,15 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelistByServiceID(param []
 	if value == nil {
 		return app.NewResponseQuery(nil, "not found", app.state.Height)
 	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal(value, &service)
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
 	nodeIDs := make([]string, 0)
 
-	keyIteratorPrefix := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator
+	keyIteratorPrefix := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.Domain + keySeparator
 	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
 	iter, err := app.state.db.Iterator(r.Start, r.Limit)
 	if err != nil {
@@ -158,9 +159,9 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelistByServiceID(param []
 	}
 	iter.Close()
 
-	result := &GetServiceRequesterNodeWhitelistByServiceIDResult{
+	result := &GetDomainNodeWhitelistByDomainResult{
 		NodeIDs: nodeIDs,
-		Enabled: service.RequesterNodeWhitelistEnabled,
+		Enabled: domain.NodeWhitelistEnabled,
 	}
 
 	returnValue, err := json.Marshal(result)
@@ -171,50 +172,30 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelistByServiceID(param []
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-type GetServiceRequesterNodePermissionParam struct {
-	NodeID    string `json:"node_id"`
-	ServiceID string `json:"service_id"`
+type GetDomainNodePermissionParam struct {
+	NodeID string `json:"node_id"`
+	Domain string `json:"domain"`
 }
 
-type GetServiceRequesterNodePermissionResult struct {
+type GetDomainNodePermissionResult struct {
 	Allowed bool `json:"allowed"`
 }
 
-func (app *ABCIApplication) getServiceRequesterNodePermission(param []byte) *abcitypes.ResponseQuery {
-	app.logger.Infof("GetServiceRequesterNodePermission, Parameter: %s", param)
+func (app *ABCIApplication) getDomainNodePermission(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetDomainNodePermission, Parameter: %s", param)
 
-	var funcParam GetServiceRequesterNodePermissionParam
+	var funcParam GetDomainNodePermissionParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
-	value, err := app.state.Get([]byte(key), true)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-	if value == nil {
-		return app.NewResponseQuery(nil, "not found", app.state.Height)
-	}
-	var service data.ServiceDetail
-	err = proto.Unmarshal(value, &service)
+	allowed, err := app.hasDomainPermission(funcParam.Domain, funcParam.NodeID)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
 
-	allowed := false
-	if service.RequesterNodeWhitelistEnabled {
-		key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + funcParam.ServiceID + keySeparator + funcParam.NodeID
-		allowed, err = app.state.Has([]byte(key), true)
-		if err != nil {
-			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-		}
-	} else {
-		allowed = true
-	}
-
-	result := &GetServiceRequesterNodePermissionResult{
+	result := &GetDomainNodePermissionResult{
 		Allowed: allowed,
 	}
 
@@ -226,13 +207,30 @@ func (app *ABCIApplication) getServiceRequesterNodePermission(param []byte) *abc
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
-func (app *ABCIApplication) hasServiceRequestPermission(service ServiceDetail, nodeID string) (allowed bool, err error) {
-	// check if whitelist is active
-	if !service.RequesterNodeWhitelistEnabled {
+func (app *ABCIApplication) hasDomainPermission(domainName string, nodeID string) (allowed bool, err error) {
+	key := domainKeyPrefix + keySeparator + domainName
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		return false, err
+	}
+	if value == nil {
+		return false, nil
+	}
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
+	if err != nil {
+		return false, err
+	}
+
+	if !domain.Active {
+		return false, nil
+	}
+
+	if !domain.NodeWhitelistEnabled {
 		return true, nil
 	}
 
-	key := serviceRequesterNodeWhitelistKeyPrefix + keySeparator + service.ServiceID + keySeparator + nodeID
+	key = domainNodeWhitelistKeyPrefix + keySeparator + domainName + keySeparator + nodeID
 	allowed, err = app.state.Has([]byte(key), true)
 	if err != nil {
 		return false, err

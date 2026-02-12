@@ -324,26 +324,16 @@ message ServiceRequestNodePermission {
   // string node_id = 2;
 }
 
-message YourDataNodeWhitelist {
+message Domain {
+  // string name = 1;
   bool active = 1;
+  bool node_whitelist_enabled = 2;
 }
 
-message YourDataNodePermission {
+message DomainNodePermission {
   // string node_id = 1;
 }
 
-message YourDataRPNodeWhitelist {
+message DomainNodeWhitelist {
   bool active = 1;
-}
-
-message YourDataRPNodePermission {
-  // string node_id = 1;
-}
-
-message YourDataASNodeWhitelist {
-  bool active = 1;
-}
-
-message YourDataASNodePermission {
-  // string node_id = 1;
 }

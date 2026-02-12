@@ -158,7 +158,10 @@ const (
 	ServiceRequestNotAllowed                                      uint32 = 134
 	DuplicateEntry                                                uint32 = 135
 	NotFound                                                      uint32 = 136
-	InvalidServiceDomain                                          uint32 = 137
+	DomainAlreadyExists                                           uint32 = 137
+	DomainDoesNotExist                                            uint32 = 138
+	DomainNotActive                                               uint32 = 139
+	DomainCannotBeEmpty                                           uint32 = 140
 
 	UnknownError uint32 = 999
 )

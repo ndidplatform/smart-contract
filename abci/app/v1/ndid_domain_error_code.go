@@ -35,17 +35,18 @@ import (
 	data "github.com/ndidplatform/smart-contract/v9/protos/data"
 )
 
-func (*ABCIApplication) checkYourDataErrorCodeType(errorCodeType string) bool {
+func (*ABCIApplication) isValidDomainErrorCodeType(errorCodeType string) bool {
 	return contains(errorCodeType, []string{"as"})
 }
 
-type AddYourDataErrorCodeParam struct {
+type AddDomainErrorCodeParam struct {
+	Domain      string `json:"domain"`
 	ErrorCode   int32  `json:"error_code"`
 	Description string `json:"description"`
 	Type        string `json:"type"`
 }
 
-func (app *ABCIApplication) validateAddYourDataErrorCode(funcParam AddYourDataErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateAddDomainErrorCode(funcParam AddDomainErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -61,7 +62,7 @@ func (app *ABCIApplication) validateAddYourDataErrorCode(funcParam AddYourDataEr
 	// stateless
 
 	funcParam.Type = strings.ToLower(funcParam.Type)
-	if !app.checkErrorCodeType(funcParam.Type) {
+	if !app.isValidDomainErrorCodeType(funcParam.Type) {
 		return &ApplicationError{
 			Code:    code.InvalidErrorCode,
 			Message: "Invalid error code type",
@@ -80,7 +81,22 @@ func (app *ABCIApplication) validateAddYourDataErrorCode(funcParam AddYourDataEr
 
 	// stateful
 
-	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
+	domainKey := domainKeyPrefix + keySeparator + funcParam.Domain
+	domainExists, err := app.state.Has([]byte(domainKey), committedState)
+	if err != nil {
+		return &ApplicationError{
+			Code:    code.AppStateError,
+			Message: err.Error(),
+		}
+	}
+	if !domainExists {
+		return &ApplicationError{
+			Code:    code.DomainDoesNotExist,
+			Message: "Domain does not exist",
+		}
+	}
+
+	errorKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -98,14 +114,14 @@ func (app *ABCIApplication) validateAddYourDataErrorCode(funcParam AddYourDataEr
 	return nil
 }
 
-func (app *ABCIApplication) addYourDataErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam AddYourDataErrorCodeParam
+func (app *ABCIApplication) addDomainErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam AddDomainErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateAddYourDataErrorCode(funcParam, callerNodeID, true, true)
+	err = app.validateAddDomainErrorCode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -116,15 +132,15 @@ func (app *ABCIApplication) addYourDataErrorCodeCheckTx(param []byte, callerNode
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) addYourDataErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("AddYourDataErrorCode, Parameter: %s", param)
-	var funcParam AddYourDataErrorCodeParam
+func (app *ABCIApplication) addDomainErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("AddDomainErrorCode, Parameter: %s", param)
+	var funcParam AddDomainErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateAddYourDataErrorCode(funcParam, callerNodeID, false, false)
+	err = app.validateAddDomainErrorCode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -145,12 +161,12 @@ func (app *ABCIApplication) addYourDataErrorCode(param []byte, callerNodeID stri
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
 	}
-	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", errorCode.ErrorCode)
+	errorKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", errorCode.ErrorCode)
 	app.state.Set([]byte(errorKey), []byte(errorCodeBytes))
 
 	// add error code to ErrorCodeList
 	var errorCodeList data.ErrorCodeList
-	errorsKey := yourDataErrorCodeListKeyPrefix + keySeparator + funcParam.Type
+	errorsKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
@@ -171,12 +187,13 @@ func (app *ABCIApplication) addYourDataErrorCode(param []byte, callerNodeID stri
 	return app.NewExecTxResult(code.OK, "success", "")
 }
 
-type RemoveYourDataErrorCodeParam struct {
+type RemoveDomainErrorCodeParam struct {
+	Domain    string `json:"domain"`
 	ErrorCode int32  `json:"error_code"`
 	Type      string `json:"type"`
 }
 
-func (app *ABCIApplication) validateRemoveYourDataErrorCode(funcParam RemoveYourDataErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
+func (app *ABCIApplication) validateRemoveDomainErrorCode(funcParam RemoveDomainErrorCodeParam, callerNodeID string, committedState bool, checktx bool) error {
 	// permission
 	ok, err := app.isNDIDNodeByNodeID(callerNodeID, committedState)
 	if err != nil {
@@ -195,7 +212,7 @@ func (app *ABCIApplication) validateRemoveYourDataErrorCode(funcParam RemoveYour
 
 	// stateful
 
-	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
+	errorKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	hasErrorKey, err := app.state.Has([]byte(errorKey), committedState)
 	if err != nil {
 		return &ApplicationError{
@@ -213,14 +230,14 @@ func (app *ABCIApplication) validateRemoveYourDataErrorCode(funcParam RemoveYour
 	return nil
 }
 
-func (app *ABCIApplication) removeYourDataErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
-	var funcParam RemoveYourDataErrorCodeParam
+func (app *ABCIApplication) removeDomainErrorCodeCheckTx(param []byte, callerNodeID string) *abcitypes.ResponseCheckTx {
+	var funcParam RemoveDomainErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return NewResponseCheckTx(code.UnmarshalError, err.Error())
 	}
 
-	err = app.validateRemoveYourDataErrorCode(funcParam, callerNodeID, true, true)
+	err = app.validateRemoveDomainErrorCode(funcParam, callerNodeID, true, true)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return NewResponseCheckTx(appErr.Code, appErr.Message)
@@ -231,15 +248,15 @@ func (app *ABCIApplication) removeYourDataErrorCodeCheckTx(param []byte, callerN
 	return NewResponseCheckTx(code.OK, "")
 }
 
-func (app *ABCIApplication) removeYourDataErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
-	app.logger.Infof("RemoveYourDataErrorCode, Parameter: %s", param)
-	var funcParam RemoveYourDataErrorCodeParam
+func (app *ABCIApplication) removeDomainErrorCode(param []byte, callerNodeID string) *abcitypes.ExecTxResult {
+	app.logger.Infof("RemoveDomainErrorCode, Parameter: %s", param)
+	var funcParam RemoveDomainErrorCodeParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewExecTxResult(code.UnmarshalError, err.Error(), "")
 	}
 
-	err = app.validateRemoveYourDataErrorCode(funcParam, callerNodeID, false, false)
+	err = app.validateRemoveDomainErrorCode(funcParam, callerNodeID, false, false)
 	if err != nil {
 		if appErr, ok := err.(*ApplicationError); ok {
 			return app.NewExecTxResult(appErr.Code, appErr.Message, "")
@@ -248,7 +265,7 @@ func (app *ABCIApplication) removeYourDataErrorCode(param []byte, callerNodeID s
 	}
 
 	// remove error code from ErrorCode index
-	errorKey := errorCodeKeyPrefix + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
+	errorKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type + keySeparator + fmt.Sprintf("%d", funcParam.ErrorCode)
 	err = app.state.Delete([]byte(errorKey))
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")
@@ -256,7 +273,7 @@ func (app *ABCIApplication) removeYourDataErrorCode(param []byte, callerNodeID s
 
 	// remove ErrorCode from ErrorCodeList
 	var errorCodeList data.ErrorCodeList
-	errorsKey := yourDataErrorCodeListKeyPrefix + keySeparator + funcParam.Type
+	errorsKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorsKey), false)
 	if err != nil {
 		return app.NewExecTxResult(code.AppStateError, err.Error(), "")

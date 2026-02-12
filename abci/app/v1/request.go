@@ -393,25 +393,17 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
-	// If service IDs in data request list are in a domain (e.g. YourData),
+	// If service IDs in data request list are in a domain,
 	// check if caller node ID is allowed to use domains in request
 	for domain := range containsServiceDomains {
-		switch ServiceDomain(domain) {
-		case ServiceDomainYourData:
-			allowed, err := app.hasYourDataPermission(callerNodeID)
-			if err != nil {
-				return &ApplicationError{
-					Code:    code.AppStateError,
-					Message: err.Error(),
-				}
+		allowed, err := app.hasDomainPermission(domain, callerNodeID)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
 			}
-			if !allowed {
-				return &ApplicationError{
-					Code:    code.ServiceRequestNotAllowed,
-					Message: fmt.Sprintf("Node is not allowed to request service with domain: %s", domain),
-				}
-			}
-		default:
+		}
+		if !allowed {
 			return &ApplicationError{
 				Code:    code.ServiceRequestNotAllowed,
 				Message: fmt.Sprintf("Node is not allowed to request service with domain: %s", domain),
@@ -422,22 +414,14 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 	// check if destination (AS) node ID is allowed to use domains in request
 	for asNodeID, domains := range asServiceDomains {
 		for domain := range domains {
-			switch ServiceDomain(domain) {
-			case ServiceDomainYourData:
-				allowed, err := app.hasYourDataPermission(asNodeID)
-				if err != nil {
-					return &ApplicationError{
-						Code:    code.AppStateError,
-						Message: err.Error(),
-					}
+			allowed, err := app.hasDomainPermission(domain, asNodeID)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
 				}
-				if !allowed {
-					return &ApplicationError{
-						Code:    code.ServiceRequestNotAllowed,
-						Message: fmt.Sprintf("AS node: %s is not allowed to serve service with domain: %s", asNodeID, domain),
-					}
-				}
-			default:
+			}
+			if !allowed {
 				return &ApplicationError{
 					Code:    code.ServiceRequestNotAllowed,
 					Message: fmt.Sprintf("AS node: %s is not allowed to serve service with domain: %s", asNodeID, domain),

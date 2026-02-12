@@ -140,13 +140,16 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.isSuppressedIdentityModificationNotificationNode(param, height)
 	case "GetAllowedNodeSupportedFeatureList":
 		return app.getAllowedNodeSupportedFeatureList(param, height)
-	// YourData
-	case "GetYourDataNodeWhitelist":
-		return app.getYourDataNodeWhitelist(param)
-	case "GetYourDataPermissionStatus":
-		return app.getYourDataPermissionStatus(param)
-	case "GetYourDataErrorCodeList":
-		return app.getYourDataErrorCodeList(param)
+	case "GetDomainList":
+		return app.getDomainList(param)
+	case "GetDomainNodeWhitelist":
+		return app.getDomainNodeWhitelist(param)
+	case "GetDomainNodeWhitelistByDomain":
+		return app.getDomainNodeWhitelistByDomain(param)
+	case "GetDomainNodePermission":
+		return app.getDomainNodePermission(param)
+	case "GetDomainErrorCodeList":
+		return app.getDomainErrorCodeList(param)
 	default:
 		return &abcitypes.ResponseQuery{Code: code.UnknownMethod, Log: "Unknown method name"}
 	}

@@ -56,16 +56,6 @@ func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, caller
 		}
 	}
 
-	if funcParam.Domain != nil {
-		valid := isValidServiceDomain(ServiceDomain(*funcParam.Domain))
-		if !valid {
-			return &ApplicationError{
-				Code:    code.InvalidServiceDomain,
-				Message: "invalid service domain",
-			}
-		}
-	}
-
 	if checktx {
 		return nil
 	}
@@ -84,6 +74,23 @@ func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, caller
 		return &ApplicationError{
 			Code:    code.DuplicateServiceID,
 			Message: "Duplicate service ID",
+		}
+	}
+
+	if funcParam.Domain != nil {
+		domainKey := domainKeyPrefix + keySeparator + *funcParam.Domain
+		domainExists, err := app.state.Has([]byte(domainKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !domainExists {
+			return &ApplicationError{
+				Code:    code.DomainDoesNotExist,
+				Message: "Domain does not exist",
+			}
 		}
 	}
 
@@ -436,18 +443,6 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 		}
 	}
 
-	if funcParam.Domain != nil {
-		if *funcParam.Domain != "" {
-			valid := isValidServiceDomain(ServiceDomain(*funcParam.Domain))
-			if !valid {
-				return &ApplicationError{
-					Code:    code.InvalidServiceDomain,
-					Message: "invalid service domain",
-				}
-			}
-		}
-	}
-
 	if checktx {
 		return nil
 	}
@@ -466,6 +461,23 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 		return &ApplicationError{
 			Code:    code.ServiceIDNotFound,
 			Message: "Service ID not found",
+		}
+	}
+
+	if funcParam.Domain != nil {
+		domainKey := domainKeyPrefix + keySeparator + *funcParam.Domain
+		domainExists, err := app.state.Has([]byte(domainKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !domainExists {
+			return &ApplicationError{
+				Code:    code.DomainDoesNotExist,
+				Message: "Domain does not exist",
+			}
 		}
 	}
 
