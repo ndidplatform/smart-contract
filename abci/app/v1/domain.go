@@ -35,7 +35,8 @@ import (
 )
 
 type AddDomainParam struct {
-	Domain string `json:"domain"`
+	Domain               string `json:"domain"`
+	NodeWhitelistEnabled bool   `json:"node_whitelist_enabled"`
 }
 
 func (app *ABCIApplication) validateAddDomain(funcParam AddDomainParam, callerNodeID string, committedState bool, checktx bool) error {
@@ -121,7 +122,7 @@ func (app *ABCIApplication) addDomain(param []byte, callerNodeID string) *abcity
 
 	var domain data.Domain
 	domain.Active = true
-	domain.NodeWhitelistEnabled = false
+	domain.NodeWhitelistEnabled = funcParam.NodeWhitelistEnabled
 
 	value, err := utils.ProtoDeterministicMarshal(&domain)
 	if err != nil {
