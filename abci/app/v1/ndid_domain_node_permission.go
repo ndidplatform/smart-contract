@@ -177,7 +177,7 @@ func (app *ABCIApplication) validateRemoveNodeFromDomainNodeWhitelist(funcParam 
 
 	// stateful
 
-	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.NodeID
+	key := domainNodeWhitelistKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.NodeID
 	exists, err := app.state.Has([]byte(key), committedState)
 	if err != nil {
 		return &ApplicationError{
