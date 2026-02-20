@@ -154,6 +154,10 @@ func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuer
 			continue
 		}
 
+		if !service.Active {
+			continue
+		}
+
 		serviceDetail := ServiceDetail{
 			ServiceID:                     service.ServiceId,
 			ServiceName:                   service.ServiceName,
