@@ -120,6 +120,7 @@ func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQu
 }
 
 type GetServiceListParam struct {
+	Active *bool   `json:"active"`
 	Domain *string `json:"domain"`
 }
 
@@ -154,8 +155,10 @@ func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuer
 			continue
 		}
 
-		if !service.Active {
-			continue
+		if funcParam.Active != nil {
+			if *funcParam.Active != service.Active {
+				continue
+			}
 		}
 
 		serviceDetail := ServiceDetail{
