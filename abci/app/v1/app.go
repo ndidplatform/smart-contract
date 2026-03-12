@@ -36,10 +36,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	"github.com/ndidplatform/smart-contract/v9/abci/utils"
-	"github.com/ndidplatform/smart-contract/v9/abci/version"
-	protoTm "github.com/ndidplatform/smart-contract/v9/protos/tendermint"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/utils"
+	"github.com/ndidplatform/smart-contract/v10/abci/version"
+	protoTm "github.com/ndidplatform/smart-contract/v10/protos/tendermint"
 )
 
 type ABCIApplication struct {

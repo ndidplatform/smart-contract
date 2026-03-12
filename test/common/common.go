@@ -28,10 +28,10 @@ import (
 	"log"
 	"testing"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/app/v1"
-	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
-	"github.com/ndidplatform/smart-contract/v9/test/data"
-	"github.com/ndidplatform/smart-contract/v9/test/utils"
+	"github.com/ndidplatform/smart-contract/v10/abci/app/v1"
+	appTypes "github.com/ndidplatform/smart-contract/v10/abci/app/v1/types"
+	"github.com/ndidplatform/smart-contract/v10/test/data"
+	"github.com/ndidplatform/smart-contract/v10/test/utils"
 )
 
 func SetMqAddresses(t *testing.T, nodeID, privK string, param app.SetMqAddressesParam) {

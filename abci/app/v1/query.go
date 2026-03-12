@@ -25,7 +25,7 @@ package app
 import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
 )
 
 // NewResponseQuery returns *abcitypes.ResponseQuery

@@ -29,7 +29,7 @@ import (
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 	"google.golang.org/protobuf/proto"
 
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 type ServiceRequestPermission struct {

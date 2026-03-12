@@ -31,7 +31,7 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
 )
 
 func (app *ABCIApplication) Validators() (validators []abcitypes.Validator) {

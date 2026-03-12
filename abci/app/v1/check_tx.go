@@ -38,9 +38,9 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	appTypes "github.com/ndidplatform/smart-contract/v10/abci/app/v1/types"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 var IsMethod = map[string]bool{

@@ -29,10 +29,10 @@ import (
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 	"google.golang.org/protobuf/proto"
 
-	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	"github.com/ndidplatform/smart-contract/v9/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	appTypes "github.com/ndidplatform/smart-contract/v10/abci/app/v1/types"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 type AddSuppressedIdentityModificationNotificationNodeParam struct {

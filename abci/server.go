@@ -42,7 +42,7 @@ import (
 	"github.com/cometbft/cometbft/privval"
 	"github.com/cometbft/cometbft/proxy"
 
-	abciApp "github.com/ndidplatform/smart-contract/v9/abci/app"
+	abciApp "github.com/ndidplatform/smart-contract/v10/abci/app"
 )
 
 const (

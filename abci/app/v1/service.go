@@ -28,7 +28,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 

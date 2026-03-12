@@ -30,9 +30,9 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	"github.com/ndidplatform/smart-contract/v9/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 type Identity struct {

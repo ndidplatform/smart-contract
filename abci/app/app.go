@@ -33,8 +33,8 @@ import (
 	tmos "github.com/cometbft/cometbft/libs/os"
 	"github.com/sirupsen/logrus"
 
-	appV1 "github.com/ndidplatform/smart-contract/v9/abci/app/v1"
-	// appV2 "github.com/ndidplatform/smart-contract/v9/abci/app2/v2"
+	appV1 "github.com/ndidplatform/smart-contract/v10/abci/app/v1"
+	// appV2 "github.com/ndidplatform/smart-contract/v10/abci/app2/v2"
 )
 
 type ABCIApplicationInterface struct {
