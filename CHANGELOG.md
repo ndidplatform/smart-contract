@@ -1,5 +1,48 @@
 # Changelog
 
+## 10.0.0 (TBD)
+
+BREAKING CHANGES:
+
+- Add `domain` and `requester_node_whitelist_enabled` to service.
+- Check for node's service requester permission on validating create request.
+- Check for node's domain permission on validating create request.
+
+FEATURES:
+
+- Service
+  - [DeliverTx] Add `AddNodeToServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `RemoveNodeFromServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `EnableServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `DisableServiceRequesterNodeWhitelist` method.
+  - [Query] Add `GetServiceRequesterNodeWhitelist` method.
+  - [Query] Add `GetServiceRequesterNodeWhitelistByServiceID` method.
+  - [Query] Add `GetServiceRequesterNodePermission` method.
+- Domain
+  - [DeliverTx] Add `AddDomain` method.
+  - [DeliverTx] Add `EnableDomain` method.
+  - [DeliverTx] Add `DisableDomain` method.
+  - [DeliverTx] Add `AddNodeToDomainNodeWhitelist` method.
+  - [DeliverTx] Add `RemoveNodeFromDomainNodeWhitelist` method.
+  - [DeliverTx] Add `EnableDomainNodeWhitelist` method.
+  - [DeliverTx] Add `DisableDomainNodeWhitelist` method.
+  - [DeliverTx] Add `AddDomainErrorCode` method.
+  - [DeliverTx] Add `RemoveDomainErrorCode` method.
+  - [Query] Add `GetDomainList` method.
+  - [Query] Add `GetDomainNodeWhitelist` method.
+  - [Query] Add `GetDomainNodeWhitelistByDomain` method.
+  - [Query] Add `GetDomainNodePermission` method.
+  - [Query] Add `GetDomainErrorCodeList` method.
+- [Query] Add `domain` and `requester_node_whitelist_enabled` properties to result of `GetServiceDetail`.
+
+IMPROVEMENTS:
+
+- CometBFT v0.38.21.
+- [Query] `GetNodeSigningMasterPublicKey` supports `version` parameter.
+- [Query] `GetNodeSigningPublicKey` supports `version` parameter.
+- [Query] `GetNodeEncryptionPublicKey` supports `version` parameter.
+- [Query] `GetServiceList` supports `active` and `domain` (filter) parameters.
+
 ## 9.0.0 (August 1, 2024)
 
 BREAKING CHANGES:
