@@ -1,5 +1,11 @@
 # Changelog
 
+## 9.0.1 (TBD)
+
+BUG FIXES:
+
+- Fix memory leak when client subscribing for events through WebSocket. (Use forked CometBFT v0.38.6 with fix applied.)
+
 ## 9.0.0 (August 1, 2024)
 
 BREAKING CHANGES:
