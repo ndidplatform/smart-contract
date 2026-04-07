@@ -333,7 +333,3 @@ message Domain {
 message DomainNodePermission {
   // string node_id = 1;
 }
-
-message DomainNodeWhitelist {
-  bool active = 1;
-}
