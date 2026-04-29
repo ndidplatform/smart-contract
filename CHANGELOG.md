@@ -1,6 +1,6 @@
 # Changelog
 
-## 9.0.1 (TBD)
+## 9.0.1 (April 29, 2026)
 
 BUG FIXES:
 
