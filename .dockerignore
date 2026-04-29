@@ -4,16 +4,19 @@
 
 *.swp
 
-main.go
-
 # localDB
 localDB/
+tmp/
+
+# dependencies
 vendor/
 
 # tendermint data
 config/tendermint/IdP/data/
 config/tendermint/RP/data/
 config/tendermint/AS/data/
+config/tendermint/proxy/data/
 config/tendermint/IdP/config/*
 config/tendermint/RP/config/*
 config/tendermint/AS/config/*
+config/tendermint/proxy/config/*
