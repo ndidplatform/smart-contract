@@ -1,8 +1,8 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
-      - image: cimg/go:1.22
+      - image: cimg/go:1.25
     working_directory: ~/ndidplatform/smart-contract
     steps:
       - checkout
@@ -58,11 +58,11 @@ jobs:
             TENDERMINT_ADDRESS=http://localhost:45000 go test -v
   push_to_docker_hub:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/base:current
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.11
+      # - setup_remote_docker:
+      #     version: 20.10.11
       - run:
           name: Build docker images
           command: |
@@ -86,11 +86,11 @@ jobs:
             docker push $REPO_NAME/did-tendermint:$DOCKER_TAG
   push_dev_to_docker_hub:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/base:current
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.11
+      # - setup_remote_docker:
+      #     version: 20.10.11
       - run:
           name: Build docker images
           command: |
