@@ -24,6 +24,7 @@ package app
 
 import (
 	"encoding/json"
+	"strings"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
@@ -60,6 +61,7 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelist(param []byte) *abci
 		var service data.ServiceDetail
 		err = proto.Unmarshal(value, &service)
 		if err != nil {
+			iter.Close()
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
 
@@ -161,6 +163,88 @@ func (app *ABCIApplication) getServiceRequesterNodeWhitelistByServiceID(param []
 	result := &GetServiceRequesterNodeWhitelistByServiceIDResult{
 		NodeIDs: nodeIDs,
 		Enabled: service.RequesterNodeWhitelistEnabled,
+	}
+
+	returnValue, err := json.Marshal(result)
+	if err != nil {
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+	}
+
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
+}
+
+type GetRequesterNodeWhitelistedServiceListParam struct {
+	NodeID string `json:"node_id"`
+}
+
+type ServicePermissionForNode struct {
+	ServiceID string `json:"service_id"`
+	Enabled   bool   `json:"enabled"`
+}
+
+type GetRequesterNodeWhitelistedServiceListResult struct {
+	ServicePermissionList []ServicePermissionForNode `json:"service_permission_list"`
+}
+
+func (app *ABCIApplication) getRequesterNodeWhitelistedServiceList(param []byte) *abcitypes.ResponseQuery {
+	app.logger.Infof("GetRequesterNodeWhitelistedServiceList, Parameter: %s", param)
+
+	var funcParam GetRequesterNodeWhitelistedServiceListParam
+	err := json.Unmarshal(param, &funcParam)
+	if err != nil {
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+	}
+
+	servicePermissionList := make([]ServicePermissionForNode, 0)
+
+	keyIteratorPrefix := serviceRequesterNodeWhitelistKeyPrefix + keySeparator
+	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
+	iter, err := app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+	}
+
+	for ; iter.Valid(); iter.Next() {
+		key := iter.Key()
+
+		// Key structure: prefix + separator + serviceID + separator + nodeID
+		runes := []rune(string(key))
+		keyContent := string(runes[len(keyIteratorPrefix):])
+
+		// Split or parse out the components.
+		// Check if the key ends with input nodeID
+		expectedSuffix := keySeparator + funcParam.NodeID
+		if !strings.HasSuffix(keyContent, expectedSuffix) {
+			continue
+		}
+
+		// Extract the serviceID from the middle of the key string
+		serviceID := keyContent[:len(keyContent)-len(expectedSuffix)]
+
+		// Get service's requester node whitelist enabled status
+		serviceKey := serviceKeyPrefix + keySeparator + serviceID
+		serviceValue, err := app.state.Get([]byte(serviceKey), true)
+		if err != nil {
+			iter.Close()
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		var service data.ServiceDetail
+		err = proto.Unmarshal(serviceValue, &service)
+		if err != nil {
+			iter.Close()
+			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+		}
+
+		servicePermissionList = append(servicePermissionList, ServicePermissionForNode{
+			ServiceID: serviceID,
+			Enabled:   service.RequesterNodeWhitelistEnabled,
+		})
+	}
+	iter.Close()
+
+	result := &GetRequesterNodeWhitelistedServiceListResult{
+		ServicePermissionList: servicePermissionList,
 	}
 
 	returnValue, err := json.Marshal(result)
