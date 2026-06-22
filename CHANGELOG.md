@@ -18,6 +18,7 @@ FEATURES:
   - [Query] Add `GetServiceRequesterNodeWhitelist` method.
   - [Query] Add `GetServiceRequesterNodeWhitelistByServiceID` method.
   - [Query] Add `GetServiceRequesterNodePermission` method.
+  - [Query] Add `GetRequesterNodeWhitelistedServiceList` method.
 - Domain
   - [DeliverTx] Add `AddDomain` method.
   - [DeliverTx] Add `EnableDomain` method.
