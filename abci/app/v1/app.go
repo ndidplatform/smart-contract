@@ -134,7 +134,19 @@ func (app *ABCIApplication) InitChain(chain *abcitypes.RequestInitChain) (*abcit
 
 		app.state.InitialStateDataLoaded = true
 	} else {
-		app.logger.Infof("No initial state data provided")
+		hasInitialState, hash, err := app.state.CheckInitialState(app.logger)
+		if err != nil {
+			panic(err)
+		}
+
+		if hasInitialState {
+			app.state.HasHashData = true
+			app.state.HashDigest.Write(hash)
+
+			app.state.InitialStateDataLoaded = true
+		} else {
+			app.logger.Infof("No initial state data provided")
+		}
 	}
 
 	app.CurrentChain = chain.ChainId
