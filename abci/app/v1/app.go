@@ -120,26 +120,26 @@ func (app *ABCIApplication) Info(info *abcitypes.RequestInfo) (*abcitypes.Respon
 func (app *ABCIApplication) InitChain(chain *abcitypes.RequestInitChain) (*abcitypes.ResponseInitChain, error) {
 	app.logger.Infof("InitChain: %s", chain.ChainId)
 
-	// load initial state data from file if provided
-	if app.initialStateDir != "" {
-		app.logger.Infof("Loading initial state data from directory: %s", app.initialStateDir)
+	hasInitialState, hash, err := app.state.CheckInitialState(app.logger)
+	if err != nil {
+		panic(err)
+	}
 
-		hash, err := app.state.LoadInitialState(app.logger, app.initialStateDir)
-		if err != nil {
-			panic(err)
-		}
-
+	if hasInitialState {
 		app.state.HasHashData = true
 		app.state.HashDigest.Write(hash)
 
 		app.state.InitialStateDataLoaded = true
 	} else {
-		hasInitialState, hash, err := app.state.CheckInitialState(app.logger)
-		if err != nil {
-			panic(err)
-		}
+		// load initial state data from file if provided
+		if app.initialStateDir != "" {
+			app.logger.Infof("Loading initial state data from directory: %s", app.initialStateDir)
 
-		if hasInitialState {
+			hash, err := app.state.LoadInitialState(app.logger, app.initialStateDir)
+			if err != nil {
+				panic(err)
+			}
+
 			app.state.HasHashData = true
 			app.state.HashDigest.Write(hash)
 

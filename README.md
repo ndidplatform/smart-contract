@@ -69,10 +69,11 @@ CometBFT (Tendermint) bundled with ABCI app
 **Environment variable options**
 
 - `ABCI_DB_DIR_PATH`: Directory path for ABCI app persistence data files [Default: `./DID`]
-- `ABCI_DB_TYPE`: Database type (same options as Tendermint's `db_backend`) [Default: `cleveldb`]
+- `ABCI_DB_TYPE`: Database type (same options as Tendermint's `db_backend`) [Default: `goleveldb`]
 - `ABCI_LOG_LEVEL`: Log level. Allowed values are `error`, `warn`, `info` and `debug` [Default: `debug`]
 - `ABCI_LOG_TARGET`: Where should logger writes logs to. Allowed values are `console` or `file` (eg. `ABCI.log`) [Default: `console`]
 - `ABCI_LOG_FILE_PATH`: File path for log file (use when `ABCI_LOG_TARGET` is set to `file`) [Default: `./abci-<PID>-<CURRENT_DATETIME>.log`]
+- `ABCI_SKIP_INITIAL_STATE_HASH_VERIFICATION`: Skip initial state hash verification when using database created by [migration-tools](https://github.com/ndidplatform/migration-tools) as a starting ABCI app state database. [Default: `false`]
 - `ABCI_INITIAL_STATE_DIR_PATH`: Directory path for initial ABCI app state data created by [migration-tools](https://github.com/ndidplatform/migration-tools). If not provided, the program will assume that there's no initial data to load on `InitChain`.
 - `TENDERMINT_RETAIN_BLOCK_COUNT`: Number of recent Tendermint's blocks (data) to keep. All blocks with height less than current block height minus retain block count will be deleted.
 

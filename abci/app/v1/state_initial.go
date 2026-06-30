@@ -230,6 +230,16 @@ func (appState *AppState) CheckInitialState(logger *logrus.Entry) (hasInitialSta
 		initialStateHash,
 	)
 
+	skipInitialStateHashVerification := false
+	if val := getEnv("ABCI_SKIP_INITIAL_STATE_HASH_VERIFICATION", "false"); val == "true" {
+		skipInitialStateHashVerification = true
+	}
+
+	if skipInitialStateHashVerification {
+		logger.Infof("Initial state hash verification skipped")
+		return true, initialStateHash, nil
+	}
+
 	logger.Infof("Verifying initial state hash")
 
 	hashDigest := sha256.New()
