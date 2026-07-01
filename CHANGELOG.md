@@ -35,6 +35,9 @@ FEATURES:
   - [Query] Add `GetDomainNodePermission` method.
   - [Query] Add `GetDomainErrorCodeList` method.
 - [Query] Add `domain` and `requester_node_whitelist_enabled` properties to result of `GetServiceDetail`.
+- Support ABCI initial state data load from leveldb.
+- Support using initial state data database in leveldb format as a starting ABCI app state database.
+  - Initial state hash check on `InitChain` can be skipped by setting environment variable `ABCI_SKIP_INITIAL_STATE_HASH_VERIFICATION` to `true`.
 
 IMPROVEMENTS:
 
