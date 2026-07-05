@@ -45,8 +45,8 @@ const (
 )
 
 const (
-	initialStateDataTypeFile      = "file"
-	initialStateDataTypeGoLevelDB = "goleveldb"
+	initialStateDataTypeFile    = "file"
+	initialStateDataTypeLevelDB = "leveldb"
 )
 
 const (
@@ -170,7 +170,7 @@ func (appState *AppState) LoadInitialState(logger *logrus.Entry, initialStateDir
 				return nil, err
 			}
 		}
-	case initialStateDataTypeGoLevelDB:
+	case initialStateDataTypeLevelDB:
 		db, err := leveldb.OpenFile(
 			path.Join(initialStateDir, initialStateDataFilename+".db"),
 			&opt.Options{
