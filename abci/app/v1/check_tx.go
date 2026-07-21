@@ -38,9 +38,9 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	appTypes "github.com/ndidplatform/smart-contract/v10/abci/app/v1/types"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 var IsMethod = map[string]bool{
@@ -109,6 +109,19 @@ var IsMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 	"AddAllowedNodeSupportedFeature":                       true,
 	"RemoveAllowedNodeSupportedFeature":                    true,
+	"AddNodeToServiceRequesterNodeWhitelist":               true,
+	"RemoveNodeFromServiceRequesterNodeWhitelist":          true,
+	"EnableServiceRequesterNodeWhitelist":                  true,
+	"DisableServiceRequesterNodeWhitelist":                 true,
+	"AddDomain":                                            true,
+	"EnableDomain":                                         true,
+	"DisableDomain":                                        true,
+	"AddNodeToDomainNodeWhitelist":                         true,
+	"RemoveNodeFromDomainNodeWhitelist":                    true,
+	"EnableDomainNodeWhitelist":                            true,
+	"DisableDomainNodeWhitelist":                           true,
+	"AddDomainErrorCode":                                   true,
+	"RemoveDomainErrorCode":                                true,
 }
 
 func (app *ABCIApplication) isNDIDNode(node *data.NodeDetail) bool {
@@ -1006,6 +1019,14 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.setServicePriceCeilingCheckTx(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
+	case "AddNodeToServiceRequesterNodeWhitelist":
+		return app.addNodeToServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromServiceRequesterNodeWhitelist":
+		return app.removeNodeFromServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "EnableServiceRequesterNodeWhitelist":
+		return app.enableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	case "DisableServiceRequesterNodeWhitelist":
+		return app.disableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALListCheckTx(param, nodeID)
@@ -1071,6 +1092,25 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 
 	case "CreateMessage":
 		return app.createMessageCheckTx(param, nodeID)
+
+	case "AddDomain":
+		return app.addDomainCheckTx(param, nodeID)
+	case "EnableDomain":
+		return app.enableDomainCheckTx(param, nodeID)
+	case "DisableDomain":
+		return app.disableDomainCheckTx(param, nodeID)
+	case "AddNodeToDomainNodeWhitelist":
+		return app.addNodeToDomainNodeWhitelistCheckTx(param, nodeID)
+	case "RemoveNodeFromDomainNodeWhitelist":
+		return app.removeNodeFromDomainNodeWhitelistCheckTx(param, nodeID)
+	case "EnableDomainNodeWhitelist":
+		return app.enableDomainNodeWhitelistCheckTx(param, nodeID)
+	case "DisableDomainNodeWhitelist":
+		return app.disableDomainNodeWhitelistCheckTx(param, nodeID)
+	case "AddDomainErrorCode":
+		return app.addDomainErrorCodeCheckTx(param, nodeID)
+	case "RemoveDomainErrorCode":
+		return app.removeDomainErrorCodeCheckTx(param, nodeID)
 
 	default:
 		return &abcitypes.ResponseCheckTx{Code: code.UnknownMethod, Log: "Unknown method name"}

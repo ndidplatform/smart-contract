@@ -53,6 +53,7 @@ const (
 	tokenPriceFuncKeyPrefix                              = "TokenPriceFunc"
 	serviceKeyPrefix                                     = "Service"
 	serviceDestinationKeyPrefix                          = "ServiceDestination"
+	serviceRequesterNodeWhitelistKeyPrefix               = "ServiceRequesterPermission"
 	approvedServiceKeyPrefix                             = "ApproveKey"
 	providedServicesKeyPrefix                            = "ProvideService"
 	refGroupCodeKeyPrefix                                = "RefGroupCode"
@@ -70,5 +71,8 @@ const (
 	requestTypeKeyPrefix                                 = "RequestType"
 	suppressedIdentityModificationNotificationNodePrefix = "SuppressedIdentityModificationNotificationNode"
 	nodeSupportedFeatureKeyPrefix                        = "NodeSupportedFeature"
+	domainKeyPrefix                                      = "Domain"
+	domainNodeWhitelistKeyPrefix                         = "DomainNodeWhitelist"
+	domainErrorCodeListKeyPrefix                         = "DomainErrorCodeList"
 	validatorKeyPrefix                                   = "Validator"
 )

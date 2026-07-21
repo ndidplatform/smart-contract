@@ -25,7 +25,7 @@ package app
 import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
 )
 
 // app.NewExecTxResult return *abcitypes.ExecTxResult
@@ -203,6 +203,14 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.setServicePriceCeiling(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelay(param, nodeID)
+	case "AddNodeToServiceRequesterNodeWhitelist":
+		return app.addNodeToServiceRequesterNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromServiceRequesterNodeWhitelist":
+		return app.removeNodeFromServiceRequesterNodeWhitelist(param, nodeID)
+	case "EnableServiceRequesterNodeWhitelist":
+		return app.enableServiceRequesterNodeWhitelist(param, nodeID)
+	case "DisableServiceRequesterNodeWhitelist":
+		return app.disableServiceRequesterNodeWhitelist(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALList(param, nodeID)
@@ -268,6 +276,25 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 
 	case "CreateMessage":
 		return app.createMessage(param, nodeID)
+
+	case "AddDomain":
+		return app.addDomain(param, nodeID)
+	case "EnableDomain":
+		return app.enableDomain(param, nodeID)
+	case "DisableDomain":
+		return app.disableDomain(param, nodeID)
+	case "AddNodeToDomainNodeWhitelist":
+		return app.addNodeToDomainNodeWhitelist(param, nodeID)
+	case "RemoveNodeFromDomainNodeWhitelist":
+		return app.removeNodeFromDomainNodeWhitelist(param, nodeID)
+	case "EnableDomainNodeWhitelist":
+		return app.enableDomainNodeWhitelist(param, nodeID)
+	case "DisableDomainNodeWhitelist":
+		return app.disableDomainNodeWhitelist(param, nodeID)
+	case "AddDomainErrorCode":
+		return app.addDomainErrorCode(param, nodeID)
+	case "RemoveDomainErrorCode":
+		return app.removeDomainErrorCode(param, nodeID)
 
 	default:
 		return &abcitypes.ExecTxResult{Code: code.UnknownMethod, Log: "Unknown method name"}

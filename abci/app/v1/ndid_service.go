@@ -28,17 +28,19 @@ import (
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	"google.golang.org/protobuf/proto"
 
-	appTypes "github.com/ndidplatform/smart-contract/v9/abci/app/v1/types"
-	"github.com/ndidplatform/smart-contract/v9/abci/code"
-	"github.com/ndidplatform/smart-contract/v9/abci/utils"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	appTypes "github.com/ndidplatform/smart-contract/v10/abci/app/v1/types"
+	"github.com/ndidplatform/smart-contract/v10/abci/code"
+	"github.com/ndidplatform/smart-contract/v10/abci/utils"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
 type AddServiceParam struct {
-	ServiceID         string `json:"service_id"`
-	ServiceName       string `json:"service_name"`
-	DataSchema        string `json:"data_schema"`
-	DataSchemaVersion string `json:"data_schema_version"`
+	ServiceID                     string  `json:"service_id"`
+	ServiceName                   string  `json:"service_name"`
+	DataSchema                    string  `json:"data_schema"`
+	DataSchemaVersion             string  `json:"data_schema_version"`
+	Domain                        *string `json:"domain,omitempty"`
+	RequesterNodeWhitelistEnabled bool    `json:"requester_node_whitelist_enabled"`
 }
 
 func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, callerNodeID string, committedState bool, checktx bool) error {
@@ -72,6 +74,23 @@ func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, caller
 		return &ApplicationError{
 			Code:    code.DuplicateServiceID,
 			Message: "Duplicate service ID",
+		}
+	}
+
+	if funcParam.Domain != nil {
+		domainKey := domainKeyPrefix + keySeparator + *funcParam.Domain
+		domainExists, err := app.state.Has([]byte(domainKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !domainExists {
+			return &ApplicationError{
+				Code:    code.DomainDoesNotExist,
+				Message: "Domain does not exist",
+			}
 		}
 	}
 
@@ -120,6 +139,10 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) *abcit
 	service.Active = true
 	service.DataSchema = funcParam.DataSchema
 	service.DataSchemaVersion = funcParam.DataSchemaVersion
+	if funcParam.Domain != nil {
+		service.Domain = *funcParam.Domain
+	}
+	service.RequesterNodeWhitelistEnabled = funcParam.RequesterNodeWhitelistEnabled
 	serviceValue, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")
@@ -147,6 +170,9 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) *abcit
 	newService.ServiceId = funcParam.ServiceID
 	newService.ServiceName = funcParam.ServiceName
 	newService.Active = true
+	if funcParam.Domain != nil {
+		newService.Domain = *funcParam.Domain
+	}
 	services.Services = append(services.Services, &newService)
 	allServiceValue, err = utils.ProtoDeterministicMarshal(&services)
 	if err != nil {
@@ -397,10 +423,11 @@ func (app *ABCIApplication) disableService(param []byte, callerNodeID string) *a
 }
 
 type UpdateServiceParam struct {
-	ServiceID         string `json:"service_id"`
-	ServiceName       string `json:"service_name"`
-	DataSchema        string `json:"data_schema"`
-	DataSchemaVersion string `json:"data_schema_version"`
+	ServiceID         string  `json:"service_id"`
+	ServiceName       string  `json:"service_name"`
+	DataSchema        string  `json:"data_schema"`
+	DataSchemaVersion string  `json:"data_schema_version"`
+	Domain            *string `json:"domain,omitempty"`
 }
 
 func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, callerNodeID string, committedState bool, checktx bool) error {
@@ -434,6 +461,23 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 		return &ApplicationError{
 			Code:    code.ServiceIDNotFound,
 			Message: "Service ID not found",
+		}
+	}
+
+	if funcParam.Domain != nil {
+		domainKey := domainKeyPrefix + keySeparator + *funcParam.Domain
+		domainExists, err := app.state.Has([]byte(domainKey), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !domainExists {
+			return &ApplicationError{
+				Code:    code.DomainDoesNotExist,
+				Message: "Domain does not exist",
+			}
 		}
 	}
 
@@ -494,6 +538,9 @@ func (app *ABCIApplication) updateService(param []byte, callerNodeID string) *ab
 	if funcParam.DataSchemaVersion != "" {
 		service.DataSchemaVersion = funcParam.DataSchemaVersion
 	}
+	if funcParam.Domain != nil {
+		service.Domain = *funcParam.Domain
+	}
 	// Update detail in service directory
 	allServiceKey := "AllService"
 	allServiceValue, err := app.state.Get([]byte(allServiceKey), false)
@@ -511,6 +558,9 @@ func (app *ABCIApplication) updateService(param []byte, callerNodeID string) *ab
 			if service.ServiceId == funcParam.ServiceID {
 				if funcParam.ServiceName != "" {
 					services.Services[index].ServiceName = funcParam.ServiceName
+				}
+				if funcParam.Domain != nil {
+					services.Services[index].Domain = *funcParam.Domain
 				}
 			}
 		}

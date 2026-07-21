@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option go_package = "./;ndid_abci_state_v9";
+option go_package = "./;ndid_abci_state_v10";
 
-package ndid_abci_state_v9;
+package ndid_abci_state_v10;
 
 import "google/protobuf/wrappers.proto";
 
@@ -69,6 +69,8 @@ message ServiceDetail {
   string data_schema = 3;
   string data_schema_version = 4;
   bool active = 5;
+  string domain = 6;
+  bool requester_node_whitelist_enabled = 7;
 }
 
 message ApproveService {
@@ -314,4 +316,20 @@ message SuppressedIdentityModificationNotificationNode {
 
 message NodeSupportedFeature {
   // string name = 1;
+}
+
+
+message ServiceRequestNodePermission {
+  // string service_id = 1;
+  // string node_id = 2;
+}
+
+message Domain {
+  // string name = 1;
+  bool active = 1;
+  bool node_whitelist_enabled = 2;
+}
+
+message DomainNodePermission {
+  // string node_id = 1;
 }

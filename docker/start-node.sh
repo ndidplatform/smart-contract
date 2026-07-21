@@ -66,8 +66,8 @@ tendermint_set_log_level() {
   sed -i -E "s/^log_level = .*$/log_level = ${1}/" ${CMTHOME}/config/config.toml
 }
 
-tendermint_set_db_backend_cleveldb() {
-  sed -i -E "s/^db_backend = .*$/db_backend = \\\"cleveldb\\\"/" ${CMTHOME}/config/config.toml
+tendermint_set_db_backend() {
+  sed -i -E "s/^db_backend = .*$/db_backend = ${1}/" ${CMTHOME}/config/config.toml
 }
 
 tendermint_set_allow_duplicate_ip() {
@@ -125,7 +125,8 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
     genesis) 
       tendermint_init
       # tendermint_set_log_level '"debug"'
-      # tendermint_set_db_backend_cleveldb
+      # tendermint_set_db_backend '"cleveldb"'
+      # tendermint_set_db_backend '"pebbledb"'
       tendermint_set_allow_duplicate_ip ${ALLOW_DUPLICATE_IP}
       tendermint_set_addr_book_strict ${ADDR_BOOK_STRICT}
       tendermint_set_create_empty_block false
@@ -137,7 +138,7 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
       # tendermint_set_mempool_cache_size 0
       # if [ "${DEV_ENV}" != "true" ]; then tendermint_set_config_for_prod; fi
       tendermint_set_config_for_prod
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary) 
       if [ -z ${SEED_HOSTNAME} ]; then echo "Error: env SEED_HOSTNAME is not set"; exit 1; fi
@@ -160,7 +161,7 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
       until SEED_ID=$(tendermint_get_id_from_seed) && [ ! "${SEED_ID}" = "" ]; do sleep 1; done
       until tendermint_get_genesis_from_seed; do sleep 1; done
       tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
       tendermint_reset
@@ -174,12 +175,12 @@ if [ ! -f ${CMTHOME}/config/genesis.json ]; then
 else
   case ${TYPE} in
     genesis) 
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     secondary)
       until SEED_ID=$(tendermint_get_id_from_seed); do sleep 1; done
       tendermint_set_seeds ${SEED_ID}@${SEED_HOSTNAME}:${TM_P2P_PORT}
-      did-tendermint node --moniker=${HOSTNAME} $@
+      exec did-tendermint node --moniker=${HOSTNAME} $@
       ;;
     reset)
       tendermint_reset

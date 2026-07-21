@@ -32,17 +32,18 @@ import (
 	data "github.com/ndidplatform/smart-contract/v10/protos/data"
 )
 
-type GetErrorCodeListParam struct {
-	Type string `json:"type"`
+type GetDomainErrorCodeListParam struct {
+	Domain string `json:"domain"`
+	Type   string `json:"type"`
 }
 
-type GetErrorCodeListResult struct {
+type GetDomainErrorCodeListResult struct {
 	ErrorCode   int32  `json:"error_code"`
 	Description string `json:"description"`
 }
 
-func (app *ABCIApplication) getErrorCodeList(param []byte) *abcitypes.ResponseQuery {
-	var funcParam GetErrorCodeListParam
+func (app *ABCIApplication) getDomainErrorCodeList(param []byte) *abcitypes.ResponseQuery {
+	var funcParam GetDomainErrorCodeListParam
 	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
@@ -50,7 +51,7 @@ func (app *ABCIApplication) getErrorCodeList(param []byte) *abcitypes.ResponseQu
 
 	// convert funcParam to lowercase and fetch the code list
 	funcParam.Type = strings.ToLower(funcParam.Type)
-	errorCodeListKey := errorCodeListKeyPrefix + keySeparator + funcParam.Type
+	errorCodeListKey := domainErrorCodeListKeyPrefix + keySeparator + funcParam.Domain + keySeparator + funcParam.Type
 	errorCodeListBytes, err := app.state.Get([]byte(errorCodeListKey), false)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
@@ -63,9 +64,9 @@ func (app *ABCIApplication) getErrorCodeList(param []byte) *abcitypes.ResponseQu
 	}
 
 	// parse result into response format
-	result := make([]*GetErrorCodeListResult, 0, len(errorCodeList.ErrorCode))
+	result := make([]*GetDomainErrorCodeListResult, 0, len(errorCodeList.ErrorCode))
 	for _, errorCode := range errorCodeList.ErrorCode {
-		result = append(result, &GetErrorCodeListResult{
+		result = append(result, &GetDomainErrorCodeListResult{
 			ErrorCode:   errorCode.ErrorCode,
 			Description: errorCode.Description,
 		})

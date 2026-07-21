@@ -1,10 +1,55 @@
 # Changelog
 
-## 9.0.1 (April 29, 2026)
+## 10.0.0 (TBD)
+
+BREAKING CHANGES:
+
+- Add `domain` and `requester_node_whitelist_enabled` to service.
+- Check for node's service requester permission on validating create request.
+- Check for node's domain permission on validating create request.
+
+FEATURES:
+
+- Service
+  - [DeliverTx] Add `AddNodeToServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `RemoveNodeFromServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `EnableServiceRequesterNodeWhitelist` method.
+  - [DeliverTx] Add `DisableServiceRequesterNodeWhitelist` method.
+  - [Query] Add `GetServiceRequesterNodeWhitelist` method.
+  - [Query] Add `GetServiceRequesterNodeWhitelistByServiceID` method.
+  - [Query] Add `GetServiceRequesterNodePermission` method.
+  - [Query] Add `GetRequesterNodeWhitelistedServiceList` method.
+- Domain
+  - [DeliverTx] Add `AddDomain` method.
+  - [DeliverTx] Add `EnableDomain` method.
+  - [DeliverTx] Add `DisableDomain` method.
+  - [DeliverTx] Add `AddNodeToDomainNodeWhitelist` method.
+  - [DeliverTx] Add `RemoveNodeFromDomainNodeWhitelist` method.
+  - [DeliverTx] Add `EnableDomainNodeWhitelist` method.
+  - [DeliverTx] Add `DisableDomainNodeWhitelist` method.
+  - [DeliverTx] Add `AddDomainErrorCode` method.
+  - [DeliverTx] Add `RemoveDomainErrorCode` method.
+  - [Query] Add `GetDomainList` method.
+  - [Query] Add `GetDomainNodeWhitelist` method.
+  - [Query] Add `GetDomainNodeWhitelistByDomain` method.
+  - [Query] Add `GetDomainNodePermission` method.
+  - [Query] Add `GetDomainErrorCodeList` method.
+- [Query] Add `domain` and `requester_node_whitelist_enabled` properties to result of `GetServiceDetail`.
+- Support ABCI initial state data load from leveldb.
+- Support using initial state data database in leveldb format as a starting ABCI app state database.
+  - Initial state hash check on `InitChain` can be skipped by setting environment variable `ABCI_SKIP_INITIAL_STATE_HASH_VERIFICATION` to `true`.
+
+IMPROVEMENTS:
+
+- CometBFT v0.38.21.
+- [Query] `GetNodeSigningMasterPublicKey` supports `version` parameter.
+- [Query] `GetNodeSigningPublicKey` supports `version` parameter.
+- [Query] `GetNodeEncryptionPublicKey` supports `version` parameter.
+- [Query] `GetServiceList` supports `active` and `domain` (filter) parameters.
 
 BUG FIXES:
 
-- Fix memory leak when client subscribing for events through WebSocket. (Use forked CometBFT v0.38.6 with fix applied.)
+- Fix memory leak when client subscribing for events through WebSocket. (Use forked CometBFT v0.38.21 with fix applied.)
 
 ## 9.0.0 (August 1, 2024)
 

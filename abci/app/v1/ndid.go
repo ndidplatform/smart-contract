@@ -65,4 +65,18 @@ var regulatorMethod = map[string]bool{
 	"RemoveSuppressedIdentityModificationNotificationNode": true,
 	"AddAllowedNodeSupportedFeature":                       true,
 	"RemoveAllowedNodeSupportedFeature":                    true,
+	"AddNodeToServiceRequestNodeWhitelist":                 true,
+	"RemoveNodeFromServiceRequestNodeWhitelist":            true,
+	"EnableServiceRequestNodeWhitelist":                    true,
+	"DisableServiceRequestNodeWhitelist":                   true,
+	"AddDomain":                                            true,
+	"EnableDomain":                                         true,
+	"DisableDomain":                                        true,
+	"AddNodeToDomainNodeWhitelist":                         true,
+	"RemoveNodeFromDomainNodeWhitelist":                    true,
+	"EnableDomainNodeWhitelist":                            true,
+	"DisableDomainNodeWhitelist":                           true,
+	// YourData
+	"AddYourDataErrorCode":    true,
+	"RemoveYourDataErrorCode": true,
 }

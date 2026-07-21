@@ -28,15 +28,48 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	data "github.com/ndidplatform/smart-contract/v9/protos/data"
+	data "github.com/ndidplatform/smart-contract/v10/protos/data"
+	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
 )
 
+func (app *ABCIApplication) getService(serviceID string) (*ServiceDetail, error) {
+	key := serviceKeyPrefix + keySeparator + serviceID
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		return nil, err
+	}
+	if value == nil {
+		return nil, nil
+	}
+	var service data.ServiceDetail
+	err = proto.Unmarshal(value, &service)
+	if err != nil {
+		return nil, err
+	}
+
+	serviceDetail := &ServiceDetail{
+		ServiceID:                     service.ServiceId,
+		ServiceName:                   service.ServiceName,
+		DataSchema:                    service.DataSchema,
+		DataSchemaVersion:             service.DataSchemaVersion,
+		Active:                        service.Active,
+		RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+	}
+	if service.Domain != "" {
+		serviceDetail.Domain = &service.Domain
+	}
+
+	return serviceDetail, nil
+}
+
 type ServiceDetail struct {
-	ServiceID         string `json:"service_id"`
-	ServiceName       string `json:"service_name"`
-	DataSchema        string `json:"data_schema"`
-	DataSchemaVersion string `json:"data_schema_version"`
-	Active            bool   `json:"active"`
+	ServiceID                     string  `json:"service_id"`
+	ServiceName                   string  `json:"service_name"`
+	DataSchema                    string  `json:"data_schema,omitempty"`
+	DataSchemaVersion             string  `json:"data_schema_version,omitempty"`
+	Active                        bool    `json:"active"`
+	Domain                        *string `json:"domain,omitempty"`
+	RequesterNodeWhitelistEnabled bool    `json:"requester_node_whitelist_enabled"`
 }
 
 type GetServiceDetailParam struct {
@@ -50,6 +83,7 @@ func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQu
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
+
 	key := serviceKeyPrefix + keySeparator + funcParam.ServiceID
 	value, err := app.state.Get([]byte(key), true)
 	if err != nil {
@@ -64,62 +98,89 @@ func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQu
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	returnValue, err := json.Marshal(&service)
+
+	serviceRetVal := &ServiceDetail{
+		ServiceID:                     service.ServiceId,
+		ServiceName:                   service.ServiceName,
+		DataSchema:                    service.DataSchema,
+		DataSchemaVersion:             service.DataSchemaVersion,
+		Active:                        service.Active,
+		RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+	}
+	if service.Domain != "" {
+		serviceRetVal.Domain = &service.Domain
+	}
+
+	returnValue, err := json.Marshal(&serviceRetVal)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
+
 	return app.NewResponseQuery(returnValue, "success", app.state.Height)
+}
+
+type GetServiceListParam struct {
+	Active *bool   `json:"active"`
+	Domain *string `json:"domain"`
 }
 
 func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuery {
 	app.logger.Infof("GetServiceList, Parameter: %s", param)
-	key := "AllService"
-	value, err := app.state.Get([]byte(key), true)
+
+	var funcParam GetServiceListParam
+	err := json.Unmarshal(param, &funcParam)
 	if err != nil {
 		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	if value == nil {
-		result := make([]ServiceDetail, 0)
-		value, err := json.Marshal(result)
+
+	services := make([]ServiceDetail, 0)
+
+	keyIteratorPrefix := serviceKeyPrefix + keySeparator
+	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
+	iter, err := app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
+	}
+	for ; iter.Valid(); iter.Next() {
+		value := iter.Value()
+
+		var service data.ServiceDetail
+		err = proto.Unmarshal(value, &service)
 		if err != nil {
 			return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 		}
-		return app.NewResponseQuery(value, "not found", app.state.Height)
-	}
-	result := make([]*data.ServiceDetail, 0)
-	// filter flag==true
-	var services data.ServiceDetailList
-	err = proto.Unmarshal([]byte(value), &services)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-	for _, service := range services.Services {
-		if service.Active {
-			result = append(result, service)
-		}
-	}
-	returnValue, err := json.Marshal(result)
-	if err != nil {
-		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
-	}
-	return app.NewResponseQuery(returnValue, "success", app.state.Height)
-}
 
-func (app *ABCIApplication) getServiceNameByServiceID(serviceID string) string {
-	key := serviceKeyPrefix + keySeparator + serviceID
-	value, err := app.state.Get([]byte(key), true)
+		// filter by domain
+		if funcParam.Domain != nil && *funcParam.Domain != service.Domain {
+			continue
+		}
+
+		if funcParam.Active != nil {
+			if *funcParam.Active != service.Active {
+				continue
+			}
+		}
+
+		serviceDetail := ServiceDetail{
+			ServiceID:                     service.ServiceId,
+			ServiceName:                   service.ServiceName,
+			Active:                        service.Active,
+			RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+		}
+		if service.Domain != "" {
+			serviceDetail.Domain = &service.Domain
+		}
+
+		services = append(services, serviceDetail)
+	}
+	iter.Close()
+
+	returnValue, err := json.Marshal(services)
 	if err != nil {
-		panic(err)
+		return app.NewResponseQuery(nil, err.Error(), app.state.Height)
 	}
-	if value == nil {
-		return ""
-	}
-	var result ServiceDetail
-	err = json.Unmarshal([]byte(value), &result)
-	if err != nil {
-		return ""
-	}
-	return result.ServiceName
+
+	return app.NewResponseQuery(returnValue, "success", app.state.Height)
 }
 
 type GetServicesByAsIDParam struct {
