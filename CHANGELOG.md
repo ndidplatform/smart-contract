@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.0.0 (TBD)
+## 10.0.0 (July 21, 2026)
 
 BREAKING CHANGES:
 
