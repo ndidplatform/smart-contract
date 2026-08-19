@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine3.23 AS builder
+FROM golang:1.25-alpine3.24 AS builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache --virtual .build-deps \
@@ -33,7 +33,7 @@ RUN go build \
     ./abci
 
 
-FROM alpine:3.23
+FROM alpine:3.24
 LABEL maintainer="NDID IT Team <it@ndid.co.th>"
 
 # Data directory for ABCI to store state.
@@ -45,16 +45,13 @@ ENV CMTHOME=/tendermint
 # Set umask to 027
 RUN umask 027 && echo "umask 0027" >> /etc/profile
 
-COPY --from=builder /var/cache/apk /var/cache/apk
-
 # Install snappy lib used by LevelDB.
 # Install bash shell for convenience.
 RUN apk add --no-cache \
       bash \
       leveldb \
       snappy \
-      tzdata && \
-    rm -rf /var/cache/apk
+      tzdata
 
 COPY --from=builder /ndidplatform/smart-contract/did-tendermint /usr/bin/did-tendermint
 COPY docker/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh

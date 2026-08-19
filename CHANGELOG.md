@@ -1,5 +1,12 @@
 # Changelog
 
+## 10.0.1 (TBD)
+
+OTHERS:
+
+- Update dependencies.
+- [Docker] Update base image.
+
 ## 10.0.0 (July 21, 2026)
 
 BREAKING CHANGES:
