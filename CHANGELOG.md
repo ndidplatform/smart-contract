@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.0.1 (TBD)
+## 10.0.1 (September 1, 2026)
 
 OTHERS:
 
