@@ -328,6 +328,7 @@ message Domain {
   // string name = 1;
   bool active = 1;
   bool node_whitelist_enabled = 2;
+  bool cross_domain_request_disabled = 3;
 }
 
 message DomainNodePermission {

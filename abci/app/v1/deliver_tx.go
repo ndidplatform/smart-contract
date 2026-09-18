@@ -291,6 +291,10 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.enableDomainNodeWhitelist(param, nodeID)
 	case "DisableDomainNodeWhitelist":
 		return app.disableDomainNodeWhitelist(param, nodeID)
+	case "EnableDomainCrossDomainRequest":
+		return app.enableDomainCrossDomainRequest(param, nodeID)
+	case "DisableDomainCrossDomainRequest":
+		return app.disableDomainCrossDomainRequest(param, nodeID)
 	case "AddDomainErrorCode":
 		return app.addDomainErrorCode(param, nodeID)
 	case "RemoveDomainErrorCode":

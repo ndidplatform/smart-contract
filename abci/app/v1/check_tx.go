@@ -120,6 +120,8 @@ var IsMethod = map[string]bool{
 	"RemoveNodeFromDomainNodeWhitelist":                    true,
 	"EnableDomainNodeWhitelist":                            true,
 	"DisableDomainNodeWhitelist":                           true,
+	"EnableDomainCrossDomainRequest":                       true,
+	"DisableDomainCrossDomainRequest":                      true,
 	"AddDomainErrorCode":                                   true,
 	"RemoveDomainErrorCode":                                true,
 }
@@ -1107,6 +1109,10 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.enableDomainNodeWhitelistCheckTx(param, nodeID)
 	case "DisableDomainNodeWhitelist":
 		return app.disableDomainNodeWhitelistCheckTx(param, nodeID)
+	case "EnableDomainCrossDomainRequest":
+		return app.enableDomainCrossDomainRequestCheckTx(param, nodeID)
+	case "DisableDomainCrossDomainRequest":
+		return app.disableDomainCrossDomainRequestCheckTx(param, nodeID)
 	case "AddDomainErrorCode":
 		return app.addDomainErrorCodeCheckTx(param, nodeID)
 	case "RemoveDomainErrorCode":

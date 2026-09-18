@@ -76,7 +76,8 @@ var regulatorMethod = map[string]bool{
 	"RemoveNodeFromDomainNodeWhitelist":                    true,
 	"EnableDomainNodeWhitelist":                            true,
 	"DisableDomainNodeWhitelist":                           true,
-	// YourData
-	"AddYourDataErrorCode":    true,
-	"RemoveYourDataErrorCode": true,
+	"EnableDomainCrossDomainRequest":                       true,
+	"DisableDomainCrossDomainRequest":                      true,
+	"AddDomainErrorCode":                                   true,
+	"RemoveDomainErrorCode":                                true,
 }

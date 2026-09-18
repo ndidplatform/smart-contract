@@ -464,7 +464,7 @@ func (app *ABCIApplication) validateUpdateService(funcParam UpdateServiceParam, 
 		}
 	}
 
-	if funcParam.Domain != nil {
+	if funcParam.Domain != nil && *funcParam.Domain != "" {
 		domainKey := domainKeyPrefix + keySeparator + *funcParam.Domain
 		domainExists, err := app.state.Has([]byte(domainKey), committedState)
 		if err != nil {

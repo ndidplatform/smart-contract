@@ -162,6 +162,7 @@ const (
 	DomainDoesNotExist                                            uint32 = 138
 	DomainNotActive                                               uint32 = 139
 	DomainCannotBeEmpty                                           uint32 = 140
+	CrossServiceDomainRequestNotAllowed                           uint32 = 141
 
 	UnknownError uint32 = 999
 )

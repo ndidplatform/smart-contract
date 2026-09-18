@@ -263,6 +263,7 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 	}
 
 	// for node domain permission check (e.g. YourData)
+	containsServiceWithNoDomain := false
 	containsServiceDomains := make(map[string]struct{})
 
 	// for destination (AS) node domain permission check (e.g. YourData)
@@ -289,6 +290,8 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 
 		if service.Domain != nil {
 			containsServiceDomains[*service.Domain] = struct{}{}
+		} else {
+			containsServiceWithNoDomain = true
 		}
 
 		// check if requester node ID is allowed to create request with this service ID
@@ -389,6 +392,26 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 					asServiceDomains[asNodeID] = make(map[string]struct{})
 				}
 				asServiceDomains[asNodeID][*service.Domain] = struct{}{}
+			}
+		}
+	}
+
+	// check if cross service domain request is allowed
+	if containsServiceWithNoDomain && len(containsServiceDomains) > 0 {
+		for domainName := range containsServiceDomains {
+			domain, err := app.getDomain(domainName)
+			if err != nil {
+				return &ApplicationError{
+					Code:    code.AppStateError,
+					Message: err.Error(),
+				}
+			}
+
+			if domain == nil || domain.CrossDomainRequestDisabled {
+				return &ApplicationError{
+					Code:    code.CrossServiceDomainRequestNotAllowed,
+					Message: "Cross service domain request is not allowed",
+				}
 			}
 		}
 	}

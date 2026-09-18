@@ -35,8 +35,9 @@ import (
 )
 
 type AddDomainParam struct {
-	Domain               string `json:"domain"`
-	NodeWhitelistEnabled bool   `json:"node_whitelist_enabled"`
+	Domain                     string `json:"domain"`
+	NodeWhitelistEnabled       bool   `json:"node_whitelist_enabled"`
+	CrossDomainRequestDisabled bool   `json:"cross_domain_request_disabled"`
 }
 
 func (app *ABCIApplication) validateAddDomain(funcParam AddDomainParam, callerNodeID string, committedState bool, checktx bool) error {
@@ -123,6 +124,7 @@ func (app *ABCIApplication) addDomain(param []byte, callerNodeID string) *abcity
 	var domain data.Domain
 	domain.Active = true
 	domain.NodeWhitelistEnabled = funcParam.NodeWhitelistEnabled
+	domain.CrossDomainRequestDisabled = funcParam.CrossDomainRequestDisabled
 
 	value, err := utils.ProtoDeterministicMarshal(&domain)
 	if err != nil {
@@ -365,9 +367,10 @@ type GetDomainListParam struct {
 }
 
 type Domain struct {
-	Domain               string `json:"domain"`
-	Acitve               bool   `json:"active"`
-	NodeWhitelistEnabled bool   `json:"node_whitelist_enabled"`
+	Domain                     string `json:"domain"`
+	Acitve                     bool   `json:"active"`
+	NodeWhitelistEnabled       bool   `json:"node_whitelist_enabled"`
+	CrossDomainRequestDisabled bool   `json:"cross_domain_request_disabled"`
 }
 
 type GetDomainListResult struct {
@@ -405,9 +408,10 @@ func (app *ABCIApplication) getDomainList(param []byte) *abcitypes.ResponseQuery
 		}
 
 		domainList = append(domainList, Domain{
-			Domain:               domainName,
-			Acitve:               domain.Active,
-			NodeWhitelistEnabled: domain.NodeWhitelistEnabled,
+			Domain:                     domainName,
+			Acitve:                     domain.Active,
+			NodeWhitelistEnabled:       domain.NodeWhitelistEnabled,
+			CrossDomainRequestDisabled: domain.CrossDomainRequestDisabled,
 		})
 	}
 	iter.Close()
@@ -422,4 +426,22 @@ func (app *ABCIApplication) getDomainList(param []byte) *abcitypes.ResponseQuery
 	}
 
 	return app.NewResponseQuery(resultJSON, "success", app.state.Height)
+}
+
+func (app *ABCIApplication) getDomain(domainName string) (*data.Domain, error) {
+	key := domainKeyPrefix + keySeparator + domainName
+	value, err := app.state.Get([]byte(key), true)
+	if err != nil {
+		return nil, err
+	}
+	if value == nil {
+		return nil, nil
+	}
+	var domain data.Domain
+	err = proto.Unmarshal(value, &domain)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain, nil
 }

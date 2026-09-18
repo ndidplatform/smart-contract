@@ -1,5 +1,22 @@
 # Changelog
 
+## 10.1.0 (TBD)
+
+FEATURES:
+
+- Domain
+  - Add `cross_domain_request_disabled` flag to domain.
+  - [DeliverTx] Add `EnableDomainCrossDomainRequest` method.
+  - [DeliverTx] Add `DisableDomainCrossDomainRequest` method.
+- Check for cross service domain permission on validating create request.
+
+**IMPORTANT**: Feature mentioned above are considered breaking changes if deploy to the existing chain with transactions that violate the normal use cases (unexpected cross domain services in request).
+
+IMPROVEMENTS:
+
+- Service
+  - Allow updating service domain to no domain by specifying `domain` with an empty string.
+
 ## 10.0.1 (September 1, 2026)
 
 OTHERS:
