@@ -10,7 +10,7 @@ FEATURES:
   - [DeliverTx] Add `DisableDomainCrossDomainRequest` method.
 - Check for cross service domain permission on validating create request.
 
-**IMPORTANT**: Feature mentioned above are considered breaking changes if deploy to the existing chain with transactions that violate the normal use cases (unexpected cross domain services in request).
+**IMPORTANT**: Features mentioned above are considered breaking changes if deploy to the existing chain with transactions that violate the normal use cases (unexpected cross domain services in request).
 
 IMPROVEMENTS:
 
