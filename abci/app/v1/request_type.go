@@ -24,6 +24,7 @@ package app
 
 import (
 	"encoding/json"
+	"strings"
 
 	abcitypes "github.com/cometbft/cometbft/abci/types"
 	goleveldbutil "github.com/syndtr/goleveldb/leveldb/util"
@@ -47,6 +48,13 @@ func (app *ABCIApplication) validateAddRequestType(funcParam AddRequestTypeParam
 		return &ApplicationError{
 			Code:    code.NoPermissionForCallNDIDMethod,
 			Message: "This node does not have permission to call NDID method",
+		}
+	}
+
+	if funcParam.Name == "" {
+		return &ApplicationError{
+			Code:    code.RequestTypeCannotBeEmpty,
+			Message: "Request type name cannot be empty",
 		}
 	}
 
@@ -198,9 +206,62 @@ func (app *ABCIApplication) removeRequestType(param []byte, callerNodeID string)
 		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
 	}
 
-	key := requestTypeKeyPrefix + keySeparator + funcParam.Name
+	requestType := funcParam.Name
+
+	key := requestTypeKeyPrefix + keySeparator + requestType
+
+	// remove from all service's request type whitelist
+	keysToDelete := make([]string, 0)
+
+	// look up in committed state
+	keyIteratorPrefix := serviceRequestTypeWhitelistKeyPrefix + keySeparator
+	r := goleveldbutil.BytesPrefix([]byte(keyIteratorPrefix))
+	iter, err := app.state.db.Iterator(r.Start, r.Limit)
+	if err != nil {
+		return app.NewExecTxResult(code.UnknownError, err.Error(), "")
+	}
+
+	for ; iter.Valid(); iter.Next() {
+		key := iter.Key()
+
+		// Key structure: prefix + separator + serviceID + separator + requestType
+		runes := []rune(string(key))
+		keyContent := string(runes[len(keyIteratorPrefix):])
+
+		// Split or parse out the components.
+		// Check if the key ends with input requestType
+		expectedSuffix := keySeparator + requestType
+		if !strings.HasSuffix(keyContent, expectedSuffix) {
+			continue
+		}
+
+		keysToDelete = append(keysToDelete, string(key))
+	}
+	iter.Close()
+
+	// look up in uncommitted state
+	for key := range app.state.uncommittedState {
+		if !strings.HasPrefix(key, keyIteratorPrefix) {
+			continue
+		}
+
+		runes := []rune(key)
+		keyContent := string(runes[len(keyIteratorPrefix):])
+
+		// Split or parse out the components.
+		// Check if the key ends with input requestType
+		expectedSuffix := keySeparator + requestType
+		if !strings.HasSuffix(keyContent, expectedSuffix) {
+			continue
+		}
+
+		keysToDelete = append(keysToDelete, key)
+	}
 
 	app.state.Delete([]byte(key))
+	for _, key := range keysToDelete {
+		app.state.Delete([]byte(key))
+	}
 
 	return app.NewExecTxResult(code.OK, "success", "")
 }

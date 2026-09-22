@@ -71,6 +71,7 @@ message ServiceDetail {
   bool active = 5;
   string domain = 6;
   bool requester_node_whitelist_enabled = 7;
+  bool request_type_whitelist_enabled = 8;
 }
 
 message ApproveService {
@@ -318,10 +319,12 @@ message NodeSupportedFeature {
   // string name = 1;
 }
 
-
 message ServiceRequestNodePermission {
   // string service_id = 1;
   // string node_id = 2;
+}
+
+message ServiceRequestTypePermission {
 }
 
 message Domain {

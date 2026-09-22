@@ -74,6 +74,7 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.getAccessorKey(param)
 	case "GetServiceList":
 		return app.getServiceList(param)
+	// service's requester node
 	case "GetServiceRequesterNodeWhitelist":
 		return app.getServiceRequesterNodeWhitelist(param)
 	case "GetServiceRequesterNodeWhitelistByServiceID":
@@ -82,6 +83,16 @@ func (app *ABCIApplication) callQuery(name string, param []byte, height int64) *
 		return app.getRequesterNodeWhitelistedServiceList(param)
 	case "GetServiceRequesterNodePermission":
 		return app.getServiceRequesterNodePermission(param)
+	// service's request type
+	case "GetServiceRequestTypeWhitelist":
+		return app.getServiceRequestTypeWhitelist(param)
+	case "GetServiceRequestTypeWhitelistByServiceID":
+		return app.getServiceRequestTypeWhitelistByServiceID(param)
+	case "GetRequestTypeWhitelistedServiceList":
+		return app.getRequestTypeWhitelistedServiceList(param)
+	case "GetServiceRequestTypePermission":
+		return app.getServiceRequestTypePermission(param)
+
 	case "GetNodeSigningMasterPublicKey":
 		return app.getNodeSigningMasterPublicKey(param)
 	case "GetNodeInfo":

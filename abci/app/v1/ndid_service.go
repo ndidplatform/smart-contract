@@ -41,6 +41,7 @@ type AddServiceParam struct {
 	DataSchemaVersion             string  `json:"data_schema_version"`
 	Domain                        *string `json:"domain,omitempty"`
 	RequesterNodeWhitelistEnabled bool    `json:"requester_node_whitelist_enabled"`
+	RequestTypeWhitelistEnabled   bool    `json:"request_type_whitelist_enabled"`
 }
 
 func (app *ABCIApplication) validateAddService(funcParam AddServiceParam, callerNodeID string, committedState bool, checktx bool) error {
@@ -143,6 +144,7 @@ func (app *ABCIApplication) addService(param []byte, callerNodeID string) *abcit
 		service.Domain = *funcParam.Domain
 	}
 	service.RequesterNodeWhitelistEnabled = funcParam.RequesterNodeWhitelistEnabled
+	service.RequestTypeWhitelistEnabled = funcParam.RequestTypeWhitelistEnabled
 	serviceValue, err := utils.ProtoDeterministicMarshal(&service)
 	if err != nil {
 		return app.NewExecTxResult(code.MarshalError, err.Error(), "")

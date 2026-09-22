@@ -54,6 +54,7 @@ func (app *ABCIApplication) getService(serviceID string) (*ServiceDetail, error)
 		DataSchemaVersion:             service.DataSchemaVersion,
 		Active:                        service.Active,
 		RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+		RequestTypeWhitelistEnabled:   service.RequestTypeWhitelistEnabled,
 	}
 	if service.Domain != "" {
 		serviceDetail.Domain = &service.Domain
@@ -70,6 +71,7 @@ type ServiceDetail struct {
 	Active                        bool    `json:"active"`
 	Domain                        *string `json:"domain,omitempty"`
 	RequesterNodeWhitelistEnabled bool    `json:"requester_node_whitelist_enabled"`
+	RequestTypeWhitelistEnabled   bool    `json:"request_type_whitelist_enabled"`
 }
 
 type GetServiceDetailParam struct {
@@ -106,6 +108,7 @@ func (app *ABCIApplication) getServiceDetail(param []byte) *abcitypes.ResponseQu
 		DataSchemaVersion:             service.DataSchemaVersion,
 		Active:                        service.Active,
 		RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+		RequestTypeWhitelistEnabled:   service.RequestTypeWhitelistEnabled,
 	}
 	if service.Domain != "" {
 		serviceRetVal.Domain = &service.Domain
@@ -166,6 +169,7 @@ func (app *ABCIApplication) getServiceList(param []byte) *abcitypes.ResponseQuer
 			ServiceName:                   service.ServiceName,
 			Active:                        service.Active,
 			RequesterNodeWhitelistEnabled: service.RequesterNodeWhitelistEnabled,
+			RequestTypeWhitelistEnabled:   service.RequestTypeWhitelistEnabled,
 		}
 		if service.Domain != "" {
 			serviceDetail.Domain = &service.Domain

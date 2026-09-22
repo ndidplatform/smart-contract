@@ -54,6 +54,7 @@ const (
 	serviceKeyPrefix                                     = "Service"
 	serviceDestinationKeyPrefix                          = "ServiceDestination"
 	serviceRequesterNodeWhitelistKeyPrefix               = "ServiceRequesterPermission"
+	serviceRequestTypeWhitelistKeyPrefix                 = "ServiceRequestTypePermission"
 	approvedServiceKeyPrefix                             = "ApproveKey"
 	providedServicesKeyPrefix                            = "ProvideService"
 	refGroupCodeKeyPrefix                                = "RefGroupCode"

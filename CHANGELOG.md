@@ -4,10 +4,23 @@
 
 FEATURES:
 
+- Add `request_type_whitelist_enabled` to service.
+- Service
+  - [DevliverTx] Add `AddRequestTypeToServiceRequestTypeWhitelist` method.
+  - [DevliverTx] Add `RemoveRequestTypeFromServiceRequestTypeWhitelist` method.
+  - [DevliverTx] Add `EnableServiceRequestTypeWhitelist` method.
+  - [DevliverTx] Add `DisableServiceRequestTypeWhitelist` method.
+  - [Query] Add `GetServiceRequestTypeWhitelist` method.
+  - [Query] Add `GetServiceRequestTypeWhitelistByServiceID` method.
+  - [Query] Add `GetRequestTypeWhitelistedServiceList` method.
+  - [Query] Add `GetServiceRequestTypePermission` method.
 - Domain
   - Add `cross_domain_request_disabled` flag to domain.
   - [DeliverTx] Add `EnableDomainCrossDomainRequest` method.
   - [DeliverTx] Add `DisableDomainCrossDomainRequest` method.
+- [Query] Add `request_type_whitelist_enabled` property to result of `GetServiceDetail` and `GetServiceList`.
+- Add request type name restriction (empty string not allowed) on validating `AddRequestType`.
+- Check for service request type permission on validating create request.
 - Check for cross service domain permission on validating create request.
 
 **IMPORTANT**: Features mentioned above are considered breaking changes if deploy to the existing chain with transactions that violate the normal use cases (unexpected cross domain services in request).

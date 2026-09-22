@@ -113,6 +113,10 @@ var IsMethod = map[string]bool{
 	"RemoveNodeFromServiceRequesterNodeWhitelist":          true,
 	"EnableServiceRequesterNodeWhitelist":                  true,
 	"DisableServiceRequesterNodeWhitelist":                 true,
+	"AddRequestTypeToServiceRequestTypeWhitelist":          true,
+	"RemoveRequestTypeFromServiceRequestTypeWhitelist":     true,
+	"EnableServiceRequestTypeWhitelist":                    true,
+	"DisableServiceRequestTypeWhitelist":                   true,
 	"AddDomain":                                            true,
 	"EnableDomain":                                         true,
 	"DisableDomain":                                        true,
@@ -1021,6 +1025,7 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.setServicePriceCeilingCheckTx(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelayCheckTx(param, nodeID)
+	// service's requester node
 	case "AddNodeToServiceRequesterNodeWhitelist":
 		return app.addNodeToServiceRequesterNodeWhitelistCheckTx(param, nodeID)
 	case "RemoveNodeFromServiceRequesterNodeWhitelist":
@@ -1029,6 +1034,15 @@ func (app *ABCIApplication) callCheckTx(name string, param []byte, nodeID string
 		return app.enableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
 	case "DisableServiceRequesterNodeWhitelist":
 		return app.disableServiceRequesterNodeWhitelistCheckTx(param, nodeID)
+	// service's request type
+	case "AddRequestTypeToServiceRequestTypeWhitelist":
+		return app.addRequestTypeToServiceRequestTypeWhitelistCheckTx(param, nodeID)
+	case "RemoveRequestTypeFromServiceRequestTypeWhitelist":
+		return app.removeRequestTypeFromServiceRequestTypeWhitelistCheckTx(param, nodeID)
+	case "EnableServiceRequestTypeWhitelist":
+		return app.enableServiceRequestTypeWhitelistCheckTx(param, nodeID)
+	case "DisableServiceRequestTypeWhitelist":
+		return app.disableServiceRequestTypeWhitelistCheckTx(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALListCheckTx(param, nodeID)

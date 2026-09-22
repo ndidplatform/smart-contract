@@ -203,6 +203,7 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.setServicePriceCeiling(param, nodeID)
 	case "SetServicePriceMinEffectiveDatetimeDelay":
 		return app.setServicePriceMinEffectiveDatetimeDelay(param, nodeID)
+	// service's requester node
 	case "AddNodeToServiceRequesterNodeWhitelist":
 		return app.addNodeToServiceRequesterNodeWhitelist(param, nodeID)
 	case "RemoveNodeFromServiceRequesterNodeWhitelist":
@@ -211,6 +212,15 @@ func (app *ABCIApplication) callDeliverTx(name string, param []byte, nodeID stri
 		return app.enableServiceRequesterNodeWhitelist(param, nodeID)
 	case "DisableServiceRequesterNodeWhitelist":
 		return app.disableServiceRequesterNodeWhitelist(param, nodeID)
+	// service's request type
+	case "AddRequestTypeToServiceRequestTypeWhitelist":
+		return app.addRequestTypeToServiceRequestTypeWhitelist(param, nodeID)
+	case "RemoveRequestTypeFromServiceRequestTypeWhitelist":
+		return app.removeRequestTypeFromServiceRequestTypeWhitelist(param, nodeID)
+	case "EnableServiceRequestTypeWhitelist":
+		return app.enableServiceRequestTypeWhitelist(param, nodeID)
+	case "DisableServiceRequestTypeWhitelist":
+		return app.disableServiceRequestTypeWhitelist(param, nodeID)
 
 	case "SetSupportedIALList":
 		return app.setSupportedIALList(param, nodeID)

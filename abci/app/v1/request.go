@@ -177,6 +177,24 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 		}
 	}
 
+	// Check valid request type
+	if funcParam.RequestType != nil {
+		key := requestTypeKeyPrefix + keySeparator + *funcParam.RequestType
+		requestTypeExists, err := app.state.Has([]byte(key), committedState)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !requestTypeExists {
+			return &ApplicationError{
+				Code:    code.RequestTypeDoesNotExist,
+				Message: "Invalid request type",
+			}
+		}
+	}
+
 	// Check all IdP in list is active
 	for _, idp := range funcParam.IdPIDList {
 		// Check IdP is in the rp whitelist
@@ -294,15 +312,30 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 			containsServiceWithNoDomain = true
 		}
 
-		// check if requester node ID is allowed to create request with this service ID
-		allowed, err := app.hasServiceRequestPermission(*service, callerNodeID)
+		// check if request type is allowed to create request with this service ID
+		requestTypeAllowed, err := app.hasServiceRequestTypePermission(*service, funcParam.RequestType)
 		if err != nil {
 			return &ApplicationError{
 				Code:    code.AppStateError,
 				Message: err.Error(),
 			}
 		}
-		if !allowed {
+		if !requestTypeAllowed {
+			return &ApplicationError{
+				Code:    code.ServiceRequestNotAllowed,
+				Message: fmt.Sprintf("Request type is not allowed for service ID: %s", serviceID),
+			}
+		}
+
+		// check if requester node ID is allowed to create request with this service ID
+		requesterNodeAllowed, err := app.hasServiceRequestPermission(*service, callerNodeID)
+		if err != nil {
+			return &ApplicationError{
+				Code:    code.AppStateError,
+				Message: err.Error(),
+			}
+		}
+		if !requesterNodeAllowed {
 			return &ApplicationError{
 				Code:    code.ServiceRequestNotAllowed,
 				Message: fmt.Sprintf("Node is not allowed to request service ID: %s", serviceID),
@@ -449,23 +482,6 @@ func (app *ABCIApplication) validateCreateRequest(funcParam CreateRequestParam, 
 					Code:    code.ServiceRequestNotAllowed,
 					Message: fmt.Sprintf("AS node: %s is not allowed to serve service with domain: %s", asNodeID, domain),
 				}
-			}
-		}
-	}
-
-	if funcParam.RequestType != nil {
-		key := requestTypeKeyPrefix + keySeparator + *funcParam.RequestType
-		requestTypeExists, err := app.state.Has([]byte(key), committedState)
-		if err != nil {
-			return &ApplicationError{
-				Code:    code.AppStateError,
-				Message: err.Error(),
-			}
-		}
-		if !requestTypeExists {
-			return &ApplicationError{
-				Code:    code.RequestTypeDoesNotExist,
-				Message: "Invalid request type",
 			}
 		}
 	}
