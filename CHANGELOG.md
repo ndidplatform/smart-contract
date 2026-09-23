@@ -30,6 +30,10 @@ IMPROVEMENTS:
 - Service
   - Allow updating service domain to no domain by specifying `domain` with an empty string.
 
+OTHERS:
+
+- [Docker] Update base image.
+
 ## 10.0.1 (September 1, 2026)
 
 OTHERS:

@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine3.24 AS builder
+FROM golang:1.26-alpine3.24 AS builder
 
 # Install tools and snappy lib
 RUN apk update && apk add --no-cache \
