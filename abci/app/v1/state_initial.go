@@ -278,7 +278,7 @@ func (appState *AppState) CheckInitialState(logger *logrus.Entry) (hasInitialSta
 	hash = hashDigest.Sum(nil)
 
 	if !bytes.Equal(hash, initialStateHash) {
-		return true, hash, fmt.Errorf("initial state hash mismatch")
+		return true, hash, fmt.Errorf("initial state hash mismatch, expected: %x, got: %x", initialStateHash, hash)
 	}
 
 	logger.Infof("Initial state hash verified, key count: %d, time used: %s", keyCount, time.Since(startTime))

@@ -116,54 +116,67 @@ func (app *ABCIApplication) Info(info *abcitypes.RequestInfo) (*abcitypes.Respon
 	return res, nil
 }
 
-// Save the validators in the merkle tree
+// Verify or load initial state data and save the validators provided from genesis
 func (app *ABCIApplication) InitChain(chain *abcitypes.RequestInitChain) (*abcitypes.ResponseInitChain, error) {
 	app.logger.Infof("InitChain: %s", chain.ChainId)
 
-	hasInitialState, hash, err := app.state.CheckInitialState(app.logger)
-	if err != nil {
-		panic(err)
-	}
+	chainInitialized := app.state.ChainID != "" && len(app.state.AppHash) != 0
+	if chainInitialized {
+		app.logger.Infof("Chain initialized with Chain ID: %s, Height: %d App Hash: %x", app.state.ChainID, app.state.Height, app.state.AppHash)
 
-	if hasInitialState {
-		app.state.HasHashData = true
-		app.state.HashDigest.Write(hash)
+		if app.state.ChainID != chain.ChainId {
+			panic("Chain initialized with different chain ID")
+		}
 
-		app.state.InitialStateDataLoaded = true
+		if app.state.Height > 0 {
+			panic("Chain has already progressed (current block height greater than 0)")
+		}
 	} else {
-		// load initial state data from file if provided
-		if app.initialStateDir != "" {
-			app.logger.Infof("Loading initial state data from directory: %s", app.initialStateDir)
+		hasInitialState, hash, err := app.state.CheckInitialState(app.logger)
+		if err != nil {
+			panic(err)
+		}
 
-			hash, err := app.state.LoadInitialState(app.logger, app.initialStateDir)
-			if err != nil {
-				panic(err)
-			}
-
+		if hasInitialState {
 			app.state.HasHashData = true
 			app.state.HashDigest.Write(hash)
 
 			app.state.InitialStateDataLoaded = true
 		} else {
-			app.logger.Infof("No initial state data provided")
+			// load initial state data from file if provided
+			if app.initialStateDir != "" {
+				app.logger.Infof("Loading initial state data from directory: %s", app.initialStateDir)
+
+				hash, err := app.state.LoadInitialState(app.logger, app.initialStateDir)
+				if err != nil {
+					panic(err)
+				}
+
+				app.state.HasHashData = true
+				app.state.HashDigest.Write(hash)
+
+				app.state.InitialStateDataLoaded = true
+			} else {
+				app.logger.Infof("No initial state data provided")
+			}
 		}
-	}
 
-	app.CurrentChain = chain.ChainId
-	app.state.ChainID = chain.ChainId
+		app.CurrentChain = chain.ChainId
+		app.state.ChainID = chain.ChainId
 
-	for _, v := range chain.Validators {
-		r := app.updateValidator(v)
-		if r.IsErr() {
-			app.logger.Error("Error updating validators", "r", r)
+		for _, v := range chain.Validators {
+			r := app.updateValidator(v)
+			if r.IsErr() {
+				app.logger.Error("Error updating validators", "r", r)
+			}
 		}
-	}
 
-	if app.state.HasHashData {
-		app.state.AppHash = app.state.HashDigest.Sum(nil)
+		if app.state.HasHashData {
+			app.state.AppHash = app.state.HashDigest.Sum(nil)
+		}
+		// Save state
+		app.state.Save()
 	}
-	// Save state
-	app.state.Save()
 
 	return &abcitypes.ResponseInitChain{
 		AppHash: app.state.AppHash,
