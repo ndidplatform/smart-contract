@@ -6,6 +6,10 @@ BUG FIXES:
 
 - Prevent `InitChain` re-run if it is already initialized (current app state exists).
 
+OTHERS:
+
+- Update dependencies.
+
 ## 10.1.0 (September 23, 2026)
 
 FEATURES:
