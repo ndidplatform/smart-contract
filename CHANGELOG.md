@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.1.1 (TBD)
+## 10.1.1 (November 4, 2026)
 
 BUG FIXES:
 
