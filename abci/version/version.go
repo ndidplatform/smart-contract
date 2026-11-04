@@ -41,7 +41,7 @@ func init() {
 
 const (
 	// ABCIAppSemVer is ABCI app version.
-	ABCIAppSemVer = "10.1.0"
+	ABCIAppSemVer = "10.1.1"
 
 	// ABCIAppProtocolVersion is ABCI App protocol version.
 	// Increment ONLY when backward compatibility is not possible or chain migration is needed.
